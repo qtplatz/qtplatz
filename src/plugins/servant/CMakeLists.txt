@@ -74,14 +74,9 @@ add_library( ${PROJECT_NAME} MODULE
   target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
     ${Boost_LIBRARIES}
     adcontrols
-    adextension
     adportable
-    adplugin
     adplugin_manager
-    adlog
-    qtwrapper
     adextension
-    xmlparser
     Core
     ${EXTENSIONSYSTEM}
     Qt::Core
@@ -105,9 +100,3 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   LIBRARY DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  install( FILES
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    DESTINATION "${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER}" COMPONENT plugins )
-endif()

@@ -78,6 +78,7 @@ ChemistryPlugin::~ChemistryPlugin()
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
+    ADDEBUG() << "ChemistryPlugin initialized";
     // ScopedDebug( x );
     initialize_actions();
 
@@ -91,7 +92,6 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
                 // ExtensionSystem::PluginManager::addObject( mode_.get() );
             }
         }
-        // ADDEBUG() << "ChemistryPlugin initialized";
     }
     return true;
 }
