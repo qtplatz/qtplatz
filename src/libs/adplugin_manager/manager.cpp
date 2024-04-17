@@ -349,10 +349,9 @@ manager::standalone_initialize()
     auto tpath = boost::dll::program_location().parent_path().parent_path();  // <-- install dir (/opt/qtplatz/bin/qtplatz/../..)
 #endif
 
-    ADDEBUG() << "------------ standalone initialize ----------------" << std::endl;
-    ADDEBUG() << "this_line_location :" << boost::dll::this_line_location();
-    ADDEBUG() << "tpath              :" << tpath;
+    ADDEBUG() << __FUNCTION__ << " -- " << "adplugin::loader::populate..." << std::endl;
     adplugin::loader::populate( tpath );
+    ADDEBUG() << __FUNCTION__ << " -- " << "adplugin::loader::populate done." << std::endl;
 
     // spectrometers
 	std::vector< adplugin::plugin_ptr > spectrometers;

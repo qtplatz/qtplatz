@@ -109,7 +109,6 @@ datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
     // no need to call visitor due to no additional plugin
 	// v.visit( this, adplugin );
-    ADDEBUG() << "## datafile_factory::accept : adplugin = " << adplugin;
 }
 
 void *

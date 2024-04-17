@@ -89,9 +89,6 @@ loader::plugin_directory()
 void
 loader::populate( const std::filesystem::path& appdir )
 {
-    // ScopedDebug(__t);
-    // __t << " : " << appdir;
-
 #if defined __APPLE__
     std::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
     std::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
@@ -107,57 +104,17 @@ loader::populate( const std::filesystem::path& appdir )
         if ( !ec ) {
             while ( it != std::filesystem::recursive_directory_iterator() ) {
                 if ( std::filesystem::is_regular_file( it->status() ) ) {
-
-                    // attempt to find a newly defined interface as of 2023-SEP-02
                     if ( it->path().extension() == boost::dll::shared_library::suffix() )  {
-                        boost::dll::shared_library lib( it->path() );
-                        if ( lib.has( "adplugin_instance" ) ) {
-                            auto instance = boost::dll::import_alias< adplugin::plugin *() >( std::move( lib ), "adplugin_instance" );
-                            try {
-                                if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
-                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess (boost::dll)";
-                                } else {
-                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tFailed (boost::dll)";
-                                }
-                            } catch (const boost::system::system_error &err) {
-                                ADDEBUG() << "Cannot load Plugin from " << it->path() << "\nERR: " << err.what() << std::endl;
-                            } catch ( std::exception& ex ) {
-                                ADDEBUG() << "Exception:" << ex.what() << std::endl;
-                            } catch ( ... ) {
-                                ADDEBUG() << "Exception" << std::endl;
-                            }
-                        }
-                    }
-
-                    auto filename = it->path().filename().string();
-                    if ( it->path().extension() == L".adplugin" && !manager::instance()->isLoaded( it->path().string() ) ) {
-                        auto stem   = std::filesystem::path( it->path().stem().string() + debug_trail );
-                        auto libname  = it->path().parent_path() / (stem.string() + debug_trail);
-                        //
-                        auto fullpath = it->path().parent_path() /
-                            std::filesystem::path( __prefix.string() + stem.string() ).replace_extension(
-                                boost::dll::shared_library::suffix() );
-
-                        std::error_code ec;
-                        boost::dll::shared_library dll( libname, ec, boost::dll::load_mode::append_decorations );
+                        boost::dll::shared_library lib( it->path(), ec );
                         if ( !ec ) {
-                            if ( dll.has( "adplugin_plugin_instance" ) ) {
-                                auto factory = dll.get< adplugin::plugin *() >( "adplugin_plugin_instance" );
-                                if ( auto plugin = factory() ) {
-                                    if ( manager::instance()->install( std::move( dll ), it->path().generic_string() ) ) {
-//#ifndef NDEBUG
-                                        ADDEBUG() << "load\t" << std::filesystem::relative( dll.location(), appdir ) << "\tSuccess (traditional)";
-//#endif
-                                    }
+                            if ( lib.has( "adplugin_instance" ) ) {
+                                auto instance = boost::dll::import_alias< adplugin::plugin *() >( std::move( lib ), "adplugin_instance" );
+                                if ( manager::instance()->install( boost::dll::shared_library( it->path() ), instance ) ) {
+                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tSuccess.";
+                                } else {
+                                    ADDEBUG() << "\t-- load\t" << std::filesystem::relative( it->path(), appdir ) << "\tFailed.";
                                 }
-                            } else {
-                                ADDEBUG() << "library\t" << std::filesystem::relative( dll.location(), appdir )
-                                          << " has no interface. Load failed.";
                             }
-                        } else {
-                            ADDEBUG() << "## failed to load " << std::filesystem::relative( libname, appdir ) << "\t: " << ec.message();
-                            ADDEBUG() << "\t--> " << std::filesystem::relative( fullpath, appdir ) << "\texists: "
-                                      << std::filesystem::exists( fullpath );
                         }
                     }
                 }
