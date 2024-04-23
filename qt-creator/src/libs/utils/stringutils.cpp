@@ -1,46 +1,30 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "stringutils.h"
 
-#include "algorithm.h"
-#include "hostosinfo.h"
+#include "filepath.h"
 #include "qtcassert.h"
+#include "stylehelper.h"
+#include "theme/theme.h"
+#include "utilstr.h"
 
 #ifdef QT_WIDGETS_LIB
 #include <QApplication>
 #include <QClipboard>
 #endif
 
-#include <QCoreApplication>
+#include <QCollator>
 #include <QDir>
+#include <QFontMetrics>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QLocale>
+#include <QPalette>
 #include <QRegularExpression>
 #include <QSet>
+#include <QTextDocument>
+#include <QTextList>
 #include <QTime>
 
 #include <limits.h>
@@ -92,42 +76,6 @@ QTCREATOR_UTILS_EXPORT QString commonPrefix(const QStringList &strings)
     if (!commonLength)
         return QString();
     return strings.at(0).left(commonLength);
-}
-
-QTCREATOR_UTILS_EXPORT QString commonPath(const QStringList &files)
-{
-    QStringList appendedSlashes = transform(files, [](const QString &file) -> QString {
-        if (!file.endsWith('/'))
-            return QString(file + '/');
-        return file;
-    });
-    QString common = commonPrefix(appendedSlashes);
-    // Find common directory part: "C:\foo\bar" -> "C:\foo"
-    int lastSeparatorPos = common.lastIndexOf('/');
-    if (lastSeparatorPos == -1)
-        lastSeparatorPos = common.lastIndexOf('\\');
-    if (lastSeparatorPos == -1)
-        return QString();
-    if (HostOsInfo::isAnyUnixHost() && lastSeparatorPos == 0) // Unix: "/a", "/b" -> '/'
-        lastSeparatorPos = 1;
-    common.truncate(lastSeparatorPos);
-    return common;
-}
-
-QTCREATOR_UTILS_EXPORT QString withTildeHomePath(const QString &path)
-{
-    if (HostOsInfo::isWindowsHost())
-        return path;
-
-    static const QString homePath = QDir::homePath();
-
-    QFileInfo fi(QDir::cleanPath(path));
-    QString outPath = fi.absoluteFilePath();
-    if (outPath.startsWith(homePath))
-        outPath = '~' + outPath.mid(homePath.size());
-    else
-        outPath = path;
-    return outPath;
 }
 
 static bool validateVarName(const QString &varName)
@@ -378,10 +326,18 @@ QTCREATOR_UTILS_EXPORT int parseUsedPortFromNetstatOutput(const QByteArray &line
 
 int caseFriendlyCompare(const QString &a, const QString &b)
 {
-    int result = a.compare(b, Qt::CaseInsensitive);
+    static const auto makeCollator = [](Qt::CaseSensitivity caseSensitivity) {
+        QCollator collator;
+        collator.setNumericMode(true);
+        collator.setCaseSensitivity(caseSensitivity);
+        return collator;
+    };
+    static const QCollator insensitiveCollator = makeCollator(Qt::CaseInsensitive);
+    const int result = insensitiveCollator.compare(a, b);
     if (result != 0)
         return result;
-    return a.compare(b, Qt::CaseSensitive);
+    static const QCollator sensitiveCollator = makeCollator(Qt::CaseSensitive);
+    return sensitiveCollator.compare(a, b);
 }
 
 QString quoteAmpersands(const QString &text)
@@ -390,12 +346,24 @@ QString quoteAmpersands(const QString &text)
     return result.replace("&", "&&");
 }
 
+QString asciify(const QString &input)
+{
+    QString result;
+    for (const QChar &c : input) {
+        if (c.isPrint() && c.unicode() < 128)
+            result.append(c);
+        else
+            result.append(QString::fromLatin1("u%1").arg(c.unicode(), 4, 16, QChar('0')));
+    }
+    return result;
+}
+
 QString formatElapsedTime(qint64 elapsed)
 {
     elapsed += 500; // round up
     const QString format = QString::fromLatin1(elapsed >= 3600000 ? "h:mm:ss" : "mm:ss");
     const QString time = QTime(0, 0).addMSecs(elapsed).toString(format);
-    return QCoreApplication::translate("StringUtils", "Elapsed time: %1.").arg(time);
+    return Tr::tr("Elapsed time: %1.").arg(time);
 }
 
 /*
@@ -475,7 +443,6 @@ QTCREATOR_UTILS_EXPORT QString languageNameFromLanguageCode(const QString &langu
 }
 
 #ifdef QT_WIDGETS_LIB
-
 QTCREATOR_UTILS_EXPORT void setClipboardAndSelection(const QString &text)
 {
     QClipboard *clipboard = QApplication::clipboard();
@@ -483,7 +450,226 @@ QTCREATOR_UTILS_EXPORT void setClipboardAndSelection(const QString &text)
     if (clipboard->supportsSelection())
         clipboard->setText(text, QClipboard::Selection);
 }
-
 #endif
+
+QTCREATOR_UTILS_EXPORT QString chopIfEndsWith(QString str, QChar c)
+{
+    if (str.endsWith(c))
+        str.chop(1);
+
+    return str;
+}
+
+QTCREATOR_UTILS_EXPORT QStringView chopIfEndsWith(QStringView str, QChar c)
+{
+    if (str.endsWith(c))
+        str.chop(1);
+
+    return str;
+}
+
+QTCREATOR_UTILS_EXPORT QString normalizeNewlines(const QString &text)
+{
+    QString res = text;
+    const auto newEnd = std::unique(res.begin(), res.end(), [](const QChar c1, const QChar c2) {
+        return c1 == '\r' && c2 == '\r'; // QTCREATORBUG-24556
+    });
+    res.chop(std::distance(newEnd, res.end()));
+    res.replace("\r\n", "\n");
+    return res;
+}
+
+/*!
+    Joins all the not empty string list's \a strings into a single string with each element
+    separated by the given \a separator (which can be an empty string).
+*/
+QTCREATOR_UTILS_EXPORT QString joinStrings(const QStringList &strings, QChar separator)
+{
+    QString result;
+    for (const QString &string : strings) {
+        if (string.isEmpty())
+            continue;
+        if (!result.isEmpty())
+            result += separator;
+        result += string;
+    }
+    return result;
+}
+
+/*!
+    Returns a copy of \a string that has \a ch characters removed from the start.
+*/
+QTCREATOR_UTILS_EXPORT QString trimFront(const QString &string, QChar ch)
+{
+    const int size = string.size();
+    int i = 0;
+    while (i < size) {
+        if (string.at(i) != ch)
+            break;
+        ++i;
+    }
+    if (i == 0)
+        return string;
+    if (i == size)
+        return {};
+    return string.mid(i);
+}
+
+/*!
+    Returns a copy of \a string that has \a ch characters removed from the end.
+*/
+QTCREATOR_UTILS_EXPORT QString trimBack(const QString &string, QChar ch)
+{
+    const int size = string.size();
+    int i = 0;
+    while (i < size) {
+        if (string.at(size - i - 1) != ch)
+            break;
+        ++i;
+    }
+    if (i == 0)
+        return string;
+    if (i == size)
+        return {};
+    return string.chopped(i);
+}
+
+/*!
+    Returns a copy of \a string that has \a ch characters removed from the start and the end.
+*/
+QTCREATOR_UTILS_EXPORT QString trim(const QString &string, QChar ch)
+{
+    return trimFront(trimBack(string, ch), ch);
+}
+
+QTCREATOR_UTILS_EXPORT QString appendHelper(const QString &base, int n)
+{
+    return base + QString::number(n);
+}
+
+QTCREATOR_UTILS_EXPORT FilePath appendHelper(const FilePath &base, int n)
+{
+    return base.stringAppended(QString::number(n));
+}
+
+QTCREATOR_UTILS_EXPORT QPair<QStringView, QStringView> splitAtFirst(const QStringView &stringView,
+                                                                    QChar ch)
+{
+    int splitIdx = stringView.indexOf(ch);
+    if (splitIdx == -1)
+        return {stringView, {}};
+
+    QStringView left = stringView.mid(0, splitIdx);
+    QStringView right = stringView.mid(splitIdx + 1);
+
+    return {left, right};
+}
+
+QTCREATOR_UTILS_EXPORT QPair<QStringView, QStringView> splitAtFirst(const QString &string, QChar ch)
+{
+    QStringView view = string;
+    return splitAtFirst(view, ch);
+}
+
+QTCREATOR_UTILS_EXPORT int endOfNextWord(const QString &string, int position)
+{
+    QTC_ASSERT(string.size() > position, return -1);
+
+    static const QString wordSeparators = QStringLiteral(" \t\n\r()[]{}<>");
+
+    const auto predicate = [](const QChar &c) { return wordSeparators.contains(c); };
+
+    auto it = string.begin() + position;
+    if (predicate(*it))
+        it = std::find_if_not(it, string.end(), predicate);
+
+    if (it == string.end())
+        return -1;
+
+    it = std::find_if(it, string.end(), predicate);
+    if (it == string.end())
+        return -1;
+
+    return std::distance(string.begin(), it);
+}
+
+MarkdownHighlighter::MarkdownHighlighter(QTextDocument *parent)
+    : QSyntaxHighlighter(parent)
+    , h2Brush(Qt::NoBrush)
+    , m_codeBgBrush(Qt::NoBrush)
+{
+    parent->setIndentWidth(30); // default value is 40
+}
+
+QBrush MarkdownHighlighter::codeBgBrush()
+{
+    if (m_codeBgBrush.style() == Qt::NoBrush) {
+        m_codeBgBrush = StyleHelper::mergedColors(QGuiApplication::palette().color(QPalette::Text),
+                                                  QGuiApplication::palette().color(QPalette::Base),
+                                                  10);
+    }
+    return m_codeBgBrush;
+}
+
+void MarkdownHighlighter::highlightBlock(const QString &text)
+{
+    if (text.isEmpty())
+        return;
+
+    const QTextBlock block = currentBlock();
+    QTextBlockFormat fmt = block.blockFormat();
+    QTextCursor cur(currentBlock());
+    if (fmt.hasProperty(QTextFormat::HeadingLevel)) {
+        fmt.setTopMargin(10);
+        fmt.setBottomMargin(10);
+
+        // Draw an underline for Heading 2, by creating a texture brush
+        // with the last pixel visible
+        if (fmt.property(QTextFormat::HeadingLevel) == 2) {
+            QTextCharFormat charFmt = currentBlock().charFormat();
+            charFmt.setBaselineOffset(15);
+            setFormat(0, text.length(), charFmt);
+
+            if (h2Brush.style() == Qt::NoBrush) {
+                const int height = QFontMetrics(charFmt.font()).height();
+                QImage image(1, height, QImage::Format_ARGB32);
+
+                image.fill(QColor(0, 0, 0, 0).rgba());
+                image.setPixel(0,
+                               height - 1,
+                               Utils::creatorTheme()->color(Theme::TextColorDisabled).rgba());
+
+                h2Brush = QBrush(image);
+            }
+            fmt.setBackground(h2Brush);
+        }
+        cur.setBlockFormat(fmt);
+    } else if (fmt.hasProperty(QTextFormat::BlockCodeLanguage) && fmt.indent() == 0) {
+        // set identation and background for code blocks
+        fmt.setBackground(codeBgBrush());
+        fmt.setIndent(1);
+        cur.setBlockFormat(fmt);
+    }
+
+    // Show the bulet points as filled circles
+    QTextList *list = cur.currentList();
+    if (list) {
+        QTextListFormat listFmt = list->format();
+        if (listFmt.indent() == 1 && listFmt.style() == QTextListFormat::ListCircle) {
+            listFmt.setStyle(QTextListFormat::ListDisc);
+            list->setFormat(listFmt);
+        }
+    }
+
+    // background color of code
+    for (auto it = block.begin(); it != block.end(); ++it) {
+        const QTextFragment fragment = it.fragment();
+        QTextCharFormat fmt = fragment.charFormat();
+        if (fmt.fontFixedPitch()) {
+            fmt.setBackground(codeBgBrush());
+            setFormat(fragment.position() - block.position(), fragment.length(), fmt);
+        }
+    }
+}
 
 } // namespace Utils

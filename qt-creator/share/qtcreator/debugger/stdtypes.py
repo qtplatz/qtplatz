@@ -1,30 +1,8 @@
-############################################################################
-#
 # Copyright (C) 2016 The Qt Company Ltd.
-# Contact: https://www.qt.io/licensing/
-#
-# This file is part of Qt Creator.
-#
-# Commercial License Usage
-# Licensees holding valid commercial Qt licenses may use this file in
-# accordance with the commercial license agreement provided with the
-# Software or, alternatively, in accordance with the terms contained in
-# a written agreement between you and The Qt Company. For licensing terms
-# and conditions see https://www.qt.io/terms-conditions. For further
-# information use the contact form at https://www.qt.io/contact-us.
-#
-# GNU General Public License Usage
-# Alternatively, this file may be used under the terms of the GNU
-# General Public License version 3 as published by the Free Software
-# Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-# included in the packaging of this file. Please review the following
-# information to ensure the GNU General Public License requirements will
-# be met: https://www.gnu.org/licenses/gpl-3.0.html.
-#
-############################################################################
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 from utils import DisplayFormat
-from dumper import Children, SubItem
+from dumper import Children, SubItem, DumperBase
 
 
 def qform__std__array():
@@ -36,14 +14,6 @@ def qdump__std__array(d, value):
     d.putItemCount(size)
     if d.isExpanded():
         d.putPlotData(value.address(), size, value.type[0])
-
-
-def qform__std____1__array():
-    return [DisplayFormat.ArrayPlot]
-
-
-def qdump__std____1__array(d, value):
-    qdump__std__array(d, value)
 
 
 def qdump__std__function(d, value):
@@ -70,10 +40,6 @@ def qdump__std__complex(d, value):
             d.putSubItem("imag", imag)
 
 
-def qdump__std____1__complex(d, value):
-    qdump__std__complex(d, value)
-
-
 def qdump__std__deque(d, value):
     if d.isQnxTarget():
         qdumpHelper__std__deque__qnx(d, value)
@@ -89,10 +55,6 @@ def qdump__std__deque(d, value):
         qdumpHelper__std__deque__libcxx(d, value)
     else:
         qdumpHelper__std__deque__libstdcxx(d, value)
-
-
-def qdump__std____1__deque(d, value):
-    qdumpHelper__std__deque__libcxx(d, value)
 
 
 def qdumpHelper__std__deque__libstdcxx(d, value):
@@ -242,11 +204,17 @@ def qdump__std__list(d, value):
 
 
 def qdump__std__list__QNX(d, value):
-    try:
-        _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
+    if d.isDebugBuild is None:
+        try:
+            _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
+            d.isDebugBuild = True
+        except Exception:
+            d.isDebugBuild = False
+    if d.isDebugBuild:
         (proxy, head, size) = value.split("ppp")
-    except Exception:
+    else:
         (head, size) = value.split("pp")
+
     d.putItemCount(size, 1000)
 
     if d.isExpanded():
@@ -264,31 +232,6 @@ def qdump__std____debug__list(d, value):
 
 def qdump__std____cxx11__list(d, value):
     qdump__std__list(d, value)
-
-
-def qdump__std____1__list(d, value):
-    if value.type.size() == 3 * d.ptrSize():
-        # C++11 only.
-        (dummy1, dummy2, size) = value.split("ppp")
-        d.putItemCount(size)
-    else:
-        # Need to count manually.
-        p = d.extractPointer(value)
-        head = value.address()
-        size = 0
-        while head != p and size < 1001:
-            size += 1
-            p = d.extractPointer(p)
-        d.putItemCount(size, 1000)
-
-    if d.isExpanded():
-        (prev, p) = value.split("pp")
-        innerType = value.type[0]
-        typeCode = "pp{%s}" % innerType.name
-        with Children(d, size, maxNumChild=1000, childType=innerType):
-            for i in d.childRange():
-                (prev, p, val) = d.split(typeCode, p)
-                d.putSubItem(i, val)
 
 
 def qform__std__map():
@@ -334,10 +277,15 @@ def qdump__std__map(d, value):
 
 
 def qdump_std__map__helper(d, value):
-    try:
-        _ = value["_Mypair"]["_Myval2"]["_Myval2"]["_Myproxy"]
+    if d.isDebugBuild is None:
+        try:
+            _ = value["_Mypair"]["_Myval2"]["_Myval2"]["_Myproxy"]
+            d.isDebugBuild = True
+        except Exception:
+            d.isDebugBuild = False
+    if d.isDebugBuild:
         (proxy, head, size) = value.split("ppp")
-    except Exception:
+    else:
         (head, size) = value.split("pp")
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
@@ -513,10 +461,15 @@ def qdump__std__set(d, value):
 
 
 def qdump__std__set__QNX(d, value):
-    try:
-        _ = value["_Mypair"]["_Myval2"]["_Myval2"]["_Myproxy"]
+    if d.isDebugBuild is None:
+        try:
+            _ = value["_Mypair"]["_Myval2"]["_Myval2"]["_Myproxy"]
+            d.isDebugBuild = True
+        except Exception:
+            d.isDebugBuild = False
+    if d.isDebugBuild:
         (proxy, head, size) = value.split("ppp")
-    except Exception:
+    else:
         (head, size) = value.split("pp")
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
@@ -576,117 +529,6 @@ def std1TreeNext(d, node):
     return node['__parent_']
 
 
-def qdump__std____1__set(d, value):
-    (proxy, head, size) = value.split("ppp")
-
-    d.check(0 <= size and size <= 100 * 1000 * 1000)
-    d.putItemCount(size)
-
-    if d.isExpanded():
-        valueType = value.type[0]
-
-        def in_order_traversal(node):
-            (left, right, parent, color, pad, data) = d.split("pppB@{%s}" % (valueType.name), node)
-
-            if left:
-                for res in in_order_traversal(left):
-                    yield res
-
-            yield data
-
-            if right:
-                for res in in_order_traversal(right):
-                    yield res
-
-        with Children(d, size, maxNumChild=1000):
-            for (i, data) in zip(d.childRange(), in_order_traversal(head)):
-                d.putSubItem(i, data)
-
-
-def qdump__std____1__multiset(d, value):
-    qdump__std____1__set(d, value)
-
-
-def qform__std____1__map():
-    return [DisplayFormat.CompactMap]
-
-
-def qdump__std____1__map(d, value):
-    try:
-        (proxy, head, size) = value.split("ppp")
-        d.check(0 <= size and size <= 100 * 1000 * 1000)
-
-    # Sometimes there is extra data at the front. Don't know why at the moment.
-    except RuntimeError:
-        (junk, proxy, head, size) = value.split("pppp")
-        d.check(0 <= size and size <= 100 * 1000 * 1000)
-
-    d.putItemCount(size)
-
-    if d.isExpanded():
-        keyType = value.type[0]
-        valueType = value.type[1]
-        pairType = value.type[3][0]
-
-        def in_order_traversal(node):
-            (left, right, parent, color, pad, pair) = d.split("pppB@{%s}" % (pairType.name), node)
-
-            if left:
-                for res in in_order_traversal(left):
-                    yield res
-
-            yield pair.split("{%s}@{%s}" % (keyType.name, valueType.name))[::2]
-
-            if right:
-                for res in in_order_traversal(right):
-                    yield res
-
-        with Children(d, size, maxNumChild=1000):
-            for (i, pair) in zip(d.childRange(), in_order_traversal(head)):
-                d.putPairItem(i, pair)
-
-
-def qform__std____1__multimap():
-    return [DisplayFormat.CompactMap]
-
-
-def qdump__std____1__multimap(d, value):
-    qdump__std____1__map(d, value)
-
-
-def qdump__std____1__map__iterator(d, value):
-    d.putEmptyValue()
-    if d.isExpanded():
-        with Children(d):
-            node = value['__i_']['__ptr_'].dereference()['__value_']['__cc']
-            d.putSubItem('first', node['first'])
-            d.putSubItem('second', node['second'])
-
-
-def qdump__std____1__map__const_iterator(d, value):
-    qdump__std____1__map__iterator(d, value)
-
-
-def qdump__std____1__set__iterator(d, value):
-    d.putEmptyValue()
-    d.putExpandable()
-    if value.type.name.endswith("::iterator"):
-        treeTypeName = value.type.name[:-len("::iterator")]
-    elif value.type.name.endswith("::const_iterator"):
-        treeTypeName = value.type.name[:-len("::const_iterator")]
-    treeType = d.lookupType(treeTypeName)
-    keyType = treeType[0]
-    if d.isExpanded():
-        with Children(d):
-            node = value['__ptr_'].dereference()['__value_']
-            node = node.cast(keyType)
-            d.putSubItem('value', node)
-
-
-def qdump__std____1__set_const_iterator(d, value):
-    qdump__std____1__set__iterator(d, value)
-
-
 def qdump__std__stack(d, value):
     d.putItem(value["c"])
     d.putBetterType(value.type)
@@ -694,11 +536,6 @@ def qdump__std__stack(d, value):
 
 def qdump__std____debug__stack(d, value):
     qdump__std__stack(d, value)
-
-
-def qdump__std____1__stack(d, value):
-    d.putItem(value["c"])
-    d.putBetterType(value.type)
 
 
 def qform__std__string():
@@ -755,77 +592,58 @@ def qdumpHelper__std__string__QNX(d, value, charType, format):
 
 
 def qdumpHelper__std__string__MSVC(d, value, charType, format):
-    try:
-        _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
-        (proxy, buffer, size, alloc) = value.split("p16spp")
-    except Exception:
-        proxy = None
+    if d.isDebugBuild is None:
+        try:
+            _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
+            d.isDebugBuild = True
+        except Exception:
+            d.isDebugBuild = False
+    if d.isDebugBuild:
+        (_, buffer, size, alloc) = value.split("p16spp")
+    else:
         (buffer, size, alloc) = value.split("16spp")
     d.check(0 <= size and size <= alloc and alloc <= 100 * 1000 * 1000)
     _BUF_SIZE = int(16 / charType.size())
     if _BUF_SIZE <= alloc:
-        if proxy is None:
-            data = value.extractPointer()
-        else:
+        if d.isDebugBuild:
             (proxy, data) = value.split("pp")
-    else:
-        if proxy is None:
-            data = value.address()
         else:
+            data = value.extractPointer()
+    else:
+        if d.isDebugBuild:
             data = value.address() + d.ptrSize()
+        else:
+            data = value.address()
     d.putCharArrayHelper(data, size, charType, format)
 
 
-def qdump__std____1__string__alternateLayoutHelper(d, value):
-    try:
-        _d = value['__s']['__data_'].address()
-        alternateLayout = (_d - value.address()) == 0
-        if alternateLayout:
-            lastByte = value.split('b')[-1]
-            if int(lastByte & 0x80) == 0:
-                # Short/internal
-                size = value['__s']['__size_'].integer()
-                data = value.address()
-            else:
-                # Long/external
-                (data, size, _) = value.split('ppp')
-            return size, data
-        else:
-            return None, None
-    except:
-        return None, None
+def qdump__std__basic_string_view(d, value):
+    innerType = value.type[0]
+    qdumpHelper_std__string_view(d, value, innerType, d.currentItemFormat())
 
 
-def qdump__std____1__string(d, value):
-    (size, data) = qdump__std____1__string__alternateLayoutHelper(d, value)
-    if size is None or data is None:
-        firstByte = value.split('b')[0]
-        if int(firstByte & 1) == 0:
-            # Short/internal.
-            size = int(firstByte / 2)
-            data = value.address() + 1
-        else:
-            # Long/external.
-            (_, size, data) = value.split('ppp')
-
-    d.putCharArrayHelper(data, size, d.charType(), d.currentItemFormat())
-    d.putType("std::string")
+def qdump__std__string_view(d, value):
+    qdumpHelper_std__string_view(d, value, d.createType("char"), d.currentItemFormat())
 
 
-def qdump__std____1__wstring(d, value):
-    (size, data) = qdump__std____1__string__alternateLayoutHelper(d, value)
-    if size is None or data is None:
-        firstByte = value.split('b')[0]
-        if int(firstByte & 1) == 0:
-            # Short/internal.
-            size = int(firstByte / 2)
-            data = value.address() + 4
-        else:
-            # Long/external.
-            (_, size, data) = value.split('ppp')
+def qdump__std__u16string_view(d, value):
+    qdumpHelper_std__string_view(d, value, d.createType("char16_t"), d.currentItemFormat())
 
-    d.putCharArrayHelper(data, size, d.createType('wchar_t'))
-    d.putType("std::wstring")
+
+def qdumpHelper_std__string_view(d, value, charType, format):
+    if d.isMsvcTarget():
+        qdumpHelper__std__string__view_MSVC(d, value, charType, format)
+        return
+
+    data = value["_M_str"].pointer()
+    size = int(value["_M_len"])
+    d.putCharArrayHelper(data, size, charType, format)
+
+
+def qdumpHelper__std__string__view_MSVC(d, value, charType, format):
+    data = value["_Mydata"].pointer()
+    size = int(value["_Mysize"])
+    d.putCharArrayHelper(data, size, charType, format)
 
 
 def qdump__std____weak_ptr(d, value):
@@ -834,10 +652,6 @@ def qdump__std____weak_ptr(d, value):
 
 def qdump__std__weak_ptr(d, value):
     return qdump__std__shared_ptr(d, value)
-
-
-def qdump__std____1__weak_ptr(d, value):
-    return qdump__std____1__shared_ptr(d, value)
 
 
 def qdump__std__shared_ptr(d, value):
@@ -853,15 +667,6 @@ def qdump__std__shared_ptr(d, value):
         d.putBetterType(value.type)
 
 
-def qdump__std____1__shared_ptr(d, value):
-    i = value["__ptr_"]
-    if i.pointer() == 0:
-        d.putValue("(null)")
-    else:
-        d.putItem(i.dereference())
-        d.putBetterType(value.type)
-
-
 def qdump__std__unique_ptr(d, value):
     if value.type.size() == d.ptrSize():
         p = d.extractPointer(value)
@@ -870,12 +675,15 @@ def qdump__std__unique_ptr(d, value):
     if p == 0:
         d.putValue("(null)")
     else:
-        d.putItem(d.createValue(p, value.type[0]))
+        if d.isMsvcTarget():
+            try:
+                d.putItem(value["_Mypair"]["_Myval2"])
+                d.putValue(d.currentValue.value, d.currentValue.encoding)
+            except:
+                d.putItem(d.createValue(p, value.type[0]))
+        else:
+            d.putItem(d.createValue(p, value.type[0]))
         d.putBetterType(value.type)
-
-
-def qdump__std____1__unique_ptr(d, value):
-    qdump__std__unique_ptr(d, value)
 
 
 def qdump__std__pair(d, value):
@@ -887,6 +695,36 @@ def qdump__std__pair(d, value):
     key = key.value if key.encoding is None else "..."
     value = value.value if value.encoding is None else "..."
     d.putValue('(%s, %s)' % (key, value))
+
+
+def qdumpHelper_get_tuple_elements(d, tuple, value_typename, value_member):
+    """
+    Helper method that returns the elements of a tuple.
+    """
+    elems = []
+    other_members = []
+    for member in tuple.members(True):
+        if not member.type.templateArguments():
+            continue
+        if member.type.name.startswith(value_typename):
+            elems.append(member[value_member])
+        else:
+            other_members.append(member)
+    for member in other_members:
+        sub_elems = qdumpHelper_get_tuple_elements(d, member, value_typename, value_member)
+        elems = elems + sub_elems
+    return elems
+
+
+def qdump__std__tuple(d, value):
+    if d.isMsvcTarget():
+        elems = qdumpHelper_get_tuple_elements(d, value, "std::_Tuple_val", "_Val")
+    else:
+        elems = qdumpHelper_get_tuple_elements(d, value, "std::_Head_base", "_M_head_impl")
+    d.putItemCount(len(elems))
+    with Children(d):
+        for elem in elems:
+            d.putSubItem(0, elem)
 
 
 def qform__std__unordered_map():
@@ -904,10 +742,15 @@ def qdump__std__unordered_map(d, value):
 
     if d.isMsvcTarget():
         _list = value["_List"]
-        try:
-            _ = _list["_Mypair"]["_Myval2"]["_Myproxy"]
+        if d.isDebugBuild is None:
+            try:
+                _ = _list["_Mypair"]["_Myval2"]["_Myproxy"]
+                d.isDebugBuild = True
+            except Exception:
+                d.isDebugBuild = False
+        if d.isDebugBuild:
             (_, start, size) = _list.split("ppp")
-        except Exception:
+        else:
             (start, size) = _list.split("pp")
     else:
         try:
@@ -1012,52 +855,6 @@ def qdump__std__unordered_set(d, value):
                 p = d.extractPointer(p + offset)
 
 
-def qform__std____1__unordered_map():
-    return [DisplayFormat.CompactMap]
-
-
-def qdump__std____1__unordered_map(d, value):
-    (size, _) = value["__table_"]["__p2_"].split("pp")
-    d.putItemCount(size)
-
-    keyType = value.type[0]
-    valueType = value.type[1]
-    pairType = value.type[4][0]
-
-    if d.isExpanded():
-        curr = value["__table_"]["__p1_"].split("pp")[0]
-
-        def traverse_list(node):
-            while node:
-                (next_, _, pad, pair) = d.split("pp@{%s}" % (pairType.name), node)
-                yield pair.split("{%s}@{%s}" % (keyType.name, valueType.name))[::2]
-                node = next_
-
-        with Children(d, size, childType=value.type[0], maxNumChild=1000):
-            for (i, value) in zip(d.childRange(), traverse_list(curr)):
-                d.putPairItem(i, value, 'key', 'value')
-
-
-def qdump__std____1__unordered_set(d, value):
-    (size, _) = value["__table_"]["__p2_"].split("pp")
-    d.putItemCount(size)
-
-    valueType = value.type[0]
-
-    if d.isExpanded():
-        curr = value["__table_"]["__p1_"].split("pp")[0]
-
-        def traverse_list(node):
-            while node:
-                (next_, _, pad, val) = d.split("pp@{%s}" % (valueType.name), node)
-                yield val
-                node = next_
-
-        with Children(d, size, childType=value.type[0], maxNumChild=1000):
-            for (i, value) in zip(d.childRange(), traverse_list(curr)):
-                d.putSubItem(i, value)
-
-
 def qdump__std____debug__unordered_set(d, value):
     qdump__std__unordered_set(d, value)
 
@@ -1083,27 +880,25 @@ def qdump__std__valarray(d, value):
     d.putPlotData(data, size, value.type[0])
 
 
-def qform__std____1__valarray():
-    return [DisplayFormat.ArrayPlot]
-
-
-def qdump__std____1__valarray(d, value):
-    innerType = value.type[0]
-    (begin, end) = value.split('pp')
-    size = int((end - begin) / innerType.size())
-    d.putItemCount(size)
-    d.putPlotData(begin, size, innerType)
-
 def qdump__std__variant(d, value):
-    which = int(value["_M_index"])
+    if d.isMsvcTarget():
+        which = int(value["_Which"])
+    else:
+        which = int(value["_M_index"])
     type = d.templateArgument(value.type, which)
-    d.putValue("<%s:%s>" % (which, type.name))
 
-    d.putNumChild(1)
-    if d.isExpanded():
-        storage = value["_M_u"]["_M_first"]["_M_storage"]
-        with Children(d, 1):
-            d.putSubItem("value", storage.cast(type))
+    if d.isMsvcTarget():
+         storage = value
+         while which > 0:
+             storage = storage["_Tail"]
+             which = which - 1
+         storage = storage["_Head"]
+    else:
+         storage = value["_M_u"]["_M_first"]["_M_storage"]
+         storage = storage.cast(type)
+    d.putItem(storage)
+    d.putBetterType(type)
+
 
 def qform__std__vector():
     return [DisplayFormat.ArrayPlot]
@@ -1190,30 +985,32 @@ def qdumpHelper__std__vector__libcxx(d, value):
 def qdumpHelper__std__vector__msvc(d, value):
     inner_type = value.type[0]
     if inner_type.name == "bool":
-        try:
-            _ = value["_Myproxy"]
+        if d.isDebugBuild is None:
+            try:
+                _ = value["_Myproxy"]
+                d.isDebugBuild = True
+            except RuntimeError:
+                d.isDebugBuild = False
+        if d.isDebugBuild:
             proxy1, proxy2, start, finish, alloc, size = value.split("pppppi")
-        except RuntimeError:
+        else:
             start, finish, alloc, size = value.split("pppi")
         d.check(0 <= size and size <= 1000 * 1000 * 1000)
         qdumpHelper__std__vector__bool(d, start, size, inner_type)
     else:
-        try:
-            _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
+        if d.isDebugBuild is None:
+            try:
+                _ = value["_Mypair"]["_Myval2"]["_Myproxy"]
+                d.isDebugBuild = True
+            except RuntimeError:
+                d.isDebugBuild = False
+        if d.isDebugBuild:
             proxy, start, finish, alloc = value.split("pppp")
-        except RuntimeError:
+        else:
             start, finish, alloc = value.split("ppp")
         size = (finish - start) // inner_type.size()
         d.check(0 <= size and size <= 1000 * 1000 * 1000)
         qdumpHelper__std__vector__nonbool(d, start, finish, alloc, inner_type)
-
-
-def qform__std____1__vector():
-    return [DisplayFormat.ArrayPlot]
-
-
-def qdump__std____1__vector(d, value):
-    qdumpHelper__std__vector__libcxx(d, value)
 
 
 def qform__std____debug__vector():
@@ -1317,22 +1114,8 @@ def qform__std____cxx11__wstring():
     return qform__std__wstring()
 
 
-def qdump__std____1__basic_string(d, value):
-    innerType = value.type[0].name
-    if innerType in ("char", "char8_t", "char16_t"):
-        qdump__std____1__string(d, value)
-    elif innerType in ("wchar_t", "char32_t"):
-        qdump__std____1__wstring(d, value)
-    else:
-        d.warn("UNKNOWN INNER TYPE %s" % innerType)
-
-
 def qdump__wstring(d, value):
     qdump__std__wstring(d, value)
-
-
-def qdump__std____1__once_flag(d, value):
-    qdump__std__once_flag(d, value)
 
 
 def qdump__std__once_flag(d, value):
@@ -1382,9 +1165,9 @@ def qdump__std__optional(d, value):
     (payload, pad, initialized) = d.split('{%s}@b' % innerType.name, value)
     if initialized:
         d.putItem(payload)
-        d.putBetterType(value.type)
+        d.putBetterType(innerType)
     else:
-        d.putSpecialValue("uninitialized")
+        d.putSpecialValue("empty")
 
 
 def qdump__std__experimental__optional(d, value):

@@ -1,132 +1,71 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "commandlocator.h"
 
-#include <coreplugin/actionmanager/command.h>
+#include "../actionmanager/command.h"
 
-#include <utils/qtcassert.h>
 #include <utils/stringutils.h>
 
 #include <QAction>
+#include <QPointer>
 
 using namespace Utils;
 
 namespace Core {
 
-struct CommandLocatorPrivate
-{
-    QList<Command *> commands;
-    QList<QPair<int, QString>> commandsData;
-};
-
-/*!
-    \class Core::CommandLocator
-    \inmodule QtCreator
-    \internal
-*/
-
-CommandLocator::CommandLocator(Id id,
-                               const QString &displayName,
-                               const QString &shortCutString,
-                               QObject *parent) :
-    ILocatorFilter(parent),
-    d(new CommandLocatorPrivate)
+CommandLocator::CommandLocator(Id id, const QString &displayName, const QString &shortCutString,
+                               QObject *parent)
+    : ILocatorFilter(parent)
 {
     setId(id);
     setDisplayName(displayName);
     setDefaultShortcutString(shortCutString);
 }
 
-CommandLocator::~CommandLocator()
+LocatorMatcherTasks CommandLocator::matchers()
 {
-    delete d;
-}
+    using namespace Tasking;
 
-void CommandLocator::appendCommand(Command *cmd)
-{
-    d->commands.push_back(cmd);
-}
+    Storage<LocatorStorage> storage;
 
-void CommandLocator::prepareSearch(const QString &entry)
-{
-    Q_UNUSED(entry)
-    d->commandsData = {};
-    const int count = d->commands.size();
-    // Get active, enabled actions matching text, store in list.
-    // Reference via index in extraInfo.
-    for (int i = 0; i < count; ++i) {
-        Command *command = d->commands.at(i);
-        if (!command->isActive())
-            continue;
-        QAction *action = command->action();
-        if (action && action->isEnabled())
-            d->commandsData.append(qMakePair(i, action->text()));
-    }
-}
+    const auto onSetup = [storage, commands = m_commands] {
+        const QString input = storage->input();
+        const Qt::CaseSensitivity inputCaseSensitivity = caseSensitivity(input);
+        LocatorFilterEntries goodEntries;
+        LocatorFilterEntries betterEntries;
+        for (Command *command : commands) {
+            if (!command->isActive())
+                continue;
 
-QList<LocatorFilterEntry> CommandLocator::matchesFor(QFutureInterface<LocatorFilterEntry> &future, const QString &entry)
-{
-    QList<LocatorFilterEntry> goodEntries;
-    QList<LocatorFilterEntry> betterEntries;
-    const Qt::CaseSensitivity entryCaseSensitivity = caseSensitivity(entry);
-    for (const auto &pair : qAsConst(d->commandsData)) {
-        if (future.isCanceled())
-            break;
+            QAction *action = command->action();
+            if (!action || !action->isEnabled())
+                continue;
 
-        const QString text = Utils::stripAccelerator(pair.second);
-        const int index = text.indexOf(entry, 0, entryCaseSensitivity);
-        if (index >= 0) {
-            LocatorFilterEntry filterEntry(this, text, QVariant(pair.first));
-            filterEntry.highlightInfo = {index, int(entry.length())};
-
-            if (index == 0)
-                betterEntries.append(filterEntry);
-            else
-                goodEntries.append(filterEntry);
+            const QString text = Utils::stripAccelerator(action->text());
+            const int index = text.indexOf(input, 0, inputCaseSensitivity);
+            if (index >= 0) {
+                LocatorFilterEntry entry;
+                entry.displayName = text;
+                entry.acceptor = [actionPointer = QPointer(action)] {
+                    if (actionPointer) {
+                        QMetaObject::invokeMethod(actionPointer, [actionPointer] {
+                            if (actionPointer && actionPointer->isEnabled())
+                                actionPointer->trigger();
+                        }, Qt::QueuedConnection);
+                    }
+                    return AcceptResult();
+                };
+                entry.highlightInfo = {index, int(input.length())};
+                if (index == 0)
+                    betterEntries.append(entry);
+                else
+                    goodEntries.append(entry);
+            }
         }
-    }
-    betterEntries.append(goodEntries);
-    return betterEntries;
-}
-
-void CommandLocator::accept(const LocatorFilterEntry &entry,
-                            QString *newText, int *selectionStart, int *selectionLength) const
-{
-    Q_UNUSED(newText)
-    Q_UNUSED(selectionStart)
-    Q_UNUSED(selectionLength)
-    // Retrieve action via index.
-    const int index = entry.internalData.toInt();
-    QTC_ASSERT(index >= 0 && index < d->commands.size(), return);
-    QAction *action = d->commands.at(index)->action();
-    // avoid nested stack trace and blocking locator by delayed triggering
-    QMetaObject::invokeMethod(action, [action] {
-        if (action->isEnabled())
-            action->trigger();
-    }, Qt::QueuedConnection);
+        storage->reportOutput(betterEntries + goodEntries);
+    };
+    return {{Sync(onSetup), storage}};
 }
 
 }  // namespace Core

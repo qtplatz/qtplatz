@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -42,9 +20,10 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type = std::size_t;
 
+    constexpr BasicSmallStringLiteral() noexcept = default;
+
     template<size_type ArraySize>
-    constexpr
-    BasicSmallStringLiteral(const char(&string)[ArraySize]) noexcept
+    constexpr BasicSmallStringLiteral(const char (&string)[ArraySize]) noexcept
         : m_data(string)
     {
         static_assert(ArraySize >= 1, "Invalid string literal! Length is zero!");
@@ -58,12 +37,12 @@ public:
 
     const char *data() const noexcept
     {
-        return Q_LIKELY(isShortString()) ? m_data.shortString.string : m_data.allocated.data.pointer;
+        return Q_LIKELY(isShortString()) ? m_data.shortString : m_data.reference.constPointer;
     }
 
     size_type size() const noexcept
     {
-        return Q_LIKELY(isShortString()) ? m_data.shortString.control.shortStringSize() : m_data.allocated.data.size;
+        return Q_LIKELY(isShortString()) ? m_data.control.shortStringSize() : m_data.reference.size;
     }
 
     constexpr
@@ -94,23 +73,15 @@ public:
         return Internal::StringDataLayout<Size>::shortStringCapacity();
     }
 
-    constexpr
-    bool isShortString() const noexcept
-    {
-        return m_data.shortString.control.isShortString();
-    }
+    constexpr bool isShortString() const noexcept { return m_data.control.isShortString(); }
 
     constexpr
     bool isReadOnlyReference() const noexcept
     {
-        return m_data.shortString.control.isReadOnlyReference();
+        return m_data.control.isReadOnlyReference();
     }
 
-    constexpr
-    operator SmallStringView() const
-    {
-        return SmallStringView(data(), size());
-    }
+    constexpr operator SmallStringView() const noexcept { return SmallStringView(data(), size()); }
 
 private:
     BasicSmallStringLiteral(const Internal::StringDataLayout<Size> &data) noexcept

@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2020 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "id.h"
 
@@ -32,6 +10,7 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QHash>
+#include <QReadWriteLock>
 #include <QVariant>
 
 namespace Utils {
@@ -98,21 +77,31 @@ struct IdCache : public QHash<StringHolder, quintptr>
 #endif
 };
 
-
 static QHash<quintptr, StringHolder> stringFromId;
 static IdCache idFromString;
+static QReadWriteLock s_cacheMutex;
 
 static quintptr theId(const char *str, int n = 0)
 {
-    static quintptr firstUnusedId = 10 * 1000 * 1000;
     QTC_ASSERT(str && *str, return 0);
     StringHolder sh(str, n);
-    int res = idFromString.value(sh, 0);
+    int res = 0;
+    {
+        QReadLocker lock(&s_cacheMutex); // Try quick read locker first
+        res = idFromString.value(sh, 0);
+    }
     if (res == 0) {
-        res = firstUnusedId++;
-        sh.str = qstrdup(sh.str);
-        idFromString[sh] = res;
-        stringFromId[res] = sh;
+        QWriteLocker lock(&s_cacheMutex);
+        res = idFromString.value(sh, 0); // Some other thread could have added it to the cache
+                                         // in meantime, after read lock was released and before
+                                         // write lock was acquired. Re-read it again.
+        if (res == 0) {
+            static quintptr firstUnusedId = 10 * 1000 * 1000;
+            res = firstUnusedId++;
+            sh.str = qstrdup(sh.str);
+            idFromString[sh] = res;
+            stringFromId[res] = sh;
+        }
     }
     return res;
 }
@@ -149,6 +138,7 @@ Id::Id(const char *name)
 
 QByteArray Id::name() const
 {
+    QReadLocker lock(&s_cacheMutex);
     return stringFromId.value(m_id).str;
 }
 
@@ -164,7 +154,14 @@ QByteArray Id::name() const
 
 QString Id::toString() const
 {
+    QReadLocker lock(&s_cacheMutex);
     return QString::fromUtf8(stringFromId.value(m_id).str);
+}
+
+/*! \internal */
+Key Id::toKey() const
+{
+    return name();
 }
 
 /*!
@@ -210,6 +207,7 @@ Id Id::fromName(const QByteArray &name)
 
 QVariant Id::toSetting() const
 {
+    QReadLocker lock(&s_cacheMutex);
     return QVariant(QString::fromUtf8(stringFromId.value(m_id).str));
 }
 
@@ -246,9 +244,7 @@ QSet<Id> Id::fromStringList(const QStringList &list)
 
 QStringList Id::toStringList(const QSet<Id> &ids)
 {
-    QList<Id> idList = toList(ids);
-    sort(idList);
-    return transform(idList, &Id::toString);
+    return transform(sorted(toList(ids)), &Id::toString);
 }
 
 /*!
@@ -302,6 +298,7 @@ Id Id::withPrefix(const char *prefix) const
 
 bool Id::operator==(const char *name) const
 {
+    QReadLocker lock(&s_cacheMutex);
     const char *string = stringFromId.value(m_id).str;
     if (string && name)
         return strcmp(string, name) == 0;
@@ -312,6 +309,7 @@ bool Id::operator==(const char *name) const
 // For debugging purposes
 QTCREATOR_UTILS_EXPORT const char *nameForId(quintptr id)
 {
+    QReadLocker lock(&s_cacheMutex);
     return stringFromId.value(id).str;
 }
 

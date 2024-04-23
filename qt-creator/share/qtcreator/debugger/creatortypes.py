@@ -1,27 +1,5 @@
-############################################################################
-#
 # Copyright (C) 2016 The Qt Company Ltd.
-# Contact: https://www.qt.io/licensing/
-#
-# This file is part of Qt Creator.
-#
-# Commercial License Usage
-# Licensees holding valid commercial Qt licenses may use this file in
-# accordance with the commercial license agreement provided with the
-# Software or, alternatively, in accordance with the terms contained in
-# a written agreement between you and The Qt Company. For licensing terms
-# and conditions see https://www.qt.io/terms-conditions. For further
-# information use the contact form at https://www.qt.io/contact-us.
-#
-# GNU General Public License Usage
-# Alternatively, this file may be used under the terms of the GNU
-# General Public License version 3 as published by the Free Software
-# Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-# included in the packaging of this file. Please review the following
-# information to ensure the GNU General Public License requirements will
-# be met: https://www.gnu.org/licenses/gpl-3.0.html.
-#
-############################################################################
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 from dumper import Children
 
@@ -103,6 +81,11 @@ def qdump__Utils__Id(d, value):
     d.putPlainChildren(value)
 
 
+def qdump__Utils__Key(d, value):
+    d.putByteArrayValue(value["data"])
+    d.putBetterType(value.type)
+
+
 def qdump__Debugger__Internal__GdbMi(d, value):
     val = d.encodeString(value["m_name"]) + "3a002000" \
         + d.encodeString(value["m_data"])
@@ -162,7 +145,7 @@ def kindName(d, value):
     e = value.integer()
     if e:
         kindType = d.lookupType("CPlusPlus::Kind")
-        return kindType.typeData().enumDisplay(e, value.address(), '%d')[11:]
+        return kindType.tdata.enumDisplay(e, value.address(), '%d')[11:]
     else:
         return ''
 
@@ -220,27 +203,25 @@ def qdump__CPlusPlus__Internal__Value(d, value):
 
 
 def qdump__Utils__FilePath(d, value):
-    try:
-        # support FilePath before 4.15 as well
-        if not d.extractPointer(value["m_url"]):  # there is no valid URL
-            d.putStringValue(value["m_data"])
-        else:
-            d.putItem(value["m_url"])
-    except:
-        scheme, host, path = d.split("{@QString}{@QString}{@QString}", value)
-        scheme_enc = d.encodeString(scheme)
-        host_enc = d.encodeString(host)
-        elided, path_enc = d.encodeStringHelper(path, d.displayStringLimit)
-        val = ""
+    data, path_len, scheme_len, host_len = d.split("{@QString}IHH", value)
+    length, enc = d.encodeStringHelper(data, d.displayStringLimit)
+    # enc is concatenated  path + scheme + host
+    if scheme_len:
+        scheme_pos = path_len * 4
+        host_pos = scheme_pos + scheme_len * 4
+        path_enc = enc[0 : path_len * 4]
+        scheme_enc = enc[scheme_pos : scheme_pos + scheme_len * 4]
+        host_enc = enc[host_pos : host_pos + host_len * 4]
         slash = "2F00"
         dot = "2E00"
         colon = "3A00"
-        if len(scheme_enc):
-            val = scheme_enc + colon + slash + slash + host_enc
-            if not path_enc.startswith(slash):
-                val += slash + dot + slash
+        val = scheme_enc + colon + slash + slash + host_enc
+        if not path_enc.startswith(slash):
+            val += slash + dot + slash
         val += path_enc
-        d.putValue(val, "utf16", elided=elided)
+    else:
+        val = enc
+    d.putValue(val, "utf16", length=length)
     d.putPlainChildren(value)
 
 
@@ -259,7 +240,7 @@ def qdump__Utils__Port(d, value):
 
 
 
-def qdump__Utils__Environment(d, value):
+def x_qdump__Utils__Environment(d, value):
     qdump__Utils__NameValueDictionary(d, value)
 
 
@@ -267,7 +248,7 @@ def qdump__Utils__DictKey(d, value):
     d.putStringValue(value["name"])
 
 
-def qdump__Utils__NameValueDictionary(d, value):
+def x_qdump__Utils__NameValueDictionary(d, value):
     dptr = d.extractPointer(value)
     if d.qtVersion() >= 0x60000:
         if dptr == 0:

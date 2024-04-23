@@ -1,31 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2022 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Quick Studio Components.
-**
-** $QT_BEGIN_LICENSE:GPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 or (at your option) any later version
-** approved by the KDE Free Qt Foundation. The licenses are as published by
-** the Free Software Foundation and appearing in the file LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 /*
 This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
@@ -45,8 +19,8 @@ Rectangle {
 
     property bool qdsInstalled: qdsVersionText.text.length > 0
     property bool projectFileExists: false
-    property string qtVersion: qsTr("Unknown")
-    property string qdsVersion: qsTr("Unknown")
+    property string qtVersion: qsTranslate("QtC::QmlProjectManager", "Unknown")
+    property string qdsVersion: qsTranslate("QtC::QmlProjectManager", "Unknown")
     property alias generateProjectFileButton: generateProjectFileButton
 
     color: Theme.Colors.backgroundSecondary
@@ -67,7 +41,7 @@ Rectangle {
         PageText {
             id: projectFileInfoTitle
             width: parent.width
-            text: qsTr("QML PROJECT FILE INFO")
+            text: qsTranslate("QtC::QmlProjectManager", "QML PROJECT FILE INFO")
         }
 
         Column {
@@ -79,14 +53,14 @@ Rectangle {
                 id: qtVersionText
                 width: parent.width
                 padding: Theme.Values.spacing
-                text: qsTr("Qt Version - ") + root.qtVersion
+                text: qsTranslate("QtC::QmlProjectManager", "Qt Version - ") + root.qtVersion
             }
 
             PageText {
                 id: qdsVersionText
                 width: parent.width
                 padding: Theme.Values.spacing
-                text: qsTr("Qt Design Studio Version - ") + root.qdsVersion
+                text: qsTranslate("QtC::QmlProjectManager", "Qt Design Studio Version - ") + root.qdsVersion
             }
         }
 
@@ -99,12 +73,12 @@ Rectangle {
                 id: projectFileInfoMissingText
                 width: parent.width
                 padding: Theme.Values.spacing
-                text: qsTr("No QML project file found - Would you like to create one?")
+                text: qsTranslate("QtC::QmlProjectManager", "No QML project file found - Would you like to create one?")
             }
 
             PushButton {
                 id: generateProjectFileButton
-                text: qsTr("Generate")
+                text: qsTranslate("QtC::QmlProjectManager", "Generate")
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }

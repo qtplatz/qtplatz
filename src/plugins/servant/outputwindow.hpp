@@ -48,8 +48,10 @@ namespace servant {
         // IOutputPane
         QWidget * outputWidget( QWidget * ) override;
         QList<QWidget *> toolBarWidgets() const override;
+#if QTC_VERSION <= 0x08'00'02
         QString displayName() const override { return tr( "Servant Log" ); }
         int priorityInStatusBar() const override;
+#endif
         void visibilityChanged(bool visible) override;
         //bool isEmpty() const;
         //int numberOfResults() const;
@@ -57,17 +59,17 @@ namespace servant {
         bool canFocus() const override { return false; }
 
         void setFocus() override;
-        
+
         bool canNext() const override { return false; }
         bool canPrevious() const override { return false; }
         void goToNext() override;
         void goToPrev() override;
         bool canNavigate() const override { return false; }
-                          
+
     public slots:
         void clearContents() override;
         void handleLogging( const QString&, bool );
-        
+
     private:
         QStackedWidget * widget_;
         QPlainTextEdit * textWidget_;

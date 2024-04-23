@@ -1,6 +1,6 @@
 # This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------
-
+deleted/
 !core/
 *.*#
 *.a
@@ -40,6 +40,7 @@ ui_*.h
 wrapper.bat
 wrapper.sh
 debug_toolchain.cmake
+CMakeUserPresets.json
 
 # qtcreator generated files
 *.creator.user*
@@ -55,9 +56,10 @@ CMakeLists.txt.user*
 /share/qtcreator/qmldesigner/QtProject/
 /src/app/Info.plist
 /src/plugins/**/*.json
+!/src/plugins/**/wizard.json
 /src/plugins/coreplugin/ide_version.h
-/src/libs/qt-breakpad/bin
 /.cmake/
+/.vs/
 app_version.h
 phony.c
 
@@ -280,8 +282,8 @@ tmp/
 /tests/manual/ssh/shell/shell
 /tests/tools/qml-ast2dot/qml-ast2dot
 /tests/unit/echoserver/echo
-/tests/unit/unittest/unittest
 
 # qbs builds
 /*-debug/
 /*-release/
+/out/

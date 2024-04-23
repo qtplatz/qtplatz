@@ -1,32 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import StudioControls 1.0 as StudioControls
-import StudioTheme 1.0 as StudioTheme
-import QtQuickDesignerTheme 1.0
+import QtQuick
+import StudioControls as StudioControls
+import StudioTheme as StudioTheme
 
 StudioControls.TextField {
     id: lineEdit
@@ -62,7 +39,7 @@ StudioControls.TextField {
     function escapeString(string) {
         var str = string
         str = str.replace(/\\/g, "\\\\")
-        str.replace(/\"/g, "\\\"")
+        str = str.replace(/\"/g, "\\\"")
         str = str.replace(/\t/g, "\\t")
         str = str.replace(/\r/g, "\\r")
         str = str.replace(/\n/g, '\\n')
@@ -87,7 +64,7 @@ StudioControls.TextField {
                 lineEdit.text = ""
             } else {
                 if (lineEdit.writeValueManually)
-                    lineEdit.text = convertColorToString(colorLogic.valueFromBackend)
+                    lineEdit.text = convertColorToString?.(colorLogic.valueFromBackend) ?? ""
                 else
                     lineEdit.text = colorLogic.valueFromBackend
             }
@@ -133,8 +110,7 @@ StudioControls.TextField {
         lineEdit.__dirty = false
     }
 
-    property bool isTranslated: colorLogic.backendValue === undefined ? false
-                                                                      : colorLogic.backendValue.isTranslated
+    property bool isTranslated: colorLogic.backendValue?.isTranslated ?? false
 
     translationIndicator.onClicked: {
         if (lineEdit.translationIndicator.checked) {
@@ -146,19 +122,12 @@ StudioControls.TextField {
         colorLogic.evaluate()
     }
 
-    property variant backendValueValueInternal: lineEdit.backendValue === undefined ? 0
-                                                                                    : lineEdit.backendValue.value
+    property variant backendValueValueInternal: lineEdit.backendValue?.value ?? 0
     onBackendValueValueInternalChanged: {
-        if (lineEdit.backendValue === undefined)
-            lineEdit.translationIndicator.checked = false
-        else
-            lineEdit.translationIndicator.checked = lineEdit.backendValue.isTranslated
+        lineEdit.translationIndicator.checked = lineEdit.backendValue?.isTranslated ?? false
     }
 
     onIsTranslatedChanged: {
-        if (lineEdit.backendValue === undefined)
-            lineEdit.translationIndicator.checked = false
-        else
-            lineEdit.translationIndicator.checked = lineEdit.backendValue.isTranslated
+        lineEdit.translationIndicator.checked = lineEdit.backendValue?.isTranslated ?? false
     }
 }

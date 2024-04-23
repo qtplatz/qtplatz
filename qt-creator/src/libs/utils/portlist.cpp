@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "portlist.h"
 
@@ -163,7 +141,7 @@ bool PortList::hasMore() const { return !d->ranges.isEmpty(); }
 
 bool PortList::contains(Port port) const
 {
-    for (const Internal::Range &r : qAsConst(d->ranges)) {
+    for (const Internal::Range &r : std::as_const(d->ranges)) {
         if (port >= r.first && port <= r.second)
             return true;
     }
@@ -173,7 +151,7 @@ bool PortList::contains(Port port) const
 int PortList::count() const
 {
     int n = 0;
-    for (const Internal::Range &r : qAsConst(d->ranges))
+    for (const Internal::Range &r : std::as_const(d->ranges))
         n += r.second.number() - r.first.number() + 1;
     return n;
 }
@@ -190,10 +168,20 @@ Port PortList::getNext()
     return next;
 }
 
+Port PortList::getNextFreePort(const QList<Port> &usedPorts)
+{
+    while (hasMore()) {
+        const Port port = getNext();
+        if (!usedPorts.contains(port))
+            return port;
+    }
+    return {};
+}
+
 QString PortList::toString() const
 {
     QString stringRep;
-    for (const Internal::Range &range : qAsConst(d->ranges)) {
+    for (const Internal::Range &range : std::as_const(d->ranges)) {
         stringRep += QString::number(range.first.number());
         if (range.second != range.first)
             stringRep += QLatin1Char('-') + QString::number(range.second.number());

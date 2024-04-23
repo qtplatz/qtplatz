@@ -1,63 +1,61 @@
-/****************************************************************************
-**
-** Copyright (C) 2020 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2020 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "filepath.h"
+#include "guiutils.h"
 #include "id.h"
 #include "infolabel.h"
 #include "macroexpander.h"
-#include "optional.h"
 #include "pathchooser.h"
+#include "qtcsettings.h"
+#include "store.h"
 
 #include <functional>
 #include <memory>
+#include <optional>
+
+#include <QAbstractSpinBox>
+#include <QComboBox>
+#include <QUndoCommand>
 
 QT_BEGIN_NAMESPACE
 class QAction;
-class QGroupBox;
 class QSettings;
+class QUndoStack;
+class QStandardItem;
+class QStandardItemModel;
+class QItemSelectionModel;
 QT_END_NAMESPACE
+
+namespace Layouting {
+class LayoutItem;
+}
 
 namespace Utils {
 
 class AspectContainer;
 class BoolAspect;
-class LayoutBuilder;
+class CheckableDecider;
 
 namespace Internal {
 class AspectContainerPrivate;
 class BaseAspectPrivate;
+class ToggleAspectPrivate;
 class BoolAspectPrivate;
+class ColorAspectPrivate;
 class DoubleAspectPrivate;
+class FilePathAspectPrivate;
+class FilePathListAspectPrivate;
 class IntegerAspectPrivate;
 class MultiSelectionAspectPrivate;
 class SelectionAspectPrivate;
 class StringAspectPrivate;
 class StringListAspectPrivate;
 class TextDisplayPrivate;
+class CheckableAspectImplementation;
+class AspectListPrivate;
 } // Internal
 
 class QTCREATOR_UTILS_EXPORT BaseAspect : public QObject
@@ -65,22 +63,25 @@ class QTCREATOR_UTILS_EXPORT BaseAspect : public QObject
     Q_OBJECT
 
 public:
-    BaseAspect();
+    BaseAspect(AspectContainer *container = nullptr);
     ~BaseAspect() override;
 
     Id id() const;
     void setId(Id id);
 
-    QVariant value() const;
-    void setValue(const QVariant &value);
-    bool setValueQuietly(const QVariant &value);
+    enum Announcement { DoEmit, BeQuiet };
 
-    QVariant defaultValue() const;
-    void setDefaultValue(const QVariant &value);
+    virtual QVariant volatileVariantValue() const;
+    virtual QVariant variantValue() const;
+    virtual void setVariantValue(const QVariant &value, Announcement = DoEmit);
 
-    QString settingsKey() const;
-    void setSettingsKey(const QString &settingsKey);
-    void setSettingsKey(const QString &group, const QString &key);
+    virtual QVariant defaultVariantValue() const;
+    virtual void setDefaultVariantValue(const QVariant &value);
+    virtual bool isDefaultValue() const;
+
+    Key settingsKey() const;
+    void setSettingsKey(const Key &settingsKey);
+    void setSettingsKey(const Key &group, const Key &key);
 
     QString displayName() const;
     void setDisplayName(const QString &displayName);
@@ -92,7 +93,10 @@ public:
     void setVisible(bool visible);
 
     bool isAutoApply() const;
-    void setAutoApply(bool on);
+    virtual void setAutoApply(bool on);
+
+    virtual void setUndoStack(QUndoStack *undoStack);
+    QUndoStack *undoStack() const;
 
     bool isEnabled() const;
     void setEnabled(bool enabled);
@@ -107,6 +111,7 @@ public:
     void setLabelText(const QString &labelText);
     void setLabelPixmap(const QPixmap &labelPixmap);
     void setIcon(const QIcon &labelIcon);
+    QIcon icon() const;
 
     using ConfigWidgetCreator = std::function<QWidget *()>;
     void setConfigWidgetCreator(const ConfigWidgetCreator &configWidgetCreator);
@@ -114,18 +119,17 @@ public:
 
     virtual QAction *action();
 
-    virtual void fromMap(const QVariantMap &map);
-    virtual void toMap(QVariantMap &map) const;
-    virtual void toActiveMap(QVariantMap &map) const { toMap(map); }
+    AspectContainer *container() const;
 
-    virtual void addToLayout(LayoutBuilder &builder);
+    virtual void fromMap(const Store &map);
+    virtual void toMap(Store &map) const;
+    virtual void toActiveMap(Store &map) const { toMap(map); }
+    virtual void volatileToMap(Store &map) const;
 
-    virtual QVariant volatileValue() const;
-    virtual void setVolatileValue(const QVariant &val);
-    virtual void emitChangedValue() {}
+    virtual void addToLayout(Layouting::LayoutItem &parent);
 
-    virtual void readSettings(const QSettings *settings);
-    virtual void writeSettings(QSettings *settings) const;
+    virtual void readSettings();
+    virtual void writeSettings() const;
 
     using SavedValueTransformation = std::function<QVariant(const QVariant &)>;
     void setFromSettingsTransformation(const SavedValueTransformation &transform);
@@ -136,8 +140,21 @@ public:
     virtual void apply();
     virtual void cancel();
     virtual void finish();
-    bool isDirty() const;
+    virtual bool isDirty();
     bool hasAction() const;
+
+    struct QTCREATOR_UTILS_EXPORT Changes
+    {
+        Changes();
+
+        unsigned internalFromOutside : 1;
+        unsigned internalFromBuffer : 1;
+        unsigned bufferFromOutside : 1;
+        unsigned bufferFromInternal : 1;
+        unsigned bufferFromGui : 1;
+    };
+
+    virtual void announceChanges(Changes changes, Announcement howToAnnounce = DoEmit);
 
     class QTCREATOR_UTILS_EXPORT Data
     {
@@ -182,14 +199,31 @@ public:
 
     Data::Ptr extractData() const;
 
+    static void setQtcSettings(QtcSettings *settings);
+    static QtcSettings *qtcSettings();
+
+    // This is expensive. Do not use without good reason
+    void writeToSettingsImmediatly() const;
+
 signals:
     void changed();
+    void volatileValueChanged();
     void labelLinkActivated(const QString &link);
+    void checkedChanged();
+    void enabledChanged();
+    void labelTextChanged();
+    void labelPixmapChanged();
 
 protected:
-    QLabel *label() const;
-    void setupLabel();
-    void addLabeledItem(LayoutBuilder &builder, QWidget *widget);
+    virtual bool internalToBuffer();
+    virtual bool bufferToInternal();
+    virtual void bufferToGui();
+    virtual bool guiToBuffer();
+
+    virtual void handleGuiChanged();
+
+    QLabel *createLabel();
+    void addLabeledItem(Layouting::LayoutItem &parent, QWidget *widget);
 
     void setDataCreatorHelper(const DataCreator &creator) const;
     void setDataClonerHelper(const DataCloner &cloner) const;
@@ -214,76 +248,288 @@ protected:
     Widget *createSubWidget(Args && ...args) {
         auto w = new Widget(args...);
         registerSubWidget(w);
+        if constexpr (std::is_base_of_v<QComboBox, Widget>
+                      || std::is_base_of_v<QAbstractSpinBox, Widget>) {
+            setWheelScrollingWithoutFocusBlocked(w);
+        }
         return w;
     }
 
     void registerSubWidget(QWidget *widget);
-    static void saveToMap(QVariantMap &data, const QVariant &value,
-                          const QVariant &defaultValue, const QString &key);
+    static void saveToMap(Store &data, const QVariant &value,
+                          const QVariant &defaultValue, const Key &key);
+
+    void forEachSubWidget(const std::function<void(QWidget *)> &func);
+
+protected:
+    template <class Value>
+    static bool updateStorage(Value &target, const Value &val)
+    {
+        if (target == val)
+            return false;
+        target = val;
+        return true;
+    }
 
 private:
     std::unique_ptr<Internal::BaseAspectPrivate> d;
+    friend class Internal::CheckableAspectImplementation;
 };
 
-class QTCREATOR_UTILS_EXPORT BoolAspect : public BaseAspect
-{
-    Q_OBJECT
+QTCREATOR_UTILS_EXPORT void createItem(Layouting::LayoutItem *item, const BaseAspect &aspect);
+QTCREATOR_UTILS_EXPORT void createItem(Layouting::LayoutItem *item, const BaseAspect *aspect);
 
+template<typename ValueType>
+class
+#ifndef Q_OS_WIN
+    QTCREATOR_UTILS_EXPORT
+#endif
+        TypedAspect : public BaseAspect
+{
 public:
-    explicit BoolAspect(const QString &settingsKey = QString());
-    ~BoolAspect() override;
+    using valueType = ValueType;
+
+    TypedAspect(AspectContainer *container = nullptr)
+        : BaseAspect(container)
+    {
+        addDataExtractor(this, &TypedAspect::value, &Data::value);
+    }
 
     struct Data : BaseAspect::Data
     {
-        bool value;
+        ValueType value;
     };
 
-    void addToLayout(LayoutBuilder &builder) override;
+    ValueType operator()() const { return m_internal; }
+    ValueType value() const { return m_internal; }
+    ValueType defaultValue() const { return m_default; }
+    ValueType volatileValue() const { return m_buffer; }
 
-    QAction *action() override;
+    // We assume that this is only used in the ctor and no signalling is needed.
+    // If it is used elsewhere changes have to be detected and signalled externally.
+    void setDefaultValue(const ValueType &value)
+    {
+        m_default = value;
+        m_internal = value;
+        if (internalToBuffer()) // Might be more than a plain copy.
+            bufferToGui();
+    }
 
-    QVariant volatileValue() const override;
-    void setVolatileValue(const QVariant &val) override;
-    void emitChangedValue() override;
+    bool isDefaultValue() const override
+    {
+        return m_default == m_internal;
+    }
 
-    bool value() const;
-    void setValue(bool val);
-    void setDefaultValue(bool val);
+    void setValue(const ValueType &value, Announcement howToAnnounce = DoEmit)
+    {
+        Changes changes;
+        changes.internalFromOutside = updateStorage(m_internal, value);
+        if (internalToBuffer()) {
+            changes.bufferFromInternal = true;
+            bufferToGui();
+        }
+        announceChanges(changes, howToAnnounce);
+    }
 
-    enum class LabelPlacement { AtCheckBox, AtCheckBoxWithoutDummyLabel, InExtraLabel };
-    void setLabel(const QString &labelText,
-                  LabelPlacement labelPlacement = LabelPlacement::InExtraLabel);
-    void setLabelPlacement(LabelPlacement labelPlacement);
-    void setHandlesGroup(QGroupBox *box);
+    void setVolatileValue(const ValueType &value, Announcement howToAnnounce = DoEmit)
+    {
+        Changes changes;
+        if (updateStorage(m_buffer, value)) {
+            changes.bufferFromOutside = true;
+            bufferToGui();
+        }
+        if (isAutoApply() && bufferToInternal())
+            changes.internalFromBuffer = true;
+        announceChanges(changes, howToAnnounce);
+    }
 
-signals:
-    void valueChanged(bool newValue);
-    void volatileValueChanged(bool newValue);
+protected:
+    bool isDirty() override
+    {
+        return m_internal != m_buffer;
+    }
 
-private:
-    std::unique_ptr<Internal::BoolAspectPrivate> d;
+    bool internalToBuffer() override
+    {
+        return updateStorage(m_buffer, m_internal);
+    }
+
+    bool bufferToInternal() override
+    {
+        return updateStorage(m_internal, m_buffer);
+    }
+
+    QVariant variantValue() const override
+    {
+        return QVariant::fromValue<ValueType>(m_internal);
+    }
+
+    QVariant volatileVariantValue() const override
+    {
+        return QVariant::fromValue<ValueType>(m_buffer);
+    }
+
+    void setVariantValue(const QVariant &value, Announcement howToAnnounce = DoEmit) override
+    {
+        setValue(value.value<ValueType>(), howToAnnounce);
+    }
+
+    QVariant defaultVariantValue() const override
+    {
+        return QVariant::fromValue<ValueType>(m_default);
+    }
+
+    void setDefaultVariantValue(const QVariant &value) override
+    {
+        setDefaultValue(value.value<ValueType>());
+    }
+
+    ValueType m_default{};
+    ValueType m_internal{};
+    ValueType m_buffer{};
 };
 
-class QTCREATOR_UTILS_EXPORT SelectionAspect : public BaseAspect
+template <typename ValueType>
+class FlexibleTypedAspect : public TypedAspect<ValueType>
+{
+public:
+    using Base = TypedAspect<ValueType>;
+    using Updater = std::function<bool(ValueType &, const ValueType &)>;
+
+    using Base::Base;
+
+    void setInternalToBuffer(const Updater &updater) { m_internalToBuffer = updater; }
+    void setBufferToInternal(const Updater &updater) { m_bufferToInternal = updater; }
+    void setInternalToExternal(const Updater &updater) { m_internalToExternal = updater; }
+
+protected:
+    bool internalToBuffer() override
+    {
+        if (m_internalToBuffer)
+            return m_internalToBuffer(Base::m_buffer, Base::m_internal);
+        return Base::internalToBuffer();
+    }
+
+    bool bufferToInternal() override
+    {
+        if (m_bufferToInternal)
+            return m_bufferToInternal(Base::m_internal, Base::m_buffer);
+        return Base::bufferToInternal();
+    }
+
+    ValueType expandedValue()
+    {
+        if (!m_internalToExternal)
+            return Base::m_internal;
+        ValueType val;
+        m_internalToExternal(val, Base::m_internal);
+        return val;
+    }
+
+    Updater m_internalToBuffer;
+    Updater m_bufferToInternal;
+    Updater m_internalToExternal;
+};
+
+class QTCREATOR_UTILS_EXPORT BoolAspect : public TypedAspect<bool>
 {
     Q_OBJECT
 
 public:
-    SelectionAspect();
+    BoolAspect(AspectContainer *container = nullptr);
+    ~BoolAspect() override;
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+    std::function<void(QObject *)> groupChecker();
+
+    Utils::CheckableDecider askAgainCheckableDecider();
+    Utils::CheckableDecider doNotAskAgainCheckableDecider();
+
+    QAction *action() override;
+
+    enum class LabelPlacement { AtCheckBox, Compact, InExtraLabel };
+    void setLabel(const QString &labelText,
+                  LabelPlacement labelPlacement = LabelPlacement::InExtraLabel);
+    void setLabelPlacement(LabelPlacement labelPlacement);
+
+    Layouting::LayoutItem adoptButton(QAbstractButton *button);
+
+private:
+    void addToLayoutHelper(Layouting::LayoutItem &parent, QAbstractButton *button);
+
+    void bufferToGui() override;
+    bool guiToBuffer() override;
+
+    std::unique_ptr<Internal::BoolAspectPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT ToggleAspect : public BoolAspect
+{
+public:
+    ToggleAspect(AspectContainer *container = nullptr);
+    ~ToggleAspect();
+
+    void setOffIcon(const QIcon &icon);
+    QIcon offIcon() const;
+
+    void setOffTooltip(const QString &tooltip);
+    QString offTooltip() const;
+
+    void setOnIcon(const QIcon &icon);
+    QIcon onIcon() const;
+
+    void setOnTooltip(const QString &tooltip);
+    QString onTooltip() const;
+
+    void setOnText(const QString &text);
+    QString onText() const;
+
+    void setOffText(const QString &text);
+    QString offText() const;
+
+    QAction *action() override;
+
+protected:
+    void announceChanges(Changes changes, Announcement howToAnnounce = DoEmit) override;
+
+private:
+    std::unique_ptr<Internal::ToggleAspectPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT ColorAspect : public TypedAspect<QColor>
+{
+    Q_OBJECT
+
+public:
+    ColorAspect(AspectContainer *container = nullptr);
+    ~ColorAspect() override;
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+
+private:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
+
+    std::unique_ptr<Internal::ColorAspectPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT SelectionAspect : public TypedAspect<int>
+{
+    Q_OBJECT
+
+public:
+    SelectionAspect(AspectContainer *container = nullptr);
     ~SelectionAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
-    QVariant volatileValue() const override;
-    void setVolatileValue(const QVariant &val) override;
+    void addToLayout(Layouting::LayoutItem &parent) override;
     void finish() override;
 
-    int value() const;
-    void setValue(int val);
-    void setStringValue(const QString &val);
-    void setDefaultValue(int val);
-    void setDefaultValue(const QString &val);
-
     QString stringValue() const;
+    void setStringValue(const QString &val);
+
+    void setDefaultValue(const QString &val);
+    void setDefaultValue(int val);
+
     QVariant itemValue() const;
 
     enum class DisplayStyle { RadioButtons, ComboBox };
@@ -308,43 +554,110 @@ public:
     int indexForItemValue(const QVariant &value) const;
     QVariant itemValueForIndex(int index) const;
 
-signals:
-    void volatileValueChanged(int newValue);
+protected:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
 
-private:
     std::unique_ptr<Internal::SelectionAspectPrivate> d;
 };
 
-class QTCREATOR_UTILS_EXPORT MultiSelectionAspect : public BaseAspect
+class QTCREATOR_UTILS_EXPORT MultiSelectionAspect : public TypedAspect<QStringList>
 {
     Q_OBJECT
 
 public:
-    MultiSelectionAspect();
+    MultiSelectionAspect(AspectContainer *container = nullptr);
     ~MultiSelectionAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
+    void addToLayout(Layouting::LayoutItem &parent) override;
 
     enum class DisplayStyle { ListView };
     void setDisplayStyle(DisplayStyle style);
 
-    QStringList value() const;
-    void setValue(const QStringList &val);
-
     QStringList allValues() const;
     void setAllValues(const QStringList &val);
+
+protected:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
 
 private:
     std::unique_ptr<Internal::MultiSelectionAspectPrivate> d;
 };
 
-class QTCREATOR_UTILS_EXPORT StringAspect : public BaseAspect
+enum class UncheckedSemantics { Disabled, ReadOnly };
+enum class CheckBoxPlacement { Top, Right };
+
+class QTCREATOR_UTILS_EXPORT StringAspect : public TypedAspect<QString>
 {
     Q_OBJECT
 
 public:
-    StringAspect();
+    StringAspect(AspectContainer *container = nullptr);
     ~StringAspect() override;
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+
+    QString operator()() const { return expandedValue(); }
+    QString expandedValue() const;
+
+    // Hook between UI and StringAspect:
+    using ValueAcceptor = std::function<std::optional<QString>(const QString &, const QString &)>;
+    void setValueAcceptor(ValueAcceptor &&acceptor);
+
+    void setShowToolTipOnLabel(bool show);
+    void setDisplayFilter(const std::function<QString (const QString &)> &displayFilter);
+    void setPlaceHolderText(const QString &placeHolderText);
+    void setHistoryCompleter(const Key &historyCompleterKey);
+    void setAcceptRichText(bool acceptRichText);
+    void setMacroExpanderProvider(const MacroExpanderProvider &expanderProvider);
+    void setUseGlobalMacroExpander();
+    void setUseResetButton();
+    void setValidationFunction(const FancyLineEdit::ValidationFunction &validator);
+    void setAutoApplyOnEditingFinished(bool applyOnEditingFinished);
+    void setElideMode(Qt::TextElideMode elideMode);
+
+    void makeCheckable(CheckBoxPlacement checkBoxPlacement, const QString &optionalLabel, const Key &optionalBaseKey);
+    bool isChecked() const;
+    void setChecked(bool checked);
+
+    enum DisplayStyle {
+        LabelDisplay,
+        LineEditDisplay,
+        TextEditDisplay,
+        PasswordLineEditDisplay,
+    };
+    void setDisplayStyle(DisplayStyle style);
+
+    void fromMap(const Utils::Store &map) override;
+    void toMap(Utils::Store &map) const override;
+    void volatileToMap(Utils::Store &map) const override;
+
+signals:
+    void validChanged(bool validState);
+    void elideModeChanged(Qt::TextElideMode elideMode);
+    void historyCompleterKeyChanged(const Key &historyCompleterKey);
+    void acceptRichTextChanged(bool acceptRichText);
+    void validationFunctionChanged(const FancyLineEdit::ValidationFunction &validator);
+    void placeholderTextChanged(const QString &placeholderText);
+
+protected:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
+
+    bool internalToBuffer() override;
+    bool bufferToInternal() override;
+
+    std::unique_ptr<Internal::StringAspectPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT FilePathAspect : public TypedAspect<QString>
+{
+    Q_OBJECT
+
+public:
+    FilePathAspect(AspectContainer *container = nullptr);
+    ~FilePathAspect();
 
     struct Data : BaseAspect::Data
     {
@@ -352,90 +665,72 @@ public:
         FilePath filePath;
     };
 
-    void addToLayout(LayoutBuilder &builder) override;
-
-    QVariant volatileValue() const override;
-    void setVolatileValue(const QVariant &val) override;
-    void emitChangedValue() override;
-
-    // Hook between UI and StringAspect:
-    using ValueAcceptor = std::function<Utils::optional<QString>(const QString &, const QString &)>;
-    void setValueAcceptor(ValueAcceptor &&acceptor);
+    FilePath operator()() const;
+    FilePath expandedValue() const;
     QString value() const;
-    void setValue(const QString &val);
-    void setDefaultValue(const QString &val);
+    void setValue(const FilePath &filePath, Announcement howToAnnounce = DoEmit);
+    void setValue(const QString &filePath, Announcement howToAnnounce = DoEmit);
+    void setDefaultValue(const QString &filePath);
+    void setDefaultPathValue(const FilePath &filePath);
 
-    void setShowToolTipOnLabel(bool show);
-
-    void setDisplayFilter(const std::function<QString (const QString &)> &displayFilter);
-    void setPlaceHolderText(const QString &placeHolderText);
-    void setHistoryCompleter(const QString &historyCompleterKey);
-    void setExpectedKind(const PathChooser::Kind expectedKind);
-    void setEnvironmentChange(const EnvironmentChange &change);
-    void setBaseFileName(const FilePath &baseFileName);
-    void setUndoRedoEnabled(bool readOnly);
-    void setAcceptRichText(bool acceptRichText);
-    void setMacroExpanderProvider(const MacroExpanderProvider &expanderProvider);
-    void setUseGlobalMacroExpander();
-    void setUseResetButton();
-    void setValidationFunction(const FancyLineEdit::ValidationFunction &validator);
+    void setPromptDialogFilter(const QString &filter);
+    void setPromptDialogTitle(const QString &title);
+    void setCommandVersionArguments(const QStringList &arguments);
+    void setAllowPathFromDevice(bool allowPathFromDevice);
+    void setValidatePlaceHolder(bool validatePlaceHolder);
     void setOpenTerminalHandler(const std::function<void()> &openTerminal);
+    void setExpectedKind(const PathChooser::Kind expectedKind);
+    void setEnvironment(const Environment &env);
+    void setBaseFileName(const FilePath &baseFileName);
+
+    void setPlaceHolderText(const QString &placeHolderText);
+    void setValidationFunction(const FancyLineEdit::ValidationFunction &validator);
+    void setDisplayFilter(const std::function<QString (const QString &)> &displayFilter);
+    void setHistoryCompleter(const Key &historyCompleterKey);
+    void setMacroExpanderProvider(const MacroExpanderProvider &expanderProvider);
+    void setShowToolTipOnLabel(bool show);
     void setAutoApplyOnEditingFinished(bool applyOnEditingFinished);
-    void setElideMode(Qt::TextElideMode elideMode);
 
     void validateInput();
 
-    enum class UncheckedSemantics { Disabled, ReadOnly };
-    enum class CheckBoxPlacement { Top, Right };
-    void setUncheckedSemantics(UncheckedSemantics semantics);
+    void makeCheckable(CheckBoxPlacement checkBoxPlacement, const QString &optionalLabel, const Key &optionalBaseKey);
     bool isChecked() const;
     void setChecked(bool checked);
-    void makeCheckable(CheckBoxPlacement checkBoxPlacement, const QString &optionalLabel,
-                       const QString &optionalBaseKey);
 
-    enum DisplayStyle {
-        LabelDisplay,
-        LineEditDisplay,
-        TextEditDisplay,
-        PathChooserDisplay
-    };
-    void setDisplayStyle(DisplayStyle style);
-
-    void fromMap(const QVariantMap &map) override;
-    void toMap(QVariantMap &map) const override;
-
-    FilePath filePath() const;
-    void setFilePath(const FilePath &value);
-    void setDefaultFilePath(const FilePath &value);
+    // Hook between UI and StringAspect:
+    using ValueAcceptor = std::function<std::optional<QString>(const QString &, const QString &)>;
+    void setValueAcceptor(ValueAcceptor &&acceptor);
 
     PathChooser *pathChooser() const; // Avoid to use.
 
+    void addToLayout(Layouting::LayoutItem &parent) override;
+
+    void fromMap(const Utils::Store &map) override;
+    void toMap(Utils::Store &map) const override;
+    void volatileToMap(Utils::Store &map) const override;
+
 signals:
-    void checkedChanged();
-    void valueChanged(const QString &newValue);
+    void validChanged(bool validState);
 
 protected:
-    void update();
+    void bufferToGui() override;
+    bool guiToBuffer() override;
 
-    std::unique_ptr<Internal::StringAspectPrivate> d;
+    bool internalToBuffer() override;
+    bool bufferToInternal() override;
+
+    std::unique_ptr<Internal::FilePathAspectPrivate> d;
 };
 
-class QTCREATOR_UTILS_EXPORT IntegerAspect : public BaseAspect
+class QTCREATOR_UTILS_EXPORT IntegerAspect : public TypedAspect<qint64>
 {
     Q_OBJECT
 
 public:
-    IntegerAspect();
+    IntegerAspect(AspectContainer *container = nullptr);
     ~IntegerAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
-
-    QVariant volatileValue() const override;
-    void setVolatileValue(const QVariant &val) override;
-
-    qint64 value() const;
-    void setValue(qint64 val);
-    void setDefaultValue(qint64 defaultValue);
+    void addToLayout(Layouting::LayoutItem &parent) override;
 
     void setRange(qint64 min, qint64 max);
     void setLabel(const QString &label); // FIXME: Use setLabelText
@@ -448,32 +743,33 @@ public:
 
     struct Data : BaseAspect::Data { qint64 value = 0; };
 
+protected:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
+
 private:
     std::unique_ptr<Internal::IntegerAspectPrivate> d;
 };
 
-class QTCREATOR_UTILS_EXPORT DoubleAspect : public BaseAspect
+class QTCREATOR_UTILS_EXPORT DoubleAspect : public TypedAspect<double>
 {
     Q_OBJECT
 
 public:
-    DoubleAspect();
+    DoubleAspect(AspectContainer *container = nullptr);
     ~DoubleAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
-
-    QVariant volatileValue() const override;
-    void setVolatileValue(const QVariant &val) override;
-
-    double value() const;
-    void setValue(double val);
-    void setDefaultValue(double defaultValue);
+    void addToLayout(Layouting::LayoutItem &parent) override;
 
     void setRange(double min, double max);
     void setPrefix(const QString &prefix);
     void setSuffix(const QString &suffix);
     void setSpecialValueText(const QString &specialText);
     void setSingleStep(double step);
+
+protected:
+    void bufferToGui() override;
+    bool guiToBuffer() override;
 
 private:
     std::unique_ptr<Internal::DoubleAspectPrivate> d;
@@ -489,6 +785,7 @@ public:
 
     int toInt() const { return int(m_value); }
     QVariant toVariant() const { return int(m_value); }
+    static TriState fromInt(int value);
     static TriState fromVariant(const QVariant &variant);
 
     static const TriState Enabled;
@@ -505,29 +802,37 @@ private:
 class QTCREATOR_UTILS_EXPORT TriStateAspect : public SelectionAspect
 {
     Q_OBJECT
-public:
-    TriStateAspect(
-            const QString onString = tr("Enable"),
-            const QString &offString = tr("Disable"),
-            const QString &defaultString = tr("Leave at Default"));
 
+public:
+    TriStateAspect(AspectContainer *container = nullptr,
+                   const QString &onString = {},
+                   const QString &offString = {},
+                   const QString &defaultString = {});
+
+    TriState operator()() const { return value(); }
     TriState value() const;
     void setValue(TriState setting);
+
+    TriState defaultValue() const;
     void setDefaultValue(TriState setting);
+
+    void setOptionTexts(const QString &onString,
+                        const QString &offString,
+                        const QString &defaultString);
+private:
+    void addOption(const QString &displayName, const QString &toolTip = {}) = delete;
+    void addOption(const Option &option) = delete;
 };
 
-class QTCREATOR_UTILS_EXPORT StringListAspect : public BaseAspect
+class QTCREATOR_UTILS_EXPORT StringListAspect : public TypedAspect<QStringList>
 {
     Q_OBJECT
 
 public:
-    StringListAspect();
+    StringListAspect(AspectContainer *container = nullptr);
     ~StringListAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
-
-    QStringList value() const;
-    void setValue(const QStringList &val);
+    void addToLayout(Layouting::LayoutItem &parent) override;
 
     void appendValue(const QString &value, bool allowDuplicates = true);
     void removeValue(const QString &value);
@@ -538,23 +843,40 @@ private:
     std::unique_ptr<Internal::StringListAspectPrivate> d;
 };
 
-class QTCREATOR_UTILS_EXPORT IntegersAspect : public BaseAspect
+class QTCREATOR_UTILS_EXPORT FilePathListAspect : public TypedAspect<QStringList>
 {
     Q_OBJECT
 
 public:
-    IntegersAspect();
+    FilePathListAspect(AspectContainer *container = nullptr);
+    ~FilePathListAspect() override;
+
+    FilePaths operator()() const;
+
+    bool guiToBuffer() override;
+    void bufferToGui() override;
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+    void setPlaceHolderText(const QString &placeHolderText);
+
+    void appendValue(const FilePath &path, bool allowDuplicates = true);
+    void removeValue(const FilePath &path);
+    void appendValues(const FilePaths &values, bool allowDuplicates = true);
+    void removeValues(const FilePaths &values);
+
+private:
+    std::unique_ptr<Internal::FilePathListAspectPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT IntegersAspect : public TypedAspect<QList<int>>
+{
+    Q_OBJECT
+
+public:
+    IntegersAspect(AspectContainer *container = nullptr);
     ~IntegersAspect() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
-    void emitChangedValue() override;
-
-    QList<int> value() const;
-    void setValue(const QList<int> &value);
-    void setDefaultValue(const QList<int> &value);
-
-signals:
-    void valueChanged(const QList<int> &values);
+    void addToLayout(Layouting::LayoutItem &parent) override;
 };
 
 class QTCREATOR_UTILS_EXPORT TextDisplay : public BaseAspect
@@ -562,11 +884,12 @@ class QTCREATOR_UTILS_EXPORT TextDisplay : public BaseAspect
     Q_OBJECT
 
 public:
-    TextDisplay(const QString &message = {},
-                InfoLabel::InfoType type = InfoLabel::None);
+    explicit TextDisplay(AspectContainer *container = nullptr,
+                         const QString &message = {},
+                         InfoLabel::InfoType type = InfoLabel::None);
     ~TextDisplay() override;
 
-    void addToLayout(LayoutBuilder &builder) override;
+    void addToLayout(Layouting::LayoutItem &parent) override;
 
     void setIconType(InfoLabel::InfoType t);
     void setText(const QString &message);
@@ -594,47 +917,53 @@ private:
     QList<BaseAspect::Data::Ptr> m_data; // Owned.
 };
 
-class QTCREATOR_UTILS_EXPORT AspectContainer : public QObject
+class QTCREATOR_UTILS_EXPORT SettingsGroupNester
+{
+    Q_DISABLE_COPY_MOVE(SettingsGroupNester)
+
+public:
+    explicit SettingsGroupNester(const QStringList &groups);
+    ~SettingsGroupNester();
+
+private:
+    const int m_groupCount;
+};
+
+class QTCREATOR_UTILS_EXPORT AspectContainer : public BaseAspect
 {
     Q_OBJECT
 
 public:
-    AspectContainer(QObject *parent = nullptr);
+    AspectContainer();
     ~AspectContainer();
 
     AspectContainer(const AspectContainer &) = delete;
     AspectContainer &operator=(const AspectContainer &) = delete;
 
-    void registerAspect(BaseAspect *aspect);
+    void registerAspect(BaseAspect *aspect, bool takeOwnership = false);
     void registerAspects(const AspectContainer &aspects);
 
-    template <class Aspect, typename ...Args>
-    Aspect *addAspect(Args && ...args)
-    {
-        auto aspect = new Aspect(args...);
-        registerAspect(aspect);
-        return aspect;
-    }
+    void fromMap(const Utils::Store &map) override;
+    void toMap(Utils::Store &map) const override;
+    void volatileToMap(Utils::Store &map) const override;
 
-    void fromMap(const QVariantMap &map);
-    void toMap(QVariantMap &map) const;
-
-    void readSettings(QSettings *settings);
-    void writeSettings(QSettings *settings) const;
+    void readSettings() override;
+    void writeSettings() const override;
 
     void setSettingsGroup(const QString &groupKey);
     void setSettingsGroups(const QString &groupKey, const QString &subGroupKey);
+    QStringList settingsGroups() const;
 
-    void apply();
-    void cancel();
-    void finish();
+    void apply() override;
+    void cancel() override;
+    void finish() override;
 
     void reset();
     bool equals(const AspectContainer &other) const;
     void copyFrom(const AspectContainer &other);
-    void setAutoApply(bool on);
-    void setOwnsSubAspects(bool on);
-    bool isDirty() const;
+    void setAutoApply(bool on) override;
+    bool isDirty() override;
+    void setUndoStack(QUndoStack *undoStack) override;
 
     template <typename T> T *aspect() const
     {
@@ -661,12 +990,182 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 
+    void setLayouter(const std::function<Layouting::LayoutItem()> &layouter);
+    std::function<Layouting::LayoutItem()> layouter() const;
+
 signals:
     void applied();
+    void changed();
     void fromMapFinished();
 
 private:
     std::unique_ptr<Internal::AspectContainerPrivate> d;
+};
+
+// Because QObject cannot be a template
+class QTCREATOR_UTILS_EXPORT UndoSignaller : public QObject
+{
+    Q_OBJECT
+public:
+    void emitChanged() { emit changed(); }
+signals:
+    void changed();
+};
+
+template<class T>
+class QTCREATOR_UTILS_EXPORT UndoableValue
+{
+public:
+    class UndoCmd : public QUndoCommand
+    {
+    public:
+        UndoCmd(UndoableValue<T> *value, const T &oldValue, const T &newValue)
+            : m_value(value)
+            , m_oldValue(oldValue)
+            , m_newValue(newValue)
+        {}
+
+        void undo() override { m_value->setInternal(m_oldValue); }
+        void redo() override { m_value->setInternal(m_newValue); }
+
+    private:
+        UndoableValue<T> *m_value;
+        T m_oldValue;
+        T m_newValue;
+    };
+
+    void set(QUndoStack *stack, const T &value)
+    {
+        if (m_value == value)
+            return;
+
+        if (stack)
+            stack->push(new UndoCmd(this, m_value, value));
+        else
+            setInternal(value);
+    }
+
+    void setSilently(const T &value) { m_value = value; }
+    void setWithoutUndo(const T &value) { setInternal(value); }
+
+    T get() const { return m_value; }
+
+    UndoSignaller m_signal;
+
+private:
+    void setInternal(const T &value)
+    {
+        m_value = value;
+        m_signal.emitChanged();
+    }
+
+private:
+    T m_value;
+};
+
+class QTCREATOR_UTILS_EXPORT AspectList : public Utils::BaseAspect
+{
+public:
+    using CreateItem = std::function<std::shared_ptr<BaseAspect>()>;
+    using ItemCallback = std::function<void(std::shared_ptr<BaseAspect>)>;
+
+    AspectList(Utils::AspectContainer *container = nullptr);
+    ~AspectList() override;
+
+    void fromMap(const Utils::Store &map) override;
+    void toMap(Utils::Store &map) const override;
+
+    void volatileToMap(Utils::Store &map) const override;
+    QVariantList toList(bool v) const;
+
+    QList<std::shared_ptr<BaseAspect>> items() const;
+    QList<std::shared_ptr<BaseAspect>> volatileItems() const;
+
+    std::shared_ptr<BaseAspect> createAndAddItem();
+    std::shared_ptr<BaseAspect> addItem(const std::shared_ptr<BaseAspect> &item);
+    std::shared_ptr<BaseAspect> actualAddItem(const std::shared_ptr<BaseAspect> &item);
+
+    void removeItem(const std::shared_ptr<BaseAspect> &item);
+    void actualRemoveItem(const std::shared_ptr<BaseAspect> &item);
+    void clear();
+
+    void apply() override;
+
+    void setCreateItemFunction(CreateItem createItem);
+
+    template<class T>
+    void forEachItem(std::function<void(const std::shared_ptr<T> &)> callback)
+    {
+        for (const auto &item : volatileItems())
+            callback(std::static_pointer_cast<T>(item));
+    }
+
+    template<class T>
+    void forEachItem(std::function<void(const std::shared_ptr<T> &, int)> callback)
+    {
+        int idx = 0;
+        for (const auto &item : volatileItems())
+            callback(std::static_pointer_cast<T>(item), idx++);
+    }
+
+    void setItemAddedCallback(const ItemCallback &callback);
+    void setItemRemovedCallback(const ItemCallback &callback);
+
+    template<class T>
+    void setItemAddedCallback(const std::function<void(const std::shared_ptr<T>)> &callback)
+    {
+        setItemAddedCallback([callback](const std::shared_ptr<BaseAspect> &item) {
+            callback(std::static_pointer_cast<T>(item));
+        });
+    }
+
+    template<class T>
+    void setItemRemovedCallback(const std::function<void(const std::shared_ptr<T>)> &callback)
+    {
+        setItemRemovedCallback([callback](const std::shared_ptr<BaseAspect> &item) {
+            callback(std::static_pointer_cast<T>(item));
+        });
+    }
+
+    qsizetype size() const;
+    bool isDirty() override;
+
+    QVariant volatileVariantValue() const override { return {}; }
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+
+private:
+    std::unique_ptr<Internal::AspectListPrivate> d;
+};
+
+class QTCREATOR_UTILS_EXPORT StringSelectionAspect : public Utils::TypedAspect<QString>
+{
+    Q_OBJECT
+public:
+    StringSelectionAspect(Utils::AspectContainer *container = nullptr);
+
+    void addToLayout(Layouting::LayoutItem &parent) override;
+
+    using ResultCallback = std::function<void(QList<QStandardItem *> items)>;
+    using FillCallback = std::function<void(ResultCallback)>;
+    void setFillCallback(FillCallback callback) { m_fillCallback = callback; }
+
+    void refill() { emit refillRequested(); }
+
+    void bufferToGui() override;
+    bool guiToBuffer() override;
+
+signals:
+    void refillRequested();
+
+private:
+    QStandardItem *itemById(const QString &id);
+
+    FillCallback m_fillCallback;
+    QStandardItemModel *m_model{nullptr};
+    QItemSelectionModel *m_selectionModel{nullptr};
+
+    Utils::UndoableValue<QString> m_undoable;
 };
 
 } // namespace Utils

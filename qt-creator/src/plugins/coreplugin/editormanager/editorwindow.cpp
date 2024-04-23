@@ -1,39 +1,17 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "editorwindow.h"
 
 #include "editorarea.h"
 #include "editormanager_p.h"
+#include "../coreconstants.h"
+#include "../icontext.h"
+#include "../icore.h"
+#include "../locator/locatormanager.h"
+#include "../minisplitter.h"
 
 #include <aggregation/aggregate.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/icontext.h>
-#include <coreplugin/icore.h>
-#include <coreplugin/locator/locatormanager.h>
-#include <coreplugin/minisplitter.h>
 #include <utils/qtcassert.h>
 
 #include <QStatusBar>
@@ -69,14 +47,16 @@ EditorWindow::EditorWindow(QWidget *parent) :
 
     static int windowId = 0;
 
+    const Utils::Id windowContext
+        = Utils::Id("EditorManager.ExternalWindow.").withSuffix(++windowId);
     ICore::registerWindow(this,
-                          Context(Utils::Id("EditorManager.ExternalWindow.").withSuffix(++windowId),
-                                  Constants::C_EDITORMANAGER));
+                          Context(windowContext, Constants::C_EDITORMANAGER),
+                          Context(windowContext));
 
     connect(m_area, &EditorArea::windowTitleNeedsUpdate,
             this, &EditorWindow::updateWindowTitle);
     // editor area can be deleted by editor manager
-    connect(m_area, &EditorArea::destroyed, this, [this]() {
+    connect(m_area, &EditorArea::destroyed, this, [this] {
         m_area = nullptr;
         deleteLater();
     });

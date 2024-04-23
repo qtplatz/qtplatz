@@ -1,37 +1,19 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Templates 2.15 as T
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Templates as T
 import StudioTheme 1.0 as StudioTheme
 
 T.MenuItem {
     id: control
 
-    property int labelSpacing: StudioTheme.Values.contextMenuLabelSpacing
+    property alias shortcut: itemAction.shortcut
+
+    property StudioTheme.ControlStyle style: StudioTheme.Values.controlStyle
+
+    property int labelSpacing: control.style.contextMenuLabelSpacing
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             implicitContentWidth + leftPadding + rightPadding)
@@ -41,16 +23,19 @@ T.MenuItem {
 
     padding: 0
     spacing: 0
-    horizontalPadding: StudioTheme.Values.contextMenuHorizontalPadding
-    action: Action {}
+    horizontalPadding: control.style.contextMenuHorizontalPadding
+    action: Action {
+        id: itemAction
+    }
 
     contentItem: Item {
         Text {
             id: textLabel
             text: control.text
             font: control.font
-            color: control.enabled ? StudioTheme.Values.themeTextColor
-                                   : StudioTheme.Values.themeTextColorDisabled
+            color: control.enabled ? control.highlighted ? control.style.text.selectedText
+                                                         : control.style.text.idle
+                                    : control.style.text.disabled
             anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -58,25 +43,25 @@ T.MenuItem {
             id: shortcutLabel
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            text: shortcut.nativeText
+            text: shortcutObserver.nativeText
             font: control.font
             color: textLabel.color
 
             Shortcut {
-                id: shortcut
-                property int shortcutWorkaround: control.action.shortcut ? control.action.shortcut : 0
-                sequence: shortcutWorkaround
+                id: shortcutObserver
+                property int shortcutWorkaround: control.shortcut ?? 0
+                sequence: shortcutObserver.shortcutWorkaround
             }
         }
     }
 
     arrow: T.Label {
         id: arrow
-        x: parent.width - (StudioTheme.Values.height + arrow.width) / 2
+        x: parent.width - (control.style.controlSize.height + arrow.width) / 2
         y: (parent.height - arrow.height) / 2
         visible: control.subMenu
         text: StudioTheme.Constants.startNode
-        color: StudioTheme.Values.themeTextColor
+        color: control.style.icon.idle
         font.pixelSize: 8
         font.family: StudioTheme.Constants.iconFont.family
     }
@@ -84,13 +69,11 @@ T.MenuItem {
     background: Rectangle {
         implicitWidth: textLabel.implicitWidth + control.labelSpacing + shortcutLabel.implicitWidth
                        + control.leftPadding + control.rightPadding
-        implicitHeight: StudioTheme.Values.height
-        x: StudioTheme.Values.border
-        y: StudioTheme.Values.border
-        width: control.menu.width - (StudioTheme.Values.border * 2)
-        height: control.height - (StudioTheme.Values.border * 2)
-        color: control.down ? control.palette.midlight
-                            : control.highlighted ? StudioTheme.Values.themeInteraction
-                                                  : "transparent"
+        implicitHeight: control.style.controlSize.height
+        x: control.style.borderWidth
+        y: control.style.borderWidth
+        width: (control.menu?.width ?? 0) - (control.style.borderWidth * 2)
+        height: control.height - (control.style.borderWidth * 2)
+        color: control.highlighted ? control.style.interaction : "transparent"
     }
 }

@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "historycompleter.h"
 
@@ -52,8 +30,8 @@ public:
     void addEntry(const QString &str);
 
     QStringList list;
-    QString historyKey;
-    QString historyKeyIsLastItemEmpty;
+    Key historyKey;
+    Key historyKeyIsLastItemEmpty;
     int maxLines = 6;
     bool isLastItemEmpty = isLastItemEmptyDefault;
 };
@@ -98,6 +76,10 @@ public:
     HistoryLineView(HistoryCompleterPrivate *model_)
         : model(model_)
     {
+        setEditTriggers(QAbstractItemView::NoEditTriggers);
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setSelectionBehavior(QAbstractItemView::SelectRows);
+        setSelectionMode(QAbstractItemView::SingleSelection);
     }
 
     void installDelegate()
@@ -192,17 +174,16 @@ void HistoryCompleterPrivate::addEntry(const QString &str)
                                      isLastItemEmptyDefault);
 }
 
-HistoryCompleter::HistoryCompleter(const QString &historyKey, QObject *parent)
+HistoryCompleter::HistoryCompleter(const Key &historyKey, QObject *parent)
     : QCompleter(parent),
       d(new HistoryCompleterPrivate)
 {
     QTC_ASSERT(!historyKey.isEmpty(), return);
     QTC_ASSERT(theSettings, return);
 
-    d->historyKey = QLatin1String("CompleterHistory/") + historyKey;
+    d->historyKey = "CompleterHistory/" + historyKey;
     d->list = theSettings->value(d->historyKey).toStringList();
-    d->historyKeyIsLastItemEmpty = QLatin1String("CompleterHistory/")
-        + historyKey + QLatin1String(".IsLastItemEmpty");
+    d->historyKeyIsLastItemEmpty = "CompleterHistory/" + historyKey + ".IsLastItemEmpty";
     d->isLastItemEmpty = theSettings->value(d->historyKeyIsLastItemEmpty, isLastItemEmptyDefault)
                              .toBool();
 
@@ -226,10 +207,10 @@ QString HistoryCompleter::historyItem() const
     return d->list.at(0);
 }
 
-bool HistoryCompleter::historyExistsFor(const QString &historyKey)
+bool HistoryCompleter::historyExistsFor(const Key &historyKey)
 {
     QTC_ASSERT(theSettings, return false);
-    const QString fullKey = QLatin1String("CompleterHistory/") + historyKey;
+    const Key fullKey = "CompleterHistory/" + historyKey;
     return theSettings->value(fullKey).isValid();
 }
 

@@ -1,39 +1,16 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "generatedfile.h"
 
-#include <coreplugin/editormanager/editormanager.h>
+#include "coreplugintr.h"
+#include "editormanager/editormanager.h"
 
 #include <utils/fileutils.h>
 #include <utils/textfileformat.h>
 
 #include <QCoreApplication>
 #include <QDebug>
-#include <QDir>
-#include <QString>
 
 using namespace Utils;
 
@@ -56,9 +33,8 @@ class GeneratedFilePrivate : public QSharedData
 {
 public:
     GeneratedFilePrivate() = default;
-    explicit GeneratedFilePrivate(const Utils::FilePath &path);
-    explicit GeneratedFilePrivate(const QString &path);
-    Utils::FilePath path;
+    explicit GeneratedFilePrivate(const FilePath &path);
+    FilePath path;
     QByteArray contents;
     Id editorId;
     bool binary = false;
@@ -80,13 +56,7 @@ QDebug &operator<<(QDebug &debug, const Core::GeneratedFile &file)
     return debug;
 }
 
-GeneratedFilePrivate::GeneratedFilePrivate(const QString &path) : // FIXME Don't use - Remove when possible
-    path(FilePath::fromString(path).cleanPath()),
-    attributes({})
-{
-}
-
-GeneratedFilePrivate::GeneratedFilePrivate(const Utils::FilePath &path) :
+GeneratedFilePrivate::GeneratedFilePrivate(const FilePath &path) :
     path(path.cleanPath()),
     attributes({})
 {
@@ -97,12 +67,7 @@ GeneratedFile::GeneratedFile() :
 {
 }
 
-GeneratedFile::GeneratedFile(const QString &path) : // FIXME Don't use - Remove when possible
-    m_d(new GeneratedFilePrivate(path))
-{
-}
-
-GeneratedFile::GeneratedFile(const Utils::FilePath &path) :
+GeneratedFile::GeneratedFile(const FilePath &path) :
     m_d(new GeneratedFilePrivate(path))
 {
 }
@@ -118,23 +83,12 @@ GeneratedFile &GeneratedFile::operator=(const GeneratedFile &rhs)
 
 GeneratedFile::~GeneratedFile() = default;
 
-QString GeneratedFile::path() const
-{
-    return m_d->path.toString();
-}
-
 FilePath GeneratedFile::filePath() const
 {
     return m_d->path;
 }
 
-void GeneratedFile::setPath(const QString &p)
-{
-    m_d->path = Utils::FilePath::fromString(p).cleanPath();
-}
-
-
-void GeneratedFile::setFilePath(const Utils::FilePath &p)
+void GeneratedFile::setFilePath(const FilePath &p)
 {
     m_d->path = p;
 }
@@ -182,12 +136,11 @@ void GeneratedFile::setEditorId(Id id)
 bool GeneratedFile::write(QString *errorMessage) const
 {
     // Ensure the directory
-    const QDir dir = m_d->path.parentDir().toDir();
-    if (!dir.exists()) {
-        if (!dir.mkpath(dir.absolutePath())) {
-            *errorMessage = QCoreApplication::translate("BaseFileWizard",
-                                                        "Unable to create the directory %1.")
-                                .arg(QDir::toNativeSeparators(dir.absolutePath()));
+    const FilePath parentDir = m_d->path.parentDir();
+    if (!parentDir.isDir()) {
+        if (!parentDir.createDir()) {
+            *errorMessage = Tr::tr("Unable to create the directory %1.")
+                                .arg(parentDir.toUserOutput());
             return false;
         }
     }

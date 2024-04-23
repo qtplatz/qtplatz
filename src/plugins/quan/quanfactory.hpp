@@ -36,7 +36,9 @@ namespace Core {
 namespace quan {
 
     class QuanFactory : public Core::IEditorFactory {
+#if QTC_VERSION <= 0x08'00'02
         Q_OBJECT
+#endif
     public:
         ~QuanFactory();
         explicit QuanFactory();

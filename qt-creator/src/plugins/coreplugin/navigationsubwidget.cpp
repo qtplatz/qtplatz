@@ -1,41 +1,18 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "navigationsubwidget.h"
-#include "navigationwidget.h"
 
 #include "actionmanager/actionmanager.h"
 #include "actionmanager/command.h"
+#include "coreplugintr.h"
+#include "icore.h"
 #include "inavigationwidgetfactory.h"
-
-#include <coreplugin/icore.h>
+#include "navigationwidget.h"
 
 #include <utils/styledbar.h>
+#include <utils/stylehelper.h>
 #include <utils/utilsicons.h>
-
-#include <QDebug>
 
 #include <QHBoxLayout>
 #include <QMenu>
@@ -75,16 +52,16 @@ NavigationSubWidget::NavigationSubWidget(NavigationWidget *parentWidget, int pos
 
     auto splitAction = new QToolButton();
     splitAction->setIcon(Utils::Icons::SPLIT_HORIZONTAL_TOOLBAR.icon());
-    splitAction->setToolTip(tr("Split"));
+    splitAction->setToolTip(Tr::tr("Split"));
     splitAction->setPopupMode(QToolButton::InstantPopup);
-    splitAction->setProperty("noArrow", true);
+    splitAction->setProperty(StyleHelper::C_NO_ARROW, true);
     m_splitMenu = new QMenu(splitAction);
     splitAction->setMenu(m_splitMenu);
     connect(m_splitMenu, &QMenu::aboutToShow, this, &NavigationSubWidget::populateSplitMenu);
 
     m_closeButton = new QToolButton();
     m_closeButton->setIcon(Utils::Icons::CLOSE_SPLIT_BOTTOM.icon());
-    m_closeButton->setToolTip(tr("Close"));
+    m_closeButton->setToolTip(Tr::tr("Close"));
 
     toolBarLayout->addWidget(splitAction);
     toolBarLayout->addWidget(m_closeButton);
@@ -99,8 +76,7 @@ NavigationSubWidget::NavigationSubWidget(NavigationWidget *parentWidget, int pos
 
     setFactoryIndex(factoryIndex);
 
-    connect(m_navigationComboBox,
-            QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(m_navigationComboBox, &QComboBox::currentIndexChanged,
             this, &NavigationSubWidget::comboBoxIndexChanged);
 
     comboBoxIndexChanged(factoryIndex);
@@ -113,7 +89,7 @@ void NavigationSubWidget::comboBoxIndexChanged(int factoryIndex)
     saveSettings();
 
     // Remove toolbutton
-    for (QWidget *w : qAsConst(m_additionalToolBarWidgets))
+    for (QWidget *w : std::as_const(m_additionalToolBarWidgets))
         delete w;
     m_additionalToolBarWidgets.clear();
 
@@ -134,7 +110,7 @@ void NavigationSubWidget::comboBoxIndexChanged(int factoryIndex)
     // Add Toolbutton
     m_additionalToolBarWidgets = n.dockToolBarWidgets;
     auto layout = qobject_cast<QHBoxLayout *>(m_toolBar->layout());
-    for (QToolButton *w : qAsConst(m_additionalToolBarWidgets))
+    for (QToolButton *w : std::as_const(m_additionalToolBarWidgets))
         layout->insertWidget(layout->count()-2, w);
 
     restoreSettings();
@@ -157,7 +133,7 @@ void NavigationSubWidget::populateSplitMenu()
                                                                  command->keySequence().toString(
                                                                      QKeySequence::NativeText));
         QAction *action = m_splitMenu->addAction(displayName);
-        connect(action, &QAction::triggered, this, [this, i]() { emit splitMe(i); });
+        connect(action, &QAction::triggered, this, [this, i] { emit splitMe(i); });
     }
 }
 
@@ -189,7 +165,7 @@ void NavigationSubWidget::restoreSettings()
     if (!m_navigationWidget || !factory())
         return;
 
-    QSettings *settings = Core::ICore::settings();
+    QtcSettings *settings = Core::ICore::settings();
     settings->beginGroup(m_parentWidget->settingsGroup());
     factory()->restoreSettings(settings, position(), m_navigationWidget);
     settings->endGroup();
@@ -243,7 +219,7 @@ bool CommandComboBox::event(QEvent *e)
     if (e->type() == QEvent::ToolTip) {
         const QString text = currentText();
         if (const Core::Command *cmd = command(text)) {
-            const QString tooltip = tr("Activate %1 View").arg(text);
+            const QString tooltip = Tr::tr("Activate %1 View").arg(text);
             setToolTip(cmd->stringWithAppendedShortcut(tooltip));
         } else {
             setToolTip(text);

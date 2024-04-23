@@ -1,0 +1,154 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2aefb1a58d..0c219363f4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -171,7 +171,7 @@ if (WITH_TESTS)
+   add_subdirectory(tests)
+ endif()
+ 
+-add_subdirectory(doc)
++#add_subdirectory(doc)
+ 
+ setup_dependencies_component()
+ 
+diff --git a/cmake/QtCreatorIDEBranding.cmake b/cmake/QtCreatorIDEBranding.cmake
+index 801573093d..4130a65417 100644
+--- a/cmake/QtCreatorIDEBranding.cmake
++++ b/cmake/QtCreatorIDEBranding.cmake
+@@ -4,14 +4,14 @@ set(IDE_VERSION_DISPLAY "13.0.0")                     # The IDE display version.
+ set(IDE_COPYRIGHT_YEAR "2024")                        # The IDE current copyright year.
+ 
+ set(IDE_SETTINGSVARIANT "QtProject")                  # The IDE settings variation.
+-set(IDE_DISPLAY_NAME "Qt Creator")                    # The IDE display name.
+-set(IDE_ID "qtcreator")                               # The IDE id (no spaces, lowercase!)
+-set(IDE_CASED_ID "QtCreator")                         # The cased IDE id (no spaces!)
+-set(IDE_BUNDLE_IDENTIFIER "org.qt-project.${IDE_ID}") # The macOS application bundle identifier.
++set(IDE_DISPLAY_NAME "qtplatz")                    # The IDE display name.
++set(IDE_ID "qtplatzcreator")                               # The IDE id (no spaces, lowercase!)
++set(IDE_CASED_ID "QtPlatz")                         # The cased IDE id (no spaces!)
++set(IDE_BUNDLE_IDENTIFIER "com.ms-cheminfo.${IDE_ID}") # The macOS application bundle identifier.
+ 
+ set(PROJECT_USER_FILE_EXTENSION .user)
+-set(IDE_DOC_FILE "qtcreator/qtcreator.qdocconf")
+-set(IDE_DOC_FILE_ONLINE "qtcreator/qtcreator-online.qdocconf")
++set(IDE_DOC_FILE "qtplatz/qtplatz.qdocconf")
++set(IDE_DOC_FILE_ONLINE "qtplatz/qtplatz-online.qdocconf")
+ 
+ # Absolute, or relative to <qtcreator>/src/app
+ # Should contain qtcreator.ico, qtcreator.xcassets
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 792b3012f2..614c581cc7 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -9,7 +9,7 @@ add_subdirectory(share)
+ add_subdirectory(shared)
+ add_subdirectory(plugins)
+ add_subdirectory(app)
+-add_subdirectory(tools)
++#add_subdirectory(tools)
+ 
+ install(
+   FILES
+diff --git a/src/libs/CMakeLists.txt b/src/libs/CMakeLists.txt
+index 536e373494..8eedece988 100644
+--- a/src/libs/CMakeLists.txt
++++ b/src/libs/CMakeLists.txt
+@@ -1,22 +1,23 @@
+ add_subdirectory(3rdparty)
+ 
+-add_subdirectory(nanotrace)
+-add_subdirectory(advanceddockingsystem)
++#add_subdirectory(nanotrace)
++#add_subdirectory(advanceddockingsystem)
+ add_subdirectory(aggregation)
+-add_subdirectory(cplusplus)
++#add_subdirectory(cplusplus)
+ add_subdirectory(extensionsystem)
+-add_subdirectory(glsl)
+-add_subdirectory(languageserverprotocol)
+-add_subdirectory(languageutils)
+-add_subdirectory(modelinglib)
+-add_subdirectory(qmldebug)
+-add_subdirectory(qmleditorwidgets)
+-add_subdirectory(qmljs)
+-add_subdirectory(qtcreatorcdbext)
++#add_subdirectory(glsl)
++#add_subdirectory(languageserverprotocol)
++#add_subdirectory(languageutils)
++#add_subdirectory(modelinglib)
++#add_subdirectory(qmldebug)
++#add_subdirectory(qmleditorwidgets)
++#add_subdirectory(qmljs)
++#add_subdirectory(qtcreatorcdbext)
+ add_subdirectory(utils)
+ add_subdirectory(solutions)
+-add_subdirectory(tracing)
++#add_subdirectory(tracing)
+ 
++if ( FALSE )
+ if (WITH_QMLDESIGNER)
+   add_subdirectory(sqlite)
+   add_subdirectory(qmlpuppetcommunication)
+@@ -60,3 +61,4 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qlitehtml/src/CMakeLists.txt)
+     )
+   endif()
+ endif()
++endif() # if FALSE
+diff --git a/src/libs/qlitehtml b/src/libs/qlitehtml
+index 9c7b5d073b..4f737256c0 160000
+--- a/src/libs/qlitehtml
++++ b/src/libs/qlitehtml
+@@ -1 +1 @@
+-Subproject commit 9c7b5d073bf4713250648cf7ea35580f489f7fd7
++Subproject commit 4f737256c0a698ff3ba380cbaef1ba80a16fc3a8
+diff --git a/src/plugins/CMakeLists.txt b/src/plugins/CMakeLists.txt
+index 85de56b428..6dd9e7182a 100644
+--- a/src/plugins/CMakeLists.txt
++++ b/src/plugins/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # Level 0:
+ add_subdirectory(coreplugin)
+-
++if ( FALSE )
+ # Level 1: (only depends of Level 0)
+ add_subdirectory(texteditor)
+ add_subdirectory(serialterminal)
+@@ -117,3 +117,4 @@ add_subdirectory(qnx)
+ add_subdirectory(mcusupport)
+ add_subdirectory(qtapplicationmanager)
+ 
++endif()
+diff --git a/src/share/CMakeLists.txt b/src/share/CMakeLists.txt
+index 57850ff783..4975db9644 100644
+--- a/src/share/CMakeLists.txt
++++ b/src/share/CMakeLists.txt
+@@ -1,2 +1,2 @@
+ add_subdirectory(3rdparty)
+-add_subdirectory(qtcreator)
++#add_subdirectory(qtcreator)
+diff --git a/src/shared/CMakeLists.txt b/src/shared/CMakeLists.txt
+index b945e8faa9..3ba9d85d19 100644
+--- a/src/shared/CMakeLists.txt
++++ b/src/shared/CMakeLists.txt
+@@ -1,6 +1,7 @@
+-add_subdirectory(designerintegrationv2)
+-add_subdirectory(proparser)
++#add_subdirectory(designerintegrationv2)
++#add_subdirectory(proparser)
+ add_subdirectory(qtsingleapplication)
++if ( FALSE )
+ add_subdirectory(help)
+ add_subdirectory(registryaccess)
+ 
+@@ -33,3 +34,4 @@ if (BUILD_QBS)
+   set(QBS_INSTALL_QCH_DOCS ${WITH_DOCS} CACHE BOOL "")
+   add_subdirectory(qbs)
+ endif()
++endif()
+diff --git a/src/shared/qbs b/src/shared/qbs
+index 5c88b6b11b..ca74c52436 160000
+--- a/src/shared/qbs
++++ b/src/shared/qbs
+@@ -1 +1 @@
+-Subproject commit 5c88b6b11b762cf5861c9d1570df4f1f050c826e
++Subproject commit ca74c524363d17c689bb0ec4ca39c744df8d036e

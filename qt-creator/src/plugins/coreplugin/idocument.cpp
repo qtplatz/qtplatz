@@ -1,40 +1,20 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "idocument.h"
 
-#include <utils/fileutils.h>
+#include "coreplugintr.h"
+
+#include <utils/filepath.h>
 #include <utils/infobar.h>
 #include <utils/minimizableinfobars.h>
-#include <utils/optional.h>
 #include <utils/qtcassert.h>
 
 #include <QFile>
 #include <QFileInfo>
 
 #include <memory>
+#include <optional>
 
 /*!
     \class Core::IDocument
@@ -202,6 +182,26 @@
 */
 
 /*!
+    \fn Core::IDocument::aboutToSave(const Utils::FilePath &filePath, bool autoSave)
+
+    This signal is emitted before the document is saved to \a filePath.
+
+    \a autoSave indicates whether this save was triggered by the auto save timer.
+
+    \sa save()
+*/
+
+/*!
+    \fn Core::IDocument::saved(const Utils::FilePath &filePath, bool autoSave)
+
+    This signal is emitted after the document was saved to \a filePath.
+
+    \a autoSave indicates whether this save was triggered by the auto save timer.
+
+    \sa save()
+*/
+
+/*!
     \fn Core::IDocument::filePathChanged(const Utils::FilePath &oldName, const Utils::FilePath &newName)
 
     This signal is emitted after the file path changed from \a oldName to \a
@@ -231,7 +231,7 @@ public:
     Utils::InfoBar *infoBar = nullptr;
     std::unique_ptr<MinimizableInfoBars> minimizableInfoBars;
     Id id;
-    optional<bool> fileIsReadOnly;
+    std::optional<bool> fileIsReadOnly;
     bool temporary = false;
     bool hasWriteWarning = false;
     bool restored = false;
@@ -326,6 +326,35 @@ IDocument::OpenResult IDocument::open(QString *errorString, const Utils::FilePat
 
 /*!
     Saves the contents of the document to the \a filePath on disk.
+    If \a filePath is empty filePath() is used.
+
+    If \a autoSave is \c true, the saving is done for an auto-save, so the
+    document should avoid cleanups or other operations that it does for
+    user-requested saves.
+
+    Use \a errorString to return an error message if saving failed.
+
+    Returns whether saving was successful.
+
+    If saving was successful saved is emitted.
+
+    \sa shouldAutoSave()
+    \sa aboutToSave()
+    \sa saved()
+    \sa filePath()
+*/
+bool IDocument::save(QString *errorString, const Utils::FilePath &filePath, bool autoSave)
+{
+    const Utils::FilePath savePath = filePath.isEmpty() ? this->filePath() : filePath;
+    emit aboutToSave(savePath, autoSave);
+    const bool success = saveImpl(errorString, savePath, autoSave);
+    if (success)
+        emit saved(savePath, autoSave);
+    return success;
+}
+
+/*!
+    Implementation of saving the contents of the document to the \a filePath on disk.
 
     If \a autoSave is \c true, the saving is done for an auto-save, so the
     document should avoid cleanups or other operations that it does for
@@ -336,10 +365,8 @@ IDocument::OpenResult IDocument::open(QString *errorString, const Utils::FilePat
     Returns whether saving was successful.
 
     The default implementation does nothing and returns \c false.
-
-    \sa shouldAutoSave()
 */
-bool IDocument::save(QString *errorString, const Utils::FilePath &filePath, bool autoSave)
+bool IDocument::saveImpl(QString *errorString, const Utils::FilePath &filePath, bool autoSave)
 {
     Q_UNUSED(errorString)
     Q_UNUSED(filePath)
@@ -375,6 +402,13 @@ bool IDocument::setContents(const QByteArray &contents)
 {
     Q_UNUSED(contents)
     return false;
+}
+
+/*!
+    Formats the contents of the document, if the implementation supports such functionality.
+*/
+void IDocument::formatContents()
+{
 }
 
 /*!
@@ -635,7 +669,7 @@ void IDocument::setRestoredFrom(const Utils::FilePath &path)
     d->autoSavePath = path;
     d->restored = true;
     Utils::InfoBarEntry info(Id(kRestoredAutoSave),
-                             tr("File was restored from auto-saved copy. "
+                             Tr::tr("File was restored from auto-saved copy. "
                                 "Select Save to confirm or Revert to Saved to discard changes."));
     infoBar()->addInfo(info);
 }

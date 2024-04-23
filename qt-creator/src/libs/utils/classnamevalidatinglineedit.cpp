@@ -1,36 +1,16 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "classnamevalidatinglineedit.h"
 
 #include "qtcassert.h"
+#include "utilstr.h"
 
 #include <QRegularExpression>
 
 /*!
     \class Utils::ClassNameValidatingLineEdit
+    \inmodule QtCreator
 
     \brief The ClassNameValidatingLineEdit class implements a line edit that
     validates a C++ class name and emits a signal
@@ -100,15 +80,15 @@ bool ClassNameValidatingLineEdit::validateClassName(FancyLineEdit *edit, QString
     const QString value = edit->text();
     if (!d->m_namespacesEnabled && value.contains(d->m_namespaceDelimiter)) {
         if (errorMessage)
-            *errorMessage = tr("The class name must not contain namespace delimiters.");
+            *errorMessage = Tr::tr("The class name must not contain namespace delimiters.");
         return false;
     } else if (value.isEmpty()) {
         if (errorMessage)
-            *errorMessage = tr("Please enter a class name.");
+            *errorMessage = Tr::tr("Please enter a class name.");
         return false;
     } else if (!d->m_nameRegexp.match(value).hasMatch()) {
         if (errorMessage)
-            *errorMessage = tr("The class name contains invalid characters.");
+            *errorMessage = Tr::tr("The class name contains invalid characters.");
         return false;
     }
     return true;
@@ -143,8 +123,8 @@ QString ClassNameValidatingLineEdit::fixInputString(const QString &string)
 void ClassNameValidatingLineEdit::updateRegExp() const
 {
     const QString pattern = "^%1(%2%1)*$";
-    d->m_nameRegexp.setPattern(pattern.arg("[a-zA-Z_][a-zA-Z0-9_]*")
-                               .arg(QRegularExpression::escape(d->m_namespaceDelimiter)));
+    d->m_nameRegexp.setPattern(pattern.arg(QString("[a-zA-Z_][a-zA-Z0-9_]*"),
+                                           QRegularExpression::escape(d->m_namespaceDelimiter)));
 }
 
 QString ClassNameValidatingLineEdit::createClassName(const QString &name)

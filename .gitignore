@@ -164,3 +164,4 @@ build/src/libs/adpublisher/share/qtplatz/xslt
 qtplatz-config.cmake
 /.vscode/.cmaketools.json
 compile_commands.json
+qt-creator8

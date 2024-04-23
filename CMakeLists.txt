@@ -17,7 +17,7 @@ if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
 endif()
 
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-set ( VERBOSE ON )
+set ( VERBOSE OFF )
 set ( CMAKE_ECLIPSE_VERSION 4.5 )
 set ( DEBUG_SYMBOL OFF CACHE BOOL "DEBUG_SYMBOL" )
 
@@ -101,6 +101,7 @@ if ( WITH_QT5 )
     include_directories( BEFORE
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
+      "${CMAKE_BINARY_DIR}/bin/src" # app/app_version.h
       )
 
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
@@ -108,6 +109,7 @@ if ( WITH_QT5 )
     find_package( QtCreator REQUIRED COMPONENTS Core )
     if ( QtCreator_FOUND )
       message( STATUS "##### QtCreator version ${IDE_VERSION} #####" )
+      message( STATUS "##### IDE_PLUGIN_PATH   ${IDE_PLUGIN_PATH} #####" )
       set ( IDE_APP_PATH "ide_app_path" )  # <-- override qt-creator output path -- on trial
       string(REPLACE "." ";" IDE_VERSION_LIST ${IDE_VERSION})
       list(GET IDE_VERSION_LIST 0 IDE_VERSION_MAJOR)
@@ -121,9 +123,7 @@ if ( WITH_QT5 )
         add_definitions( "-Wno-deprecated-copy" )
       endif()
     endif()
-    #--> previous ide add_definitions( "-DQTC_VERSION=0x030281" )
 
-    message( STATUS "######################### QTDIR: ${QTDIR}, QMAKE=${QMAKE}" )
     if ( NOT QTDIR )
       find_program( QMAKE qmake REQUIRED HINTS "${QT_DIR}/../../../bin" )
       execute_process( COMMAND ${QMAKE} -query QT_INSTALL_PREFIX
@@ -174,7 +174,11 @@ if ( APPLE )
   set( CMAKE_MACOSX_RPATH                     1 )
   set( CMAKE_SKIP_BUILD_RPATH                 FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH         FALSE )
-  set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns" )
+  if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" AND UNIX )
+    set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns" )
+  else()
+    set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/${IDE_PLUGIN_PATH}" )
+  endif()
 
   set( QTPLATZ_PLUGIN_DESTINATION             "bin/qtplatz.app/Contents/PlugIns" )
 

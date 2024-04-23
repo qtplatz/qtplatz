@@ -1,32 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "predicates.h"
-#include "optional.h"
 
 #include <qcompilerdetection.h> // for Q_REQUIRED_RESULT
 
@@ -44,6 +21,7 @@
 #include <QStringList>
 
 #include <memory>
+#include <optional>
 #include <type_traits>
 
 namespace Utils
@@ -104,6 +82,10 @@ template<typename T, typename R, typename S>
 Q_REQUIRED_RESULT typename T::value_type findOr(const T &container,
                                                 typename T::value_type other,
                                                 R S::*member);
+template<typename T, typename F>
+Q_REQUIRED_RESULT std::optional<typename T::value_type> findOr(const T &container,
+                                                               std::nullopt_t,
+                                                               F function);
 
 /////////////////////////
 // findOrDefault
@@ -209,7 +191,7 @@ auto toConstReferences(const SourceContainer &sources);
 // take
 /////////////////////////
 template<class C, typename P>
-Q_REQUIRED_RESULT optional<typename C::value_type> take(C &container, P predicate);
+Q_REQUIRED_RESULT std::optional<typename C::value_type> take(C &container, P predicate);
 template<typename C, typename R, typename S>
 Q_REQUIRED_RESULT decltype(auto) take(C &container, R S::*member);
 template<typename C, typename R, typename S>
@@ -239,14 +221,6 @@ OutputContainer setUnionMerge(InputContainer1 &&input1,
                               Compare comp);
 template<class OutputContainer, class InputContainer1, class InputContainer2, class Merge>
 OutputContainer setUnionMerge(InputContainer1 &&input1, InputContainer2 &&input2, Merge merge);
-
-/////////////////////////
-// usize / ssize
-/////////////////////////
-template<typename Container>
-std::make_unsigned_t<typename Container::size_type> usize(Container container);
-template<typename Container>
-std::make_signed_t<typename Container::size_type> ssize(Container container);
 
 /////////////////////////
 // setUnion
@@ -279,7 +253,7 @@ template<template<typename> class C, // result container type
          typename SC,                // input container type
          typename F,                 // function type
          typename Value = typename std::decay_t<SC>::value_type,
-         typename Result = std::decay_t<std::result_of_t<F(Value &)>>,
+         typename Result = std::decay_t<std::invoke_result_t<F, Value&>>,
          typename ResultContainer = C<Result>>
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 #ifdef Q_CC_CLANG
@@ -296,7 +270,7 @@ template<template<typename, typename> class C, // result container type
          typename SC,                          // input container type
          typename F,                           // function type
          typename Value = typename std::decay_t<SC>::value_type,
-         typename Result = std::decay_t<std::result_of_t<F(Value &)>>,
+         typename Result = std::decay_t<std::invoke_result_t<F, Value&>>,
          typename ResultContainer = C<Result, std::allocator<Result>>>
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 #endif
@@ -421,6 +395,12 @@ bool allOf(const T &container, F predicate)
     return std::all_of(std::begin(container), std::end(container), predicate);
 }
 
+template<typename T, typename F>
+bool allOf(const std::initializer_list<T> &initializerList, F predicate)
+{
+    return std::all_of(std::begin(initializerList), std::end(initializerList), predicate);
+}
+
 // allOf taking a member function pointer
 template<typename T, typename R, typename S>
 bool allOf(const T &container, R (S::*predicate)() const)
@@ -501,6 +481,21 @@ Q_REQUIRED_RESULT
 typename T::value_type findOr(const T &container, typename T::value_type other, R S::*member)
 {
     return findOr(container, other, std::mem_fn(member));
+}
+
+template<typename C, typename F>
+Q_REQUIRED_RESULT typename std::optional<typename C::value_type> findOr(const C &container,
+                                                                        std::nullopt_t,
+                                                                        F function)
+{
+    typename C::const_iterator begin = std::begin(container);
+    typename C::const_iterator end = std::end(container);
+
+    typename C::const_iterator it = std::find_if(begin, end, function);
+    if (it == end)
+        return std::nullopt;
+
+    return *it;
 }
 
 //////////////////
@@ -627,13 +622,91 @@ public:
     MapInsertIterator<Container> operator++(int) { return *this; }
 };
 
-// inserter helper function, returns a std::back_inserter for most containers
-// and is overloaded for QSet<> and other containers without push_back, returning custom inserters
-template<typename C>
-inline std::back_insert_iterator<C>
-inserter(C &container)
+// because Qt container are not implementing the standard interface we need
+// this helper functions for generic code
+template<typename Type>
+void append(QList<Type> *container, QList<Type> &&input)
 {
-    return std::back_inserter(container);
+    container->append(std::move(input));
+}
+
+template<typename Type>
+void append(QList<Type> *container, const QList<Type> &input)
+{
+    container->append(input);
+}
+
+template<typename Container>
+void append(Container *container, Container &&input)
+{
+    container->insert(container->end(),
+                      std::make_move_iterator(input.begin()),
+                      std::make_move_iterator(input.end()));
+}
+
+template<typename Container>
+void append(Container *container, const Container &input)
+{
+    container->insert(container->end(), input.begin(), input.end());
+}
+
+// BackInsertIterator behaves like std::back_insert_iterator except is adds the back insertion for
+// container of the same type
+template<typename Container>
+class BackInsertIterator
+{
+public:
+    using iterator_category = std::output_iterator_tag;
+    using value_type = void;
+    using difference_type = ptrdiff_t;
+    using pointer = void;
+    using reference = void;
+    using container_type = Container;
+
+    explicit constexpr BackInsertIterator(Container &container)
+        : m_container(std::addressof(container))
+    {}
+
+    constexpr BackInsertIterator &operator=(const typename Container::value_type &value)
+    {
+        m_container->push_back(value);
+        return *this;
+    }
+
+    constexpr BackInsertIterator &operator=(typename Container::value_type &&value)
+    {
+        m_container->push_back(std::move(value));
+        return *this;
+    }
+
+    constexpr BackInsertIterator &operator=(const Container &container)
+    {
+        append(m_container, container);
+        return *this;
+    }
+
+    constexpr BackInsertIterator &operator=(Container &&container)
+    {
+        append(m_container, container);
+        return *this;
+    }
+
+    [[nodiscard]] constexpr BackInsertIterator &operator*() { return *this; }
+
+    constexpr BackInsertIterator &operator++() { return *this; }
+
+    constexpr BackInsertIterator operator++(int) { return *this; }
+
+private:
+    Container *m_container;
+};
+
+// inserter helper function, returns a BackInsertIterator for most containers
+// and is overloaded for QSet<> and other containers without push_back, returning custom inserters
+template<typename Container>
+inline BackInsertIterator<Container> inserter(Container &container)
+{
+    return BackInsertIterator(container);
 }
 
 template<typename X>
@@ -832,7 +905,7 @@ template<template<typename...> class C, // container type
          typename F, // function type
          typename... CArgs> // Arguments to SC
 Q_REQUIRED_RESULT
-decltype(auto) transform(C<CArgs...> &container, F function)
+auto transform(C<CArgs...> &container, F function) -> decltype(auto)
 {
     return transform<C, C<CArgs...> &>(container, function);
 }
@@ -864,7 +937,7 @@ decltype(auto) transform(C<CArgs...> &container, R S::*p)
 template<template<typename...> class C = QList, // result container
          typename F> // Arguments to C
 Q_REQUIRED_RESULT
-decltype(auto) transform(const QStringList &container, F function)
+auto transform(const QStringList &container, F function)
 {
     return transform<C, const QList<QString> &>(static_cast<QList<QString>>(container), function);
 }
@@ -909,6 +982,17 @@ C filtered(const C &container, R (S::*predicate)() const)
     C out;
     std::copy_if(std::begin(container), std::end(container),
                  inserter(out), std::mem_fn(predicate));
+    return out;
+}
+
+//////////////////
+// filteredCast
+/////////////////
+template<typename R, typename C, typename F>
+Q_REQUIRED_RESULT R filteredCast(const C &container, F predicate)
+{
+    R out;
+    std::copy_if(std::begin(container), std::end(container), inserter(out), predicate);
     return out;
 }
 
@@ -1016,8 +1100,78 @@ inline void sort(Container &container, Predicate p)
     std::stable_sort(std::begin(container), std::end(container), p);
 }
 
+// const lvalue
+template<typename Container>
+inline Container sorted(const Container &container)
+{
+    Container c = container;
+    sort(c);
+    return c;
+}
+
+// non-const lvalue
+// This is needed because otherwise the "universal" reference below is used, modifying the input
+// container.
+template<typename Container>
+inline Container sorted(Container &container)
+{
+    Container c = container;
+    sort(c);
+    return c;
+}
+
+// non-const rvalue (actually rvalue or lvalue, but lvalue is handled above)
+template<typename Container>
+inline Container sorted(Container &&container)
+{
+    sort(container);
+    return std::move(container);
+}
+
+// const rvalue
+template<typename Container>
+inline Container sorted(const Container &&container)
+{
+    return sorted(container);
+}
+
+// const lvalue
+template<typename Container, typename Predicate>
+inline Container sorted(const Container &container, Predicate p)
+{
+    Container c = container;
+    sort(c, p);
+    return c;
+}
+
+// non-const lvalue
+// This is needed because otherwise the "universal" reference below is used, modifying the input
+// container.
+template<typename Container, typename Predicate>
+inline Container sorted(Container &container, Predicate p)
+{
+    Container c = container;
+    sort(c, p);
+    return c;
+}
+
+// non-const rvalue (actually rvalue or lvalue, but lvalue is handled above)
+template<typename Container, typename Predicate>
+inline Container sorted(Container &&container, Predicate p)
+{
+    sort(container, p);
+    return std::move(container);
+}
+
+// const rvalue
+template<typename Container, typename Predicate>
+inline Container sorted(const Container &&container, Predicate p)
+{
+    return sorted(container, p);
+}
+
 // pointer to member
-template <typename Container, typename R, typename S>
+template<typename Container, typename R, typename S>
 inline void sort(Container &container, R S::*member)
 {
     auto f = std::mem_fn(member);
@@ -1028,8 +1182,43 @@ inline void sort(Container &container, R S::*member)
     });
 }
 
+// const lvalue
+template<typename Container, typename R, typename S>
+inline Container sorted(const Container &container, R S::*member)
+{
+    Container c = container;
+    sort(c, member);
+    return c;
+}
+
+// non-const lvalue
+// This is needed because otherwise the "universal" reference below is used, modifying the input
+// container.
+template<typename Container, typename R, typename S>
+inline Container sorted(Container &container, R S::*member)
+{
+    Container c = container;
+    sort(c, member);
+    return c;
+}
+
+// non-const rvalue (actually rvalue or lvalue, but lvalue is handled above)
+template<typename Container, typename R, typename S>
+inline Container sorted(Container &&container, R S::*member)
+{
+    sort(container, member);
+    return std::move(container);
+}
+
+// const rvalue
+template<typename Container, typename R, typename S>
+inline Container sorted(const Container &&container, R S::*member)
+{
+    return sorted(container, member);
+}
+
 // pointer to member function
-template <typename Container, typename R, typename S>
+template<typename Container, typename R, typename S>
 inline void sort(Container &container, R (S::*function)() const)
 {
     auto f = std::mem_fn(function);
@@ -1038,6 +1227,41 @@ inline void sort(Container &container, R (S::*function)() const)
               [&f](const_ref a, const_ref b) {
         return f(a) < f(b);
     });
+}
+
+// const lvalue
+template<typename Container, typename R, typename S>
+inline Container sorted(const Container &container, R (S::*function)() const)
+{
+    Container c = container;
+    sort(c, function);
+    return c;
+}
+
+// non-const lvalue
+// This is needed because otherwise the "universal" reference below is used, modifying the input
+// container.
+template<typename Container, typename R, typename S>
+inline Container sorted(Container &container, R (S::*function)() const)
+{
+    Container c = container;
+    sort(c, function);
+    return c;
+}
+
+// non-const rvalue (actually rvalue or lvalue, but lvalue is handled above)
+template<typename Container, typename R, typename S>
+inline Container sorted(Container &&container, R (S::*function)() const)
+{
+    sort(container, function);
+    return std::move(container);
+}
+
+// const rvalue
+template<typename Container, typename R, typename S>
+inline Container sorted(const Container &&container, R (S::*function)() const)
+{
+    return sorted(container, function);
 }
 
 //////////////////
@@ -1088,15 +1312,15 @@ auto toConstReferences(const SourceContainer &sources)
 /////////////////
 
 template<class C, typename P>
-Q_REQUIRED_RESULT optional<typename C::value_type> take(C &container, P predicate)
+Q_REQUIRED_RESULT std::optional<typename C::value_type> take(C &container, P predicate)
 {
     const auto end = std::end(container);
 
     const auto it = std::find_if(std::begin(container), end, predicate);
     if (it == end)
-        return nullopt;
+        return std::nullopt;
 
-    optional<typename C::value_type> result = Utils::make_optional(std::move(*it));
+    std::optional<typename C::value_type> result = std::make_optional(std::move(*it));
     container.erase(it);
     return result;
 }
@@ -1211,15 +1435,15 @@ OutputContainer setUnionMerge(InputContainer1 &&input1,
 }
 
 template<typename Container>
-std::make_unsigned_t<typename Container::size_type> usize(Container container)
+constexpr auto usize(const Container &container)
 {
-    return static_cast<std::make_unsigned_t<typename Container::size_type>>(container.size());
+    return static_cast<std::make_unsigned_t<decltype(std::size(container))>>(std::size(container));
 }
 
 template<typename Container>
-std::make_signed_t<typename Container::size_type> ssize(Container container)
+constexpr auto ssize(const Container &container)
 {
-    return static_cast<std::make_signed_t<typename Container::size_type>>(container.size());
+    return static_cast<std::make_signed_t<decltype(std::size(container))>>(std::size(container));
 }
 
 template<typename Compare>
@@ -1296,14 +1520,6 @@ QSet<T> toSet(const QList<T> &list)
     return QSet<T>(list.begin(), list.end());
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-template<class T>
-QSet<T> toSet(const QVector<T> &vec)
-{
-    return QSet<T>(vec.begin(), vec.end());
-}
-#endif
-
 template<class T>
 QList<T> toList(const QSet<T> &set)
 {
@@ -1314,6 +1530,15 @@ template <class Key, class T>
 void addToHash(QHash<Key, T> *result, const QHash<Key, T> &additionalContents)
 {
     result->insert(additionalContents);
+}
+
+// Workaround for missing information from QSet::insert()
+// Return type could be a pair like for std::set, but we never use the iterator anyway.
+template<typename T, typename U> [[nodiscard]] bool insert(QSet<T> &s, const U &v)
+{
+    const int oldSize = s.size();
+    s.insert(v);
+    return s.size() > oldSize;
 }
 
 } // namespace Utils

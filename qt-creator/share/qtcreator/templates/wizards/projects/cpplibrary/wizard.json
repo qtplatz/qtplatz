@@ -3,7 +3,7 @@
     "supportedProjectTypes": [ "MesonProjectManager.MesonProject", "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
     "id": "H.CppLibrary",
     "category": "G.Library",
-    "trDescription": "Creates a C++ library. This can be used to create:<ul><li>a shared C++ library for use with <tt>QPluginLoader</tt> and runtime (Plugins)</li><li>a shared or static C++ library for use with another project at linktime</li></ul>",
+    "trDescription": "Creates a C++ library. You can create:<ul><li>a shared C++ library for use with <tt>QPluginLoader</tt> and runtime (Plugins)</li><li>a shared or static C++ library for use with another project at linktime</li></ul>",
     "trDisplayName": "C++ Library",
     "trDisplayCategory": "Library",
     "icon": "../../global/lib.png",
@@ -32,7 +32,7 @@
         { "key": "GlobalHdrFileName", "value": "%{JS: Util.fileName(value('ProjectName') + '_global', Util.preferredSuffix('text/x-c++hdr'))}" },
         { "key": "TargetInstallPath", "value": "%{JS: value('IsShared') === 'true' ? '/usr/lib' : (value('IsQtPlugin') && value('PluginTargetPath') ? '$$[QT_INSTALL_PLUGINS]/' + value('PluginTargetPath') : '')}" },
         { "key": "CN", "value": "%{JS: Cpp.className(value('Class'))}" },
-        { "key": "GUARD", "value": "%{JS: Cpp.classToHeaderGuard(value('Class'), Util.suffix(value('HdrFileName')))}" },
+        { "key": "GUARD", "value": "%{JS: Cpp.headerGuard(value('HdrFileName'))}" },
         { "key": "HasTranslation", "value": "%{JS: value('TsFileName') !== ''}" },
         { "key": "GLOBAL_GUARD", "value": "%{JS: Cpp.headerGuard(value('GlobalHdrFileName'))}" }
     ],
@@ -138,7 +138,7 @@
                     "data":
                     {
                         "validator": "(?:(?:[a-zA-Z_][a-zA-Z_0-9]*::)*[a-zA-Z_][a-zA-Z_0-9]*|)",
-                        "trText": "%{JS: value('Type') === 'qtplugin' ? value('BaseClassName').slice(1) : (value('ProjectName').charAt(0).toUpperCase() + value('ProjectName').slice(1))}"
+                        "text": "%{JS: value('Type') === 'qtplugin' ? value('BaseClassName').slice(1) : (value('ProjectName').charAt(0).toUpperCase() + value('ProjectName').slice(1))}"
                     }
                 },
                 {
@@ -269,14 +269,14 @@
                     "type": "LineEdit",
                     "trDisplayName": "Header file:",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++hdr'))}" }
+                    "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++hdr'))}" }
                 },
                 {
                     "name": "SrcFileName",
                     "type": "LineEdit",
                     "trDisplayName": "Source file:",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++src'))}" }
+                    "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++src'))}" }
                 }
             ]
         },

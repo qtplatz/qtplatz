@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -40,7 +18,10 @@ Column {
         anchors.right: parent.right
 
         SectionLayout {
-            PropertyLabel { text: qsTr("Source") }
+            PropertyLabel {
+                text: qsTr("Source")
+                tooltip: qsTr("Sets the source image for the border.")
+            }
 
             SecondColumnLayout {
                 UrlChooser {
@@ -52,6 +33,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Source size")
+                tooltip: qsTr("Sets the dimension of the border image.")
                 blockedByTemplate: !backendValues.sourceSize.isAvailable
             }
 
@@ -71,6 +53,7 @@ Column {
                 ControlLabel {
                     //: The width of the object
                     text: qsTr("W", "width")
+                    tooltip: qsTr("Width")
                     enabled: backendValues.sourceSize_width.isAvailable
                 }
 
@@ -91,6 +74,7 @@ Column {
                 ControlLabel {
                     //: The height of the object
                     text: qsTr("H", "height")
+                    tooltip: qsTr("Height")
                     enabled: backendValues.sourceSize_height.isAvailable
                 }
 /*
@@ -104,6 +88,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Tile mode H")
+                tooltip: qsTr("Sets the horizontal tiling mode.")
                 blockedByTemplate: !backendValues.horizontalTileMode.isAvailable
             }
 
@@ -123,6 +108,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Tile mode V")
+                tooltip: qsTr("Sets the vertical tiling mode.")
                 blockedByTemplate: !backendValues.verticalTileMode.isAvailable
             }
 
@@ -140,7 +126,10 @@ Column {
                 ExpandingSpacer {}
             }
 
-            PropertyLabel { text: qsTr("Border left") }
+            PropertyLabel {
+                text: qsTr("Border left")
+                tooltip: qsTr("Sets the left border.")
+            }
 
             SecondColumnLayout {
                 SpinBox {
@@ -155,7 +144,10 @@ Column {
                 ExpandingSpacer {}
             }
 
-            PropertyLabel { text: qsTr("Border right") }
+            PropertyLabel {
+                text: qsTr("Border right")
+                tooltip: qsTr("Sets the right border.")
+            }
 
             SecondColumnLayout {
                 SpinBox {
@@ -170,7 +162,10 @@ Column {
                 ExpandingSpacer {}
             }
 
-            PropertyLabel { text: qsTr("Border top") }
+            PropertyLabel {
+                text: qsTr("Border top")
+                tooltip: qsTr("Sets the top border.")
+            }
 
             SecondColumnLayout {
                 SpinBox {
@@ -185,7 +180,10 @@ Column {
                 ExpandingSpacer {}
             }
 
-            PropertyLabel { text: qsTr("Border bottom") }
+            PropertyLabel {
+                text: qsTr("Border bottom")
+                tooltip: qsTr("Sets the bottom border.")
+            }
 
             SecondColumnLayout {
                 SpinBox {
@@ -202,7 +200,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Mirror")
-                tooltip: qsTr("Specifies whether the image should be horizontally inverted.")
+                tooltip: qsTr("Toggles if the image should be inverted horizontally.")
                 blockedByTemplate: !backendValues.mirror.isAvailable
             }
 
@@ -219,26 +217,8 @@ Column {
             }
 
             PropertyLabel {
-                text: qsTr("Smooth")
-                tooltip: qsTr("Specifies whether the image is smoothly filtered when scaled or transformed.")
-                blockedByTemplate: !backendValues.smooth.isAvailable
-            }
-
-            SecondColumnLayout {
-                CheckBox {
-                    text: backendValues.smooth.valueToString
-                    implicitWidth: StudioTheme.Values.twoControlColumnWidth
-                                   + StudioTheme.Values.actionIndicatorWidth
-                    backendValue: backendValues.smooth
-                    enabled: backendValue.isAvailable
-                }
-
-                ExpandingSpacer {}
-            }
-
-            PropertyLabel {
                 text: qsTr("Cache")
-                tooltip: qsTr("Specifies whether the image should be cached.")
+                tooltip: qsTr("Toggles if the image is saved to the cache memory.")
                 blockedByTemplate: !backendValues.cache.isAvailable
             }
 
@@ -256,7 +236,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Asynchronous")
-                tooltip: qsTr("Specifies that images on the local filesystem should be loaded asynchronously in a separate thread.")
+                tooltip: qsTr("Toggles if the image is loaded after all the components in the design.")
                 blockedByTemplate: !backendValues.asynchronous.isAvailable
             }
 

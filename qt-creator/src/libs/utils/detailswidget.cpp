@@ -1,32 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "detailswidget.h"
 
 #include "detailsbutton.h"
 #include "hostosinfo.h"
+#include "stylehelper.h"
 #include "theme/theme.h"
 
 #include <QGridLayout>
@@ -37,8 +16,11 @@
 #include <QApplication>
 #include <QStyle>
 
+#include <qdrawutil.h>
+
 /*!
     \class Utils::DetailsWidget
+    \inmodule QtCreator
 
     \brief The DetailsWidget class implements a button to expand a \e Details
     area.
@@ -78,9 +60,6 @@ public:
     QLabel *m_additionalSummaryLabel;
     FadingPanel *m_toolWidget;
     QWidget *m_widget;
-
-    QPixmap m_collapsedPixmap;
-    QPixmap m_expandedPixmap;
 
     DetailsWidget::State m_state;
     bool m_hovered;
@@ -134,41 +113,13 @@ DetailsWidgetPrivate::DetailsWidgetPrivate(QWidget *parent) :
     m_grid->addWidget(m_additionalSummaryLabel, 1, 0, 1, 3);
 }
 
-QPixmap DetailsWidget::createBackground(const QSize &size, int topHeight, QWidget *widget)
-{
-    QPixmap pixmap(size);
-    pixmap.fill(Qt::transparent);
-    QPainter p(&pixmap);
-
-    QRect topRect(0, 0, size.width(), topHeight);
-    QRect fullRect(0, 0, size.width(), size.height());
-    if (HostOsInfo::isMacHost())
-        p.fillRect(fullRect, QApplication::palette().window().color());
-    else
-        p.fillRect(fullRect, creatorTheme()->color(Theme::DetailsWidgetBackgroundColor));
-
-    if (!creatorTheme()->flag(Theme::FlatProjectsMode)) {
-        QLinearGradient lg(topRect.topLeft(), topRect.bottomLeft());
-        lg.setStops(creatorTheme()->gradient(Theme::DetailsWidgetHeaderGradient));
-        p.fillRect(topRect, lg);
-        p.setRenderHint(QPainter::Antialiasing, true);
-        p.translate(0.5, 0.5);
-        p.setPen(QColor(0, 0, 0, 40));
-        p.setBrush(Qt::NoBrush);
-        p.drawRoundedRect(fullRect.adjusted(0, 0, -1, -1), 2, 2);
-        p.setBrush(Qt::NoBrush);
-        p.setPen(QColor(255,255,255,140));
-        p.drawRoundedRect(fullRect.adjusted(1, 1, -2, -2), 2, 2);
-        p.setPen(QPen(widget->palette().color(QPalette::Mid)));
-    }
-
-    return pixmap;
-}
-
 void DetailsWidgetPrivate::updateControls()
 {
-    if (m_widget)
+    if (m_widget) {
         m_widget->setVisible(m_state == DetailsWidget::Expanded || m_state == DetailsWidget::NoSummary);
+        m_widget->setContentsMargins(
+                    MARGIN, m_state == DetailsWidget::Expanded ? MARGIN : 0, MARGIN, MARGIN);
+    }
     m_detailsButton->setChecked(m_state == DetailsWidget::Expanded && m_widget);
     m_detailsButton->setVisible(m_state == DetailsWidget::Expanded || m_state == DetailsWidget::Collapsed);
     m_summaryLabelIcon->setVisible(m_state != DetailsWidget::NoSummary && !m_useCheckBox);
@@ -271,29 +222,17 @@ void DetailsWidget::paintEvent(QPaintEvent *paintEvent)
     QWidget::paintEvent(paintEvent);
 
     QPainter p(this);
-
-    QWidget *topLeftWidget = d->m_useCheckBox ? static_cast<QWidget *>(d->m_summaryCheckBox) : static_cast<QWidget *>(d->m_summaryLabelIcon);
-    QPoint topLeft(topLeftWidget->geometry().left() - MARGIN, contentsRect().top());
-    const QRect paintArea(topLeft, contentsRect().bottomRight());
-
-    int topHeight = d->m_useCheckBox ? d->m_summaryCheckBox->height() : d->m_summaryLabel->height();
-    if (d->m_state == DetailsWidget::Expanded || d->m_state == DetailsWidget::Collapsed) // Details Button is shown
-        topHeight = qMax(d->m_detailsButton->height(), topHeight);
-
-    if (d->m_state == Collapsed) {
-        if (d->m_collapsedPixmap.isNull() ||
-            d->m_collapsedPixmap.size() != size())
-            d->m_collapsedPixmap = createBackground(paintArea.size(), topHeight, this);
-        p.drawPixmap(paintArea, d->m_collapsedPixmap);
-    } else {
-        if (d->m_expandedPixmap.isNull() ||
-            d->m_expandedPixmap.size() != size())
-            d->m_expandedPixmap = createBackground(paintArea.size(), topHeight, this);
-        p.drawPixmap(paintArea, d->m_expandedPixmap);
+    if (creatorTheme()->flag(Theme::FlatProjectsMode) || HostOsInfo::isMacHost()) {
+        const QColor bgColor = creatorTheme()->flag(Theme::FlatProjectsMode) ?
+                    creatorTheme()->color(Theme::DetailsWidgetBackgroundColor)
+                  : palette().color(QPalette::Window);
+        p.fillRect(rect(), bgColor);
     }
+    if (!creatorTheme()->flag(Theme::FlatProjectsMode))
+        qDrawPlainRect(&p, rect(), DetailsButton::outlineColor());
 }
 
-void DetailsWidget::enterEvent(EnterEvent *event)
+void DetailsWidget::enterEvent(QEnterEvent *event)
 {
     QWidget::enterEvent(event);
     d->changeHoverState(true);

@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -52,7 +30,7 @@ Section {
     SectionLayout {
         PropertyLabel {
             text: qsTr("Capitalization")
-            tooltip: qsTr("Capitalization for the text.")
+            tooltip: qsTr("Sets capitalization rules for the text.")
             blockedByTemplate: !getBackendValue("capitalization").isAvailable
         }
 
@@ -73,6 +51,7 @@ Section {
         PropertyLabel {
             visible: root.showStyle
             text: qsTr("Style")
+            tooltip: qsTr("Sets the font style.")
             blockedByTemplate: !styleComboBox.enabled
         }
 
@@ -96,6 +75,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Style color")
+            tooltip: qsTr("Sets the color for the font style.")
             visible: root.isBackendValueAvailable("styleColor")
         }
 
@@ -107,7 +87,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Hinting")
-            tooltip: qsTr("Preferred hinting on the text.")
+            tooltip: qsTr("Sets how to interpolate the text to render it more clearly when scaled.")
             blockedByTemplate: !getBackendValue("hintingPreference").isAvailable
         }
 
@@ -127,8 +107,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Auto kerning")
-            tooltip: qsTr("Enables or disables the kerning OpenType feature when shaping the text. Disabling this may " +
-                          "improve performance when creating or changing the text, at the expense of some cosmetic features.")
+            tooltip: qsTr("Resolves the gap between texts if turned true.")
             blockedByTemplate: !getBackendValue("kerning").isAvailable
         }
 
@@ -146,9 +125,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Prefer shaping")
-            tooltip: qsTr("Sometimes, a font will apply complex rules to a set of characters in order to display them correctly.\n" +
-                          "In some writing systems, such as Brahmic scripts, this is required in order for the text to be legible, whereas in " +
-                          "Latin script,\n it is merely a cosmetic feature. Setting the preferShaping property to false will disable all such features\nwhen they are not required, which will improve performance in most cases.")
+            tooltip: qsTr("Toggles the font-specific special features.")
             blockedByTemplate: !getBackendValue("preferShaping").isAvailable
         }
 

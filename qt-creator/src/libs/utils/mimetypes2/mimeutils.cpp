@@ -1,50 +1,15 @@
-/****************************************************************************
-**
-** Copyright (C) 2022 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the QtCore module of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:LGPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "mimeutils.h"
 
 #include "mimedatabase.h"
 #include "mimedatabase_p.h"
 #include "mimemagicrule_p.h"
-#include "mimeprovider_p.h"
 
 #include "filepath.h"
+
+#include <QUrl>
 
 namespace Utils {
 
@@ -63,9 +28,12 @@ MimeType mimeTypeForFile(const QString &fileName, MimeMatchMode mode)
 MimeType mimeTypeForFile(const FilePath &filePath, MimeMatchMode mode)
 {
     MimeDatabase mdb;
-    if (filePath.needsDevice())
+    if (filePath.needsDevice() && mode != MimeMatchMode::MatchDefaultAndRemote)
         return mdb.mimeTypeForUrl(filePath.toUrl());
-    return mdb.mimeTypeForFile(filePath.toString(), MimeDatabase::MatchMode(mode));
+    if (mode == MimeMatchMode::MatchDefaultAndRemote) {
+        mode = MimeMatchMode::MatchDefault;
+    }
+    return mdb.mimeTypeForFile(filePath.toFSPathString(), MimeDatabase::MatchMode(mode));
 }
 
 QList<MimeType> mimeTypesForFileName(const QString &fileName)
@@ -89,7 +57,7 @@ QList<MimeType> allMimeTypes()
 void setMimeStartupPhase(MimeStartupPhase phase)
 {
     auto d = MimeDatabasePrivate::instance();
-    QMutexLocker locker(&d->mutex);
+    QWriteLocker locker(&d->m_initMutex);
     if (int(phase) != d->m_startupPhase + 1) {
         qWarning("Unexpected jump in MimedDatabase lifetime from %d to %d",
                  d->m_startupPhase,
@@ -102,11 +70,6 @@ void addMimeTypes(const QString &id, const QByteArray &data)
 {
     auto d = MimeDatabasePrivate::instance();
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase >= int(MimeStartupPhase::PluginsDelayedInitializing)) {
-        qWarning("Adding items for ID \"%s\" to MimeDatabase after initialization time",
-                 qPrintable(id));
-    }
 
     d->addMimeData(id, data);
 }
@@ -130,6 +93,46 @@ void setMagicRulesForMimeType(const MimeType &mimeType, const QMap<int, QList<Mi
     auto d = MimeDatabasePrivate::instance();
     QMutexLocker locker(&d->mutex);
     d->setMagicRulesForMimeType(mimeType, rules);
+}
+
+void visitMimeParents(const MimeType &mimeType,
+                      const std::function<bool(const MimeType &mimeType)> &visitor)
+{
+    // search breadth-first through parent hierarchy, e.g. for hierarchy
+    // * application/x-ruby
+    //     * application/x-executable
+    //         * application/octet-stream
+    //     * text/plain
+    QList<MimeType> queue;
+    QSet<QString> seen;
+    queue.append(mimeType);
+    seen.insert(mimeType.name());
+    while (!queue.isEmpty()) {
+        const MimeType mt = queue.takeFirst();
+        if (!visitor(mt))
+            break;
+        // add parent mime types
+        const QStringList parentNames = mt.parentMimeTypes();
+        for (const QString &parentName : parentNames) {
+            const MimeType parent = mimeTypeForName(parentName);
+            if (parent.isValid()) {
+                int seenSize = seen.size();
+                seen.insert(parent.name());
+                if (seen.size() != seenSize) // not seen before, so add
+                    queue.append(parent);
+            }
+        }
+    }
+}
+
+/*!
+    The \a init function will be executed once after the MIME database is first initialized.
+    It must be thread safe.
+*/
+void addMimeInitializer(const std::function<void()> &init)
+{
+    auto d = MimeDatabasePrivate::instance();
+    d->addInitializer(init);
 }
 
 } // namespace Utils

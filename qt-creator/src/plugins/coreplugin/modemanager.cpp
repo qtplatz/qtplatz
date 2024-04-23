@@ -1,39 +1,15 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "modemanager.h"
 
-#include "fancytabwidget.h"
+#include "actionmanager/actionmanager.h"
+#include "actionmanager/command.h"
+#include "coreplugintr.h"
 #include "fancyactionbar.h"
+#include "fancytabwidget.h"
 #include "icore.h"
-#include "mainwindow.h"
-
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/actionmanager/command.h>
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/imode.h>
+#include "imode.h"
 
 #include <extensionsystem/pluginmanager.h>
 
@@ -92,12 +68,11 @@ struct ModeManagerPrivate
     void activateModeHelper(Id id);
     void extensionsInitializedHelper();
 
-    Internal::MainWindow *m_mainWindow;
     Internal::FancyTabWidget *m_modeStack;
     Internal::FancyActionBar *m_actionBar;
-    QMap<QAction*, int> m_actions;
-    QVector<IMode*> m_modes;
-    QVector<Command*> m_modeCommands;
+    QHash<QAction *, int> m_actions;
+    QVector<IMode *> m_modes;
+    QVector<Command *> m_modeCommands;
     Context m_addedContexts;
     int m_oldCurrent;
     ModeManager::Style m_modeStyle = ModeManager::Style::IconsAndText;
@@ -122,15 +97,13 @@ static int indexOf(Id id)
 void ModeManagerPrivate::showMenu(int index, QMouseEvent *event)
 {
     QTC_ASSERT(m_modes.at(index)->menu(), return);
-    m_modes.at(index)->menu()->popup(event->globalPos());
+    m_modes.at(index)->menu()->popup(event->globalPosition().toPoint());
 }
 
-ModeManager::ModeManager(Internal::MainWindow *mainWindow,
-                         Internal::FancyTabWidget *modeStack)
+ModeManager::ModeManager(Internal::FancyTabWidget *modeStack)
 {
     m_instance = this;
     d = new ModeManagerPrivate();
-    d->m_mainWindow = mainWindow;
     d->m_modeStack = modeStack;
     d->m_oldCurrent = -1;
     d->m_actionBar = new Internal::FancyActionBar(modeStack);
@@ -211,7 +184,7 @@ void ModeManagerPrivate::extensionsInitializedHelper()
     Utils::sort(m_modes, &IMode::priority);
     std::reverse(m_modes.begin(), m_modes.end());
 
-    for (IMode *mode : qAsConst(m_modes))
+    for (IMode *mode : std::as_const(m_modes))
         appendMode(mode);
 
     if (m_pendingFirstActiveMode.isValid())
@@ -228,7 +201,7 @@ void ModeManagerPrivate::appendMode(IMode *mode)
 {
     const int index = m_modeCommands.count();
 
-    m_mainWindow->addContextObject(mode);
+    ICore::addContextObject(mode);
 
     m_modeStack->insertTab(index, mode->widget(), mode->icon(), mode->displayName(),
                            mode->menu() != nullptr);
@@ -236,7 +209,7 @@ void ModeManagerPrivate::appendMode(IMode *mode)
 
     // Register mode shortcut
     const Id actionId = mode->id().withPrefix("QtCreator.Mode.");
-    QAction *action = new QAction(ModeManager::tr("Switch to <b>%1</b> mode").arg(mode->displayName()), m_instance);
+    QAction *action = new QAction(Tr::tr("Switch to <b>%1</b> mode").arg(mode->displayName()), m_instance);
     Command *cmd = ActionManager::registerAction(action, actionId);
     cmd->setDefaultKeySequence(QKeySequence(useMacShortcuts ? QString("Meta+%1").arg(index + 1)
                                                             : QString("Ctrl+%1").arg(index + 1)));
@@ -248,12 +221,13 @@ void ModeManagerPrivate::appendMode(IMode *mode)
     });
 
     Id id = mode->id();
-    QObject::connect(action, &QAction::triggered, [this, id] {
+    QObject::connect(action, &QAction::triggered, m_instance, [this, id] {
         ModeManager::activateMode(id);
         ICore::raiseWindow(m_modeStack);
     });
 
-    QObject::connect(mode, &IMode::enabledStateChanged, [this, mode] { enabledStateChanged(mode); });
+    QObject::connect(mode, &IMode::enabledStateChanged,
+                     m_instance, [this, mode] { enabledStateChanged(mode); });
 }
 
 void ModeManager::removeMode(IMode *mode)
@@ -268,7 +242,7 @@ void ModeManager::removeMode(IMode *mode)
     d->m_modeCommands.remove(index);
     d->m_modeStack->removeTab(index);
 
-    d->m_mainWindow->removeContextObject(mode);
+    ICore::removeContextObject(mode);
 }
 
 void ModeManagerPrivate::enabledStateChanged(IMode *mode)
@@ -301,7 +275,7 @@ void ModeManager::addAction(QAction *action, int priority)
 
     // Count the number of commands with a higher priority
     int index = 0;
-    for (int p : qAsConst(d->m_actions)) {
+    for (int p : std::as_const(d->m_actions)) {
         if (p > priority)
             ++index;
     }
@@ -348,6 +322,7 @@ void ModeManager::currentTabChanged(int index)
         oldMode = d->m_modes.at(d->m_oldCurrent);
     d->m_oldCurrent = index;
     emit currentModeChanged(mode->id(), oldMode ? oldMode->id() : Id());
+    emit currentMainWindowChanged();
 }
 
 /*!

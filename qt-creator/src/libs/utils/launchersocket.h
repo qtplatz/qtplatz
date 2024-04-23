@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -73,7 +51,7 @@ public:
     LauncherHandle *launcherHandle() const { return m_launcherHandle; }
     void setLauncherHandle(LauncherHandle *handle) { QMutexLocker locker(&m_mutex); m_launcherHandle = handle; }
 
-    bool waitForSignal(CallerHandle::SignalType signalType, int msecs);
+    bool waitForSignal(CallerHandle::SignalType signalType, QDeadlineTimer timeout);
 
     // Returns the list of flushed signals.
     void flush();
@@ -84,10 +62,11 @@ public:
 
     // Called from caller's or launcher's thread.
     QProcess::ProcessState state() const;
-    void sendStopPacket(StopProcessPacket::SignalType signalType);
+    void sendControlPacket(ControlProcessPacket::SignalType signalType);
     void terminate();
     void kill();
     void close();
+    void closeWriteChannel();
 
     qint64 processId() const;
 
@@ -145,16 +124,15 @@ private:
 
 // Moved to the launcher thread, returned to caller's thread.
 // It's assumed that this object will be alive at least
-// as long as the corresponding QtcProcess is alive.
+// as long as the corresponding Process is alive.
 
 class LauncherHandle : public QObject
 {
-    Q_OBJECT
 public:
     // Called from caller's thread, moved to launcher's thread afterwards.
     LauncherHandle(quintptr token) : m_token(token) {}
     // Called from caller's thread exclusively.
-    bool waitForSignal(CallerHandle::SignalType newSignal, int msecs);
+    bool waitForSignal(CallerHandle::SignalType newSignal, QDeadlineTimer timeout);
     CallerHandle *callerHandle() const { return m_callerHandle; }
     void setCallerHandle(CallerHandle *handle) { QMutexLocker locker(&m_mutex); m_callerHandle = handle; }
 

@@ -1,130 +1,87 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "opendocumentsfilter.h"
 
-#include <coreplugin/editormanager/editormanager.h>
-#include <coreplugin/editormanager/ieditor.h>
-#include <coreplugin/locator/basefilefilter.h>
-#include <utils/fileutils.h>
-#include <utils/link.h>
-#include <utils/linecolumn.h>
+#include "../coreplugintr.h"
+#include "../editormanager/documentmodel.h"
 
-#include <QAbstractItemModel>
-#include <QFileInfo>
-#include <QMutexLocker>
+#include <extensionsystem/pluginmanager.h>
+
+#include <utils/algorithm.h>
+#include <utils/async.h>
+#include <utils/link.h>
+
 #include <QRegularExpression>
 
-using namespace Core;
-using namespace Core::Internal;
+using namespace Tasking;
 using namespace Utils;
+
+namespace Core::Internal {
+
+class Entry
+{
+public:
+    Utils::FilePath fileName;
+    QString displayName;
+};
 
 OpenDocumentsFilter::OpenDocumentsFilter()
 {
     setId("Open documents");
-    setDisplayName(tr("Open Documents"));
+    setDisplayName(Tr::tr("Open Documents"));
+    setDescription(Tr::tr("Switches to an open document."));
     setDefaultShortcutString("o");
     setPriority(High);
     setDefaultIncludedByDefault(true);
-
-    connect(DocumentModel::model(), &QAbstractItemModel::dataChanged,
-            this, &OpenDocumentsFilter::refreshInternally);
-    connect(DocumentModel::model(), &QAbstractItemModel::rowsInserted,
-            this, &OpenDocumentsFilter::refreshInternally);
-    connect(DocumentModel::model(), &QAbstractItemModel::rowsRemoved,
-            this, &OpenDocumentsFilter::refreshInternally);
 }
 
-QList<LocatorFilterEntry> OpenDocumentsFilter::matchesFor(QFutureInterface<LocatorFilterEntry> &future,
-                                                          const QString &entry)
+static void matchEditors(QPromise<void> &promise, const LocatorStorage &storage,
+                         const QList<Entry> &editorsData)
 {
-    QList<LocatorFilterEntry> goodEntries;
-    QList<LocatorFilterEntry> betterEntries;
-    QString postfix;
-    Link link = Link::fromString(entry, true, &postfix);
-
-    const QRegularExpression regexp = createRegExp(link.targetFilePath.toString());
+    const Link link = Link::fromString(storage.input(), true);
+    const QRegularExpression regexp = ILocatorFilter::createRegExp(link.targetFilePath.toString());
     if (!regexp.isValid())
-        return goodEntries;
+        return;
 
-    const QList<Entry> editorEntries = editors();
-    for (const Entry &editorEntry : editorEntries) {
-        if (future.isCanceled())
-            break;
-        QString fileName = editorEntry.fileName.toString();
-        if (fileName.isEmpty())
+    LocatorFilterEntries goodEntries;
+    LocatorFilterEntries betterEntries;
+
+    for (const Entry &editorData : editorsData) {
+        if (promise.isCanceled())
+            return;
+        if (editorData.fileName.isEmpty())
             continue;
-        QString displayName = editorEntry.displayName;
-        const QRegularExpressionMatch match = regexp.match(displayName);
+        const QRegularExpressionMatch match = regexp.match(editorData.displayName);
         if (match.hasMatch()) {
-            LocatorFilterEntry filterEntry(this, displayName, QString(fileName + postfix));
-            filterEntry.filePath = FilePath::fromString(fileName);
+            LocatorFilterEntry filterEntry;
+            filterEntry.displayName = editorData.displayName;
+            filterEntry.filePath = editorData.fileName;
             filterEntry.extraInfo = filterEntry.filePath.shortNativePath();
-            filterEntry.highlightInfo = highlightInfo(match);
+            filterEntry.highlightInfo = ILocatorFilter::highlightInfo(match);
+            filterEntry.linkForEditor = Link(filterEntry.filePath, link.targetLine,
+                                             link.targetColumn);
             if (match.capturedStart() == 0)
                 betterEntries.append(filterEntry);
             else
                 goodEntries.append(filterEntry);
         }
     }
-    betterEntries.append(goodEntries);
-    return betterEntries;
+    storage.reportOutput(betterEntries + goodEntries);
 }
 
-void OpenDocumentsFilter::refreshInternally()
+LocatorMatcherTasks OpenDocumentsFilter::matchers()
 {
-    QMutexLocker lock(&m_mutex);
-    m_editors.clear();
-    const QList<DocumentModel::Entry *> documentEntries = DocumentModel::entries();
-    for (DocumentModel::Entry *e : documentEntries) {
-        Entry entry;
-        // create copy with only the information relevant to use
-        // to avoid model deleting entries behind our back
-        entry.displayName = e->displayName();
-        entry.fileName = e->fileName();
-        m_editors.append(entry);
-    }
+    Storage<LocatorStorage> storage;
+
+    const auto onSetup = [storage](Async<void> &async) {
+        const QList<Entry> editorsData = Utils::transform(DocumentModel::entries(),
+            [](const DocumentModel::Entry *e) { return Entry{e->filePath(), e->displayName()}; });
+        async.setFutureSynchronizer(ExtensionSystem::PluginManager::futureSynchronizer());
+        async.setConcurrentCallData(matchEditors, *storage, editorsData);
+    };
+
+    return {{AsyncTask<void>(onSetup), storage}};
 }
 
-QList<OpenDocumentsFilter::Entry> OpenDocumentsFilter::editors() const
-{
-    QMutexLocker lock(&m_mutex);
-    return m_editors;
-}
-
-void OpenDocumentsFilter::refresh(QFutureInterface<void> &future)
-{
-    Q_UNUSED(future)
-    QMetaObject::invokeMethod(this, &OpenDocumentsFilter::refreshInternally, Qt::QueuedConnection);
-}
-
-void OpenDocumentsFilter::accept(const LocatorFilterEntry &selection,
-                                 QString *newText, int *selectionStart, int *selectionLength) const
-{
-    Q_UNUSED(newText)
-    Q_UNUSED(selectionStart)
-    Q_UNUSED(selectionLength)
-    BaseFileFilter::openEditorAt(selection);
-}
+} // namespace Core::Internal

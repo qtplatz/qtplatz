@@ -1,0 +1,104 @@
+/****************************************************************************
+**
+** Copyright (C) 2017 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+
+//! [arguments]
+
+    \section2 \c -- <arguments>
+
+    Command-line arguments to be passed to the program to be run.
+
+//! [arguments]
+
+
+//! [configuration-name]
+
+    \section2 \c config:configuration-name
+
+    Specifies the build configuration to use.
+
+    \QBS can build a project for one or multiple configurations at once, each
+    having a different set of parameters. The \c config parameter has a
+    special function: with each occurrence a new configuration instance begins
+    and all subsequent parameters until the next \c config are assigned to this
+    instance. Parameter assignments before the first occurrence of \c config are
+    applied to all build configurations. Inside products and modules, the
+    current active build configuration can be retrieved via
+    \l{qbs::configurationName}{qbs.configurationName}.
+
+    In the following snippet, a profile \c clang is applied to all
+    configurations while \c cpp.optimization is different for \c debug and
+    \c release:
+
+    \code
+    profile:clang config:debug cpp.optimization:none config:release cpp.optimization:small
+    \endcode
+
+    The value of \c config determines the name of the build folder and affects
+    the default value of the \l{qbs::buildVariant}{qbs.buildVariant} property.
+    \QBS knows the \c config values \c{"debug"} and \c{"release"}, but in
+    general any name can be chosen. When naming configurations created for
+    special purposes, follow the rules for legal names generally used in
+    programming languages:
+
+    \list
+        \li The first character must be a letter (a-z), an underscore (_), or a
+            dollar sign ($).
+        \li Subsequent characters may be letters, digits, underscores, or dollar
+            signs.
+    \endlist
+
+//! [configuration-name]
+
+//! [key]
+
+    \section2 \c <key>
+
+    Typically, a \c <key> consists of several levels separated by periods. The
+    first level shows a \e root value, such as \e preferences or \e profiles.
+    The root determines whether the second-level keys are build preferences or
+    profile names. The lower level keys consist of a module name, followed by a
+    property name.
+
+//! [key]
+
+//! [property]
+
+    \section2 \c {property:value}
+
+    Property values set in project files or profiles can be overridden on the
+    command line. The syntax is:
+
+    \code
+    <prefix>.<property-name>:<property-value>
+    \endcode
+
+    For more information, see
+    \l{Overriding Property Values from the Command Line}.
+
+//! [property]
+*/

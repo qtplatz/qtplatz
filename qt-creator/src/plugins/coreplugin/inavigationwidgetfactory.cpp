@@ -1,33 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2016 Falko Arps
-** Copyright (C) 2016 Sven Klein
-** Copyright (C) 2016 Giuliano Schneider
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2016 Falko Arps
+// Copyright (C) 2016 Sven Klein
+// Copyright (C) 2016 Giuliano Schneider
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "inavigationwidgetfactory.h"
 
+#include <QIcon>
 #include <QKeySequence>
 
 /*!
@@ -80,7 +59,9 @@
     to the caller.
 */
 
-using namespace Core;
+using namespace Utils;
+
+namespace Core {
 
 static QList<INavigationWidgetFactory *> g_navigationWidgetFactories;
 
@@ -127,7 +108,7 @@ void INavigationWidgetFactory::setPriority(int priority)
 
     \sa id()
 */
-void INavigationWidgetFactory::setId(Utils::Id id)
+void INavigationWidgetFactory::setId(Id id)
 {
     m_id = id;
 }
@@ -156,7 +137,7 @@ QKeySequence INavigationWidgetFactory::activationSequence() const
 
     \sa INavigationWidgetFactory::restoreSettings()
 */
-void INavigationWidgetFactory::saveSettings(Utils::QtcSettings * /* settings */,
+void INavigationWidgetFactory::saveSettings(QtcSettings * /* settings */,
                                             int /* position */,
                                             QWidget * /* widget */)
 {
@@ -168,6 +149,20 @@ void INavigationWidgetFactory::saveSettings(Utils::QtcSettings * /* settings */,
 
     \sa INavigationWidgetFactory::saveSettings()
 */
-void INavigationWidgetFactory::restoreSettings(QSettings * /* settings */, int /* position */, QWidget * /* widget */)
+void INavigationWidgetFactory::restoreSettings(QtcSettings * /* settings */, int /* position */,
+                                               QWidget * /* widget */)
 {
 }
+
+// Registers a new root path in the factory
+void INavigationWidgetFactory::addRootPath(Id /*id*/, const QString & /*displayName*/,
+                                           const QIcon & /*icon*/, const FilePath & /*path*/)
+{
+}
+
+// Removes a root path from the factory
+void INavigationWidgetFactory::removeRootPath(Id /*path*/)
+{
+}
+
+} // Core

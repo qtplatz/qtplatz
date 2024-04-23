@@ -53,7 +53,7 @@ EditorFactory::EditorFactory()
 {
     setId( Constants::C_DATAPROCESSOR );
 
-    setDisplayName( tr("Dataprocessor") );
+    setDisplayName( QObject::tr("Dataprocessor") );
     setEditorCreator( [] {
         return new DataprocEditor();
     });

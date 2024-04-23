@@ -1,29 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "sidebarwidget.h"
+
+#include "coreplugintr.h"
 #include "sidebar.h"
 #include "navigationsubwidget.h"
 
@@ -68,14 +48,14 @@ SideBarWidget::SideBarWidget(SideBar *sideBar, const QString &id)
     spacerItem->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     m_toolbar->addWidget(spacerItem);
 
-    m_splitAction = new QAction(tr("Split"), m_toolbar);
-    m_splitAction->setToolTip(tr("Split"));
+    m_splitAction = new QAction(Tr::tr("Split"), m_toolbar);
+    m_splitAction->setToolTip(Tr::tr("Split"));
     m_splitAction->setIcon(Utils::Icons::SPLIT_HORIZONTAL_TOOLBAR.icon());
     connect(m_splitAction, &QAction::triggered, this, &SideBarWidget::splitMe);
     m_toolbar->addAction(m_splitAction);
 
-    m_closeAction = new QAction(tr("Close"), m_toolbar);
-    m_closeAction->setToolTip(tr("Close"));
+    m_closeAction = new QAction(Tr::tr("Close"), m_toolbar);
+    m_closeAction->setToolTip(Tr::tr("Close"));
     m_closeAction->setIcon(Utils::Icons::CLOSE_SPLIT_BOTTOM.icon());
     connect(m_closeAction, &QAction::triggered, this, &SideBarWidget::closeMe);
     m_toolbar->addAction(m_closeAction);
@@ -86,11 +66,10 @@ SideBarWidget::SideBarWidget(SideBar *sideBar, const QString &id)
     setLayout(lay);
     lay->addWidget(m_toolbar);
 
-    QStringList titleList = m_sideBar->availableItemTitles();
-    Utils::sort(titleList);
+    const QStringList titleList = Utils::sorted(m_sideBar->availableItemTitles());
     QString t = id;
     if (!titleList.isEmpty()) {
-        for (const QString &itemTitle : qAsConst(titleList))
+        for (const QString &itemTitle : titleList)
             m_comboBox->addItem(itemTitle, m_sideBar->idForTitle(itemTitle));
 
         m_comboBox->setCurrentIndex(0);
@@ -99,8 +78,7 @@ SideBarWidget::SideBarWidget(SideBar *sideBar, const QString &id)
     }
     setCurrentItem(t);
 
-    connect(m_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SideBarWidget::setCurrentIndex);
+    connect(m_comboBox, &QComboBox::currentIndexChanged, this, &SideBarWidget::setCurrentIndex);
 }
 
 SideBarWidget::~SideBarWidget() = default;
@@ -154,7 +132,7 @@ void SideBarWidget::updateAvailableItems()
         titleList.append(currentTitle);
     Utils::sort(titleList);
 
-    for (const QString &itemTitle : qAsConst(titleList))
+    for (const QString &itemTitle : std::as_const(titleList))
         m_comboBox->addItem(itemTitle, m_sideBar->idForTitle(itemTitle));
 
     int idx = m_comboBox->findText(currentTitle);

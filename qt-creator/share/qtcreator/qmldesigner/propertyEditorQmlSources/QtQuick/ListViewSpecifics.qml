@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import HelperWidgets 2.0
@@ -43,7 +21,7 @@ Column {
         SectionLayout {
             PropertyLabel {
                 text: qsTr("Orientation")
-                tooltip: qsTr("Orientation of the list.")
+                tooltip: qsTr("Sets the orientation of the list.")
             }
 
             SecondColumnLayout {
@@ -61,6 +39,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Layout direction")
+                tooltip: qsTr("Sets the direction that the cells flow inside a list.")
                 blockedByTemplate: !backendValues.layoutDirection.isAvailable
             }
 
@@ -80,7 +59,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Snap mode")
-                tooltip: qsTr("Determines how the view scrolling will settle following a drag or flick.")
+                tooltip: qsTr("Sets how the view scrolling settles following a drag or flick.")
                 blockedByTemplate: !backendValues.snapMode.isAvailable
             }
 
@@ -100,7 +79,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Spacing")
-                tooltip: qsTr("Spacing between components.")
+                tooltip: qsTr("Sets the spacing between components.")
             }
 
             SecondColumnLayout {
@@ -118,7 +97,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Cache")
-                tooltip: qsTr("Cache buffer.")
+                tooltip: qsTr("Sets in pixels how far the components are kept loaded outside the view's visible area.")
                 blockedByTemplate: !backendValues.cacheBuffer.isAvailable
             }
 
@@ -138,7 +117,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Navigation wraps")
-                tooltip: qsTr("Whether the grid wraps key navigation.")
+                tooltip: qsTr("Toggles if the grid wraps key navigation.")
                 blockedByTemplate: !backendValues.keyNavigationWraps.isAvailable
             }
 
@@ -165,7 +144,7 @@ Column {
         SectionLayout {
             PropertyLabel {
                 text: qsTr("Range")
-                tooltip: qsTr("Highlight range.")
+                tooltip: qsTr("Sets the highlight range mode.")
                 blockedByTemplate: !backendValues.highlightRangeMode.isAvailable
             }
 
@@ -185,7 +164,8 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Move duration")
-                tooltip: qsTr("Move animation duration of the highlight delegate.")
+                tooltip: qsTr("Sets the animation duration of the highlight delegate when\n"
+                            + "it is moved.")
                 blockedByTemplate: !backendValues.highlightMoveDuration.isAvailable
             }
 
@@ -205,7 +185,8 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Move velocity")
-                tooltip: qsTr("Move animation velocity of the highlight delegate.")
+                tooltip: qsTr("Sets the animation velocity of the highlight delegate when\n"
+                            + "it is moved.")
                 blockedByTemplate: !backendValues.highlightMoveVelocity.isAvailable
             }
 
@@ -225,7 +206,8 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Resize duration")
-                tooltip: qsTr("Resize animation duration of the highlight delegate.")
+                tooltip: qsTr("Sets the animation duration of the highlight delegate when\n"
+                            + "it is resized.")
                 blockedByTemplate: !backendValues.highlightResizeDuration.isAvailable
             }
 
@@ -245,7 +227,8 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Resize velocity")
-                tooltip: qsTr("Resize animation velocity of the highlight delegate.")
+                tooltip: qsTr("Sets the animation velocity of the highlight delegate when\n"
+                            + "it is resized.")
                 blockedByTemplate: !backendValues.highlightResizeVelocity.isAvailable
             }
 
@@ -265,7 +248,9 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Preferred begin")
-                tooltip: qsTr("Preferred highlight begin - must be smaller than Preferred end.")
+                tooltip: qsTr("Sets the preferred highlight beginning. It must be smaller than\n"
+                            + "the <b>Preferred end</b>. Note that the user has to add\n"
+                            + "a highlight component.")
                 blockedByTemplate: !backendValues.preferredHighlightBegin.isAvailable
             }
 
@@ -285,7 +270,9 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Preferred end")
-                tooltip: qsTr("Preferred highlight end - must be larger than Preferred begin.")
+                tooltip: qsTr("Sets the preferred highlight end. It must be larger than\n"
+                            + "the <b>Preferred begin</b>. Note that the user has to add\n"
+                            + "a highlight component.")
                 blockedByTemplate: !backendValues.preferredHighlightEnd.isAvailable
             }
 
@@ -305,7 +292,7 @@ Column {
 
             PropertyLabel {
                 text: qsTr("Follows current")
-                tooltip: qsTr("Whether the highlight is managed by the view.")
+                tooltip: qsTr("Toggles if the view manages the highlight.")
                 blockedByTemplate: !backendValues.highlightFollowsCurrentItem.isAvailable
             }
 

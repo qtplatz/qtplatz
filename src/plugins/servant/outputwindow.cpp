@@ -79,11 +79,13 @@ OutputWindow::toolBarWidgets() const
     return QList<QWidget *>();
 }
 
+#if QTC_VERSION <= 0x08'00'02
 int
 OutputWindow::priorityInStatusBar() const
 {
     return 85;
 }
+#endif
 
 void
 OutputWindow::visibilityChanged(bool visible)

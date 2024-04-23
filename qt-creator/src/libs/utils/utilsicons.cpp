@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "utilsicons.h"
 
@@ -46,6 +24,8 @@ const Icon UNLOCKED({
         {":/utils/images/unlocked.png", Theme::PanelTextColorDark}}, Icon::Tint);
 const Icon PINNED({
         {":/utils/images/pinned.png", Theme::PanelTextColorDark}}, Icon::Tint);
+const Icon PINNED_SMALL({
+        {":/utils/images/pinned_small.png", Theme::PanelTextColorDark}}, Icon::Tint);
 const Icon NEXT({
         {":/utils/images/next.png", Theme::IconsWarningColor}}, Icon::MenuTintedStyle);
 const Icon NEXT_TOOLBAR({
@@ -83,11 +63,15 @@ const Icon BOOKMARK_TOOLBAR({
         {":/utils/images/bookmark.png", Theme::IconsBaseColor}});
 const Icon BOOKMARK_TEXTEDITOR({
         {":/utils/images/bookmark.png", Theme::Bookmarks_TextMarkColor}}, Icon::Tint);
+const Icon SNAPSHOT({
+        {":/utils/images/snapshot.png", Theme::PanelTextColorMid}}, Icon::Tint);
 const Icon SNAPSHOT_TOOLBAR({
         {":/utils/images/snapshot.png", Theme::IconsBaseColor}});
 const Icon NEWSEARCH_TOOLBAR({
         {":/utils/images/zoom.png", Theme::IconsBaseColor},
         {":/utils/images/iconoverlay_add_small.png", Theme::IconsRunColor}});
+const Icon SETTINGS({
+        {":/utils/images/settings.png", Theme::PanelTextColorMid}}, Icon::Tint);
 const Icon SETTINGS_TOOLBAR({
         {":/utils/images/settings.png", Theme::IconsBaseColor}});
 
@@ -147,8 +131,10 @@ const Icon ARROW_DOWN({
         {":/utils/images/arrowdown.png", Theme::IconsBaseColor}});
 const Icon ARROW_DOWN_TOOLBAR({
         {":/utils/images/arrowdown.png", Theme::IconsNavigationArrowsColor}});
-const Icon MINUS({
+const Icon MINUS_TOOLBAR({
         {":/utils/images/minus.png", Theme::IconsBaseColor}});
+const Icon MINUS({
+        {":/utils/images/minus.png", Theme::PaletteText}}, Icon::Tint);
 const Icon PLUS_TOOLBAR({
         {":/utils/images/plus.png", Theme::IconsBaseColor}});
 const Icon PLUS({
@@ -241,8 +227,16 @@ const Icon INTERRUPT_SMALL({
         {":/utils/images/interrupt_small.png", Theme::IconsInterruptColor}}, Icon::MenuTintedStyle);
 const Icon INTERRUPT_SMALL_TOOLBAR({
         {":/utils/images/interrupt_small.png", Theme::IconsInterruptToolBarColor}});
+const Icon CONTINUE_SMALL({
+        {":/utils/images/continue_1_small.png", Theme::IconsInterruptColor},
+        {":/utils/images/continue_2_small.png", Theme::IconsRunColor}}, Icon::MenuTintedStyle);
+const Icon CONTINUE_SMALL_TOOLBAR({
+        {":/utils/images/continue_1_small.png", Theme::IconsInterruptToolBarColor},
+        {":/utils/images/continue_2_small.png", Theme::IconsRunToolBarColor}});
 const Icon BOUNDING_RECT({
         {":/utils/images/boundingrect.png", Theme::IconsBaseColor}});
+const Icon EYE_OPEN({
+        {":/utils/images/eye_open.png", Theme::PanelTextColorMid}}, Icon::Tint);
 const Icon EYE_OPEN_TOOLBAR({
         {":/utils/images/eye_open.png", Theme::IconsBaseColor}});
 const Icon EYE_CLOSED_TOOLBAR({
@@ -302,6 +296,7 @@ const Icon MACOS_TOUCHBAR_BOOKMARK(
         ":/utils/images/macos_touchbar_bookmark.png");
 const Icon MACOS_TOUCHBAR_CLEAR(
         ":/utils/images/macos_touchbar_clear.png");
+
 } // namespace Icons
 
 QIcon CodeModelIcon::iconForType(CodeModelIcon::Type type)

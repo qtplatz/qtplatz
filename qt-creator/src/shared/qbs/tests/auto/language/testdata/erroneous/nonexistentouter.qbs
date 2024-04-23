@@ -1,0 +1,5 @@
+Project {
+    Product {
+        name: outer
+    }
+}

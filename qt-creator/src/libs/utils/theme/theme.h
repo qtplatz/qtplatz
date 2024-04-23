@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 Thorben Kroeger <thorbenkroeger@gmail.com>.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 Thorben Kroeger <thorbenkroeger@gmail.com>.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -31,6 +9,7 @@
 #include <QObject>
 
 QT_BEGIN_NAMESPACE
+class QMenu;
 class QPalette;
 class QSettings;
 QT_END_NAMESPACE
@@ -57,7 +36,6 @@ public:
         BadgeLabelBackgroundColorUnchecked,
         BadgeLabelTextColorChecked,
         BadgeLabelTextColorUnchecked,
-        CanceledSearchTextColor,
         ComboBoxArrowColor,
         ComboBoxArrowColorDisabled,
         ComboBoxTextColor,
@@ -245,17 +223,30 @@ public:
         Debugger_WatchItem_ValueInvalid,
         Debugger_WatchItem_ValueChanged,
 
-        /* Welcome Plugin */
+        /* Qt Creator Color Tokens */
 
-        Welcome_TextColor,
-        Welcome_ForegroundPrimaryColor,
-        Welcome_ForegroundSecondaryColor,
-        Welcome_BackgroundPrimaryColor,
-        Welcome_BackgroundSecondaryColor,
-        Welcome_HoverColor,
-        Welcome_AccentColor,
-        Welcome_LinkColor,
-        Welcome_DisabledLinkColor,
+        Token_Basic_Black,
+        Token_Basic_White,
+        Token_Accent_Default,
+        Token_Accent_Muted,
+        Token_Accent_Subtle,
+        Token_Background_Default,
+        Token_Background_Muted,
+        Token_Background_Subtle,
+        Token_Foreground_Default,
+        Token_Foreground_Muted,
+        Token_Foreground_Subtle,
+        Token_Text_Default,
+        Token_Text_Muted,
+        Token_Text_Subtle,
+        Token_Text_Accent,
+        Token_Stroke_Strong,
+        Token_Stroke_Muted,
+        Token_Stroke_Subtle,
+        Token_Notification_Alert,
+        Token_Notification_Success,
+        Token_Notification_Neutral,
+        Token_Notification_Danger,
 
         /* Timeline Library */
         Timeline_TextColor,
@@ -281,6 +272,7 @@ public:
 
         /* TextEditor Plugin */
         TextEditor_SearchResult_ScrollBarColor,
+        TextEditor_Selection_ScrollBarColor,
         TextEditor_CurrentLine_ScrollBarColor,
 
         /* Debugger Plugin */
@@ -306,7 +298,6 @@ public:
         QmlDesigner_ScrollBarHandleColor,
 
         /* Palette for DS Controls */
-
         DSpanelBackground,
         DSinteraction,
         DSerrorColor,
@@ -326,9 +317,63 @@ public:
         DStextSelectionColor,
         DStextSelectedTextColor,
 
+        /*NEW for QtDS 4.0*/
+        DScontrolBackground_toolbarIdle,
+        DScontrolBackground_toolbarHover,
+        DStoolbarBackground,
+        DStoolbarIcon_blocked,
+        DSthumbnailBackground_baseState,
+        DSidleGreen,
+        DSrunningGreen,
+        DSstatusbarBackground,
+        DScontrolBackground_statusbarIdle,
+        DScontrolBackground_topToolbarHover,
+        DSControlBackground_statusbarHover,
+        DScontrolOutline_topToolbarIdle,
+        DScontrolOutline_topToolbarHover,
+        DSprimaryButton_hoverHighlight,
+        DSstateBackgroundColor_hover,
+        DSstateControlBackgroundColor_hover,
+        DSstateControlBackgroundColor_globalHover,
         DSplaceholderTextColor,
         DSplaceholderTextColorInteraction,
+        DSpopoutBackground,
+        DSpopoutControlBackground_idle,
+        DSpopoutControlBackground_hover,
+        DSpopoutControlBackground_globalHover,
+        DSpopoutControlBackground_interaction,
+        DSpopoutControlBackground_disabled,
+        DSpopoutPopupBackground,
+        DSpopoutControlBorder_idle,
+        DSpopoutControlBorder_hover,
+        DSpopoutControlBorder_interaction,
+        DSpopoutControlBorder_disabled,
+        DSpopoutButtonBackground_idle,
+        DSpopoutButtonBackground_hover,
+        DSpopoutButtonBackground_interaction,
+        DSpopoutButtonBackground_disabled,
+        DSpopoutButtonBorder_idle,
+        DSpopoutButtonBorder_hover,
+        DSpopoutButtonBorder_interaction,
+        DSpopoutButtonBorder_disabled,
+        DSscrollBarTrack,
+        DSscrollBarHandle,
+        DSscrollBarHandle_idle,
+        DSconnectionCodeEditor,
+        DSpillText,
+        DSpillTextSelected,
+        DspillTextEdit,
+        DSpillDefaultBackgroundIdle,
+        DSpillDefaultBackgroundHover,
+        DSpillOperatorBackgroundIdle,
+        DSpillOperatorBackgroundHover,
+        DSpillLiteralBackgroundIdle,
+        DSpillLiteralBackgroundHover,
+        DSconnectionEditorMicroToolbar,
+        DSconnectionEditorButtonBackground_hover,
+        DSconnectionEditorButtonBorder_hover,
 
+        /*Legacy QtDS*/
         DSiconColor,
         DSiconColorHover,
         DSiconColorInteraction,
@@ -350,8 +395,6 @@ public:
         DSsliderHandleHover,
         DSsliderHandleFocus,
         DSsliderHandleInteraction,
-        DSscrollBarTrack,
-        DSscrollBarHandle,
         DSsectionHeadBackground,
         DSstateDefaultHighlight,
         DSstateSeparatorColor,
@@ -441,10 +484,28 @@ public:
 
         DSstatePanelBackground,
         DSstateHighlight,
-    };
 
-    enum Gradient {
-        DetailsWidgetHeaderGradient,
+        TerminalForeground,
+        TerminalBackground,
+        TerminalSelection,
+        TerminalFindMatch,
+
+        TerminalAnsi0,
+        TerminalAnsi1,
+        TerminalAnsi2,
+        TerminalAnsi3,
+        TerminalAnsi4,
+        TerminalAnsi5,
+        TerminalAnsi6,
+        TerminalAnsi7,
+        TerminalAnsi8,
+        TerminalAnsi9,
+        TerminalAnsi10,
+        TerminalAnsi11,
+        TerminalAnsi12,
+        TerminalAnsi13,
+        TerminalAnsi14,
+        TerminalAnsi15,
     };
 
     enum ImageFile {
@@ -473,18 +534,17 @@ public:
         FlatMenuBar,
         ToolBarIconShadow,
         WindowColorAsBase,
-        DarkUserInterface
+        DarkUserInterface,
+        QDSTheme
     };
 
     Q_ENUM(Color)
     Q_ENUM(ImageFile)
-    Q_ENUM(Gradient)
     Q_ENUM(Flag)
 
     Q_INVOKABLE bool flag(Utils::Theme::Flag f) const;
     Q_INVOKABLE QColor color(Utils::Theme::Color role) const;
     QString imageFile(ImageFile imageFile, const QString &fallBack) const;
-    QGradientStops gradient(Gradient role) const;
     QPalette palette() const;
     QStringList preferredStyles() const;
     QString defaultTextEditorColorScheme() const;
@@ -501,13 +561,17 @@ public:
 
     static void setInitialPalette(Theme *initTheme);
 
+    static void setHelpMenu(QMenu *menu);
+
 protected:
     Theme(Theme *originTheme, QObject *parent = nullptr);
     ThemePrivate *d;
 
 private:
+    void readSettingsInternal(QSettings &settings);
     friend QTCREATOR_UTILS_EXPORT Theme *creatorTheme();
     friend QTCREATOR_UTILS_EXPORT Theme *proxyTheme();
+    QColor readNamedColorNoWarning(const QString &color) const;
     QPair<QColor, QString> readNamedColor(const QString &color) const;
 };
 

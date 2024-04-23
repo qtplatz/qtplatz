@@ -1,46 +1,23 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "ilocatorfilter.h"
-#include "locatorconstants.h"
+#include "../actionmanager/command.h"
 
-#include <coreplugin/actionmanager/command.h>
 #include <extensionsystem/iplugin.h>
 
-#include <QFuture>
+#include <solutions/tasking/tasktreerunner.h>
+
 #include <QObject>
 #include <QTimer>
-
-#include <functional>
 
 namespace Core {
 namespace Internal {
 
 class LocatorData;
+class LocatorWidget;
 
 class Locator : public QObject
 {
@@ -51,8 +28,7 @@ public:
     ~Locator() override;
 
     static Locator *instance();
-    ExtensionSystem::IPlugin::ShutdownFlag aboutToShutdown(
-        const std::function<void()> &emitAsynchronousShutdownFinished);
+    void aboutToShutdown();
 
     void initialize();
     void extensionsInitialized();
@@ -65,11 +41,16 @@ public:
     int refreshInterval() const;
     void setRefreshInterval(int interval);
 
+    static bool useCenteredPopupForShortcut();
+    static void setUseCenteredPopupForShortcut(bool center);
+
+    static void showFilter(ILocatorFilter *filter, LocatorWidget *widget);
+
 signals:
     void filtersChanged();
 
 public slots:
-    void refresh(QList<ILocatorFilter *> filters);
+    void refresh(const QList<ILocatorFilter *> &filters);
     void saveSettings() const;
 
 private:
@@ -79,13 +60,18 @@ private:
 
     LocatorData *m_locatorData = nullptr;
 
-    bool m_shuttingDown = false;
+    struct Settings
+    {
+        bool useCenteredPopup = false;
+    };
+
     bool m_settingsInitialized = false;
+    Settings m_settings;
     QList<ILocatorFilter *> m_filters;
     QList<ILocatorFilter *> m_customFilters;
     QMap<Utils::Id, QAction *> m_filterActionMap;
     QTimer m_refreshTimer;
-    QFuture<void> m_refreshTask;
+    Tasking::TaskTreeRunner m_taskTreeRunner;
     QList<ILocatorFilter *> m_refreshingFilters;
 };
 

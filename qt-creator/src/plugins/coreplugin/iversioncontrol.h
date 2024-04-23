@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -30,17 +8,14 @@
 #include <utils/id.h>
 #include <utils/filepath.h>
 
-#include <QDateTime>
 #include <QFlags>
-#include <QHash>
 #include <QObject>
-#include <QString>
 
 QT_FORWARD_DECLARE_CLASS(QMenu);
 
 namespace Core {
 
-class ShellCommand;
+namespace Internal { class IVersionControlPrivate; }
 
 class CORE_EXPORT IVersionControl : public QObject
 {
@@ -65,28 +40,6 @@ public:
         NoOpen,        /*!< Files can be edited without noticing the VCS */
         OpenOptional,  /*!< Files can be opened by the VCS, or hijacked */
         OpenMandatory  /*!< Files must always be opened by the VCS */
-    };
-
-    class CORE_EXPORT TopicCache
-    {
-    public:
-        virtual ~TopicCache();
-        QString topic(const Utils::FilePath &topLevel);
-
-    protected:
-        virtual Utils::FilePath trackFile(const Utils::FilePath &repository) = 0;
-        virtual QString refreshTopic(const Utils::FilePath &repository) = 0;
-
-    private:
-        class TopicData
-        {
-        public:
-            QDateTime timeStamp;
-            QString topic;
-        };
-
-        QHash<Utils::FilePath, TopicData> m_cache;
-
     };
 
     IVersionControl();
@@ -223,17 +176,6 @@ public:
      */
     virtual Utils::FilePaths additionalToolsPath() const;
 
-    /*!
-     * Return a ShellCommand capable of checking out \a url into \a baseDirectory, where
-     * a new subdirectory with \a localName will be created.
-     *
-     * \a extraArgs are passed on to the command being run.
-     */
-    virtual ShellCommand *createInitialCheckoutCommand(const QString &url,
-                                                       const Utils::FilePath &baseDirectory,
-                                                       const QString &localName,
-                                                       const QStringList &extraArgs);
-
     virtual void fillLinkContextMenu(QMenu *menu,
                                      const Utils::FilePath &workingDirectory,
                                      const QString &reference);
@@ -253,7 +195,14 @@ public:
     };
     virtual RepoUrl getRepoUrl(const QString &location) const;
 
-    void setTopicCache(TopicCache *topicCache);
+    // Topic cache
+    using FileTracker = std::function<Utils::FilePath(const Utils::FilePath &)>;
+    Utils::FilePath trackFile(const Utils::FilePath &repository);
+    void setTopicFileTracker(const FileTracker &fileTracker);
+
+    using TopicRefresher = std::function<QString(const Utils::FilePath &)>;
+    QString refreshTopic(const Utils::FilePath &repository);
+    void setTopicRefresher(const TopicRefresher &topicRefresher);
 
 signals:
     void repositoryChanged(const Utils::FilePath &repository);
@@ -261,61 +210,9 @@ signals:
     void configurationChanged();
 
 private:
-    TopicCache *m_topicCache = nullptr;
+    Internal::IVersionControlPrivate *d;
 };
 
 } // namespace Core
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Core::IVersionControl::SettingsFlags)
-
-#if defined(WITH_TESTS)
-
-#include <QSet>
-
-namespace Core {
-
-class CORE_EXPORT TestVersionControl : public IVersionControl
-{
-    Q_OBJECT
-public:
-    TestVersionControl(Utils::Id id, const QString &name) :
-        m_id(id), m_displayName(name)
-    { }
-    ~TestVersionControl() override;
-
-    bool isVcsFileOrDirectory(const Utils::FilePath &filePath) const final
-    { Q_UNUSED(filePath) return false; }
-
-    void setManagedDirectories(const QHash<Utils::FilePath, Utils::FilePath> &dirs);
-    void setManagedFiles(const QSet<Utils::FilePath> &files);
-
-    int dirCount() const { return m_dirCount; }
-    int fileCount() const { return m_fileCount; }
-
-    // IVersionControl interface
-    QString displayName() const override { return m_displayName; }
-    Utils::Id id() const override { return m_id; }
-    bool managesDirectory(const Utils::FilePath &filePath, Utils::FilePath *topLevel) const override;
-    bool managesFile(const Utils::FilePath &workingDirectory, const QString &fileName) const override;
-    bool isConfigured() const override { return true; }
-    bool supportsOperation(Operation) const override { return false; }
-    bool vcsOpen(const Utils::FilePath &) override { return false; }
-    bool vcsAdd(const Utils::FilePath &) override { return false; }
-    bool vcsDelete(const Utils::FilePath &) override { return false; }
-    bool vcsMove(const Utils::FilePath &, const Utils::FilePath &) override { return false; }
-    bool vcsCreateRepository(const Utils::FilePath &) override { return false; }
-    void vcsAnnotate(const Utils::FilePath &, int) override {}
-    void vcsDescribe(const Utils::FilePath &, const QString &) override {}
-
-private:
-    Utils::Id m_id;
-    QString m_displayName;
-    QHash<Utils::FilePath, Utils::FilePath> m_managedDirs;
-    QSet<Utils::FilePath> m_managedFiles;
-    mutable int m_dirCount = 0;
-    mutable int m_fileCount = 0;
-};
-
-} // namespace Core
-
-#endif

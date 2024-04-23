@@ -1,33 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include <coreplugin/minisplitter.h>
+#include "minisplitter.h"
 
 #include <utils/id.h>
+#include <utils/store.h>
 
 #include <QHash>
 
@@ -91,9 +70,9 @@ public:
 
     void setFactories(const QList<INavigationWidgetFactory*> &factories);
 
-    QString settingsGroup() const;
+    Utils::Key settingsGroup() const;
     void saveSettings(Utils::QtcSettings *settings);
-    void restoreSettings(QSettings *settings);
+    void restoreSettings(Utils::QtcSettings *settings);
 
     QWidget *activateSubWidget(Utils::Id factoryId, int preferredPosition);
     void closeSubWidgets();
@@ -101,13 +80,12 @@ public:
     bool isShown() const;
     void setShown(bool b);
 
-    static NavigationWidget *instance(Side side);
     static QWidget *activateSubWidget(Utils::Id factoryId, Side fallbackSide);
 
     int storedWidth();
 
     // Called from the place holders
-    void placeHolderChanged(NavigationWidgetPlaceHolder *holder);
+    void placeHolderChanged();
 
     QHash<Utils::Id, Command *> commandMap() const;
     QAbstractItemModel *factoryModel() const;
@@ -116,13 +94,17 @@ protected:
     void resizeEvent(QResizeEvent *) override;
 
 private:
-    void splitSubWidget(int factoryIndex);
-    void closeSubWidget();
-    void updateToggleText();
-    Internal::NavigationSubWidget *insertSubItem(int position, int factoryIndex);
+    void closeSubWidget(Internal::NavigationSubWidget *subWidget);
+    bool toggleActionVisible() const;
+    bool toggleActionEnabled() const;
+    bool toggleActionChecked() const;
+    void updateMode();
+    void updateToggleAction();
+    Internal::NavigationSubWidget *insertSubItem(int position,
+                                                 int factoryIndex,
+                                                 bool updateActivationsMap = true);
     int factoryIndex(Utils::Id id);
-    QString settingsKey(const QString &key) const;
-    void onSubWidgetFactoryIndexChanged(int factoryIndex);
+    Utils::Key settingsKey(const Utils::Key &key) const;
 
     NavigationWidgetPrivate *d;
 };

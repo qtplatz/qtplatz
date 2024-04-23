@@ -1,39 +1,28 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "projectintropage.h"
-#include "ui_projectintropage.h"
 
+#include "fancylineedit.h"
 #include "filenamevalidatinglineedit.h"
 #include "fileutils.h"
+#include "infolabel.h"
+#include "layoutbuilder.h"
+#include "pathchooser.h"
+#include "utilstr.h"
 #include "wizard.h"
 
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDir>
+#include <QFrame>
+#include <QLabel>
+#include <QSpacerItem>
 
 /*!
     \class Utils::ProjectIntroPage
+    \inmodule QtCreator
 
     \brief The ProjectIntroPage class is the standard wizard page for a project,
     letting the user choose its name
@@ -59,51 +48,98 @@ namespace Utils {
 class ProjectIntroPagePrivate
 {
 public:
-    Ui::ProjectIntroPage m_ui;
     bool m_complete = false;
     QRegularExpressionValidator m_projectNameValidator;
     QString m_projectNameValidatorUserMessage;
     bool m_forceSubProject = false;
     FilePaths m_projectDirectories;
+
+    QLabel *m_descriptionLabel;
+    FancyLineEdit *m_nameLineEdit;
+    PathChooser *m_pathChooser;
+    QCheckBox *m_projectsDirectoryCheckBox;
+    QLabel *m_projectLabel;
+    QComboBox *m_projectComboBox;
+    InfoLabel *m_stateLabel;
 };
 
 ProjectIntroPage::ProjectIntroPage(QWidget *parent) :
     WizardPage(parent),
     d(new ProjectIntroPagePrivate)
 {
-    d->m_ui.setupUi(this);
-    d->m_ui.stateLabel->setFilled(true);
+    setTitle(Tr::tr("Introduction and Project Location"));
+
+    d->m_descriptionLabel = new QLabel(this);
+    d->m_descriptionLabel->setWordWrap(true);
+
+    auto frame = new QFrame(this);
+    frame->setFrameShape(QFrame::StyledPanel);
+    frame->setFrameShadow(QFrame::Raised);
+
+    d->m_nameLineEdit = new Utils::FancyLineEdit(frame);
+
+    d->m_pathChooser = new Utils::PathChooser(frame);
+    d->m_pathChooser->setObjectName("baseFolder"); // used by Squish
+    d->m_pathChooser->setExpectedKind(PathChooser::Directory);
+    d->m_pathChooser->setDisabled(d->m_forceSubProject);
+    d->m_pathChooser->setAllowPathFromDevice(true);
+
+    d->m_projectsDirectoryCheckBox = new QCheckBox(Tr::tr("Use as default project location"));
+    d->m_projectsDirectoryCheckBox->setObjectName("projectsDirectoryCheckBox");
+    d->m_projectsDirectoryCheckBox->setDisabled(d->m_forceSubProject);
+
+    d->m_projectComboBox = new QComboBox;
+    d->m_projectComboBox->setVisible(d->m_forceSubProject);
+
+    d->m_stateLabel = new Utils::InfoLabel(this);
+    d->m_stateLabel->setObjectName("stateLabel");
+    d->m_stateLabel->setWordWrap(true);
+    d->m_stateLabel->setFilled(true);
     hideStatusLabel();
-    d->m_ui.nameLineEdit->setPlaceholderText(tr("Enter project name"));
-    d->m_ui.nameLineEdit->setFocus();
-    d->m_ui.nameLineEdit->setValidationFunction([this](FancyLineEdit *edit, QString *errorString) {
+
+    d->m_nameLineEdit->setPlaceholderText(Tr::tr("Enter project name"));
+    d->m_nameLineEdit->setObjectName("nameLineEdit");
+    d->m_nameLineEdit->setFocus();
+    d->m_nameLineEdit->setValidationFunction([this](FancyLineEdit *edit, QString *errorString) {
         return validateProjectName(edit->text(), errorString);
     });
-    d->m_ui.projectLabel->setVisible(d->m_forceSubProject);
-    d->m_ui.projectComboBox->setVisible(d->m_forceSubProject);
-    d->m_ui.pathChooser->setDisabled(d->m_forceSubProject);
-    d->m_ui.projectsDirectoryCheckBox->setDisabled(d->m_forceSubProject);
-    connect(d->m_ui.pathChooser, &PathChooser::pathChanged, this, &ProjectIntroPage::slotChanged);
-    connect(d->m_ui.nameLineEdit, &QLineEdit::textChanged,
+
+    d->m_projectLabel = new QLabel("Project:");
+    d->m_projectLabel->setVisible(d->m_forceSubProject);
+
+    using namespace Layouting;
+
+    Form {
+        Tr::tr("Name:"), d->m_nameLineEdit, br,
+        d->m_projectLabel, d->m_projectComboBox, br,
+        Column { Space(12) }, br,
+        Tr::tr("Create in:"), d->m_pathChooser, br,
+        Span(2, d->m_projectsDirectoryCheckBox)
+    }.attachTo(frame);
+
+    Column {
+        d->m_descriptionLabel,
+        st,
+        frame,
+        d->m_stateLabel
+    }.attachTo(this);
+
+    connect(d->m_pathChooser, &PathChooser::textChanged,
             this, &ProjectIntroPage::slotChanged);
-    connect(d->m_ui.pathChooser, &PathChooser::validChanged,
+    connect(d->m_nameLineEdit, &QLineEdit::textChanged,
             this, &ProjectIntroPage::slotChanged);
-    connect(d->m_ui.pathChooser, &PathChooser::returnPressed,
+    connect(d->m_pathChooser, &PathChooser::validChanged,
+            this, &ProjectIntroPage::slotChanged);
+    connect(d->m_pathChooser, &PathChooser::returnPressed,
             this, &ProjectIntroPage::slotActivated);
-    connect(d->m_ui.nameLineEdit, &FancyLineEdit::validReturnPressed,
+    connect(d->m_nameLineEdit, &FancyLineEdit::validReturnPressed,
             this, &ProjectIntroPage::slotActivated);
-    connect(d->m_ui.projectComboBox,
-            QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(d->m_projectComboBox, &QComboBox::currentIndexChanged,
             this, &ProjectIntroPage::slotChanged);
 
-    setProperty(SHORT_TITLE_PROPERTY, tr("Location"));
-    registerFieldWithName(QLatin1String("Path"), d->m_ui.pathChooser, "path", SIGNAL(pathChanged(QString)));
-    registerFieldWithName(QLatin1String("ProjectName"), d->m_ui.nameLineEdit);
-}
-
-void ProjectIntroPage::insertControl(int row, QWidget *label, QWidget *control)
-{
-    d->m_ui.formLayout->insertRow(row, label, control);
+    setProperty(SHORT_TITLE_PROPERTY, Tr::tr("Location"));
+    registerFieldWithName(QLatin1String("Path"), d->m_pathChooser, "path", SIGNAL(textChanged(QString)));
+    registerFieldWithName(QLatin1String("ProjectName"), d->m_nameLineEdit);
 }
 
 ProjectIntroPage::~ProjectIntroPage()
@@ -113,17 +149,17 @@ ProjectIntroPage::~ProjectIntroPage()
 
 QString ProjectIntroPage::projectName() const
 {
-    return d->m_ui.nameLineEdit->text();
+    return d->m_nameLineEdit->text();
 }
 
 FilePath ProjectIntroPage::filePath() const
 {
-    return d->m_ui.pathChooser->filePath();
+    return d->m_pathChooser->filePath();
 }
 
 void ProjectIntroPage::setFilePath(const FilePath &path)
 {
-    d->m_ui.pathChooser->setFilePath(path);
+    d->m_pathChooser->setFilePath(path);
 }
 
 void ProjectIntroPage::setProjectNameRegularExpression(const QRegularExpression &regEx, const QString &userErrorMessage)
@@ -135,18 +171,18 @@ void ProjectIntroPage::setProjectNameRegularExpression(const QRegularExpression 
 
 void ProjectIntroPage::setProjectName(const QString &name)
 {
-    d->m_ui.nameLineEdit->setText(name);
-    d->m_ui.nameLineEdit->selectAll();
+    d->m_nameLineEdit->setText(name);
+    d->m_nameLineEdit->selectAll();
 }
 
 QString ProjectIntroPage::description() const
 {
-    return d->m_ui.descriptionLabel->text();
+    return d->m_descriptionLabel->text();
 }
 
 void ProjectIntroPage::setDescription(const QString &description)
 {
-    d->m_ui.descriptionLabel->setText(description);
+    d->m_descriptionLabel->setText(description);
 }
 
 bool ProjectIntroPage::isComplete() const
@@ -157,24 +193,24 @@ bool ProjectIntroPage::isComplete() const
 bool ProjectIntroPage::validate()
 {
     if (d->m_forceSubProject) {
-        int index = d->m_ui.projectComboBox->currentIndex();
+        int index = d->m_projectComboBox->currentIndex();
         if (index == 0)
             return false;
-        d->m_ui.pathChooser->setFilePath(d->m_projectDirectories.at(index));
+        d->m_pathChooser->setFilePath(d->m_projectDirectories.at(index));
     }
     // Validate and display status
-    if (!d->m_ui.pathChooser->isValid()) {
-        displayStatusMessage(InfoLabel::Error, d->m_ui.pathChooser->errorMessage());
+    if (!d->m_pathChooser->isValid()) {
+        displayStatusMessage(InfoLabel::Error, d->m_pathChooser->errorMessage());
         return false;
     }
 
     // Name valid?
-    switch (d->m_ui.nameLineEdit->state()) {
+    switch (d->m_nameLineEdit->state()) {
     case FancyLineEdit::Invalid:
-        displayStatusMessage(InfoLabel::Error, d->m_ui.nameLineEdit->errorMessage());
+        displayStatusMessage(InfoLabel::Error, d->m_nameLineEdit->errorMessage());
         return false;
     case FancyLineEdit::DisplayingPlaceholderText:
-        displayStatusMessage(InfoLabel::Error, tr("Name is empty."));
+        displayStatusMessage(InfoLabel::Error, Tr::tr("Name is empty."));
         return false;
     case FancyLineEdit::Valid:
         break;
@@ -182,19 +218,24 @@ bool ProjectIntroPage::validate()
 
     // Check existence of the directory
     const FilePath projectDir =
-        filePath().pathAppended(QDir::fromNativeSeparators(d->m_ui.nameLineEdit->text()));
+        filePath().pathAppended(QDir::fromNativeSeparators(d->m_nameLineEdit->text()));
 
     if (!projectDir.exists()) { // All happy
-        hideStatusLabel();
+        if (!d->m_pathChooser->filePath().exists()) {
+            displayStatusMessage(InfoLabel::Information, Tr::tr("Directory \"%1\" will be created.")
+                                 .arg(d->m_pathChooser->filePath().toUserOutput()));
+        } else {
+            hideStatusLabel();
+        }
         return true;
     }
 
     if (projectDir.isDir()) {
-        displayStatusMessage(InfoLabel::Warning, tr("The project already exists."));
+        displayStatusMessage(InfoLabel::Warning, Tr::tr("The project already exists."));
         return true;
     }
     // Not a directory, but something else, likely causing directory creation to fail
-    displayStatusMessage(InfoLabel::Error, tr("A file with that name already exists."));
+    displayStatusMessage(InfoLabel::Error, Tr::tr("A file with that name already exists."));
     return false;
 }
 
@@ -226,16 +267,16 @@ bool ProjectIntroPage::forceSubProject() const
 void ProjectIntroPage::setForceSubProject(bool force)
 {
     d->m_forceSubProject = force;
-    d->m_ui.projectLabel->setVisible(d->m_forceSubProject);
-    d->m_ui.projectComboBox->setVisible(d->m_forceSubProject);
-    d->m_ui.pathChooser->setDisabled(d->m_forceSubProject);
-    d->m_ui.projectsDirectoryCheckBox->setDisabled(d->m_forceSubProject);
+    d->m_projectLabel->setVisible(d->m_forceSubProject);
+    d->m_projectComboBox->setVisible(d->m_forceSubProject);
+    d->m_pathChooser->setDisabled(d->m_forceSubProject);
+    d->m_projectsDirectoryCheckBox->setDisabled(d->m_forceSubProject);
 }
 
 void ProjectIntroPage::setProjectList(const QStringList &projectList)
 {
-    d->m_ui.projectComboBox->clear();
-    d->m_ui.projectComboBox->addItems(projectList);
+    d->m_projectComboBox->clear();
+    d->m_projectComboBox->addItems(projectList);
 }
 
 void ProjectIntroPage::setProjectDirectories(const FilePaths &directoryList)
@@ -245,7 +286,7 @@ void ProjectIntroPage::setProjectDirectories(const FilePaths &directoryList)
 
 int ProjectIntroPage::projectIndex() const
 {
-    return d->m_ui.projectComboBox->currentIndex();
+    return d->m_projectComboBox->currentIndex();
 }
 
 bool ProjectIntroPage::validateProjectName(const QString &name, QString *errorMessage)
@@ -255,7 +296,7 @@ bool ProjectIntroPage::validateProjectName(const QString &name, QString *errorMe
     if (!d->m_projectNameValidator.regularExpression().pattern().isEmpty()) {
         if (name.isEmpty()) {
             if (errorMessage)
-                *errorMessage = tr("Name is empty.");
+                *errorMessage = Tr::tr("Name is empty.");
             return false;
         }
         // pos is set by reference
@@ -264,10 +305,10 @@ bool ProjectIntroPage::validateProjectName(const QString &name, QString *errorMe
 
         // if pos is set by validate it is cought at the bottom where it shows
         // a more detailed error message
-        if (validatorState != QValidator::Acceptable && (pos == -1 || pos >= name.count())) {
+        if (validatorState != QValidator::Acceptable && (pos == -1 || pos >= name.size())) {
             if (errorMessage) {
                 if (d->m_projectNameValidatorUserMessage.isEmpty())
-                    *errorMessage = tr("Project name is invalid.");
+                    *errorMessage = Tr::tr("Project name is invalid.");
                 else
                     *errorMessage = d->m_projectNameValidatorUserMessage;
             }
@@ -279,14 +320,14 @@ bool ProjectIntroPage::validateProjectName(const QString &name, QString *errorMe
             return false;
         if (name.contains(QLatin1Char('.'))) {
             if (errorMessage)
-                *errorMessage = tr("Invalid character \".\".");
+                *errorMessage = Tr::tr("Invalid character \".\".");
             return false;
         }
         pos = FileUtils::indexOfQmakeUnfriendly(name);
     }
     if (pos >= 0) {
         if (errorMessage)
-            *errorMessage = tr("Invalid character \"%1\" found.").arg(name.at(pos));
+            *errorMessage = Tr::tr("Invalid character \"%1\" found.").arg(name.at(pos));
         return false;
     }
     return true;
@@ -294,8 +335,8 @@ bool ProjectIntroPage::validateProjectName(const QString &name, QString *errorMe
 
 void ProjectIntroPage::displayStatusMessage(InfoLabel::InfoType t, const QString &s)
 {
-    d->m_ui.stateLabel->setType(t);
-    d->m_ui.stateLabel->setText(s);
+    d->m_stateLabel->setType(t);
+    d->m_stateLabel->setText(s);
 
     emit statusMessageChanged(t, s);
 }
@@ -307,12 +348,12 @@ void ProjectIntroPage::hideStatusLabel()
 
 bool ProjectIntroPage::useAsDefaultPath() const
 {
-    return d->m_ui.projectsDirectoryCheckBox->isChecked();
+    return d->m_projectsDirectoryCheckBox->isChecked();
 }
 
 void ProjectIntroPage::setUseAsDefaultPath(bool u)
 {
-    d->m_ui.projectsDirectoryCheckBox->setChecked(u);
+    d->m_projectsDirectoryCheckBox->setChecked(u);
 }
 
 } // namespace Utils

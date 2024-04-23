@@ -1,33 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2022 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import HelperWidgets 2.0
-import QtQuickDesignerTheme 1.0
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Layouts
+import HelperWidgets
+import StudioTheme as StudioTheme
 
 Section {
     caption: qsTr("Button Content")
@@ -74,7 +51,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Checkable")
-            tooltip: qsTr("Whether the button is checkable.")
+            tooltip: qsTr("Toggles if the button is checkable.")
         }
 
         SecondColumnLayout {
@@ -90,7 +67,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Checked")
-            tooltip: qsTr("Whether the button is checked.")
+            tooltip: qsTr("Toggles if the button is checked.")
         }
 
         SecondColumnLayout {
@@ -106,7 +83,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Exclusive")
-            tooltip: qsTr("Whether the button is exclusive.")
+            tooltip: qsTr("Toggles if the button is exclusive. Non-exclusive checkable buttons that belong to the same parent behave as if they are part of the same button group; only one button can be checked at any time.")
             blockedByTemplate: !backendValues.autoExclusive.isAvailable
         }
 
@@ -124,7 +101,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Auto-repeat")
-            tooltip: qsTr("Whether the button repeats pressed(), released() and clicked() signals while the button is pressed and held down.")
+            tooltip: qsTr("Toggles if pressed, released, and clicked actions are repeated while the button is pressed and held down.")
         }
 
         SecondColumnLayout {
@@ -141,7 +118,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Repeat delay")
-            tooltip: qsTr("Initial delay of auto-repetition in milliseconds.")
+            tooltip: qsTr("Sets the initial delay of auto-repetition in milliseconds.")
             enabled: autoRepeat.checked
         }
 
@@ -170,7 +147,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Repeat interval")
-            tooltip: qsTr("Interval of auto-repetition in milliseconds.")
+            tooltip: qsTr("Sets the interval between auto-repetitions in milliseconds.")
             enabled: autoRepeat.checked
         }
 

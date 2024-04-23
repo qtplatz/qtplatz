@@ -1,34 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "commandsfile.h"
 #include "command.h"
-#include <coreplugin/dialogs/shortcutsettings.h>
-#include <coreplugin/icore.h>
+#include "../dialogs/shortcutsettings.h"
+#include "../icore.h"
 
-#include <app/app_version.h>
 #include <utils/qtcassert.h>
 #include <utils/fileutils.h>
 
@@ -71,6 +48,36 @@ CommandsFile::CommandsFile(const FilePath &filename)
 
 }
 
+// XML attributes cannot contain these characters, and
+// QXmlStreamWriter just bails out with an error.
+// QKeySequence::toString() should probably not result in these
+// characters, but it currently does, see QTCREATORBUG-29431
+static bool containsInvalidCharacters(const QString &s)
+{
+    const auto end = s.constEnd();
+    for (auto it = s.constBegin(); it != end; ++it) {
+        // from QXmlStreamWriterPrivate::writeEscaped
+        if (*it == u'\v' || *it == u'\f' || *it <= u'\x1F' || *it >= u'\uFFFE') {
+            return true;
+        }
+    }
+    return false;
+}
+
+static QString toAttribute(const QString &s)
+{
+    if (containsInvalidCharacters(s))
+        return "0x" + QString::fromUtf8(s.toUtf8().toHex());
+    return s;
+}
+
+static QString fromAttribute(const QStringView &s)
+{
+    if (s.startsWith(QLatin1String("0x")))
+        return QString::fromUtf8(QByteArray::fromHex(s.sliced(2).toUtf8()));
+    return s.toString();
+}
+
 /*!
     \internal
 */
@@ -99,7 +106,12 @@ QMap<QString, QList<QKeySequence>> CommandsFile::importCommands() const
                 QTC_ASSERT(!currentId.isEmpty(), continue);
                 const QXmlStreamAttributes attributes = r.attributes();
                 if (attributes.hasAttribute(ctx.valueAttribute)) {
-                    const QString keyString = attributes.value(ctx.valueAttribute).toString();
+                    QString keyString = fromAttribute(attributes.value(ctx.valueAttribute));
+                    if (HostOsInfo::isMacHost())
+                        keyString = keyString.replace("AlwaysCtrl", "Meta");
+                    else
+                        keyString = keyString.replace("AlwaysCtrl", "Ctrl");
+
                     QList<QKeySequence> keys = result.value(currentId);
                     result.insert(currentId, keys << QKeySequence(keyString));
                 }
@@ -116,7 +128,6 @@ QMap<QString, QList<QKeySequence>> CommandsFile::importCommands() const
 /*!
     \internal
 */
-
 bool CommandsFile::exportCommands(const QList<ShortcutItem *> &items)
 {
     FileSaver saver(m_filePath, QIODevice::Text);
@@ -131,7 +142,7 @@ bool CommandsFile::exportCommands(const QList<ShortcutItem *> &items)
                        arg(ICore::versionString(),
                            QDateTime::currentDateTime().toString(Qt::ISODate)));
         w.writeStartElement(ctx.mappingElement);
-        for (const ShortcutItem *item : qAsConst(items)) {
+        for (const ShortcutItem *item : std::as_const(items)) {
             const Id id = item->m_cmd->id();
             if (item->m_keys.isEmpty() || item->m_keys.first().isEmpty()) {
                 w.writeEmptyElement(ctx.shortCutElement);
@@ -141,7 +152,7 @@ bool CommandsFile::exportCommands(const QList<ShortcutItem *> &items)
                 w.writeAttribute(ctx.idAttribute, id.toString());
                 for (const QKeySequence &k : item->m_keys) {
                     w.writeEmptyElement(ctx.keyElement);
-                    w.writeAttribute(ctx.valueAttribute, k.toString());
+                    w.writeAttribute(ctx.valueAttribute, toAttribute(k.toString()));
                 }
                 w.writeEndElement(); // Shortcut
             }
@@ -149,7 +160,8 @@ bool CommandsFile::exportCommands(const QList<ShortcutItem *> &items)
         w.writeEndElement();
         w.writeEndDocument();
 
-        saver.setResult(&w);
+        if (!saver.setResult(&w))
+            qWarning() << saver.errorString();
     }
     return saver.finalize();
 }

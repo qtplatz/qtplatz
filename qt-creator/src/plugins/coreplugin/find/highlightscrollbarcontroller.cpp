@@ -1,31 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "highlightscrollbarcontroller.h"
 
 #include <QAbstractScrollArea>
+#include <QLoggingCategory>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
@@ -33,6 +12,8 @@
 #include <QStyleOptionSlider>
 
 using namespace Utils;
+
+static Q_LOGGING_CATEGORY(LOG, "qtc.utils.highlightscrollbar", QtWarningMsg)
 
 namespace Core {
 
@@ -53,24 +34,23 @@ class HighlightScrollBarOverlay : public QWidget
 public:
     HighlightScrollBarOverlay(HighlightScrollBarController *scrollBarController)
         : QWidget(scrollBarController->scrollArea())
-        , m_scrollBar(scrollBarController->scrollBar())
         , m_highlightController(scrollBarController)
     {
         setAttribute(Qt::WA_TransparentForMouseEvents);
-        m_scrollBar->parentWidget()->installEventFilter(this);
+        scrollBar()->parentWidget()->installEventFilter(this);
         doResize();
         doMove();
-        show();
+        setVisible(scrollBar()->isVisible());
     }
 
     void doResize()
     {
-        resize(m_scrollBar->size());
+        resize(scrollBar()->size());
     }
 
     void doMove()
     {
-        move(parentWidget()->mapFromGlobal(m_scrollBar->mapToGlobal(m_scrollBar->pos())));
+        move(parentWidget()->mapFromGlobal(scrollBar()->mapToGlobal(scrollBar()->pos())));
     }
 
     void scheduleUpdate();
@@ -93,7 +73,7 @@ private:
     // line start to line end
     QMap<Highlight::Priority, QMap<Utils::Theme::Color, QMap<int, int>>> m_highlightCache;
 
-    QScrollBar *m_scrollBar;
+    inline QScrollBar *scrollBar() const { return m_highlightController->scrollBar(); }
     HighlightScrollBarController *m_highlightController;
     bool m_isCacheUpdateScheduled = true;
 };
@@ -137,8 +117,8 @@ void HighlightScrollBarOverlay::paintEvent(QPaintEvent *paintEvent)
                                         gRect.width() + marginH,
                                         gRect.height() - hRect.height() + gRect.y() - hRect.y());
 
-    const int aboveValue = m_scrollBar->value();
-    const int belowValue = m_scrollBar->maximum() - m_scrollBar->value();
+    const int aboveValue = scrollBar()->value();
+    const int belowValue = scrollBar()->maximum() - scrollBar()->value();
     const int sizeDocAbove = int(aboveValue * m_highlightController->lineHeight());
     const int sizeDocBelow = int(belowValue * m_highlightController->lineHeight());
     const int sizeDocVisible = int(m_highlightController->visibleRange());
@@ -210,7 +190,7 @@ void HighlightScrollBarOverlay::drawHighlights(QPainter *painter,
 
     const double lineHeight = m_highlightController->lineHeight();
 
-    for (const QMap<Utils::Theme::Color, QMap<int, int>> &colors : qAsConst(m_highlightCache)) {
+    for (const QMap<Utils::Theme::Color, QMap<int, int>> &colors : std::as_const(m_highlightCache)) {
         const auto itColorEnd = colors.constEnd();
         for (auto itColor = colors.constBegin(); itColor != itColorEnd; ++itColor) {
             const QColor &color = creatorTheme()->color(itColor.key());
@@ -253,6 +233,12 @@ bool HighlightScrollBarOverlay::eventFilter(QObject *object, QEvent *event)
         break;
     case QEvent::ZOrderChange:
         raise();
+        break;
+    case QEvent::Show:
+        show();
+        break;
+    case QEvent::Hide:
+        hide();
         break;
     default:
         break;
@@ -319,14 +305,14 @@ void HighlightScrollBarOverlay::updateCache()
 
 QRect HighlightScrollBarOverlay::overlayRect() const
 {
-    QStyleOptionSlider opt = qt_qscrollbarStyleOption(m_scrollBar);
-    return m_scrollBar->style()->subControlRect(QStyle::CC_ScrollBar, &opt, QStyle::SC_ScrollBarGroove, m_scrollBar);
+    QStyleOptionSlider opt = qt_qscrollbarStyleOption(scrollBar());
+    return scrollBar()->style()->subControlRect(QStyle::CC_ScrollBar, &opt, QStyle::SC_ScrollBarGroove, scrollBar());
 }
 
 QRect HighlightScrollBarOverlay::handleRect() const
 {
-    QStyleOptionSlider opt = qt_qscrollbarStyleOption(m_scrollBar);
-    return m_scrollBar->style()->subControlRect(QStyle::CC_ScrollBar, &opt, QStyle::SC_ScrollBarSlider, m_scrollBar);
+    QStyleOptionSlider opt = qt_qscrollbarStyleOption(scrollBar());
+    return scrollBar()->style()->subControlRect(QStyle::CC_ScrollBar, &opt, QStyle::SC_ScrollBarSlider, scrollBar());
 }
 
 
@@ -382,7 +368,7 @@ void HighlightScrollBarController::setScrollArea(QAbstractScrollArea *scrollArea
 
 double HighlightScrollBarController::lineHeight() const
 {
-    return m_lineHeight;
+    return ceil(m_lineHeight);
 }
 
 void HighlightScrollBarController::setLineHeight(double lineHeight)
@@ -420,6 +406,7 @@ void HighlightScrollBarController::addHighlight(Highlight highlight)
     if (!m_overlay)
         return;
 
+    qCDebug(LOG) << "addHighlight" << highlight.category.toString() << highlight.position;
     m_highlights[highlight.category] << highlight;
     m_overlay->scheduleUpdate();
 }
@@ -429,6 +416,7 @@ void HighlightScrollBarController::removeHighlights(Id category)
     if (!m_overlay)
         return;
 
+    qCDebug(LOG) << "removeHighlights" << category.toString();
     m_highlights.remove(category);
     m_overlay->scheduleUpdate();
 }
@@ -438,6 +426,7 @@ void HighlightScrollBarController::removeAllHighlights()
     if (!m_overlay)
         return;
 
+    qCDebug(LOG) << "removeAllHighlights";
     m_highlights.clear();
     m_overlay->scheduleUpdate();
 }

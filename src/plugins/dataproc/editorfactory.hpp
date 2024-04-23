@@ -36,7 +36,9 @@ namespace dataproc {
     class DataprocPlugin;
 
     class EditorFactory : public Core::IEditorFactory {
+#if QTC_VERSION <= 0x08'00'02
         Q_OBJECT
+#endif
     public:
         ~EditorFactory();
         explicit EditorFactory();

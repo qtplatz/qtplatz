@@ -1,33 +1,13 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "command.h"
 #include "command_p.h"
 
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/icontext.h>
+#include "actionmanager.h"
+
+#include "../coreconstants.h"
+#include "../icontext.h"
 
 #include <utils/hostosinfo.h>
 #include <utils/stringutils.h>
@@ -311,6 +291,15 @@ QAction *Command::action() const
     return d->m_action;
 }
 
+QAction *Command::actionForContext(const Utils::Id &contextId) const
+{
+    auto it = d->m_contextActionMap.find(contextId);
+    if (it == d->m_contextActionMap.end())
+        return nullptr;
+
+    return *it;
+}
+
 QString Command::stringWithAppendedShortcut(const QString &str) const
 {
     return Utils::ProxyAction::stringWithAppendedShortcut(str, keySequence());
@@ -360,8 +349,10 @@ void Internal::CommandPrivate::setCurrentContext(const Context &context)
     m_context = context;
 
     QAction *currentAction = nullptr;
-    for (int i = 0; i < m_context.size(); ++i) {
-        if (QAction *a = m_contextActionMap.value(m_context.at(i), nullptr)) {
+    for (const Id &id : std::as_const(m_context)) {
+        if (id == Constants::C_GLOBAL_CUTOFF)
+            break;
+        if (QAction *a = m_contextActionMap.value(id, nullptr)) {
             currentAction = a;
             break;
         }
@@ -407,7 +398,7 @@ void Internal::CommandPrivate::addOverrideAction(QAction *action,
             m_contextActionMap.insert(id, action);
         }
     }
-    m_scriptableMap[action] = scriptable;
+    m_scriptableHash[action] = scriptable;
     setCurrentContext(m_context);
 }
 
@@ -443,18 +434,20 @@ bool Internal::CommandPrivate::isEmpty() const
 
 bool Command::isScriptable() const
 {
-    return std::find(d->m_scriptableMap.cbegin(), d->m_scriptableMap.cend(), true)
-           != d->m_scriptableMap.cend();
+    return std::find(d->m_scriptableHash.cbegin(), d->m_scriptableHash.cend(), true)
+           != d->m_scriptableHash.cend();
 }
 
 bool Command::isScriptable(const Context &context) const
 {
-    if (context == d->m_context && d->m_scriptableMap.contains(d->m_action->action()))
-        return d->m_scriptableMap.value(d->m_action->action());
-
+    if (context == d->m_context) {
+        const auto it = d->m_scriptableHash.constFind(d->m_action->action());
+        if (it != d->m_scriptableHash.constEnd())
+            return *it;
+    }
     for (int i = 0; i < context.size(); ++i) {
         if (QAction *a = d->m_contextActionMap.value(context.at(i), nullptr)) {
-            if (d->m_scriptableMap.contains(a) && d->m_scriptableMap.value(a))
+            if (d->m_scriptableHash.value(a, false))
                 return true;
         }
     }
@@ -541,18 +534,57 @@ QAction *Command::touchBarAction() const
 }
 
 /*!
-    Appends the main keyboard shortcut that is currently assigned to the action
-    \a a to its tool tip.
+    Sets the tool tip of action \a a to the action's text, augmented
+    with the command's main keyboard shortcut. The tool tip automatically
+    updates whenever the main keyboard shortcut or the action's text
+    changes.
+    \sa stringWithAppendedShortcut()
+    \sa createActionWithShortcutToolTip()
 */
 void Command::augmentActionWithShortcutToolTip(QAction *a) const
 {
     a->setToolTip(stringWithAppendedShortcut(a->text()));
-    QObject::connect(this, &Command::keySequenceChanged, a, [this, a]() {
+    QObject::connect(this, &Command::keySequenceChanged, a, [this, a] {
         a->setToolTip(stringWithAppendedShortcut(a->text()));
     });
-    QObject::connect(a, &QAction::changed, this, [this, a]() {
+    QObject::connect(a, &QAction::changed, this, [this, a] {
         a->setToolTip(stringWithAppendedShortcut(a->text()));
     });
+}
+
+/*!
+    Returns a new QAction with the command's icon, icon text, and text, that
+    given by \a commandId. Sets the button's parent to \a parent.
+    The action's tool tip is the action's text, augmented with the command's
+    main keyboard shortcut. Other properties of the action are not updated
+    automatically.
+    \sa augmentActionWithShortcutToolTip()
+*/
+QAction *Command::createActionWithShortcutToolTip(Id commandId, QObject *parent)
+{
+    auto a = new QAction(parent);
+    Command *cmd = ActionManager::command(commandId);
+    QTC_ASSERT(cmd, return a);
+    a->setIcon(cmd->action()->icon());
+    a->setIconText(cmd->action()->iconText());
+    a->setText(cmd->action()->text());
+    cmd->augmentActionWithShortcutToolTip(a);
+    return a;
+}
+
+/*!
+    Returns a new QToolButton with the command's icon, icon text, and text, that
+    given by \a commandId. Sets the button's parent to \a parent.
+    The action's tool tip is the action's text, augmented with the command's
+    main keyboard shortcut. Other properties of the button are not updated
+    automatically.
+    \sa createActionWithShortcutToolTip()
+*/
+QToolButton *Command::createToolButtonWithShortcutToolTip(Utils::Id commandId, QWidget *parent)
+{
+    auto button = new QToolButton(parent);
+    button->setDefaultAction(createActionWithShortcutToolTip(commandId, button));
+    return button;
 }
 
 /*!
@@ -567,6 +599,17 @@ QToolButton *Command::toolButtonWithAppendedShortcut(QAction *action, Command *c
     if (cmd)
         cmd->augmentActionWithShortcutToolTip(action);
     return button;
+}
+
+/*!
+    Returns a tool button for \a action.
+
+    Appends the main keyboard shortcut of the command with ID \a commandId
+    to the tool tip of the button.
+*/
+QToolButton *Command::toolButtonWithAppendedShortcut(QAction *action, Utils::Id commandId)
+{
+    return toolButtonWithAppendedShortcut(action, ActionManager::command(commandId));
 }
 
 } // namespace Core

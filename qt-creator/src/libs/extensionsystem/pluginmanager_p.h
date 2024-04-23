@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -37,17 +15,18 @@
 #include <QScopedPointer>
 #include <QSet>
 #include <QStringList>
+#include <QTimer>
 #include <QWaitCondition>
 
 #include <queue>
 
 QT_BEGIN_NAMESPACE
 class QTime;
-class QTimer;
 class QEventLoop;
 QT_END_NAMESPACE
 
 namespace Utils {
+class FutureSynchronizer;
 class QtcSettings;
 }
 
@@ -59,9 +38,8 @@ namespace Internal {
 
 class PluginSpecPrivate;
 
-class EXTENSIONSYSTEM_EXPORT PluginManagerPrivate : public QObject
+class EXTENSIONSYSTEM_TEST_EXPORT PluginManagerPrivate : public QObject
 {
-    Q_OBJECT
 public:
     PluginManagerPrivate(PluginManager *pluginManager);
     ~PluginManagerPrivate() override;
@@ -73,15 +51,18 @@ public:
     // Plugin operations
     void checkForProblematicPlugins();
     void loadPlugins();
+    void loadPluginsAtRuntime(const QSet<PluginSpec *> &plugins);
     void shutdown();
     void setPluginPaths(const QStringList &paths);
     const QVector<ExtensionSystem::PluginSpec *> loadQueue();
     void loadPlugin(PluginSpec *spec, PluginSpec::State destState);
     void resolveDependencies();
     void enableDependenciesIndirectly();
-    void initProfiling();
-    void profilingSummary() const;
-    void profilingReport(const char *what, const PluginSpec *spec = nullptr);
+    void increaseProfilingVerbosity();
+    void enableTracing(const QString &filePath);
+    QString profilingSummary(qint64 *totalOut = nullptr) const;
+    void printProfilingSummary() const;
+    void profilingReport(const char *what, const PluginSpec *spec, qint64 *target = nullptr);
     void setSettings(Utils::QtcSettings *settings);
     void setGlobalSettings(Utils::QtcSettings *settings);
     void readSettings();
@@ -118,7 +99,7 @@ public:
     QStringList disabledPlugins;
     QStringList forceEnabledPlugins;
     // delayed initialization
-    QTimer *delayedInitializeTimer = nullptr;
+    QTimer delayedInitializeTimer;
     std::queue<PluginSpec *> delayedInitializeQueue;
     // ansynchronous shutdown
     QSet<PluginSpec *> asynchronousPlugins;  // plugins that have requested async shutdown
@@ -127,8 +108,9 @@ public:
     QStringList arguments;
     QStringList argumentsForRestart;
     QScopedPointer<QElapsedTimer> m_profileTimer;
-    QHash<const PluginSpec *, int> m_profileTotal;
-    int m_profileElapsedMS = 0;
+    qint64 m_profileElapsedMS = 0;
+    qint64 m_totalUntilDelayedInitialize = 0;
+    qint64 m_totalStartupMS = 0;
     unsigned m_profilingVerbosity = 0;
     Utils::QtcSettings *settings = nullptr;
     Utils::QtcSettings *globalSettings = nullptr;
@@ -141,10 +123,13 @@ public:
     static PluginSpec *createSpec();
     static PluginSpecPrivate *privateSpec(PluginSpec *spec);
 
+    static void addTestCreator(IPlugin *plugin, const std::function<QObject *()> &testCreator);
+
     mutable QReadWriteLock m_lock;
 
     bool m_isInitializationDone = false;
     bool enableCrashCheck = true;
+    bool m_isShuttingDown = false;
 
     QHash<QString, std::function<bool()>> m_scenarios;
     QString m_requestedScenario;
@@ -155,12 +140,12 @@ public:
     QWaitCondition m_scenarioWaitCondition;
 
     PluginManager::ProcessData m_creatorProcessData;
+    std::unique_ptr<Utils::FutureSynchronizer> m_futureSynchronizer;
 
 private:
     PluginManager *q;
 
-    void nextDelayedInitialize();
-    void asyncShutdownFinished();
+    void startDelayedInitialize();
 
     void readPluginPaths();
     bool loadQueue(PluginSpec *spec,
@@ -168,6 +153,7 @@ private:
                    QVector<ExtensionSystem::PluginSpec *> &circularityCheckQueue);
     void stopAll();
     void deleteAll();
+    void checkForDuplicatePlugins();
 
 #ifdef WITH_TESTS
     void startTests();

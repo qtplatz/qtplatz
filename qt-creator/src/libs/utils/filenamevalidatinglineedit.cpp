@@ -1,35 +1,16 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "filenamevalidatinglineedit.h"
+
 #include "qtcassert.h"
+#include "utilstr.h"
 
 #include <QRegularExpression>
 
 /*!
   \class Utils::FileNameValidatingLineEdit
+  \inmodule QtCreator
 
   \brief The FileNameValidatingLineEdit class is a control that lets the user
   choose a (base) file name, based on a QLineEdit.
@@ -109,7 +90,7 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
 {
     if (name.isEmpty()) {
         if (errorMessage)
-            *errorMessage = tr("Name is empty.");
+            *errorMessage = Tr::tr("Name is empty.");
         return false;
     }
     // Characters
@@ -119,9 +100,9 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
             if (errorMessage) {
                 const QChar qc = QLatin1Char(*c);
                 if (qc.isSpace())
-                    *errorMessage = tr("Name contains white space.");
+                    *errorMessage = Tr::tr("Name contains white space.");
                 else
-                    *errorMessage = tr("Invalid character \"%1\".").arg(qc);
+                    *errorMessage = Tr::tr("Invalid character \"%1\".").arg(qc);
             }
             return false;
         }
@@ -131,7 +112,7 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
         const QLatin1String notAllowedSubString(notAllowedSubStrings[s]);
         if (name.contains(notAllowedSubString)) {
             if (errorMessage)
-                *errorMessage = tr("Invalid characters \"%1\".").arg(QString(notAllowedSubString));
+                *errorMessage = Tr::tr("Invalid characters \"%1\".").arg(QString(notAllowedSubString));
             return false;
         }
     }
@@ -141,10 +122,10 @@ bool FileNameValidatingLineEdit::validateFileName(const QString &name,
         matchesWinDevice = name.contains(windowsDeviceSubDirPattern());
     if (matchesWinDevice) {
         if (errorMessage)
-            *errorMessage = tr("Name matches MS Windows device"
-                               " (CON, AUX, PRN, NUL,"
-                               " COM1, COM2, ..., COM9,"
-                               " LPT1, LPT2, ..., LPT9)");
+            *errorMessage = Tr::tr("Name matches MS Windows device"
+                                   " (CON, AUX, PRN, NUL,"
+                                   " COM1, COM2, ..., COM9,"
+                                   " LPT1, LPT2, ..., LPT9)");
         return false;
     }
     return true;
@@ -170,15 +151,15 @@ bool FileNameValidatingLineEdit::validateFileNameExtension(const QString &fileNa
     if (!requiredExtensions.isEmpty()) {
         for (const QString &requiredExtension : requiredExtensions) {
             QString extension = QLatin1Char('.') + requiredExtension;
-            if (fileName.endsWith(extension, Qt::CaseSensitive) && extension.count() < fileName.count())
+            if (fileName.endsWith(extension, Qt::CaseSensitive) && extension.size() < fileName.size())
                 return true;
         }
 
         if (errorMessage) {
-            if (requiredExtensions.count() == 1)
-                *errorMessage = tr("File extension %1 is required:").arg(requiredExtensions.first());
+            if (requiredExtensions.size() == 1)
+                *errorMessage = Tr::tr("File extension %1 is required:").arg(requiredExtensions.first());
             else
-                *errorMessage = tr("File extensions %1 are required:").arg(requiredExtensions.join(QLatin1String(", ")));
+                *errorMessage = Tr::tr("File extensions %1 are required:").arg(requiredExtensions.join(QLatin1String(", ")));
         }
 
         return false;

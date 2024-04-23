@@ -1,30 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
+#include "algorithm.h"
 #include "smallstringfwd.h"
 #include "smallstringiterator.h"
 
@@ -33,6 +12,12 @@
 #include <cstring>
 #include <string>
 #include <string_view>
+
+#if __cpp_lib_constexpr_string >= 201907L
+#define constexpr_string constexpr
+#else
+#define constexpr_string
+#endif
 
 namespace Utils {
 
@@ -85,13 +70,26 @@ public:
         return SmallStringView(data() + position, length);
     }
 
-    constexpr20 operator std::string() const { return std::string(data(), size()); }
+    constexpr_string operator std::string() const { return std::string(data(), size()); }
 
     explicit operator QString() const
     {
         return QString::fromUtf8(data(), int(size()));
     }
 
+    explicit operator QByteArray() const { return QByteArray(data(), int(size())); }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    explicit operator QLatin1StringView() const noexcept
+    {
+        return QLatin1StringView(data(), Utils::ssize(*this));
+    }
+#endif
+
+    operator QUtf8StringView() const noexcept
+    {
+        return QUtf8StringView(data(), Utils::ssize(*this));
+    }
     constexpr bool startsWith(SmallStringView subStringToSearch) const noexcept
     {
         if (size() >= subStringToSearch.size())
@@ -106,69 +104,46 @@ public:
     {
         return *begin() == characterToSearch;
     }
-};
 
-constexpr bool operator==(SmallStringView first, SmallStringView second) noexcept
-{
-    return first.size() == second.size()
-           && std::char_traits<char>::compare(first.data(), second.data(), first.size()) == 0;
-}
+    constexpr bool endsWith(SmallStringView ending) const noexcept
+    {
+        return size() >= ending.size() && std::equal(ending.rbegin(), ending.rend(), rbegin());
+    }
+};
 
 constexpr bool operator!=(SmallStringView first, SmallStringView second) noexcept
 {
-    return !(first == second);
+    return std::string_view{first} != std::string_view{second};
 }
 
-constexpr int compare(SmallStringView first, SmallStringView second) noexcept
+constexpr bool operator==(SmallStringView first, SmallStringView second) noexcept
 {
-    int sizeDifference = int(first.size() - second.size());
-
-    if (sizeDifference == 0)
-        return std::char_traits<char>::compare(first.data(), second.data(), first.size());
-
-    return sizeDifference;
+    return std::string_view{first} == std::string_view{second};
 }
 
 constexpr bool operator<(SmallStringView first, SmallStringView second) noexcept
 {
-    return compare(first, second) < 0;
+    return std::string_view{first} < std::string_view{second};
 }
 
 constexpr bool operator>(SmallStringView first, SmallStringView second) noexcept
 {
-    return second < first;
+    return std::string_view{first} > std::string_view{second};
 }
 
-namespace Internal {
-constexpr int reverse_memcmp(const char *first, const char *second, size_t n)
+constexpr bool operator<=(SmallStringView first, SmallStringView second) noexcept
 {
-    const char *currentFirst = first + n - 1;
-    const char *currentSecond = second + n - 1;
-
-    while (n > 0) {
-        // If the current characters differ, return an appropriately signed
-        // value; otherwise, keep searching backwards
-        int difference = *currentFirst - *currentSecond;
-        if (difference != 0)
-            return difference;
-
-        --currentFirst;
-        --currentSecond;
-        --n;
-    }
-
-    return 0;
+    return std::string_view{first} <= std::string_view{second};
 }
-} // namespace Internal
 
-constexpr int reverseCompare(SmallStringView first, SmallStringView second) noexcept
+constexpr bool operator>=(SmallStringView first, SmallStringView second) noexcept
 {
-    int sizeDifference = int(first.size() - second.size());
+    return std::string_view{first} >= std::string_view{second};
+}
 
-    if (sizeDifference == 0)
-        return Internal::reverse_memcmp(first.data(), second.data(), first.size());
-
-    return sizeDifference;
+constexpr int compare(SmallStringView first, SmallStringView second) noexcept
+{
+    return first.compare(second);
 }
 
 } // namespace Utils

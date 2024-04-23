@@ -95,7 +95,11 @@ namespace dataproc {
                         , const Utils::FilePath &filePath
                         , const Utils::FilePath &realFilePath) override;
         ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
+#if QTC_VERSION <= 0x08'00'02
         bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false) override;
+#else
+        bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false);
+#endif
 
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
         bool isModified() const override;

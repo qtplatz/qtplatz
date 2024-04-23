@@ -1,27 +1,5 @@
-############################################################################
-#
 # Copyright (C) 2016 The Qt Company Ltd.
-# Contact: https://www.qt.io/licensing/
-#
-# This file is part of Qt Creator.
-#
-# Commercial License Usage
-# Licensees holding valid commercial Qt licenses may use this file in
-# accordance with the commercial license agreement provided with the
-# Software or, alternatively, in accordance with the terms contained in
-# a written agreement between you and The Qt Company. For licensing terms
-# and conditions see https://www.qt.io/terms-conditions. For further
-# information use the contact form at https://www.qt.io/contact-us.
-#
-# GNU General Public License Usage
-# Alternatively, this file may be used under the terms of the GNU
-# General Public License version 3 as published by the Free Software
-# Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-# included in the packaging of this file. Please review the following
-# information to ensure the GNU General Public License requirements will
-# be met: https://www.gnu.org/licenses/gpl-3.0.html.
-#
-############################################################################
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import inspect
 import os
@@ -441,9 +419,8 @@ class Dumper(DumperBase):
                     targetTypeName = typeName[0:pos1].strip()
                 #DumperBase.warn("TARGET TYPENAME: %s" % targetTypeName)
                 targetType = self.fromNativeType(nativeTargetType)
-                tdata = targetType.typeData().copy()
-                tdata.name = targetTypeName
-                targetType.typeData = lambda: tdata
+                targetType.setTdata(targetType.tdata.copy())
+                targetType.tdata.name = targetTypeName
                 return self.createArrayType(targetType, count)
             if hasattr(nativeType, 'GetVectorElementType'):  # New in 3.8(?) / 350.x
                 nativeTargetType = nativeType.GetVectorElementType()
@@ -457,8 +434,7 @@ class Dumper(DumperBase):
         if res is None:
             #  # This strips typedefs for pointers. We don't want that.
             #  typeobj.nativeType = nativeType.GetUnqualifiedType()
-            tdata = self.TypeData(self)
-            tdata.typeId = typeId
+            tdata = self.TypeData(self, typeId)
             tdata.name = typeName
             tdata.lbitsize = nativeType.GetByteSize() * 8
             if code == lldb.eTypeClassBuiltin:
@@ -488,13 +464,12 @@ class Dumper(DumperBase):
                     self.nativeStructAlignment(nativeType)
                 tdata.lfields = lambda value: \
                     self.listMembers(value, nativeType)
-                tdata.templateArguments = self.listTemplateParametersHelper(nativeType)
+                tdata.templateArguments = lambda: \
+                    self.listTemplateParametersHelper(nativeType)
             elif code == lldb.eTypeClassFunction:
                 tdata.code = TypeCode.Function
             elif code == lldb.eTypeClassMemberPointer:
                 tdata.code = TypeCode.MemberPointer
-
-            self.registerType(typeId, tdata)  # Fix up fields and template args
         #    warn('CREATE TYPE: %s' % typeId)
         #else:
         #    warn('REUSE TYPE: %s' % typeId)
@@ -692,16 +667,16 @@ class Dumper(DumperBase):
         return None if val is None else self.fromNativeValue(val)
 
     def isWindowsTarget(self):
-        return False
+        return 'windows' in self.target.triple
 
     def isQnxTarget(self):
         return False
 
     def isArmArchitecture(self):
-        return False
+        return 'arm' in self.target.triple
 
     def isMsvcTarget(self):
-        return False
+        return 'msvc' in self.target.triple
 
     def prettySymbolByAddress(self, address):
         try:
@@ -718,9 +693,22 @@ class Dumper(DumperBase):
             pass
         return '0x%x' % address
 
-    def qtVersionAndNamespace(self):
+    def fetchInternalFunctions(self):
+        funcs = self.target.FindFunctions('QObject::customEvent')
+        if len(funcs):
+            symbol = funcs[0].GetSymbol()
+            self.qtCustomEventFunc = symbol.GetStartAddress().GetLoadAddress(self.target)
+
+        funcs = self.target.FindFunctions('QObject::property')
+        if len(funcs):
+            symbol = funcs[0].GetSymbol()
+            self.qtPropertyFunc = symbol.GetStartAddress().GetLoadAddress(self.target)
+
+    def fetchQtVersionAndNamespace(self):
         for func in self.target.FindFunctions('qVersion'):
             name = func.GetSymbol().GetName()
+            if name == None:
+                continue
             if name.endswith('()'):
                 name = name[:-2]
             if name.count(':') > 2:
@@ -754,24 +742,41 @@ class Dumper(DumperBase):
             qtVersion = 0x10000 * int(major) + 0x100 * int(minor) + int(patch)
             self.qtVersion = lambda: qtVersion
 
-            funcs = self.target.FindFunctions('QObject::customEvent')
-            if len(funcs):
-                symbol = funcs[0].GetSymbol()
-                self.qtCustomEventFunc = symbol.GetStartAddress().GetLoadAddress(self.target)
-
-            funcs = self.target.FindFunctions('QObject::property')
-            if len(funcs):
-                symbol = funcs[0].GetSymbol()
-                self.qtPropertyFunc = symbol.GetStartAddress().GetLoadAddress(self.target)
             return (qtNamespace, qtVersion)
 
-        return ('', 0x50200)
+        try:
+            versionValue = self.target.EvaluateExpression('qtHookData[2]').GetNonSyntheticValue()
+            if versionValue.IsValid():
+                return ('', versionValue.unsigned)
+        except:
+            pass
+
+        return ('', self.fallbackQtVersion)
+
+    def qtVersionAndNamespace(self):
+        qtVersionAndNamespace = None
+        try:
+            qtVersionAndNamespace = self.fetchQtVersionAndNamespace()
+            self.report("Detected Qt Version: 0x%0x (namespace='%s')" %
+                        (qtVersionAndNamespace[1], qtVersionAndNamespace[0] or "no namespace"))
+        except Exception as e:
+            DumperBase.warn('[lldb] Error detecting Qt version: %s' % e)
+
+        try:
+            self.fetchInternalFunctions()
+            self.report('Found function QObject::property: 0x%0x' % self.qtPropertyFunc)
+            self.report('Found function QObject::customEvent: 0x%0x' % self.qtCustomEventFunc)
+        except Exception as e:
+            DumperBase.warn('[lldb] Error fetching internal Qt functions: %s' % e)
+
+        # Cache version information by overriding this function.
+        self.qtVersionAndNamespace = lambda: qtVersionAndNamespace
+        return qtVersionAndNamespace
 
     def qtNamespace(self):
         return self.qtVersionAndNamespace()[0]
 
     def qtVersion(self):
-        self.qtVersionAndNamespace()
         return self.qtVersionAndNamespace()[1]
 
     def handleCommand(self, command):
@@ -867,6 +872,7 @@ class Dumper(DumperBase):
         self.startMode_ = args.get('startmode', 1)
         self.breakOnMain_ = args.get('breakonmain', 0)
         self.useTerminal_ = args.get('useterminal', 0)
+        self.firstStop_ = True
         pargs = self.hexdecode(args.get('processargs', ''))
         self.processArgs_ = pargs.split('\0') if len(pargs) else []
         self.environment_ = args.get('environment', [])
@@ -927,6 +933,8 @@ class Dumper(DumperBase):
 
         if self.startMode_ == DebuggerStartMode.AttachExternal:
             attach_info = lldb.SBAttachInfo(self.attachPid_)
+            if self.breakOnMain_:
+                self.createBreakpointAtMain()
             self.process = self.target.Attach(attach_info, error)
             if not error.Success():
                 self.reportState('enginerunfailed')
@@ -965,20 +973,57 @@ class Dumper(DumperBase):
                     self.debugger.GetListener(),
                     self.remoteChannel_, None, error)
             else:
-                f = lldb.SBFileSpec()
-                f.SetFilename(self.executable_)
+                if self.platform_ == "remote-macosx":
+                    self.report("Connecting to remote target: connect://%s" % self.remoteChannel_)
+                    self.process = self.target.ConnectRemote(
+                        self.debugger.GetListener(),
+                        "connect://" + self.remoteChannel_, None, error)
 
-                launchInfo = lldb.SBLaunchInfo(self.processArgs_)
-                #launchInfo.SetWorkingDirectory(self.workingDirectory_)
-                launchInfo.SetWorkingDirectory('/tmp')
-                if self.platform_ == 'remote-android':
-                    launchInfo.SetWorkingDirectory('/data/local/tmp')
-                launchInfo.SetEnvironmentEntries(self.environment_, False)
-                launchInfo.SetExecutableFile(f, True)
+                    if not error.Success():
+                        self.report("Failed to connect to remote target: %s" % error.GetCString())
+                        self.reportState('enginerunfailed')
+                        return
 
-                DumperBase.warn("TARGET: %s" % self.target)
-                self.process = self.target.Launch(launchInfo, error)
-                DumperBase.warn("PROCESS: %s" % self.process)
+                    if self.breakOnMain_:
+                        self.createBreakpointAtMain()
+
+                    DumperBase.warn("PROCESS: %s (%s)" % (self.process, error.Success() and "Success" or error.GetCString()))
+                elif self.platform_ == "remote-linux":
+                    self.report("Connecting to remote target: connect://%s" % self.remoteChannel_)
+
+                    platform = self.target.GetPlatform()
+                    url = "connect://" + self.remoteChannel_
+                    conOptions = lldb.SBPlatformConnectOptions(url)
+                    error = platform.ConnectRemote(conOptions)
+
+                    if not error.Success():
+                        self.report("Failed to connect to remote target (%s): %s" % (url, error.GetCString()))
+                        self.reportState('enginerunfailed')
+                        return
+
+                    f = lldb.SBFileSpec()
+                    f.SetFilename(self.executable_)
+                    launchInfo = lldb.SBLaunchInfo(self.processArgs_)
+                    launchInfo.SetWorkingDirectory(self.workingDirectory_)
+                    launchInfo.SetWorkingDirectory('/tmp')
+                    launchInfo.SetEnvironmentEntries(self.environment_, False)
+                    launchInfo.SetExecutableFile(f, True)
+                    self.process = self.target.Launch(launchInfo, error)
+
+                    if not error.Success():
+                        self.report("Failed to launch remote target: %s" % (error.GetCString()))
+                        self.reportState('enginerunfailed')
+                        return
+                    else:
+                        self.report("Process has launched.")
+
+                    if self.breakOnMain_:
+                        self.createBreakpointAtMain()
+
+                else:
+                    self.report("Unsupported platform: %s" % self.platform_)
+                    self.reportState('enginerunfailed')
+                    return
 
             if not error.Success():
                 self.report(self.describeError(error))
@@ -1267,7 +1312,7 @@ class Dumper(DumperBase):
             self.reportResult('error="No frame"', args)
             return
 
-        self.output = ''
+        self.output = []
         isPartial = len(self.partialVariable) > 0
 
         self.currentIName = 'local'
@@ -1320,7 +1365,7 @@ class Dumper(DumperBase):
         self.handleWatches(args)
 
         self.put('],partial="%d"' % isPartial)
-        self.reportResult(self.output, args)
+        self.reportResult(self.takeOutput(), args)
 
 
     def fetchRegisters(self, args=None):
@@ -1471,6 +1516,13 @@ class Dumper(DumperBase):
                     self.reportState("inferiorstopok")
                 else:
                     self.reportState("stopped")
+                    if self.firstStop_:
+                        self.firstStop_ = False
+                        if self.useTerminal_ or self.platform_ == "remote-macosx":
+                            # When using a terminal or remote debugging macosx apps,
+                            # the process will be interrupted on startup.
+                            # We therefore need to continue it here.
+                            self.process.Continue()
             else:
                 self.reportState(self.stateName(state))
 
@@ -1491,10 +1543,13 @@ class Dumper(DumperBase):
 
     def handleInferiorOutput(self, proc, channel):
         while True:
-            msg = proc(1024)
-            if msg == None or len(msg) == 0:
-                break
-            self.report('output={channel="%s",data="%s"}' % (channel, self.hexencode(msg)))
+            try:
+                msg = proc(1024)
+                if msg == None or len(msg) == 0:
+                    break
+                self.report('output={channel="%s",data="%s"}' % (channel, self.hexencode(msg)))
+            except SystemError as e:
+                self.warn('Error during reading of process output: %s' % e)
 
     def describeBreakpoint(self, bp):
         isWatch = isinstance(bp, lldb.SBWatchpoint)
@@ -1528,7 +1583,8 @@ class Dumper(DumperBase):
                 result += ',ignorecount="%d"' % loc.GetIgnoreCount()
                 result += ',file="%s"' % toCString(lineEntry.GetFileSpec())
                 result += ',line="%d"' % lineEntry.GetLine()
-                result += ',addr="%s"},' % addr.GetFileAddress()
+                result += ',addr="%s"' % addr.GetLoadAddress(self.target)
+                result += ',faddr="%s"},' % addr.GetFileAddress()
             result += ']'
             if lineEntry is not None:
                 result += ',file="%s"' % toCString(lineEntry.GetFileSpec())
@@ -1786,11 +1842,11 @@ class Dumper(DumperBase):
         self.process.SetSelectedThreadByID(int(args['id']))
         self.reportResult('', args)
 
-    def fetchFullBacktrace(self, _=None):
+    def fetchFullBacktrace(self, args):
         command = 'thread backtrace all'
         result = lldb.SBCommandReturnObject()
         self.debugger.GetCommandInterpreter().HandleCommand(command, result)
-        self.reportResult(self.hexencode(result.GetOutput()), {})
+        self.reportResult('fulltrace="%s"' % self.hexencode(result.GetOutput()), args)
 
     def executeDebuggerCommand(self, args):
         self.reportToken(args)
@@ -1945,7 +2001,7 @@ class Dumper(DumperBase):
 
 # Used in dumper auto test.
 class Tester(Dumper):
-    def __init__(self, binary, args):
+    def __init__(self, binary, frameLevel, args):
         Dumper.__init__(self)
         lldb.theDumper = self
         self.loadDumpers({'token': 1})
@@ -1956,11 +2012,11 @@ class Tester(Dumper):
             self.warn('ERROR: %s' % error)
             return
 
-        s = threading.Thread(target=self.testLoop, args=(args,))
+        s = threading.Thread(target=self.testLoop, args=[args, frameLevel])
         s.start()
         s.join(30)
 
-    def testLoop(self, args):
+    def testLoop(self, args, frameLevel):
         # Disable intermediate reporting.
         savedReport = self.report
         self.report = lambda stuff: 0
@@ -1998,10 +2054,11 @@ class Tester(Dumper):
                     if stoppedThread:
                         # This seems highly fragile and depending on the 'No-ops' in the
                         # event handling above.
-                        frame = stoppedThread.GetFrameAtIndex(0)
+                        frame = stoppedThread.GetFrameAtIndex(frameLevel)
                         line = frame.line_entry.line
                         if line != 0:
                             self.report = savedReport
+                            stoppedThread.SetSelectedFrame(frameLevel)
                             self.process.SetSelectedThread(stoppedThread)
                             self.fakeAddress_ = frame.GetPC()
                             self.fakeLAddress_ = frame.GetPCAddress()
@@ -2018,20 +2075,23 @@ class Tester(Dumper):
 
         lldb.SBDebugger.Destroy(self.debugger)
 
+if 'QT_CREATOR_LLDB_PROCESS' in os.environ:
+    # Initialize Qt Creator dumper
+    try:
+        theDumper = Dumper()
+    except Exception as error:
+        print('@\nstate="enginesetupfailed",error="{}"@\n'.format(error))
+
 # ------------------------------ For use in LLDB ------------------------------
 
+debug = print if 'QT_LLDB_SUMMARY_PROVIDER_DEBUG' in os.environ \
+    else lambda *a, **k: None
 
-from pprint import pprint
-
-__module__ = sys.modules[__name__]
-DEBUG = False if not hasattr(__module__, 'DEBUG') else DEBUG
-
+debug(f"Loading lldbbridge.py from {__file__}")
 
 class LogMixin():
     @staticmethod
     def log(message='', log_caller=False, frame=1, args=''):
-        if not DEBUG:
-            return
         if log_caller:
             message = ": " + message if len(message) else ''
             # FIXME: Compute based on first frame not in this class?
@@ -2040,7 +2100,7 @@ class LogMixin():
             localz = frame.f_locals
             instance = str(localz["self"]) + "." if 'self' in localz else ''
             message = "%s%s(%s)%s" % (instance, fn, args, message)
-        print(message)
+        debug(message)
 
     @staticmethod
     def log_fn(arg_str=''):
@@ -2098,34 +2158,27 @@ class SummaryDumper(Dumper, LogMixin):
 
         self.dumpermodules = ['qttypes']
         self.loadDumpers({})
-        self.output = ''
+        self.output = []
 
     def report(self, stuff):
         return  # Don't mess up lldb output
 
     def dump_summary(self, valobj, expanded=False):
-        try:
-            from pygdbmi import gdbmiparser
-        except ImportError:
-            print("Qt summary provider requires the pygdbmi module, "
-                  "please install using 'sudo /usr/bin/easy_install pygdbmi', "
-                  "and then restart Xcode.")
-            lldb.debugger.HandleCommand('type category delete Qt')
-            return None
+        from pygdbmi import gdbmiparser
 
         value = self.fromNativeValue(valobj)
 
         # Expand variable if we need synthetic children
         oldExpanded = self.expandedINames
-        self.expandedINames = [value.name] if expanded else []
+        self.expandedINames = {value.name: 100} if expanded else {}
 
         savedOutput = self.output
-        self.output = ''
+        self.output = []
         with TopLevelItem(self, value.name):
             self.putItem(value)
 
         # FIXME: Hook into putField, etc to build up object instead of parsing MI
-        response = gdbmiparser.parse_response("^ok,summary=%s" % self.output)
+        response = gdbmiparser.parse_response("^ok,summary=%s" % self.takeOutput())
 
         self.output = savedOutput
         self.expandedINames = oldExpanded
@@ -2384,9 +2437,51 @@ class SyntheticChildrenProvider(SummaryProvider):
             self.valobj = self.create_value(dereference_child)
             self.update()
 
+def ensure_gdbmiparser():
+    try:
+        from pygdbmi import gdbmiparser
+        return True
+    except ImportError:
+        try:
+            if not 'QT_LLDB_SUMMARY_PROVIDER_NO_AUTO_INSTALL' in os.environ:
+                print("Required module 'pygdbmi' not installed. Installing automatically...")
+                import subprocess
+                python3 = os.path.join(sys.exec_prefix, 'bin', 'python3')
+                process = subprocess.run([python3, '-m', 'pip',
+                    '--disable-pip-version-check',
+                    'install', '--user', 'pygdbmi' ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT)
+                print(process.stdout.decode('utf-8').strip())
+                process.check_returncode()
+                from importlib import invalidate_caches
+                invalidate_caches()
+                from pygdbmi import gdbmiparser
+                return True
+        except Exception as e:
+            print(e)
+
+    print("Qt summary provider requires the pygdbmi module. Please install\n" \
+          "manually using '/usr/bin/pip3 install pygdbmi', and restart Xcode.")
+    return False
+
 
 def __lldb_init_module(debugger, internal_dict):
     # Module is being imported in an LLDB session
+    if 'QT_CREATOR_LLDB_PROCESS' in os.environ:
+        # Let Qt Creator take care of its own dumper
+        return
+
+    debug("Initializing module with", debugger)
+
+    if not ensure_gdbmiparser():
+        return
+
+    if not __name__ == 'qt':
+        # Make available under global 'qt' name for consistency,
+        # and so we can refer to SyntheticChildrenProvider below.
+        internal_dict['qt'] = internal_dict[__name__]
+
     dumper = SummaryDumper.initialize()
 
     type_category = 'Qt'
@@ -2412,17 +2507,6 @@ def __lldb_init_module(debugger, internal_dict):
 
     # Synthetic children
     debugger.HandleCommand("type synthetic add -x '^Q.*$' -l %s -w %s"
-                           % ("lldbbridge.SyntheticChildrenProvider", type_category))
+                           % ("qt.SyntheticChildrenProvider", type_category))
 
     debugger.HandleCommand('type category enable %s' % type_category)
-
-    if not __name__ == 'qt':
-        # Make available under global 'qt' name for consistency
-        internal_dict['qt'] = internal_dict[__name__]
-
-
-if __name__ == "lldbbridge":
-    try:
-        theDumper = Dumper()
-    except Exception as error:
-        print('@\nstate="enginesetupfailed",error="{}"@\n'.format(error))

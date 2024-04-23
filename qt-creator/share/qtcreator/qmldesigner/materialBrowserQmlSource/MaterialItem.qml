@@ -1,70 +1,53 @@
-/****************************************************************************
-**
-** Copyright (C) 2022 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import QtQuickDesignerTheme 1.0
-import HelperWidgets 2.0
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Layouts
+import HelperWidgets
+import StudioTheme as StudioTheme
+import MaterialBrowserBackend
 
-Rectangle {
+Item {
     id: root
 
     signal showContextMenu()
 
-    function refreshPreview()
-    {
+    function refreshPreview() {
         img.source = ""
         img.source = "image://materialBrowser/" + materialInternalId
     }
 
-    function startRename()
-    {
-        matName.readOnly = false
-        matName.selectAll()
-        matName.forceActiveFocus()
-        nameMouseArea.enabled = false
+    function forceFinishEditing() {
+        matName.commitRename()
     }
 
-    function commitRename()
-    {
-        if (matName.readOnly)
-            return;
-
-        matName.readOnly = true
-        nameMouseArea.enabled = true
-
-        materialBrowserModel.renameMaterial(index, matName.text);
+    function startRename() {
+        matName.startRename()
     }
 
-    border.width: materialBrowserModel.selectedIndex === index ? 1 : 0
-    border.color: materialBrowserModel.selectedIndex === index
-                        ? StudioTheme.Values.themeControlOutlineInteraction
-                        : "transparent"
-    color: "transparent"
     visible: materialVisible
+
+    DropArea {
+        anchors.fill: parent
+
+        onEntered: (drag) => {
+            drag.accepted = drag.formats[0] === "application/vnd.qtdesignstudio.texture"
+                         || drag.formats[0] === "application/vnd.qtdesignstudio.bundletexture"
+                         || (drag.formats[0] === "application/vnd.qtdesignstudio.assets"
+                             && rootView.hasAcceptableAssets(drag.urls))
+        }
+
+        onDropped: (drag) => {
+            drag.accept()
+
+            if (drag.formats[0] === "application/vnd.qtdesignstudio.texture")
+                MaterialBrowserBackend.rootView.acceptTextureDropOnMaterial(index, drag.getDataAsString(drag.keys[0]))
+            else if (drag.formats[0] === "application/vnd.qtdesignstudio.bundletexture")
+                MaterialBrowserBackend.rootView.acceptBundleTextureDropOnMaterial(index, drag.urls[0])
+            else if (drag.formats[0] === "application/vnd.qtdesignstudio.assets")
+                MaterialBrowserBackend.rootView.acceptAssetsDropOnMaterial(index, drag.urls)
+        }
+    }
 
     MouseArea {
         id: mouseArea
@@ -73,65 +56,63 @@ Rectangle {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         onPressed: (mouse) => {
-            materialBrowserModel.selectMaterial(index)
+            MaterialBrowserBackend.materialBrowserModel.selectMaterial(index)
+            MaterialBrowserBackend.rootView.focusMaterialSection(true)
 
             if (mouse.button === Qt.LeftButton)
-                rootView.startDragMaterial(index, mapToGlobal(mouse.x, mouse.y))
+                MaterialBrowserBackend.rootView.startDragMaterial(index, mapToGlobal(mouse.x, mouse.y))
             else if (mouse.button === Qt.RightButton)
                 root.showContextMenu()
         }
 
-        onDoubleClicked: materialBrowserModel.openMaterialEditor();
+        onDoubleClicked: MaterialBrowserBackend.materialBrowserModel.openMaterialEditor();
     }
 
     Column {
         anchors.fill: parent
         spacing: 1
 
-        Item { width: 1; height: 5 } // spacer
-
         Image {
             id: img
 
-            width: root.width - 10
+            width: root.width
             height: img.width
             anchors.horizontalCenter: parent.horizontalCenter
             source: "image://materialBrowser/" + materialInternalId
             cache: false
         }
 
-        TextInput {
+        // Eat keys so they are not passed to parent while editing name
+        Keys.onPressed: (event) => {
+            event.accepted = true
+        }
+
+        MaterialBrowserItemName {
             id: matName
 
             text: materialName
-
             width: img.width
-            clip: true
             anchors.horizontalCenter: parent.horizontalCenter
-            horizontalAlignment: TextInput.AlignHCenter
 
-            font.pixelSize: StudioTheme.Values.myFontSize
+            onRenamed: (newName) => {
+                MaterialBrowserBackend.materialBrowserModel.renameMaterial(index, newName);
+                mouseArea.forceActiveFocus()
+            }
 
-            readOnly: true
-            selectByMouse: !matName.readOnly
-
-            color: StudioTheme.Values.themeTextColor
-            selectionColor: StudioTheme.Values.themeTextSelectionColor
-            selectedTextColor: StudioTheme.Values.themeTextSelectedTextColor
-
-            // allow only alphanumeric characters, underscores, no space at start, and 1 space between words
-            validator: RegExpValidator { regExp: /^(\w+\s)*\w+$/ }
-
-            onEditingFinished: root.commitRename()
-
-            MouseArea {
-                id: nameMouseArea
-
-                anchors.fill: parent
-
-                onClicked: materialBrowserModel.selectMaterial(index)
-                onDoubleClicked: root.startRename()
+            onClicked: {
+                MaterialBrowserBackend.materialBrowserModel.selectMaterial(index)
+                MaterialBrowserBackend.rootView.focusMaterialSection(true)
             }
         }
+    }
+
+    Rectangle {
+        id: marker
+        anchors.fill: parent
+        border.width: MaterialBrowserBackend.materialBrowserModel.selectedIndex === index ? MaterialBrowserBackend.rootView.materialSectionFocused ? 3 : 1 : 0
+        border.color: MaterialBrowserBackend.materialBrowserModel.selectedIndex === index
+                            ? StudioTheme.Values.themeControlOutlineInteraction
+                            : "transparent"
+        color: "transparent"
     }
 }

@@ -1,45 +1,22 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "basefilewizardfactory.h"
 
 #include "basefilewizard.h"
+#include "coreplugintr.h"
 #include "dialogs/promptoverwritedialog.h"
 #include "editormanager/editormanager.h"
-#include "icontext.h"
-#include "icore.h"
-#include "ifilewizardextension.h"
+
 #include <extensionsystem/pluginmanager.h>
+
+#include <utils/algorithm.h>
+#include <utils/fileutils.h>
 #include <utils/filewizardpage.h>
 #include <utils/mimeutils.h>
 #include <utils/qtcassert.h>
-#include <utils/stringutils.h>
 #include <utils/wizard.h>
 
-#include <QDir>
-#include <QFileInfo>
 #include <QDebug>
 #include <QIcon>
 
@@ -49,11 +26,11 @@ using namespace Utils;
 
 namespace Core {
 
-static int indexOfFile(const GeneratedFiles &f, const QString &path)
+static int indexOfFile(const GeneratedFiles &f, const FilePath &path)
 {
     const int size = f.size();
     for (int i = 0; i < size; ++i)
-        if (f.at(i).path() == path)
+        if (f.at(i).filePath() == path)
             return i;
     return -1;
 }
@@ -152,7 +129,7 @@ bool BaseFileWizardFactory::writeFiles(const GeneratedFiles &files, QString *err
 {
     const GeneratedFile::Attributes noWriteAttributes
         = GeneratedFile::CustomGeneratorAttribute|GeneratedFile::KeepExistingFileAttribute;
-    for (const GeneratedFile &generatedFile : qAsConst(files))
+    for (const GeneratedFile &generatedFile : std::as_const(files))
         if (!(generatedFile.attributes() & noWriteAttributes ))
             if (!generatedFile.write(errorMessage))
                 return false;
@@ -186,13 +163,18 @@ bool BaseFileWizardFactory::postGenerateFiles(const QWizard *, const GeneratedFi
 
 bool BaseFileWizardFactory::postGenerateOpenEditors(const GeneratedFiles &l, QString *errorMessage)
 {
-    for (const GeneratedFile &file : qAsConst(l)) {
+    for (const GeneratedFile &file : std::as_const(l)) {
         if (file.attributes() & GeneratedFile::OpenEditorAttribute) {
-            if (!EditorManager::openEditor(FilePath::fromString(file.path()), file.editorId())) {
-                if (errorMessage)
-                    *errorMessage = tr("Failed to open an editor for \"%1\".").arg(QDir::toNativeSeparators(file.path()));
+            IEditor * const editor = EditorManager::openEditor(file.filePath(), file.editorId());
+            if (!editor) {
+                if (errorMessage) {
+                    *errorMessage = Tr::tr("Failed to open an editor for \"%1\".")
+                                        .arg(file.filePath().toUserOutput());
+                }
                 return false;
             }
+            editor->document()->formatContents();
+            editor->document()->save(nullptr);
         }
     }
     return true;
@@ -211,16 +193,16 @@ BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(Ge
     if (debugWizard)
         qDebug() << Q_FUNC_INFO << files;
 
-    QStringList existingFiles;
+    FilePaths existingFiles;
     bool oddStuffFound = false;
 
-    static const QString readOnlyMsg = tr("[read only]");
-    static const QString directoryMsg = tr("[folder]");
-    static const QString symLinkMsg = tr("[symbolic link]");
+    static const QString readOnlyMsg = Tr::tr("[read only]");
+    static const QString directoryMsg = Tr::tr("[folder]");
+    static const QString symLinkMsg = Tr::tr("[symbolic link]");
 
-    for (const GeneratedFile &file : qAsConst(*files)) {
-        const QString path = file.path();
-        if (QFileInfo::exists(path))
+    for (const GeneratedFile &file : std::as_const(*files)) {
+        const FilePath path = file.filePath();
+        if (path.exists())
             existingFiles.append(path);
     }
     if (existingFiles.isEmpty())
@@ -228,26 +210,26 @@ BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(Ge
     // Before prompting to overwrite existing files, loop over files and check
     // if there is anything blocking overwriting them (like them being links or folders).
     // Format a file list message as ( "<file1> [readonly], <file2> [folder]").
-    const QString commonExistingPath = Utils::commonPath(existingFiles);
+    const FilePath commonExistingPath = FileUtils::commonPath(existingFiles);
+    const int commonPrefixLen = commonExistingPath.toUserOutput().size() + 1;
     QString fileNamesMsgPart;
-    for (const QString &fileName : qAsConst(existingFiles)) {
-        const QFileInfo fi(fileName);
-        if (fi.exists()) {
+    for (const FilePath &filePath : std::as_const(existingFiles)) {
+        if (filePath.exists()) {
             if (!fileNamesMsgPart.isEmpty())
                 fileNamesMsgPart += QLatin1String(", ");
-            fileNamesMsgPart += QDir::toNativeSeparators(fileName.mid(commonExistingPath.size() + 1));
+            fileNamesMsgPart += filePath.toUserOutput().mid(commonPrefixLen);
             do {
-                if (fi.isDir()) {
+                if (filePath.isDir()) {
                     oddStuffFound = true;
                     fileNamesMsgPart += QLatin1Char(' ') + directoryMsg;
                     break;
                 }
-                if (fi.isSymLink()) {
+                if (filePath.isSymLink()) {
                     oddStuffFound = true;
                     fileNamesMsgPart += QLatin1Char(' ') + symLinkMsg;
                     break;
-            }
-                if (!fi.isWritable()) {
+                }
+                if (!filePath.isWritableDir() && !filePath.isWritableFile()) {
                     oddStuffFound = true;
                     fileNamesMsgPart += QLatin1Char(' ') + readOnlyMsg;
                 }
@@ -256,25 +238,25 @@ BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(Ge
     }
 
     if (oddStuffFound) {
-        *errorMessage = tr("The project directory %1 contains files which cannot be overwritten:\n%2.")
-                .arg(QDir::toNativeSeparators(commonExistingPath), fileNamesMsgPart);
+        *errorMessage = Tr::tr("The project directory %1 contains files which cannot be overwritten:\n%2.")
+                            .arg(commonExistingPath.toUserOutput(), fileNamesMsgPart);
         return OverwriteError;
     }
     // Prompt to overwrite existing files.
     PromptOverwriteDialog overwriteDialog;
     // Scripts cannot handle overwrite
     overwriteDialog.setFiles(existingFiles);
-    for (const GeneratedFile &file : qAsConst(*files))
+    for (const GeneratedFile &file : std::as_const(*files))
         if (file.attributes() & GeneratedFile::CustomGeneratorAttribute)
-            overwriteDialog.setFileEnabled(file.path(), false);
+            overwriteDialog.setFileEnabled(file.filePath(), false);
     if (overwriteDialog.exec() != QDialog::Accepted)
         return OverwriteCanceled;
-    const QStringList existingFilesToKeep = overwriteDialog.uncheckedFiles();
+    const FilePaths existingFilesToKeep = overwriteDialog.uncheckedFiles();
     if (existingFilesToKeep.size() == files->size()) // All exist & all unchecked->Cancel.
         return OverwriteCanceled;
     // Set 'keep' attribute in files
-    for (const QString &keepFile : qAsConst(existingFilesToKeep)) {
-        const int i = indexOfFile(*files, keepFile);
+    for (const FilePath &keepFile : existingFilesToKeep) {
+        const int i = indexOfFile(*files, keepFile.cleanPath());
         QTC_ASSERT(i != -1, return OverwriteCanceled);
         GeneratedFile &file = (*files)[i];
         file.setAttributes(file.attributes() | GeneratedFile::KeepExistingFileAttribute);

@@ -1,47 +1,27 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "searchresultcolor.h"
-#include "searchresultitem.h"
+#include "../ioutputpane.h"
 
-#include <coreplugin/ioutputpane.h>
+#include <utils/searchresultitem.h>
 
 #include <QVariant>
 #include <QStringList>
 #include <QIcon>
+
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 class QFont;
 QT_END_NAMESPACE
 
 namespace Core {
+
 namespace Internal {
-    class SearchResultWindowPrivate;
-    class SearchResultWidget;
+class SearchResultWindowPrivate;
+class SearchResultWidget;
 }
 class SearchResultWindow;
 
@@ -51,7 +31,7 @@ class CORE_EXPORT SearchResultFilter : public QObject
 
 public:
     virtual QWidget *createWidget() = 0;
-    virtual bool matches(const SearchResultItem &item) const = 0;
+    virtual bool matches(const Utils::SearchResultItem &item) const = 0;
 
 signals:
     void filterChanged();
@@ -63,7 +43,8 @@ class CORE_EXPORT SearchResult : public QObject
 
 public:
     enum AddMode {
-        AddSorted,
+        AddSortedByContent,
+        AddSortedByPosition,
         AddOrdered
     };
 
@@ -75,12 +56,15 @@ public:
     void setSearchAgainSupported(bool supported);
     QWidget *additionalReplaceWidget() const;
     void setAdditionalReplaceWidget(QWidget *widget);
+    void makeNonInteractive(const std::function<void()> &callback);
+    bool isInteractive() const { return !m_finishedHandler; }
+    Utils::SearchResultItems allItems() const;
 
 public slots:
-    void addResult(const SearchResultItem &item);
-    void addResults(const QList<SearchResultItem> &items, AddMode mode);
+    void addResult(const Utils::SearchResultItem &item);
+    void addResults(const Utils::SearchResultItems &items, AddMode mode);
     void setFilter(SearchResultFilter *filter); // Takes ownership
-    void finishSearch(bool canceled);
+    void finishSearch(bool canceled, const QString &reason = {});
     void setTextToReplace(const QString &textToReplace);
     void restart();
     void setReplaceEnabled(bool enabled);
@@ -88,15 +72,15 @@ public slots:
     void popup();
 
 signals:
-    void activated(const Core::SearchResultItem &item);
-    void replaceButtonClicked(const QString &replaceText, const QList<Core::SearchResultItem> &checkedItems, bool preserveCase);
+    void activated(const Utils::SearchResultItem &item);
+    void replaceButtonClicked(const QString &replaceText,
+                              const Utils::SearchResultItems &checkedItems, bool preserveCase);
     void replaceTextChanged(const QString &replaceText);
-    void cancelled();
+    void canceled();
     void paused(bool paused);
     void visibilityChanged(bool visible);
     void countChanged(int count);
     void searchAgainRequested();
-    void requestEnabledCheck();
 
 private:
     SearchResult(Internal::SearchResultWidget *widget);
@@ -105,6 +89,7 @@ private:
 private:
     Internal::SearchResultWidget *m_widget;
     QVariant m_userData;
+    std::function<void()> m_finishedHandler;
 };
 
 class CORE_EXPORT SearchResultWindow : public IOutputPane
@@ -122,7 +107,6 @@ public:
         PreserveCaseDisabled
     };
 
-
     SearchResultWindow(QWidget *newSearchPanel);
     ~SearchResultWindow() override;
     static SearchResultWindow *instance();
@@ -130,8 +114,6 @@ public:
     QWidget *outputWidget(QWidget *) override;
     QList<QWidget*> toolBarWidgets() const override;
 
-    QString displayName() const override { return tr("Search Results"); }
-    int priorityInStatusBar() const override;
     void visibilityChanged(bool visible) override;
     bool hasFocus() const override;
     bool canFocus() const override;
@@ -143,7 +125,7 @@ public:
     void goToPrev() override;
     bool canNavigate() const override;
 
-    void setTextEditorFont(const QFont &font, const SearchResultColors &colors);
+    void setTextEditorFont(const QFont &font, const Utils::SearchResultColors &colors);
     void setTabWidth(int width);
     void openNewSearchPanel();
 

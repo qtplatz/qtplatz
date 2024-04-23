@@ -1,0 +1,4 @@
+Product {
+    cpp.defines: ["SUPERCRAZY"]
+}
+

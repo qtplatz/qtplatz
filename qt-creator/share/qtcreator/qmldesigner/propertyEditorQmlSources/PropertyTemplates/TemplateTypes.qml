@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 AutoTypes {
     imports: [ "import HelperWidgets 2.0",
@@ -31,72 +9,93 @@ AutoTypes {
 
     Type {
        typeNames: ["int"]
+       module: "QML"
        sourceFile: "IntEditorTemplate.template"
     }
     Type {
         typeNames: ["real", "double", "qreal"]
+        module: "QML"
         sourceFile: "RealEditorTemplate.template"
     }
     Type {
         typeNames: ["string", "QString"]
+        module: "QML"
         sourceFile: "StringEditorTemplate.template"
     }
     Type {
-        typeNames: ["QUrl", "url"]
+        typeNames: ["url", "QUrl"]
+        module: "QML"
         sourceFile: "UrlEditorTemplate.template"
     }
     Type {
         typeNames: ["bool", "boolean"]
+        module: "QML"
         sourceFile: "BooleanEditorTemplate.template"
     }
 
     Type {
         typeNames: ["color", "QColor"]
+        module: "QtQuick"
         sourceFile: "ColorEditorTemplate.template"
     }
 
     Type {
         typeNames: ["Text"]
+        module: "QtQuick"
         sourceFile: "TextEditorTemplate.template"
         separateSection: true
     }
 
     Type {
         typeNames: ["font", "QFont"]
+        module: "QtQuick"
         sourceFile: "FontEditorTemplate.template"
         separateSection: true
     }
 
     Type {
         typeNames: ["Rectangle"]
+        module: "QtQuick"
         sourceFile: "RectangleEditorTemplate.template"
         separateSection: true
     }
 
     Type {
         typeNames: ["Image"]
+        module: "QtQuick"
         sourceFile: "ImageEditorTemplate.template"
         separateSection: true
     }
 
     Type {
-        typeNames: ["TextureInput", "Texture"]
+        typeNames: ["TextureInput"]
+        module: "QtQuick3D"
+        sourceFile: "3DItemFilterComboBoxEditorTemplate.template"
+        needsTypeArg: true
+    }
+
+    Type {
+        typeNames: ["Texture"]
+        module: "QtQuick3D"
         sourceFile: "3DItemFilterComboBoxEditorTemplate.template"
         needsTypeArg: true
     }
 
     Type {
         typeNames: ["vector2d"]
+        module: "QtQuick3D"
         sourceFile: "Vector2dEditorTemplate.template"
     }
 
     Type {
         typeNames: ["vector3d"]
+        module: "QtQuick3D"
         sourceFile: "Vector3dEditorTemplate.template"
     }
 
     Type {
         typeNames: ["vector4d"]
+        module: "QtQuick3D"
         sourceFile: "Vector4dEditorTemplate.template"
     }
 }

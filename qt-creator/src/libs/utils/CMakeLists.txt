@@ -1,18 +1,21 @@
 add_qtc_library(Utils
-  DEPENDS Qt5::Qml Qt5::Xml
+  DEPENDS Tasking Qt::Qml Qt::Xml Spinner
   PUBLIC_DEPENDS
-    Qt5::Concurrent Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets
-    Qt6Core5Compat
+    Qt::Concurrent Qt::Core Qt::Network Qt::Gui Qt::Widgets
+    Qt::Core5Compat
+    $<$<BOOL:${QTC_STATIC_BUILD}>:Tasking>
+    $<$<BOOL:${QTC_STATIC_BUILD}>:Spinner>
   SOURCES
-    ../3rdparty/optional/optional.hpp
-    ../3rdparty/variant/variant.hpp
     ../3rdparty/span/span.hpp
-    QtConcurrentTools
+    ../3rdparty/tl_expected/include/tl/expected.hpp
+    action.cpp action.h
     algorithm.h
     ansiescapecodehandler.cpp ansiescapecodehandler.h
+    appinfo.cpp appinfo.h
     appmainwindow.cpp appmainwindow.h
-    archive.cpp archive.h
+    array.h
     aspects.cpp aspects.h
+    async.cpp async.h
     basetreeview.cpp basetreeview.h
     benchmarker.cpp benchmarker.h
     buildablehelperlibrary.cpp buildablehelperlibrary.h
@@ -21,6 +24,7 @@ add_qtc_library(Utils
     changeset.cpp changeset.h
     checkablemessagebox.cpp checkablemessagebox.h
     classnamevalidatinglineedit.cpp classnamevalidatinglineedit.h
+    clangutils.cpp clangutils.h
     codegeneration.cpp codegeneration.h
     commandline.cpp commandline.h
     completinglineedit.cpp completinglineedit.h
@@ -30,6 +34,7 @@ add_qtc_library(Utils
     delegates.cpp delegates.h
     detailsbutton.cpp detailsbutton.h
     detailswidget.cpp detailswidget.h
+    devicefileaccess.cpp devicefileaccess.h
     deviceshell.cpp deviceshell.h
     differ.cpp differ.h
     displayname.cpp displayname.h
@@ -38,10 +43,11 @@ add_qtc_library(Utils
     elidinglabel.cpp elidinglabel.h
     environment.cpp environment.h
     environmentdialog.cpp environmentdialog.h
-    environmentfwd.h
     environmentmodel.cpp environmentmodel.h
+    environmentfwd.h
     execmenu.cpp execmenu.h
-    executeondestruction.h
+    expected.h
+    externalterminalprocessimpl.cpp externalterminalprocessimpl.h
     fadingindicator.cpp fadingindicator.h
     faketooltip.cpp faketooltip.h
     fancylineedit.cpp fancylineedit.h
@@ -50,42 +56,46 @@ add_qtc_library(Utils
     fileinprojectfinder.cpp fileinprojectfinder.h
     filenamevalidatinglineedit.cpp filenamevalidatinglineedit.h
     filepath.cpp filepath.h
+    filepathinfo.h
     filesearch.cpp filesearch.h
+    filestreamer.cpp filestreamer.h
+    filestreamermanager.cpp filestreamermanager.h
     filesystemmodel.cpp filesystemmodel.h
     filesystemwatcher.cpp filesystemwatcher.h
     fileutils.cpp fileutils.h
     filewizardpage.cpp filewizardpage.h
-    fixedsizeclicklabel.cpp fixedsizeclicklabel.h
     flowlayout.cpp flowlayout.h
-    functiontraits.h
+    fsengine/fsengine.cpp fsengine/fsengine.h
+    fsengine/fileiconprovider.cpp fsengine/fileiconprovider.h
     futuresynchronizer.cpp futuresynchronizer.h
     fuzzymatcher.cpp fuzzymatcher.h
     genericconstants.h
     globalfilechangeblocker.cpp globalfilechangeblocker.h
     guard.cpp guard.h
+    guiutils.cpp guiutils.h
     headerviewstretcher.cpp headerviewstretcher.h
     highlightingitemdelegate.cpp highlightingitemdelegate.h
     historycompleter.cpp historycompleter.h
     hostosinfo.cpp hostosinfo.h
     htmldocextractor.cpp htmldocextractor.h
     icon.cpp icon.h
+    iconbutton.cpp iconbutton.h
     id.cpp id.h
     indexedcontainerproxyconstiterator.h
     infobar.cpp infobar.h
     infolabel.cpp infolabel.h
     itemviews.cpp itemviews.h
-    json.cpp json.h
     jsontreeitem.cpp jsontreeitem.h
     launcherinterface.cpp launcherinterface.h
     launcherpackets.cpp launcherpackets.h
     launchersocket.cpp launchersocket.h
     layoutbuilder.cpp layoutbuilder.h
-    linecolumn.cpp linecolumn.h
     link.cpp link.h
     listmodel.h
     listutils.h
     macroexpander.cpp macroexpander.h
-    mapreduce.h
+    mathutils.cpp mathutils.h
+    mimeconstants.h
     mimeutils.h
     minimizableinfobars.cpp
     minimizableinfobars.h
@@ -93,56 +103,49 @@ add_qtc_library(Utils
     namevaluedictionary.cpp namevaluedictionary.h
     namevaluedictionary.cpp namevaluedictionary.h
     namevalueitem.cpp namevalueitem.h
-    namevalueitem.cpp namevalueitem.h
-    namevaluemodel.cpp namevaluemodel.h
-    namevaluemodel.cpp namevaluemodel.h
     namevaluesdialog.cpp namevaluesdialog.h
-    namevaluesdialog.cpp namevaluesdialog.h
-    namevaluevalidator.cpp namevaluevalidator.h
     namevaluevalidator.cpp namevaluevalidator.h
     navigationtreeview.cpp navigationtreeview.h
     networkaccessmanager.cpp networkaccessmanager.h
-    optional.h
+    optionpushbutton.h
+    optionpushbutton.cpp
     osspecificaspects.h
     outputformat.h
     outputformatter.cpp outputformatter.h
     overlaywidget.cpp overlaywidget.h
     overridecursor.cpp overridecursor.h
-    parameteraction.cpp parameteraction.h
+    passworddialog.cpp passworddialog.h
     pathchooser.cpp pathchooser.h
     pathlisteditor.cpp pathlisteditor.h
     persistentsettings.cpp persistentsettings.h
     pointeralgorithm.h
     port.cpp port.h
-    porting.h
     portlist.cpp portlist.h
     predicates.h
+    process.cpp process.h
     processenums.h
     processhandle.cpp processhandle.h
+    processhelper.cpp processhelper.h
     processinfo.cpp processinfo.h
     processinterface.cpp processinterface.h
     processreaper.cpp processreaper.h
-    processutils.cpp processutils.h
     progressindicator.cpp progressindicator.h
-    projectintropage.cpp projectintropage.h projectintropage.ui
+    projectintropage.cpp projectintropage.h
     proxyaction.cpp proxyaction.h
-    proxycredentialsdialog.cpp proxycredentialsdialog.h proxycredentialsdialog.ui
     qrcparser.cpp qrcparser.h
     qtcassert.cpp qtcassert.h
     qtcolorbutton.cpp qtcolorbutton.h
-    qtcprocess.cpp qtcprocess.h
     qtcsettings.cpp qtcsettings.h
+    ranges.h
     reloadpromptutils.cpp reloadpromptutils.h
-    removefiledialog.cpp removefiledialog.h removefiledialog.ui
-    runextensions.cpp runextensions.h
+    removefiledialog.cpp removefiledialog.h
     savefile.cpp savefile.h
     scopedswap.h
+    scopedtimer.cpp scopedtimer.h
+    searchresultitem.cpp searchresultitem.h
     set_algorithm.h
     settingsaccessor.cpp settingsaccessor.h
     settingsselector.cpp settingsselector.h
-    settingsutils.h
-    shellcommand.cpp shellcommand.h
-    shellcommandpage.cpp shellcommandpage.h
     singleton.cpp singleton.h
     sizedarray.h
     smallstring.h
@@ -154,16 +157,23 @@ add_qtc_library(Utils
     smallstringmemory.h
     smallstringvector.h
     smallstringview.h
+    sortfiltermodel.h
     span.h
     statuslabel.cpp statuslabel.h
+    store.cpp store.h
+    storekey.h
+    stringtable.cpp stringtable.h
     stringutils.cpp stringutils.h
+    styleanimator.cpp styleanimator.h
     styledbar.cpp styledbar.h
     stylehelper.cpp stylehelper.h
+    synchronizedvalue.h
     templateengine.cpp templateengine.h
     temporarydirectory.cpp temporarydirectory.h
     temporaryfile.cpp temporaryfile.h
     terminalcommand.cpp terminalcommand.h
-    terminalprocess.cpp terminalprocess_p.h
+    terminalhooks.cpp terminalhooks.h
+    terminalinterface.cpp terminalinterface.h
     textfieldcheckbox.cpp textfieldcheckbox.h
     textfieldcombobox.cpp textfieldcombobox.h
     textfileformat.cpp textfileformat.h
@@ -174,32 +184,28 @@ add_qtc_library(Utils
     tooltip/tips.cpp tooltip/tips.h
     tooltip/tooltip.cpp tooltip/tooltip.h
     touchbar/touchbar.h
+    transientscroll.cpp transientscroll.h
     treemodel.cpp treemodel.h
     treeviewcombobox.cpp treeviewcombobox.h
+    unarchiver.cpp unarchiver.h
     uncommentselection.cpp uncommentselection.h
+    uniqueobjectptr.h
     unixutils.cpp unixutils.h
     url.cpp url.h
     utils.qrc
     utils_global.h
+    utilstr.h
     utilsicons.cpp utilsicons.h
+    utiltypes.h
     variablechooser.cpp variablechooser.h
-    variant.h
     winutils.cpp winutils.h
     wizard.cpp wizard.h
     wizardpage.cpp wizardpage.h
 )
 
-option(QTC_USE_NEW_MIMEDATABASE "Use updated MIME database implementation" YES)
-
-if(QTC_USE_NEW_MIMEDATABASE)
-  set(mime_prefix "mimetypes2")
-else()
-  set(mime_prefix "mimetypes")
-endif()
-
 extend_qtc_library(Utils
-  SOURCES_PREFIX ${mime_prefix}
-  PUBLIC_INCLUDES ${mime_prefix}
+  SOURCES_PREFIX mimetypes2
+  PUBLIC_INCLUDES mimetypes2
   SOURCES
     mimedatabase.cpp
     mimedatabase.h
@@ -218,6 +224,14 @@ extend_qtc_library(Utils
     mimetypeparser.cpp
     mimetypeparser_p.h
     mimeutils.cpp
+)
+
+if (MSVC)
+    find_library(DbgHelpLib dbghelp)
+endif()
+
+extend_qtc_library(Utils CONDITION MSVC
+  DEPENDS ${DbgHelpLib}
 )
 
 extend_qtc_library(Utils CONDITION WIN32
@@ -247,19 +261,31 @@ extend_qtc_library(Utils CONDITION UNIX AND NOT APPLE
     touchbar/touchbar.cpp
 )
 
-if (WIN32)
-  add_qtc_executable(qtcreator_process_stub
-    SOURCES process_stub_win.c
-    DEPENDS shell32
-    DEFINES _UNICODE UNICODE _CRT_SECURE_NO_WARNINGS
-  )
+extend_qtc_library(Utils
+  CONDITION TARGET Qt::CorePrivate
+  DEPENDS Qt::CorePrivate ptyqt
+  DEFINES QTC_UTILS_WITH_FSENGINE
+  SOURCES fsengine/fsengine_impl.cpp
+          fsengine/fsengine_impl.h
+          fsengine/diriterator.h
+          fsengine/fileiteratordevicesappender.h
+          fsengine/rootinjectfsengine.h
+          fsengine/fixedlistfsengine.h
+          fsengine/fsenginehandler.cpp
+          fsengine/fsenginehandler.h
+          fsengine/filepathinfocache.h
+)
 
+extend_qtc_library(Utils
+  CONDITION TARGET Nanotrace
+  DEPENDS Nanotrace
+)
+
+if (WIN32)
   add_qtc_executable(qtcreator_ctrlc_stub
     DEPENDS user32 shell32
     DEFINES _UNICODE UNICODE _CRT_SECURE_NO_WARNINGS
     SOURCES
       process_ctrlc_stub.cpp
   )
-else()
-  add_qtc_executable(qtcreator_process_stub SOURCES process_stub_unix.c)
 endif()

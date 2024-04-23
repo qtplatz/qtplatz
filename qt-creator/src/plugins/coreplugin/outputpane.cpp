@@ -1,38 +1,19 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-#include "imode.h"
 #include "modemanager.h"
 #include "outputpane.h"
 #include "outputpanemanager.h"
+
+#include <utils/algorithm.h>
 
 #include <QResizeEvent>
 #include <QSplitter>
 #include <QVBoxLayout>
 
 using namespace Utils;
+
+Q_GLOBAL_STATIC(QList<Core::OutputPanePlaceHolder *>, sPlaceholders)
 
 namespace Core {
 
@@ -58,6 +39,7 @@ OutputPanePlaceHolder *OutputPanePlaceHolderPrivate::m_current = nullptr;
 OutputPanePlaceHolder::OutputPanePlaceHolder(Id mode, QSplitter *parent)
    : QWidget(parent), d(new OutputPanePlaceHolderPrivate(mode, parent))
 {
+    sPlaceholders->append(this);
     setVisible(false);
     setLayout(new QVBoxLayout);
     QSizePolicy sp;
@@ -126,7 +108,7 @@ void OutputPanePlaceHolder::setMaximized(bool maximize)
     if (maximize) {
         d->m_nonMaximizedSize = sizes[idx];
         int sum = 0;
-        for (const int s : qAsConst(sizes))
+        for (const int s : std::as_const(sizes))
             sum += s;
         for (int i = 0; i < sizes.count(); ++i) {
             sizes[i] = 32;
@@ -192,6 +174,11 @@ int OutputPanePlaceHolder::nonMaximizedSize() const
     return d->m_nonMaximizedSize;
 }
 
+Id OutputPanePlaceHolder::mode() const
+{
+    return d->m_mode;
+}
+
 void OutputPanePlaceHolder::resizeEvent(QResizeEvent *event)
 {
     if (d->m_isMaximized || event->size().height() == 0)
@@ -205,6 +192,10 @@ void OutputPanePlaceHolder::showEvent(QShowEvent *)
         d->m_initialized = true;
         setHeight(Internal::OutputPaneManager::outputPaneHeightSetting());
     }
+    if (OutputPanePlaceHolderPrivate::m_current == this) {
+        Internal::OutputPaneManager *om = Internal::OutputPaneManager::instance();
+        om->updateStatusButtons(true);
+    }
 }
 
 OutputPanePlaceHolder *OutputPanePlaceHolder::getCurrent()
@@ -215,6 +206,11 @@ OutputPanePlaceHolder *OutputPanePlaceHolder::getCurrent()
 bool OutputPanePlaceHolder::isCurrentVisible()
 {
     return OutputPanePlaceHolderPrivate::m_current && OutputPanePlaceHolderPrivate::m_current->isVisible();
+}
+
+bool OutputPanePlaceHolder::modeHasOutputPanePlaceholder(Utils::Id mode)
+{
+    return Utils::anyOf(*sPlaceholders, Utils::equal(&OutputPanePlaceHolder::mode, mode));
 }
 
 } // namespace Core

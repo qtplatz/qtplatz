@@ -1,41 +1,24 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "versiondialog.h"
-#include "coreicons.h"
 
-#include <app/app_version.h>
-#include <coreplugin/coreicons.h>
-#include <coreplugin/icore.h>
+#include "coreicons.h"
+#include "coreplugintr.h"
+#include "coreicons.h"
+#include "icore.h"
+
 #include <utils/algorithm.h>
+#include <utils/appinfo.h>
 #include <utils/hostosinfo.h>
+#include <utils/layoutbuilder.h>
 #include <utils/qtcassert.h>
+#include <utils/stringutils.h>
 #include <utils/utilsicons.h>
 
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QGuiApplication>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QPushButton>
@@ -51,68 +34,37 @@ VersionDialog::VersionDialog(QWidget *parent)
     if (Utils::HostOsInfo::isLinuxHost())
         setWindowIcon(Icons::QTCREATORLOGO_BIG.icon());
 
-    setWindowTitle(tr("About %1").arg(Core::Constants::IDE_DISPLAY_NAME));
-    auto layout = new QGridLayout(this);
-    layout->setSizeConstraint(QLayout::SetFixedSize);
+    setWindowTitle(Tr::tr("About %1").arg(QGuiApplication::applicationDisplayName()));
 
-    QString ideRev;
-#ifdef IDE_REVISION
-    const QString revUrl = QString::fromLatin1(Constants::IDE_REVISION_URL);
-    const QString rev = QString::fromLatin1(Constants::IDE_REVISION_STR);
-    ideRev = tr("<br/>From revision %1<br/>")
-            .arg(revUrl.isEmpty() ? rev
-                                  : QString::fromLatin1("<a href=\"%1\">%2</a>").arg(revUrl, rev));
-#endif
-     QString buildDateInfo;
-#ifdef QTC_SHOW_BUILD_DATE
-     buildDateInfo = tr("<br/>Built on %1 %2<br/>").arg(QLatin1String(__DATE__), QLatin1String(__TIME__));
-#endif
+    auto logoLabel = new QLabel;
+    logoLabel->setPixmap(Icons::QTCREATORLOGO_BIG.pixmap());
 
-    const QString br = QLatin1String("<br/>");
-    const QStringList additionalInfoLines = ICore::additionalAboutInformation();
-    const QString additionalInfo =
-            QStringList(Utils::transform(additionalInfoLines, &QString::toHtmlEscaped)).join(br);
-
-    const QString description
-        = tr("<h3>%1</h3>"
-             "%2<br/>"
-             "%3"
-             "%4"
-             "%5"
-             "<br/>"
-             "Copyright 2008-%6 %7. All rights reserved.<br/>"
-             "<br/>"
-             "The program is provided AS IS with NO WARRANTY OF ANY KIND, "
-             "INCLUDING THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A "
-             "PARTICULAR PURPOSE.<br/>")
-              .arg(ICore::versionString(),
-                   ICore::buildCompatibilityString(),
-                   buildDateInfo,
-                   ideRev,
-                   additionalInfo.isEmpty() ? QString() : br + additionalInfo + br,
-                   QLatin1String(Constants::IDE_YEAR),
-                   QLatin1String(Constants::IDE_AUTHOR))
-          + "<br/>"
-          + tr("The Qt logo as well as Qt®, Qt Quick®, Built with Qt®, Boot to Qt®, "
-               "Qt Quick Compiler®, Qt Enterprise®, Qt Mobile® and Qt Embedded® are "
-               "registered trademarks of The Qt Company Ltd.");
-
-    QLabel *copyRightLabel = new QLabel(description);
+    auto copyRightLabel = new QLabel(ICore::aboutInformationHtml());
     copyRightLabel->setWordWrap(true);
     copyRightLabel->setOpenExternalLinks(true);
     copyRightLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    QPushButton *closeButton = buttonBox->button(QDialogButtonBox::Close);
-    QTC_CHECK(closeButton);
-    buttonBox->addButton(closeButton, QDialogButtonBox::ButtonRole(QDialogButtonBox::RejectRole | QDialogButtonBox::AcceptRole));
-    connect(buttonBox , &QDialogButtonBox::rejected, this, &QDialog::reject);
+    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
+    QPushButton *copyButton = buttonBox->addButton(Tr::tr("Copy and Close"),
+                                                   QDialogButtonBox::ApplyRole);
 
-    QLabel *logoLabel = new QLabel;
-    logoLabel->setPixmap(Icons::QTCREATORLOGO_BIG.pixmap());
-    layout->addWidget(logoLabel , 0, 0, 1, 1);
-    layout->addWidget(copyRightLabel, 0, 1, 4, 4);
-    layout->addWidget(buttonBox, 4, 0, 1, 5);
+    using namespace Layouting;
+    Column {
+        Row {
+            Column { logoLabel, st },
+            Column { copyRightLabel },
+        },
+        buttonBox,
+    }.attachTo(this);
+
+    layout()->setSizeConstraint(QLayout::SetFixedSize);
+
+    connect(copyButton, &QPushButton::pressed, this, [this] {
+        Utils::setClipboardAndSelection(ICore::aboutInformationCompact());
+        accept();
+    });
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 bool VersionDialog::event(QEvent *event)

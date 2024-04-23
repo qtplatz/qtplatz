@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -69,6 +47,7 @@ Section {
     SectionLayout {
         PropertyLabel {
             text: qsTr("Position")
+            tooltip: qsTr("Sets the position of the component relative to its parent.")
             enabled: xSpinBox.enabled || ySpinBox.enabled
         }
 
@@ -88,7 +67,7 @@ Section {
 
             ControlLabel {
                 text: "X"
-                tooltip: xSpinBox.enabled ? "X" : root.disabledTooltip
+                tooltip: xSpinBox.enabled ? qsTr("X-coordinate") : root.disabledTooltip
                 enabled: xSpinBox.enabled
             }
 
@@ -109,7 +88,7 @@ Section {
 
             ControlLabel {
                 text: "Y"
-                tooltip: xSpinBox.enabled ? "Y" : root.disabledTooltip
+                tooltip: xSpinBox.enabled ? qsTr("Y-coordinate") : root.disabledTooltip
                 enabled: ySpinBox.enabled
             }
 /*
@@ -123,6 +102,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Size")
+            tooltip: qsTr("Sets the width and height of the component.")
             enabled: widthSpinBox.enabled || heightSpinBox.enabled
         }
 
@@ -179,11 +159,13 @@ Section {
 
         PropertyLabel {
             text: qsTr("Rotation")
+            tooltip: qsTr("Rotate the component at an angle.")
             blockedByTemplate: !backendValues.rotation.isAvailable
         }
 
         SecondColumnLayout {
             SpinBox {
+                id: rotationSpinBox
                 implicitWidth: StudioTheme.Values.twoControlColumnWidth
                                + StudioTheme.Values.actionIndicatorWidth
                 backendValue: backendValues.rotation
@@ -197,6 +179,7 @@ Section {
 
             ControlLabel {
                 text: "°"
+                tooltip: rotationSpinBox.enabled ? qsTr("Angle (in degree)") : root.disabledTooltip
                 enabled: backendValues.rotation.isAvailable
             }
 /*
@@ -232,11 +215,13 @@ Section {
 
         PropertyLabel {
             text: qsTr("Scale")
+            tooltip: qsTr("Sets the scale of the component by percentage.")
             blockedByTemplate: !backendValues.scale.isAvailable
         }
 
         SecondColumnLayout {
             SpinBox {
+                id: scaleSpinBox
                 implicitWidth: StudioTheme.Values.singleControlColumnWidth
                                + StudioTheme.Values.actionIndicatorWidth
                 sliderIndicatorVisible: true
@@ -252,13 +237,17 @@ Section {
 
             ControlLabel {
                 text: "%"
+                tooltip: scaleSpinBox.enabled ? qsTr("Percentage") : root.disabledTooltip
                 enabled: backendValues.scale.isAvailable
             }
 
             ExpandingSpacer {}
         }
 
-        PropertyLabel { text: qsTr("Z stack") }
+        PropertyLabel {
+            text: qsTr("Z stack")
+            tooltip: qsTr("Sets the stacking order of the component.")
+        }
 
         SecondColumnLayout {
             SpinBox {
@@ -274,6 +263,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Origin")
+            tooltip: qsTr("Sets the modification point of the component.")
             blockedByTemplate: !backendValues.transformOrigin.isAvailable
         }
 

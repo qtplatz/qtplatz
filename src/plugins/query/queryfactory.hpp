@@ -26,6 +26,8 @@
 #ifndef QUERYFACTORY_H
 #define QUERYFACTORY_H
 
+#include <coreplugin/editormanager/editormanager.h>
+#include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/editormanager/ieditorfactory.h>
 #include <QStringList>
 
@@ -36,10 +38,12 @@ namespace Core {
 namespace query {
 
     class QueryFactory : public Core::IEditorFactory {
+#if QTC_VERSION <= 0x08'00'02
         Q_OBJECT
+#endif
     public:
-        ~QueryFactory();
         explicit QueryFactory();
+        ~QueryFactory() override;
     };
 
 }

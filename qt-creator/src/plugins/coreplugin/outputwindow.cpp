@@ -1,38 +1,18 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "outputwindow.h"
 
 #include "actionmanager/actionmanager.h"
 #include "coreconstants.h"
 #include "coreplugin.h"
+#include "coreplugintr.h"
 #include "editormanager/editormanager.h"
 #include "find/basetextfind.h"
 #include "icore.h"
 
 #include <aggregation/aggregate.h>
+
 #include <utils/outputformatter.h>
 #include <utils/qtcassert.h>
 
@@ -57,6 +37,7 @@
 const int chunkSize = 10000;
 
 using namespace Utils;
+using namespace std::chrono_literals;
 
 namespace Core {
 
@@ -70,7 +51,7 @@ public:
     {
     }
 
-    QString settingsKey;
+    Key settingsKey;
     OutputFormatter formatter;
     QList<QPair<QString, OutputFormat>> queuedOutput;
     QTimer queueTimer;
@@ -97,7 +78,7 @@ public:
 
 /*******************/
 
-OutputWindow::OutputWindow(Context context, const QString &settingsKey, QWidget *parent)
+OutputWindow::OutputWindow(Context context, const Key &settingsKey, QWidget *parent)
     : QPlainTextEdit(parent)
     , d(new Internal::OutputWindowPrivate(document()))
 {
@@ -109,7 +90,7 @@ OutputWindow::OutputWindow(Context context, const QString &settingsKey, QWidget 
     d->formatter.setPlainTextEdit(this);
 
     d->queueTimer.setSingleShot(true);
-    d->queueTimer.setInterval(10);
+    d->queueTimer.setInterval(10ms);
     connect(&d->queueTimer, &QTimer::timeout, this, &OutputWindow::handleNextOutputChunk);
 
     d->settingsKey = settingsKey;
@@ -169,7 +150,7 @@ OutputWindow::OutputWindow(Context context, const QString &settingsKey, QWidget 
     cutAction->setEnabled(false);
     copyAction->setEnabled(false);
 
-    d->scrollTimer.setInterval(10);
+    d->scrollTimer.setInterval(10ms);
     d->scrollTimer.setSingleShot(true);
     connect(&d->scrollTimer, &QTimer::timeout,
             this, &OutputWindow::scrollToBottom);
@@ -433,7 +414,7 @@ void OutputWindow::handleOutputChunk(const QString &output, OutputFormat format)
         const int elided = out.size() - d->maxCharCount;
         out = out.left(d->maxCharCount / 2)
                 + "[[[... "
-                + tr("Elided %n characters due to Application Output settings", nullptr, elided)
+                + Tr::tr("Elided %n characters due to Application Output settings", nullptr, elided)
                 + " ...]]]"
                 + out.right(d->maxCharCount / 2);
         setMaximumBlockCount(out.count('\n') + 1);
@@ -487,7 +468,7 @@ int OutputWindow::maxCharCount() const
 void OutputWindow::appendMessage(const QString &output, OutputFormat format)
 {
     if (d->queuedOutput.isEmpty() || d->queuedOutput.last().second != format)
-        d->queuedOutput << qMakePair(output, format);
+        d->queuedOutput.push_back({output, format});
     else
         d->queuedOutput.last().first.append(output);
     if (!d->queueTimer.isActive())
@@ -504,7 +485,7 @@ void OutputWindow::registerPositionOf(unsigned taskId, int linkedOutputLines, in
     const int firstLine = blocknumber - linkedOutputLines - skipLines;
     const int lastLine = firstLine + linkedOutputLines - 1;
 
-    d->taskPositions.insert(taskId, qMakePair(firstLine, lastLine));
+    d->taskPositions.insert(taskId, {firstLine, lastLine});
 }
 
 bool OutputWindow::knowsPositionOf(unsigned taskId) const
@@ -573,7 +554,7 @@ void OutputWindow::flush()
         return;
     }
     d->queueTimer.stop();
-    for (const auto &chunk : qAsConst(d->queuedOutput))
+    for (const auto &chunk : std::as_const(d->queuedOutput))
         handleOutputChunk(chunk.first, chunk.second);
     d->queuedOutput.clear();
     d->formatter.flush();
@@ -587,7 +568,7 @@ void OutputWindow::reset()
     d->scrollToBottom = true;
     if (!d->queuedOutput.isEmpty()) {
         d->queuedOutput.clear();
-        d->formatter.appendMessage(tr("[Discarding excessive amount of pending output.]\n"),
+        d->formatter.appendMessage(Tr::tr("[Discarding excessive amount of pending output.]\n"),
                                    ErrorMessageFormat);
     }
     d->flushRequested = false;

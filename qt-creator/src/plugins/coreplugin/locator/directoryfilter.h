@@ -1,85 +1,46 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "basefilefilter.h"
-
-#include <coreplugin/core_global.h>
-
-#include <QString>
-#include <QByteArray>
-#include <QFutureInterface>
-#include <QMutex>
+#include "../core_global.h"
+#include "ilocatorfilter.h"
 
 namespace Core {
-namespace Internal {
-namespace Ui {
-class DirectoryFilterOptions;
-} // namespace Ui
-} // namespace Internal
 
-class CORE_EXPORT DirectoryFilter : public BaseFileFilter
+class CORE_EXPORT DirectoryFilter : public ILocatorFilter
 {
-    Q_OBJECT
-
 public:
     DirectoryFilter(Utils::Id id);
     void restoreState(const QByteArray &state) override;
     bool openConfigDialog(QWidget *parent, bool &needsRefresh) override;
-    void refresh(QFutureInterface<void> &future) override;
 
+protected:
     void setIsCustomFilter(bool value);
-    void setDirectories(const QStringList &directories);
-    void addDirectory(const QString &directory);
-    void removeDirectory(const QString &directory);
-    QStringList directories() const;
+    void addDirectory(const Utils::FilePath &directory);
+    void removeDirectory(const Utils::FilePath &directory);
     void setFilters(const QStringList &filters);
     void setExclusionFilters(const QStringList &exclusionFilters);
 
-protected:
     void saveState(QJsonObject &object) const override;
     void restoreState(const QJsonObject &object) override;
 
 private:
+    LocatorMatcherTasks matchers() final { return {m_cache.matcher()}; }
+    void setDirectories(const Utils::FilePaths &directories);
     void handleAddDirectory();
     void handleEditDirectory();
     void handleRemoveDirectory();
     void updateOptionButtons();
-    void updateFileIterator();
 
-    QStringList m_directories;
+    Utils::FilePaths m_directories;
     QStringList m_filters;
     QStringList m_exclusionFilters;
     // Our config dialog, uses in addDirectory and editDirectory
     // to give their dialogs the right parent
-    QDialog *m_dialog = nullptr;
-    Internal::Ui::DirectoryFilterOptions *m_ui = nullptr;
-    mutable QMutex m_lock;
-    Utils::FilePaths m_files;
+    class DirectoryFilterOptions *m_dialog = nullptr;
     bool m_isCustomFilter = true;
+    LocatorFileCache m_cache;
 };
 
 } // namespace Core

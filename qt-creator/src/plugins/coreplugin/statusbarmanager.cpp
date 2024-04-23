@@ -1,32 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "statusbarmanager.h"
 
+#include "icore.h"
 #include "imode.h"
-#include "mainwindow.h"
 #include "minisplitter.h"
 #include "modemanager.h"
 
@@ -37,6 +15,8 @@
 #include <QResizeEvent>
 #include <QSplitter>
 #include <QStatusBar>
+
+using namespace Utils;
 
 namespace Core {
 
@@ -81,7 +61,6 @@ static void createStatusBarManager()
     m_statusBarWidgets.append(w);
 
     QWidget *w2 = createWidget(m_splitter);
-    w2->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     m_splitter->addWidget(w2);
     // second
     w = createWidget(w2);
@@ -102,18 +81,18 @@ static void createStatusBarManager()
     statusContext->setWidget(bar);
     ICore::addContextObject(statusContext);
 
-    QObject::connect(ICore::instance(), &ICore::saveSettingsRequested, [] {
-        QSettings *s = ICore::settings();
-        s->beginGroup(QLatin1String(kSettingsGroup));
-        s->setValue(QLatin1String(kLeftSplitWidthKey), m_splitter->sizes().at(0));
+    QObject::connect(ICore::instance(), &ICore::saveSettingsRequested, ICore::instance(), [] {
+        QtcSettings *s = ICore::settings();
+        s->beginGroup(kSettingsGroup);
+        s->setValue(kLeftSplitWidthKey, m_splitter->sizes().at(0));
         s->endGroup();
     });
 
-    QObject::connect(ICore::instance(), &ICore::coreAboutToClose, [statusContext] {
+    QObject::connect(ICore::instance(), &ICore::coreAboutToClose, statusContext, [statusContext] {
         delete statusContext;
         // This is the catch-all on rampdown. Individual items may
         // have been removed earlier by destroyStatusBarWidget().
-        for (const QPointer<IContext> &context : qAsConst(m_contexts)) {
+        for (const QPointer<IContext> &context : std::as_const(m_contexts)) {
             ICore::removeContextObject(context);
             delete context;
         }
@@ -155,9 +134,9 @@ void StatusBarManager::destroyStatusBarWidget(QWidget *widget)
 
 void StatusBarManager::restoreSettings()
 {
-    QSettings *s = ICore::settings();
-    s->beginGroup(QLatin1String(kSettingsGroup));
-    int leftSplitWidth = s->value(QLatin1String(kLeftSplitWidthKey), -1).toInt();
+    QtcSettings *s = ICore::settings();
+    s->beginGroup(kSettingsGroup);
+    int leftSplitWidth = s->value(kLeftSplitWidthKey, -1).toInt();
     s->endGroup();
     if (leftSplitWidth < 0) {
         // size first split after its sizeHint + a bit of buffer

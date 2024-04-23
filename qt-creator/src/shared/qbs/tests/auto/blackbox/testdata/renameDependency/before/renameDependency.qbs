@@ -1,0 +1,3 @@
+CppApplication {
+    files: ["*.cpp", "*.h"]
+}

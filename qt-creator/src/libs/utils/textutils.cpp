@@ -1,61 +1,144 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "textutils.h"
+#include "qtcassert.h"
 
-#include <QTextDocument>
+#include <QRegularExpression>
 #include <QTextBlock>
+#include <QTextDocument>
 
-namespace Utils {
-namespace Text {
+namespace Utils::Text {
+
+bool Position::operator==(const Position &other) const
+{
+    return line == other.line && column == other.column;
+}
+
+int Position::positionInDocument(QTextDocument *doc) const
+{
+    if (!isValid())
+        return -1;
+    QTC_ASSERT(doc, return -1);
+    QTextBlock block = doc->findBlockByNumber(line - 1);
+    if (!block.isValid())
+        return -1;
+    return block.position() + column;
+}
+
+/*!
+    Returns the text position of a \a fileName and sets the \a postfixPos if
+    it can find a positional postfix.
+
+    The following patterns are supported: \c {filepath.txt:19},
+    \c{filepath.txt:19:12}, \c {filepath.txt+19},
+    \c {filepath.txt+19+12}, and \c {filepath.txt(19)}.
+*/
+
+Position Position::fromFileName(QStringView fileName, int &postfixPos)
+{
+    static const auto regexp = QRegularExpression("[:+](\\d+)?([:+](\\d+)?)?$");
+    // (10) MSVC-style
+    static const auto vsRegexp = QRegularExpression("[(]((\\d+)[)]?)?$");
+    const QRegularExpressionMatch match = regexp.match(fileName);
+    Position pos;
+    if (match.hasMatch()) {
+        postfixPos = match.capturedStart(0);
+        if (match.lastCapturedIndex() > 0) {
+            pos.line = match.captured(1).toInt();
+            if (match.lastCapturedIndex() > 2) // index 2 includes the + or : for the column number
+                pos.column = match.captured(3).toInt() - 1; //column is 0 based, despite line being 1 based
+        }
+    } else {
+        const QRegularExpressionMatch vsMatch = vsRegexp.match(fileName);
+        postfixPos = vsMatch.capturedStart(0);
+        if (vsMatch.lastCapturedIndex() > 1) // index 1 includes closing )
+            pos.line = vsMatch.captured(2).toInt();
+    }
+    if (pos.line > 0 && pos.column < 0)
+        pos.column = 0; // if we got a valid line make sure to return a valid TextPosition
+    return pos;
+}
+
+Position Position::fromPositionInDocument(const QTextDocument *document, int pos)
+{
+    QTC_ASSERT(document, return {});
+    const QTextBlock block = document->findBlock(pos);
+    if (block.isValid())
+        return {block.blockNumber() + 1, pos - block.position()};
+
+    return {};
+}
+
+Position Position::fromCursor(const QTextCursor &c)
+{
+    return c.isNull() ? Position{} : Position{c.blockNumber() + 1, c.positionInBlock()};
+}
+
+int Position::toPositionInDocument(const QTextDocument *document) const
+{
+    QTC_ASSERT(document, return -1);
+    const QTextBlock block = document->findBlockByNumber(line - 1);
+    if (block.isValid())
+        return block.position() + qMin(column, block.length() - 1);
+
+    return -1;
+}
+
+int Range::length(const QString &text) const
+{
+    if (end.line < begin.line)
+        return -1;
+
+    if (begin.line == end.line)
+        return end.column - begin.column;
+
+    int index = 0;
+    int currentLine = 1;
+    while (currentLine < begin.line) {
+        index = text.indexOf(QChar::LineFeed, index);
+        if (index < 0)
+            return -1;
+        ++index;
+        ++currentLine;
+    }
+    const int beginIndex = index + begin.column;
+    while (currentLine < end.line) {
+        index = text.indexOf(QChar::LineFeed, index);
+        if (index < 0)
+            return -1;
+        ++index;
+        ++currentLine;
+    }
+    return index + end.column - beginIndex;
+}
+
+bool Range::operator==(const Range &other) const
+{
+    return begin == other.begin && end == other.end;
+}
+
+QTextCursor Range::toTextCursor(QTextDocument *doc) const
+{
+    QTextCursor cursor(doc);
+    cursor.setPosition(begin.positionInDocument(doc));
+    cursor.setPosition(end.positionInDocument(doc), QTextCursor::KeepAnchor);
+    return cursor;
+}
 
 bool convertPosition(const QTextDocument *document, int pos, int *line, int *column)
 {
     QTextBlock block = document->findBlock(pos);
     if (!block.isValid()) {
         (*line) = -1;
-        (*column) = -1;
+        (*column) = 0;
         return false;
     } else {
         // line and column are both 1-based
         (*line) = block.blockNumber() + 1;
-        (*column) = pos - block.position() + 1;
+        (*column) = pos - block.position();
         return true;
     }
-}
-
-OptionalLineColumn convertPosition(const QTextDocument *document, int pos)
-{
-    OptionalLineColumn optional;
-
-    QTextBlock block = document->findBlock(pos);
-
-    if (block.isValid())
-        optional.emplace(block.blockNumber() + 1, pos - block.position() + 1);
-
-    return optional;
 }
 
 int positionInText(const QTextDocument *textDocument, int line, int column)
@@ -70,11 +153,10 @@ QString textAt(QTextCursor tc, int pos, int length)
     if (pos < 0)
         pos = 0;
     tc.movePosition(QTextCursor::End);
-    if (pos + length > tc.position())
-        length = tc.position() - pos;
+    const int end = std::min(pos + length, tc.position());
 
     tc.setPosition(pos);
-    tc.setPosition(pos + length, QTextCursor::KeepAnchor);
+    tc.setPosition(end, QTextCursor::KeepAnchor);
 
     // selectedText() returns U+2029 (PARAGRAPH SEPARATOR) instead of newline
     return tc.selectedText().replace(QChar::ParagraphSeparator, QLatin1Char('\n'));
@@ -85,10 +167,10 @@ QTextCursor selectAt(QTextCursor textCursor, int line, int column, uint length)
     if (line < 1)
         line = 1;
 
-    if (column < 1)
-        column = 1;
+    if (column < 0)
+        column = 0;
 
-    const int anchorPosition = positionInText(textCursor.document(), line, column);
+    const int anchorPosition = positionInText(textCursor.document(), line, column + 1);
     textCursor.setPosition(anchorPosition);
     textCursor.setPosition(anchorPosition + int(length), QTextCursor::KeepAnchor);
 
@@ -163,21 +245,6 @@ int utf8NthLineOffset(const QTextDocument *textDocument, const QByteArray &buffe
     return utf8Offset;
 }
 
-LineColumn utf16LineColumn(const QByteArray &utf8Buffer, int utf8Offset)
-{
-    LineColumn lineColumn;
-    lineColumn.line = static_cast<int>(
-                          std::count(utf8Buffer.begin(), utf8Buffer.begin() + utf8Offset, '\n'))
-                      + 1;
-    const int startOfLineOffset = utf8Offset ? (utf8Buffer.lastIndexOf('\n', utf8Offset - 1) + 1)
-                                             : 0;
-    lineColumn.column = QString::fromUtf8(
-                            utf8Buffer.mid(startOfLineOffset, utf8Offset - startOfLineOffset))
-                            .length()
-                        + 1;
-    return lineColumn;
-}
-
 QString utf16LineTextInUtf8Buffer(const QByteArray &utf8Buffer, int currentUtf8Offset)
 {
     const int lineStartUtf8Offset = currentUtf8Offset
@@ -213,25 +280,10 @@ bool utf8AdvanceCodePoint(const char *&current)
     return true;
 }
 
-void applyReplacements(QTextDocument *doc, const Replacements &replacements)
+QDebug &operator<<(QDebug &stream, const Position &pos)
 {
-    if (replacements.empty())
-        return;
-
-    int fullOffsetShift = 0;
-    QTextCursor editCursor(doc);
-    editCursor.beginEditBlock();
-    for (const Text::Replacement &replacement : replacements) {
-        editCursor.setPosition(replacement.offset + fullOffsetShift);
-        editCursor.movePosition(QTextCursor::NextCharacter,
-                                QTextCursor::KeepAnchor,
-                                replacement.length);
-        editCursor.removeSelectedText();
-        editCursor.insertText(replacement.text);
-        fullOffsetShift += replacement.text.length() - replacement.length;
-    }
-    editCursor.endEditBlock();
+    stream << "line: " << pos.line << ", column: " << pos.column;
+    return stream;
 }
 
-} // Text
-} // Utils
+} // namespace Utils::Text

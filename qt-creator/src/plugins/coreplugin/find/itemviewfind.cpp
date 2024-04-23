@@ -1,37 +1,18 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "itemviewfind.h"
 
+#include "../findplaceholder.h"
+
 #include <aggregation/aggregate.h>
-#include <coreplugin/findplaceholder.h>
 
 #include <QModelIndex>
 #include <QTextCursor>
 #include <QTreeView>
 #include <QVBoxLayout>
+
+using namespace Utils;
 
 namespace Core {
 
@@ -185,7 +166,7 @@ IFindSupport::Result ItemViewFind::find(const QString &searchTxt,
     QModelIndex currentIndex = d->m_view->currentIndex();
     if (!currentIndex.isValid()) // nothing selected, start from top
         currentIndex = d->m_view->model()->index(0, 0);
-    QTextDocument::FindFlags flags = textDocumentFlagsForFindFlags(findFlags);
+    QTextDocument::FindFlags flags = Utils::textDocumentFlagsForFindFlags(findFlags);
     QModelIndex resultIndex;
     QModelIndex index = currentIndex;
     int currentRow = currentIndex.row();
@@ -225,11 +206,18 @@ IFindSupport::Result ItemViewFind::find(const QString &searchTxt,
                         index, d->m_role).toString();
             if (d->m_view->model()->flags(index) & Qt::ItemIsSelectable
                     && (index.row() != currentRow || index.parent() != currentIndex.parent())
-                    && text.indexOf(searchExpr) != -1)
+                    && text.indexOf(searchExpr) != -1) {
                 resultIndex = index;
+                break;
+            }
         }
         index = followingIndex(index, backward, &stepWrapped);
-    } while (!resultIndex.isValid() && index.isValid() && index != currentIndex);
+        if (index == currentIndex) { // we're back where we started
+            if (d->m_view->model()->data(index, d->m_role).toString().indexOf(searchExpr) != -1)
+                resultIndex = index;
+            break;
+        }
+    } while (index.isValid());
 
     if (resultIndex.isValid()) {
         d->m_view->setCurrentIndex(resultIndex);

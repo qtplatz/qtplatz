@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -37,8 +15,13 @@ class QTimeLine;
 QT_END_NAMESPACE
 
 namespace Core {
+
+class ICore;
+class IOutputPane;
+
 namespace Internal {
 
+class ICorePrivate;
 class MainWindow;
 class OutputPaneToggleButton;
 class OutputPaneManageButton;
@@ -55,6 +38,11 @@ public:
     static int outputPaneHeightSetting();
     static void setOutputPaneHeightSetting(int value);
 
+    // FIXME: Hide again
+    static void create();
+    static void initialize();
+    static void destroy();
+
 public slots:
     void slotHide();
     void slotNext();
@@ -63,15 +51,14 @@ public slots:
 
 protected:
     void focusInEvent(QFocusEvent *e) override;
+    bool eventFilter(QObject *o, QEvent *e) override;
 
 private:
     // the only class that is allowed to create and destroy
+    friend class ICore;
+    friend class ICorePrivate;
     friend class MainWindow;
     friend class OutputPaneManageButton;
-
-    static void create();
-    static void initialize();
-    static void destroy();
 
     explicit OutputPaneManager(QWidget *parent = nullptr);
     ~OutputPaneManager() override;
@@ -86,27 +73,19 @@ private:
     void setCurrentIndex(int idx);
     void buttonTriggered(int idx);
     void readSettings();
+    void updateActions(IOutputPane *pane);
 
     QLabel *m_titleLabel = nullptr;
     OutputPaneManageButton *m_manageButton = nullptr;
+
     QAction *m_clearAction = nullptr;
-    QToolButton *m_clearButton = nullptr;
-    QToolButton *m_closeButton = nullptr;
-
     QAction *m_minMaxAction = nullptr;
-    QToolButton *m_minMaxButton = nullptr;
-
     QAction *m_nextAction = nullptr;
     QAction *m_prevAction = nullptr;
-    QToolButton *m_prevToolButton = nullptr;
-    QToolButton *m_nextToolButton = nullptr;
-    QWidget *m_toolBar = nullptr;
 
     QStackedWidget *m_outputWidgetPane = nullptr;
     QStackedWidget *m_opToolBarWidgets = nullptr;
     QWidget *m_buttonsWidget = nullptr;
-    QIcon m_minimizeIcon;
-    QIcon m_maximizeIcon;
     int m_outputPaneHeightSetting = 0;
 };
 
@@ -140,6 +119,11 @@ public:
     void setIconBadgeNumber(int number);
     bool isPaneVisible() const;
 
+    void contextMenuEvent(QContextMenuEvent *e) override;
+
+signals:
+    void contextMenuRequested();
+
 private:
     void updateToolTip();
     void checkStateSet() override;
@@ -156,8 +140,12 @@ class OutputPaneManageButton : public QToolButton
     Q_OBJECT
 public:
     OutputPaneManageButton();
-    QSize sizeHint() const override;
-    void paintEvent(QPaintEvent*) override;
+    void paintEvent(QPaintEvent *) override;
+
+    void contextMenuEvent(QContextMenuEvent *e) override;
+
+signals:
+    void menuRequested();
 };
 
 } // namespace Internal

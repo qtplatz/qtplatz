@@ -1,39 +1,20 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "sidebar.h"
 #include "sidebarwidget.h"
 
 #include "actionmanager/command.h"
+
 #include <utils/algorithm.h>
 #include <utils/qtcassert.h>
+#include <utils/qtcsettings.h>
 #include <utils/utilsicons.h>
 
-#include <QSettings>
 #include <QPointer>
 #include <QToolButton>
+
+using namespace Utils;
 
 namespace Core {
 
@@ -64,7 +45,7 @@ QString SideBarItem::title() const
 
 QList<QToolButton *> SideBarItem::createToolBarWidgets()
 {
-    return QList<QToolButton *>();
+    return {};
 }
 
 struct SideBarPrivate {
@@ -85,13 +66,13 @@ SideBar::SideBar(QList<SideBarItem*> itemList,
     d(new SideBarPrivate)
 {
     setOrientation(Qt::Vertical);
-    for (SideBarItem *item : qAsConst(itemList)) {
+    for (SideBarItem *item : std::as_const(itemList)) {
         d->m_itemMap.insert(item->id(), item);
         d->m_availableItemIds.append(item->id());
         d->m_availableItemTitles.append(item->title());
     }
 
-    for (SideBarItem *item : qAsConst(defaultVisible)) {
+    for (SideBarItem *item : std::as_const(defaultVisible)) {
         if (!itemList.contains(item))
             continue;
         d->m_defaultVisible.append(item->id());
@@ -100,7 +81,7 @@ SideBar::SideBar(QList<SideBarItem*> itemList,
 
 SideBar::~SideBar()
 {
-    for (const QPointer<SideBarItem> &i : qAsConst(d->m_itemMap))
+    for (const QPointer<SideBarItem> &i : std::as_const(d->m_itemMap))
         if (!i.isNull())
             delete i.data();
     delete d;
@@ -160,7 +141,7 @@ void SideBar::makeItemAvailable(SideBarItem *item)
 void SideBar::setUnavailableItemIds(const QStringList &itemIds)
 {
     // re-enable previous items
-    for (const QString &id : qAsConst(d->m_unavailableItemIds)) {
+    for (const QString &id : std::as_const(d->m_unavailableItemIds)) {
         d->m_availableItemIds.append(id);
         d->m_availableItemTitles.append(d->m_itemMap.value(id).data()->title());
     }
@@ -198,8 +179,8 @@ Internal::SideBarWidget *SideBar::insertSideBarWidget(int position, const QStrin
         d->m_widgets.at(0)->setCloseIcon(Utils::Icons::CLOSE_SPLIT_BOTTOM.icon());
 
     auto item = new Internal::SideBarWidget(this, id);
-    connect(item, &Internal::SideBarWidget::splitMe, this, &SideBar::splitSubWidget);
-    connect(item, &Internal::SideBarWidget::closeMe, this, &SideBar::closeSubWidget);
+    connect(item, &Internal::SideBarWidget::splitMe, this, [this, item] { splitSubWidget(item); });
+    connect(item, &Internal::SideBarWidget::closeMe, this, [this, item] { closeSubWidget(item); });
     connect(item, &Internal::SideBarWidget::currentWidgetChanged, this, &SideBar::updateWidgets);
     insertWidget(position, item);
     d->m_widgets.insert(position, item);
@@ -219,20 +200,16 @@ void SideBar::removeSideBarWidget(Internal::SideBarWidget *widget)
     widget->deleteLater();
 }
 
-void SideBar::splitSubWidget()
+void SideBar::splitSubWidget(Internal::SideBarWidget *widget)
 {
-    auto original = qobject_cast<Internal::SideBarWidget*>(sender());
-    int pos = indexOf(original) + 1;
+    int pos = indexOf(widget) + 1;
     insertSideBarWidget(pos);
     updateWidgets();
 }
 
-void SideBar::closeSubWidget()
+void SideBar::closeSubWidget(Internal::SideBarWidget *widget)
 {
     if (d->m_widgets.count() != 1) {
-        auto widget = qobject_cast<Internal::SideBarWidget*>(sender());
-        if (!widget)
-            return;
         removeSideBarWidget(widget);
         // update close button of top item
         if (d->m_widgets.size() == 1)
@@ -250,13 +227,13 @@ void SideBar::closeSubWidget()
 
 void SideBar::updateWidgets()
 {
-    for (Internal::SideBarWidget *i : qAsConst(d->m_widgets))
+    for (Internal::SideBarWidget *i : std::as_const(d->m_widgets))
         i->updateAvailableItems();
 }
 
-void SideBar::saveSettings(QSettings *settings, const QString &name)
+void SideBar::saveSettings(QtcSettings *settings, const QString &name)
 {
-    const QString prefix = name.isEmpty() ? name : (name + QLatin1Char('/'));
+    const Key prefix = keyFromString(name.isEmpty() ? name : (name + QLatin1Char('/')));
 
     QStringList views;
     for (int i = 0; i < d->m_widgets.count(); ++i) {
@@ -267,26 +244,25 @@ void SideBar::saveSettings(QSettings *settings, const QString &name)
     if (views.isEmpty() && !d->m_itemMap.isEmpty())
         views.append(d->m_itemMap.cbegin().key());
 
-    settings->setValue(prefix + QLatin1String("Views"), views);
-    settings->setValue(prefix + QLatin1String("Visible"),
-                       parentWidget() ? isVisibleTo(parentWidget()) : true);
-    settings->setValue(prefix + QLatin1String("VerticalPosition"), saveState());
-    settings->setValue(prefix + QLatin1String("Width"), width());
+    settings->setValue(prefix + "Views", views);
+    settings->setValue(prefix + "Visible", parentWidget() ? isVisibleTo(parentWidget()) : true);
+    settings->setValue(prefix + "VerticalPosition", saveState());
+    settings->setValue(prefix + "Width", width());
 }
 
 void SideBar::closeAllWidgets()
 {
-    for (Internal::SideBarWidget *widget : qAsConst(d->m_widgets))
+    for (Internal::SideBarWidget *widget : std::as_const(d->m_widgets))
         removeSideBarWidget(widget);
 }
 
-void SideBar::readSettings(QSettings *settings, const QString &name)
+void SideBar::readSettings(QtcSettings *settings, const QString &name)
 {
-    const QString prefix = name.isEmpty() ? name : (name + QLatin1Char('/'));
+    const Key prefix = keyFromString(name.isEmpty() ? name : (name + QLatin1Char('/')));
 
     closeAllWidgets();
 
-    const QString viewsKey = prefix + QLatin1String("Views");
+    const Key viewsKey = prefix + "Views";
     if (settings->contains(viewsKey)) {
         const QStringList views = settings->value(viewsKey).toStringList();
         if (!views.isEmpty()) {
@@ -299,19 +275,19 @@ void SideBar::readSettings(QSettings *settings, const QString &name)
         }
     }
     if (d->m_widgets.size() == 0) {
-        for (const QString &id : qAsConst(d->m_defaultVisible))
+        for (const QString &id : std::as_const(d->m_defaultVisible))
             insertSideBarWidget(d->m_widgets.count(), id);
     }
 
-    const QString visibleKey = prefix + QLatin1String("Visible");
+    const Key visibleKey = prefix + "Visible";
     if (settings->contains(visibleKey))
         setVisible(settings->value(visibleKey).toBool());
 
-    const QString positionKey = prefix + QLatin1String("VerticalPosition");
+    const Key positionKey = prefix + "VerticalPosition";
     if (settings->contains(positionKey))
         restoreState(settings->value(positionKey).toByteArray());
 
-    const QString widthKey = prefix + QLatin1String("Width");
+    const Key widthKey = prefix + "Width";
     if (settings->contains(widthKey)) {
         QSize s = size();
         s.setWidth(settings->value(widthKey).toInt());
@@ -344,5 +320,5 @@ QMap<QString, Command*> SideBar::shortcutMap() const
 {
     return d->m_shortcutMap;
 }
-} // namespace Core
 
+} // namespace Core

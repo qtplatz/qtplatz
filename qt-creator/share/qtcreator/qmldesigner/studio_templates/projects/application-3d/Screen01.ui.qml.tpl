@@ -8,6 +8,7 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 import QtQuick %{QtQuickVersion}
 import QtQuick.Controls %{QtQuickVersion}
 import QtQuick3D %{QtQuick3DVersion}
+import QtQuick3D.Effects %{QtQuick3DVersion}
 import %{ImportModuleName} %{ImportModuleVersion}
 
 Rectangle {
@@ -51,10 +52,10 @@ Rectangle {
 
     Item {
         id: __materialLibrary__
-        DefaultMaterial {
+        PrincipledMaterial {
             id: defaultMaterial
             objectName: "Default Material"
-            diffuseColor: "#4aee45"
+            baseColor: "#4aee45"
         }
     }
 

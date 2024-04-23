@@ -1,31 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "basefilewizard.h"
 
 #include "basefilewizardfactory.h"
+#include "coreplugintr.h"
 #include "ifilewizardextension.h"
 
 #include <QMessageBox>
@@ -53,7 +32,7 @@ BaseFileWizard::BaseFileWizard(const BaseFileWizardFactory *factory,
     m_extraValues(extraValues),
     m_factory(factory)
 {
-    for (IFileWizardExtension *extension : qAsConst(g_fileWizardExtensions))
+    for (IFileWizardExtension *extension : std::as_const(g_fileWizardExtensions))
         m_extensionPages += extension->extensionPages(factory);
 
     if (!m_extensionPages.empty())
@@ -66,7 +45,7 @@ void BaseFileWizard::initializePage(int id)
     if (page(id) == m_firstExtensionPage) {
         generateFileList();
 
-        for (IFileWizardExtension *ex : qAsConst(g_fileWizardExtensions))
+        for (IFileWizardExtension *ex : std::as_const(g_fileWizardExtensions))
             ex->firstExtensionPageShown(m_files, m_extraValues);
     }
 }
@@ -89,14 +68,14 @@ void BaseFileWizard::accept()
         reject();
         return;
     case BaseFileWizardFactory::OverwriteError:
-        QMessageBox::critical(nullptr, tr("Existing files"), errorMessage);
+        QMessageBox::critical(nullptr, Tr::tr("Existing files"), errorMessage);
         reject();
         return;
     case BaseFileWizardFactory::OverwriteOk:
         break;
     }
 
-    for (IFileWizardExtension *ex : qAsConst(g_fileWizardExtensions)) {
+    for (IFileWizardExtension *ex : std::as_const(g_fileWizardExtensions)) {
         for (int i = 0; i < m_files.count(); i++) {
             ex->applyCodeStyle(&m_files[i]);
         }
@@ -104,18 +83,18 @@ void BaseFileWizard::accept()
 
     // Write
     if (!m_factory->writeFiles(m_files, &errorMessage)) {
-        QMessageBox::critical(parentWidget(), tr("File Generation Failure"), errorMessage);
+        QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), errorMessage);
         reject();
         return;
     }
 
     bool removeOpenProjectAttribute = false;
     // Run the extensions
-    for (IFileWizardExtension *ex : qAsConst(g_fileWizardExtensions)) {
+    for (IFileWizardExtension *ex : std::as_const(g_fileWizardExtensions)) {
         bool remove;
         if (!ex->processFiles(m_files, &remove, &errorMessage)) {
             if (!errorMessage.isEmpty())
-                QMessageBox::critical(parentWidget(), tr("File Generation Failure"), errorMessage);
+                QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), errorMessage);
             reject();
             return;
         }
@@ -132,7 +111,7 @@ void BaseFileWizard::accept()
     // Post generation handler
     if (!m_factory->postGenerateFiles(this, m_files, &errorMessage))
         if (!errorMessage.isEmpty())
-            QMessageBox::critical(nullptr, tr("File Generation Failure"), errorMessage);
+            QMessageBox::critical(nullptr, Tr::tr("File Generation Failure"), errorMessage);
 
     Wizard::accept();
 }
@@ -148,7 +127,7 @@ void BaseFileWizard::generateFileList()
     QString errorMessage;
     m_files = m_factory->generateFiles(this, &errorMessage);
     if (m_files.empty()) {
-        QMessageBox::critical(parentWidget(), tr("File Generation Failure"), errorMessage);
+        QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), errorMessage);
         reject();
     }
 }

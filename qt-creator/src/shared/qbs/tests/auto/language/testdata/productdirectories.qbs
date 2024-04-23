@@ -1,0 +1,3 @@
+Product {
+    name: "MyApp"
+}

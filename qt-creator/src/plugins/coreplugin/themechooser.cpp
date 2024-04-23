@@ -1,34 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 Thorben Kroeger <thorbenkroeger@gmail.com>.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 Thorben Kroeger <thorbenkroeger@gmail.com>.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-#include "coreconstants.h"
-#include "icore.h"
-#include "manhattanstyle.h"
 #include "themechooser.h"
 
-#include "dialogs/restartdialog.h"
+#include "coreconstants.h"
+#include "coreplugintr.h"
+#include "icore.h"
 
 #include <utils/algorithm.h>
 #include <utils/theme/theme.h>
@@ -41,7 +18,6 @@
 #include <QDir>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QSettings>
 #include <QSpacerItem>
 
@@ -68,7 +44,7 @@ QString ThemeEntry::displayName() const
     if (m_displayName.isEmpty() && !m_filePath.isEmpty()) {
         QSettings settings(m_filePath, QSettings::IniFormat);
         m_displayName = settings.value(QLatin1String(themeNameKey),
-                                       QCoreApplication::tr("unnamed")).toString();
+                                       Tr::tr("unnamed")).toString();
     }
     return m_displayName;
 }
@@ -140,8 +116,7 @@ ThemeChooserPrivate::ThemeChooserPrivate(QWidget *widget)
     auto layout = new QHBoxLayout(widget);
     layout->addWidget(m_themeComboBox);
     auto overriddenLabel = new QLabel;
-    overriddenLabel->setText(ThemeChooser::tr("Current theme: %1")
-                             .arg(creatorTheme()->displayName()));
+    overriddenLabel->setText(Tr::tr("Current theme: %1").arg(creatorTheme()->displayName()));
     layout->addWidget(overriddenLabel);
     layout->setContentsMargins(0, 0, 0, 0);
     auto horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -188,9 +163,7 @@ void ThemeChooser::apply()
     if (currentThemeId != themeId) {
         // save filename of selected theme in global config
         settings->setValueWithDefault(Constants::SETTINGS_THEME, themeId, defaultThemeId());
-        RestartDialog restartDialog(ICore::dialogParent(),
-                                    tr("The theme change will take effect after restart."));
-        restartDialog.exec();
+        ICore::askForRestart(Tr::tr("The theme change will take effect after restart."));
     }
 }
 
@@ -201,7 +174,7 @@ static void addThemesFromPath(const QString &path, QList<ThemeEntry> *themes)
     themeDir.setNameFilters({extension});
     themeDir.setFilter(QDir::Files);
     const QStringList themeList = themeDir.entryList();
-    for (const QString &fileName : qAsConst(themeList)) {
+    for (const QString &fileName : std::as_const(themeList)) {
         QString id = QFileInfo(fileName).completeBaseName();
         themes->append(ThemeEntry(Id::fromString(id), themeDir.absoluteFilePath(fileName)));
     }

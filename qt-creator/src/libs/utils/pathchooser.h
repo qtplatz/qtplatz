@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -42,13 +20,12 @@ namespace Utils {
 class CommandLine;
 class MacroExpander;
 class Environment;
-class EnvironmentChange;
 class PathChooserPrivate;
 
 class QTCREATOR_UTILS_EXPORT PathChooser : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged DESIGNABLE true)
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY textChanged DESIGNABLE true)
     Q_PROPERTY(QString promptDialogTitle READ promptDialogTitle WRITE setPromptDialogTitle DESIGNABLE true)
     Q_PROPERTY(QString promptDialogFilter READ promptDialogFilter WRITE setPromptDialogFilter DESIGNABLE true)
     Q_PROPERTY(Kind expectedKind READ expectedKind WRITE setExpectedKind DESIGNABLE true)
@@ -67,15 +44,15 @@ public:
     enum Kind {
         ExistingDirectory,
         Directory, // A directory, doesn't need to exist
-        File,
-        SaveFile,
+        File, // An existing file
+        SaveFile, // A file that does not need to exist
         ExistingCommand, // A command that must exist at the time of selection
         Command, // A command that may or may not exist at the time of selection (e.g. result of a build)
         Any
     };
     Q_ENUM(Kind)
 
-    // Default is <Directory>
+    // Default is <ExistingDirectory>
     void setExpectedKind(Kind expected);
     Kind expectedKind() const;
 
@@ -93,27 +70,24 @@ public:
     FilePath filePath() const; // Close to what's in the line edit.
     FilePath absoluteFilePath() const; // Relative paths resolved wrt the specified base dir.
 
-    QString rawPath() const; // The raw unexpanded input.
     FilePath rawFilePath() const; // The raw unexpanded input as FilePath.
-
-    static QString expandedDirectory(const QString &input, const Environment &env,
-                                     const QString &baseDir);
 
     FilePath baseDirectory() const;
     void setBaseDirectory(const FilePath &base);
 
-    void setEnvironmentChange(const EnvironmentChange &change);
+    void setEnvironment(const Environment &env);
 
     /** Returns the suggested label title when used in a form layout. */
     static QString label();
 
-    FancyLineEdit::ValidationFunction defaultValidationFunction() const;
+    FancyLineEdit::AsyncValidationFunction defaultValidationFunction() const;
     void setValidationFunction(const FancyLineEdit::ValidationFunction &fn);
 
     /** Return the home directory, which needs some fixing under Windows. */
     static FilePath homePath();
 
     void addButton(const QString &text, QObject *context, const std::function<void()> &callback);
+    void insertButton(int index, QAbstractButton *button);
     void insertButton(int index, const QString &text, QObject *context, const std::function<void()> &callback);
     QAbstractButton *buttonAtIndex(int index) const;
 
@@ -131,7 +105,7 @@ public:
     static void installLineEditVersionToolTip(QLineEdit *le, const QStringList &arguments);
 
     // Enable a history completer with a history of entries.
-    void setHistoryCompleter(const QString &historyKey, bool restoreLastItemFromHistory = false);
+    void setHistoryCompleter(const Key &historyKey, bool restoreLastItemFromHistory = false);
 
     // Sets a macro expander that is used when producing path and fileName.
     // By default, the global expander is used.
@@ -151,35 +125,39 @@ public:
     void setOpenTerminalHandler(const std::function<void()> &openTerminal);
     std::function<void()> openTerminalHandler() const;
 
-    // Deprecated. Use filePath().toString() or better suitable conversions.
-    QString path() const { return filePath().toString(); }
-
     // this sets the placeHolderText to defaultValue and enables to use this as
     // input value during validation if the real value is empty
     // setting an empty QString will disable this and clear the placeHolderText
     void setDefaultValue(const QString &defaultValue);
-private:
-    bool validatePath(FancyLineEdit *edit, QString *errorMessage) const;
-    // Returns overridden title or the one from <title>
-    QString makeDialogTitle(const QString &title);
-    void slotBrowse();
-    void contextMenuRequested(const QPoint &pos);
+    void setPlaceholderText(const QString &placeholderText);
+    void setToolTip(const QString &toolTip);
 
-signals:
-    void validChanged(bool validState);
-    void rawPathChanged(const QString &text);
-    void pathChanged(const QString &path);
-    void filePathChanged(const FilePath &path);
-    void editingFinished();
-    void beforeBrowsing();
-    void browsingFinished();
-    void returnPressed();
+    void setAllowPathFromDevice(bool allow);
+    bool allowPathFromDevice() const;
 
 public slots:
     void setPath(const QString &);
     void setFilePath(const FilePath &);
 
+signals:
+    void validChanged(bool validState);
+    void rawPathChanged();
+    void textChanged(const QString &text); // Triggered from the line edit's textChanged()
+    void editingFinished(); // Triggered from the line edit's editingFinished()
+    void beforeBrowsing();
+    void browsingFinished();
+    void returnPressed();
+
 private:
+    // Deprecated, only used in property getter.
+    // Use filePath().toString() or better suitable conversions.
+    QString path() const { return filePath().toString(); }
+
+    // Returns overridden title or the one from <title>
+    QString makeDialogTitle(const QString &title);
+    void slotBrowse(bool remote);
+    void contextMenuRequested(const QPoint &pos);
+
     PathChooserPrivate *d = nullptr;
     static AboutToShowContextMenuHandler s_aboutToShowContextMenuHandler;
 };

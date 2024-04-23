@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -54,6 +32,7 @@ Section {
         PropertyLabel {
             visible: root.showWrapMode
             text: qsTr("Wrap mode")
+            tooltip: qsTr("Sets how overflowing text is handled.")
             blockedByTemplate: !root.isBackendValueAvailable("wrapMode")
         }
 
@@ -76,6 +55,7 @@ Section {
         PropertyLabel {
             visible: root.showElide
             text: qsTr("Elide")
+            tooltip: qsTr("Sets how to indicate that more text is available.")
             blockedByTemplate: !root.isBackendValueAvailable("elide")
         }
 
@@ -98,6 +78,7 @@ Section {
         PropertyLabel {
             visible: root.showFormatProperty
             text: qsTr("Format")
+            tooltip: qsTr("Sets the formatting method of the text.")
             blockedByTemplate: !root.isBackendValueAvailable("textFormat")
         }
 
@@ -119,7 +100,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Render type")
-            tooltip: qsTr("Overrides the default rendering type for this component.")
+            tooltip: qsTr("Sets the rendering type for this component.")
             blockedByTemplate: !root.isBackendValueAvailable("renderType")
         }
 
@@ -139,11 +120,11 @@ Section {
 
         PropertyLabel {
             text: qsTr("Render type quality")
-            tooltip: qsTr("Overrides the default rendering type quality for this component.")
+            tooltip: qsTr("Sets the quality of the render. This only has an effect when <b>Render type</b> is set to QtRendering.")
             blockedByTemplate: !root.isBackendValueAvailable("renderTypeQuality")
-            enabled: backendValues.renderType !== undefined
-                        ? backendValues.renderType.enumeration === "QtRendering"
-                        : false
+            enabled: root.isBackendValueAvailable("renderTypeQuality")
+                     && (backendValues.renderType.value === "QtRendering"
+                         || backendValues.renderType.enumeration === "QtRendering")
         }
 
         SecondColumnLayout {
@@ -156,7 +137,8 @@ Section {
                         "HighRenderTypeQuality", "VeryHighRenderTypeQuality"]
                 backendValue: backendValues.renderTypeQuality
                 enabled: root.isBackendValueAvailable("renderTypeQuality")
-                         && backendValues.renderType.enumeration === "QtRendering"
+                         && (backendValues.renderType.value === "QtRendering"
+                             || backendValues.renderType.enumeration === "QtRendering")
             }
 
             ExpandingSpacer {}
@@ -165,7 +147,7 @@ Section {
         PropertyLabel {
             visible: root.showLineHeight
             text: qsTr("Line height mode")
-            tooltip: qsTr("Determines how the line height is specified.")
+            tooltip: qsTr("Sets how to calculate the line height based on the <b>Line height</b> value.")
             blockedByTemplate: !root.isBackendValueAvailable("lineHeightMode")
         }
 
@@ -188,7 +170,7 @@ Section {
         PropertyLabel {
             visible: root.showFontSizeMode
             text: qsTr("Size mode")
-            tooltip: qsTr("Specifies how the font size of the displayed text is determined.")
+            tooltip: qsTr("Sets how the font size is determined.")
             blockedByTemplate: !root.isBackendValueAvailable("fontSizeMode")
         }
 
@@ -212,6 +194,7 @@ Section {
         PropertyLabel {
             visible: root.showFontSizeMode
             text: qsTr("Min size")
+            tooltip: qsTr("Sets the minimum font size to use. This has no effect when <b>Size</b> mode is set to Fixed.")
             blockedByTemplate: !root.isBackendValueAvailable("minimumPixelSize")
                                && !root.isBackendValueAvailable("minimumPointSize")
         }
@@ -265,7 +248,7 @@ Section {
         PropertyLabel {
             visible: root.showElide
             text: qsTr("Max line count")
-            tooltip: qsTr("Limits the number of lines that the text component will show.")
+            tooltip: qsTr("Sets the max number of lines that the text component shows.")
             blockedByTemplate: !root.isBackendValueAvailable("maximumLineCount")
         }
 

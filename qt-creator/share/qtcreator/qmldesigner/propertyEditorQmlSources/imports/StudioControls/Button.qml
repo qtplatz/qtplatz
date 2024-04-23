@@ -1,46 +1,25 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import StudioControls 1.0
+import QtQuick
 
 ButtonRow {
-    id: myButtonRow
+    id: control
 
-    property alias buttonIcon: myAbstractButton.buttonIcon
-    property alias iconColor: myAbstractButton.iconColor
-    property alias iconRotation: myAbstractButton.iconRotation
-    property alias checkable: myAbstractButton.checkable
-    property alias checked: myAbstractButton.checked
+    property alias style: button.style
+
+    property alias buttonIcon: button.buttonIcon
+    property alias iconColor: button.iconColor
+    property alias iconRotation: button.iconRotation
+    property alias checkable: button.checkable
+    property alias checked: button.checked
 
     signal onCheckedChanged()
     signal clicked
 
     AbstractButton {
-        id: myAbstractButton
-        onCheckedChanged: myButtonRow.onCheckedChanged()
-        onClicked: myButtonRow.clicked()
+        id: button
+        onCheckedChanged: control.onCheckedChanged()
+        onClicked: control.clicked()
     }
 }

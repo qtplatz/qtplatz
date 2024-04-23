@@ -1,29 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "iversioncontrol.h"
+
+#include "coreplugintr.h"
 #include "vcsmanager.h"
 
 #include <utils/algorithm.h>
@@ -31,51 +11,46 @@
 #include <utils/qtcassert.h>
 
 #include <QDir>
-#include <QFileInfo>
 #include <QRegularExpression>
 #include <QStringList>
-
-/*!
-    \class Core::IVersionControl::TopicCache
-    \inheaderfile coreplugin/iversioncontrol.h
-    \inmodule QtCreator
-
-    \brief The TopicCache class stores a cache which maps a directory to a topic.
-
-    A VCS topic is typically the current active branch name, but it can also have other
-    values (for example the latest tag) when there is no active branch.
-
-    It is displayed:
-    \list
-    \li In the project tree, next to each root project - corresponding to the project.
-    \li In the main window title - corresponding to the current active editor.
-    \endlist
-
-    In order to enable topic display, an IVersionControl subclass needs to create
-    an instance of the TopicCache subclass with appropriate overrides for its
-    pure virtual functions, and pass this instance to IVersionControl's constructor.
-
-    The cache tracks a file in the repository, which is expected to change when the
-    topic changes. When the file is modified, the cache is refreshed.
-    For example: for Git this file is typically <repository>/.git/HEAD
- */
-
-/*!
-    \fn Utils::FilePath Core::IVersionControl::TopicCache::trackFile(const Utils::FilePath &repository)
-    Returns the path to the file that invalidates the cache for \a repository when
-    the file is modified.
-
-    \fn QString Core::IVersionControl::TopicCache::refreshTopic(const Utils::FilePath &repository)
-    Returns the current topic for \a repository.
- */
 
 using namespace Utils;
 
 namespace Core {
 
+namespace Internal {
+
+class TopicData
+{
+public:
+    QDateTime timeStamp;
+    QString topic;
+};
+
+class IVersionControlPrivate
+{
+public:
+    IVersionControl::FileTracker m_fileTracker;
+    IVersionControl::TopicRefresher m_topicRefresher;
+    QHash<FilePath, TopicData> m_topicCache;
+};
+
+} // Internal
+
+IVersionControl::IVersionControl()
+    : d(new Internal::IVersionControlPrivate)
+{
+    Core::VcsManager::addVersionControl(this);
+}
+
+IVersionControl::~IVersionControl()
+{
+    delete d;
+}
+
 QString IVersionControl::vcsOpenText() const
 {
-    return tr("Open with VCS (%1)").arg(displayName());
+    return Tr::tr("Open with VCS (%1)").arg(displayName());
 }
 
 QString IVersionControl::vcsMakeWritableText() const
@@ -86,18 +61,6 @@ QString IVersionControl::vcsMakeWritableText() const
 FilePaths IVersionControl::additionalToolsPath() const
 {
     return {};
-}
-
-ShellCommand *IVersionControl::createInitialCheckoutCommand(const QString &url,
-                                                            const Utils::FilePath &baseDirectory,
-                                                            const QString &localName,
-                                                            const QStringList &extraArgs)
-{
-    Q_UNUSED(url)
-    Q_UNUSED(baseDirectory)
-    Q_UNUSED(localName)
-    Q_UNUSED(extraArgs)
-    return nullptr;
 }
 
 IVersionControl::RepoUrl::RepoUrl(const QString &location)
@@ -144,24 +107,83 @@ IVersionControl::RepoUrl IVersionControl::getRepoUrl(const QString &location) co
     return RepoUrl(location);
 }
 
-void IVersionControl::setTopicCache(TopicCache *topicCache)
+FilePath IVersionControl::trackFile(const FilePath &repository)
 {
-    m_topicCache = topicCache;
+    QTC_ASSERT(d->m_fileTracker, return {});
+    return d->m_fileTracker(repository);
 }
+
+QString IVersionControl::refreshTopic(const FilePath &repository)
+{
+    QTC_ASSERT(d->m_topicRefresher, return {});
+    return d->m_topicRefresher(repository);
+}
+
+/*!
+    Returns the topic for repository under \a topLevel.
+
+    A VCS topic is typically the current active branch name, but it can also have other
+    values (for example the latest tag) when there is no active branch.
+
+    It is displayed:
+    \list
+    \li In the project tree, next to each root project - corresponding to the project.
+    \li In the main window title - corresponding to the current active editor.
+    \endlist
+
+    In order to enable topic display, an IVersionControl subclass needs to create
+    an instance of the TopicCache subclass with appropriate overrides for its
+    pure virtual functions, and pass this instance to IVersionControl's constructor.
+
+    The cache tracks a file in the repository, which is expected to change when the
+    topic changes. When the file is modified, the cache is refreshed.
+    For example: for Git this file is typically <repository>/.git/HEAD
+
+    The base implementation features a cache. If the cache for \a topLevel is valid,
+    it will be used. Otherwise it will be refreshed using the items provided by
+    \c setTopicFileTracker() and \c setTopicRefresher().
+
+    \sa setTopicFileTracker(), setTopicRefresher().
+ */
 
 QString IVersionControl::vcsTopic(const FilePath &topLevel)
 {
-    return m_topicCache ? m_topicCache->topic(topLevel) : QString();
+    QTC_ASSERT(!topLevel.isEmpty(), return QString());
+    Internal::TopicData &data = d->m_topicCache[topLevel];
+    const FilePath file = trackFile(topLevel);
+
+    if (file.isEmpty())
+        return QString();
+    const QDateTime lastModified = file.lastModified();
+    if (lastModified == data.timeStamp)
+        return data.topic;
+    data.timeStamp = lastModified;
+    return data.topic = refreshTopic(topLevel);
 }
 
-IVersionControl::IVersionControl()
+/*!
+    Provides the \a fileTracker function object for use in \c vscTopic() cache handling.
+
+    The parameter object takes a repository as input and returns the file
+    that should trigger topic refresh (e.g. .git/HEAD for Git).
+
+    Modification of this file will invalidate the internal topic cache for the repository.
+*/
+
+void IVersionControl::setTopicFileTracker(const FileTracker &fileTracker)
 {
-    Core::VcsManager::addVersionControl(this);
+    d->m_fileTracker = fileTracker;
 }
 
-IVersionControl::~IVersionControl()
+/*!
+    Provides the \a topicRefresher function object for use in \c vscTopic() cache handling.
+
+    The parameter object takes a repository as input and returns its current topic.
+ */
+
+void IVersionControl::setTopicRefresher(const TopicRefresher &topicRefresher)
 {
-    delete m_topicCache;
+    d->m_topicRefresher = topicRefresher;
 }
 
 FilePaths IVersionControl::unmanagedFiles(const FilePaths &filePaths) const
@@ -176,29 +198,6 @@ IVersionControl::OpenSupportMode IVersionControl::openSupportMode(const FilePath
     Q_UNUSED(filePath)
     return NoOpen;
 }
-
-IVersionControl::TopicCache::~TopicCache() = default;
-
-/*!
-   Returns the topic for repository under \a topLevel.
-
-   If the cache for \a topLevel is valid, it will be used. Otherwise it will be refreshed.
- */
-QString IVersionControl::TopicCache::topic(const FilePath &topLevel)
-{
-    QTC_ASSERT(!topLevel.isEmpty(), return QString());
-    TopicData &data = m_cache[topLevel];
-    const FilePath file = trackFile(topLevel);
-
-    if (file.isEmpty())
-        return QString();
-    const QDateTime lastModified = file.lastModified();
-    if (lastModified == data.timeStamp)
-        return data.topic;
-    data.timeStamp = lastModified;
-    return data.topic = refreshTopic(topLevel);
-}
-
 void IVersionControl::fillLinkContextMenu(QMenu *, const FilePath &, const QString &)
 {
 }
@@ -211,53 +210,3 @@ bool IVersionControl::handleLink(const FilePath &workingDirectory, const QString
 }
 
 } // namespace Core
-
-#if defined(WITH_TESTS)
-
-#include <QFileInfo>
-
-namespace Core {
-
-TestVersionControl::~TestVersionControl()
-{
-    VcsManager::clearVersionControlCache();
-}
-
-void TestVersionControl::setManagedDirectories(const QHash<FilePath, FilePath> &dirs)
-{
-    m_managedDirs = dirs;
-    m_dirCount = 0;
-    VcsManager::clearVersionControlCache();
-}
-
-void TestVersionControl::setManagedFiles(const QSet<FilePath> &files)
-{
-    m_managedFiles = files;
-    m_fileCount = 0;
-    VcsManager::clearVersionControlCache();
-}
-
-bool TestVersionControl::managesDirectory(const FilePath &filePath, FilePath *topLevel) const
-{
-    ++m_dirCount;
-
-    if (m_managedDirs.contains(filePath)) {
-        if (topLevel)
-            *topLevel = m_managedDirs.value(filePath);
-        return true;
-    }
-    return false;
-}
-
-bool TestVersionControl::managesFile(const FilePath &workingDirectory, const QString &fileName) const
-{
-    ++m_fileCount;
-
-    FilePath full = workingDirectory.pathAppended(fileName);
-    if (!managesDirectory(full.parentDir(), nullptr))
-        return false;
-    return m_managedFiles.contains(full.absoluteFilePath());
-}
-
-} // namespace Core
-#endif

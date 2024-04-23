@@ -43,7 +43,7 @@ QuanFactory::QuanFactory()
 {
    setId( Constants::C_QUAN );
 
-   setDisplayName( tr("QuanView") );
+   setDisplayName( QObject::tr("QuanView") );
    setEditorCreator( [] {
        return new QuanEditor();
    });

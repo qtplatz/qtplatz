@@ -1,33 +1,7 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Quick 3D.
-**
-** $QT_BEGIN_LICENSE:GPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 or (at your option) any later version
-** approved by the KDE Free Qt Foundation. The licenses are as published by
-** the Free Software Foundation and appearing in the file LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-import QtQuick 2.15
+import QtQuick
 import HelperWidgets 2.0 as HelperWidgets
 
 HelperWidgets.ComboBox {
@@ -39,13 +13,15 @@ HelperWidgets.ComboBox {
     editable: true
     model: comboBox.addDefaultItem(itemFilterModel.itemModel)
 
+    validator: RegularExpressionValidator { regularExpression: /(^$|^[a-z_]\w*)/ }
+
     HelperWidgets.ItemFilterModel {
         id: itemFilterModel
         modelNodeBackendProperty: modelNodeBackend
     }
 
     property string defaultItem: qsTr("[None]")
-    property string textValue: comboBox.backendValue.expression
+    property string textValue: comboBox.backendValue?.expression ?? ""
     property bool block: false
     property bool dirty: true
 
@@ -56,17 +32,18 @@ HelperWidgets.ComboBox {
         comboBox.setCurrentText(comboBox.textValue)
     }
     onModelChanged: comboBox.setCurrentText(comboBox.textValue)
-    onCompressedActivated: function(index, reason) { comboBox.handleActivate(index) }
-    Component.onCompleted: comboBox.setCurrentText(comboBox.textValue)
-
     onEditTextChanged: comboBox.dirty = true
     onFocusChanged: {
         if (comboBox.dirty)
            comboBox.handleActivate(comboBox.currentIndex)
     }
 
-    function handleActivate(index)
-    {
+    onCompressedActivated: function(index, reason) { comboBox.handleActivate(index) }
+    onAccepted: comboBox.setCurrentText(comboBox.editText)
+
+    Component.onCompleted: comboBox.setCurrentText(comboBox.textValue)
+
+    function handleActivate(index) {
         if (!comboBox.__isCompleted || comboBox.backendValue === undefined)
             return
 
@@ -76,8 +53,7 @@ HelperWidgets.ComboBox {
         comboBox.block = false
     }
 
-    function setCurrentText(text)
-    {
+    function setCurrentText(text) {
         if (!comboBox.__isCompleted || comboBox.backendValue === undefined)
             return
 
@@ -102,8 +78,7 @@ HelperWidgets.ComboBox {
         comboBox.dirty = false
     }
 
-    function addDefaultItem(arr)
-    {
+    function addDefaultItem(arr) {
         var copy = arr.slice()
         copy.unshift(comboBox.defaultItem)
         return copy

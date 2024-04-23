@@ -1,40 +1,18 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "utils_global.h"
 
 #include "filepath.h"
-#include "optional.h"
+#include "store.h"
 
 #include <QHash>
 #include <QMessageBox>
-#include <QVariantMap>
 
 #include <memory>
+#include <optional>
 
 namespace Utils {
 
@@ -42,28 +20,28 @@ namespace Utils {
 // Helper:
 // -----------------------------------------------------------------------------
 
-QTCREATOR_UTILS_EXPORT int versionFromMap(const QVariantMap &data);
-QTCREATOR_UTILS_EXPORT int originalVersionFromMap(const QVariantMap &data);
-QTCREATOR_UTILS_EXPORT QByteArray settingsIdFromMap(const QVariantMap &data);
+QTCREATOR_UTILS_EXPORT int versionFromMap(const Store &data);
+QTCREATOR_UTILS_EXPORT int originalVersionFromMap(const Store &data);
+QTCREATOR_UTILS_EXPORT QByteArray settingsIdFromMap(const Store &data);
 
-QTCREATOR_UTILS_EXPORT void setVersionInMap(QVariantMap &data, int version);
-QTCREATOR_UTILS_EXPORT void setOriginalVersionInMap(QVariantMap &data, int version);
-QTCREATOR_UTILS_EXPORT void setSettingsIdInMap(QVariantMap &data, const QByteArray &id);
+QTCREATOR_UTILS_EXPORT void setVersionInMap(Store &data, int version);
+QTCREATOR_UTILS_EXPORT void setOriginalVersionInMap(Store &data, int version);
+QTCREATOR_UTILS_EXPORT void setSettingsIdInMap(Store &data, const QByteArray &id);
 
 // --------------------------------------------------------------------
 // Helpers:
 // --------------------------------------------------------------------
 
-QTCREATOR_UTILS_EXPORT int versionFromMap(const QVariantMap &data);
-QTCREATOR_UTILS_EXPORT int originalVersionFromMap(const QVariantMap &data);
-QTCREATOR_UTILS_EXPORT QByteArray settingsIdFromMap(const QVariantMap &data);
+QTCREATOR_UTILS_EXPORT int versionFromMap(const Store &data);
+QTCREATOR_UTILS_EXPORT int originalVersionFromMap(const Store &data);
+QTCREATOR_UTILS_EXPORT QByteArray settingsIdFromMap(const Store &data);
 
-QTCREATOR_UTILS_EXPORT void setVersionInMap(QVariantMap &data, int version);
-QTCREATOR_UTILS_EXPORT void setOriginalVersionInMap(QVariantMap &data, int version);
-QTCREATOR_UTILS_EXPORT void setSettingsIdInMap(QVariantMap &data, const QByteArray &id);
+QTCREATOR_UTILS_EXPORT void setVersionInMap(Store &data, int version);
+QTCREATOR_UTILS_EXPORT void setOriginalVersionInMap(Store &data, int version);
+QTCREATOR_UTILS_EXPORT void setSettingsIdInMap(Store &data, const QByteArray &id);
 
 class PersistentSettingsWriter;
-using SettingsMergeResult = optional<QPair<QString, QVariant>>;
+using SettingsMergeResult = std::optional<QPair<Utils::Key, QVariant>>;
 
 // --------------------------------------------------------------------
 // SettingsAccessor:
@@ -73,8 +51,7 @@ using SettingsMergeResult = optional<QPair<QString, QVariant>>;
 class QTCREATOR_UTILS_EXPORT SettingsAccessor
 {
 public:
-    SettingsAccessor(const QString &docType, const QString &displayName,
-                     const QString &applicationDisplayName);
+    SettingsAccessor();
     virtual ~SettingsAccessor();
 
     enum ProceedInfo { Continue, DiscardAndContinue };
@@ -99,7 +76,7 @@ public:
     class RestoreData {
     public:
         RestoreData() = default;
-        RestoreData(const FilePath &path, const QVariantMap &data) : path{path}, data{data} { }
+        RestoreData(const FilePath &path, const Store &data) : path{path}, data{data} { }
         RestoreData(const QString &title, const QString &message, const Issue::Type type) :
             RestoreData(Issue(title, message, type))
         { }
@@ -110,34 +87,38 @@ public:
         bool hasWarning() const { return hasIssue() && issue.value().type == Issue::Type::WARNING; }
 
         FilePath path;
-        QVariantMap data;
-        optional<Issue> issue;
+        Store data;
+        std::optional<Issue> issue;
     };
 
-    QVariantMap restoreSettings(QWidget *parent) const;
-    bool saveSettings(const QVariantMap &data, QWidget *parent) const;
-
-    const QString docType;
-    const QString displayName;
-    const QString applicationDisplayName;
+    Store restoreSettings(QWidget *parent) const;
+    bool saveSettings(const Store &data, QWidget *parent) const;
 
     void setBaseFilePath(const FilePath &baseFilePath) { m_baseFilePath = baseFilePath; }
     void setReadOnly() { m_readOnly = true; }
     FilePath baseFilePath() const { return m_baseFilePath; }
 
     virtual RestoreData readData(const FilePath &path, QWidget *parent) const;
-    virtual optional<Issue> writeData(const FilePath &path, const QVariantMap &data, QWidget *parent) const;
+    virtual std::optional<Issue> writeData(const FilePath &path,
+                                           const Store &data,
+                                           QWidget *parent) const;
+
+    void setDocType(const QString &docType) { m_docType = docType; }
+    void setApplicationDisplayName(const QString &name) { m_applicationDisplayName = name; }
 
 protected:
     // Report errors:
-    QVariantMap restoreSettings(const FilePath &settingsPath, QWidget *parent) const;
+    Store restoreSettings(const FilePath &settingsPath, QWidget *parent) const;
     static ProceedInfo reportIssues(const Issue &issue, const FilePath &path, QWidget *parent);
 
-    virtual QVariantMap preprocessReadSettings(const QVariantMap &data) const;
-    virtual QVariantMap prepareToWriteSettings(const QVariantMap &data) const;
+    virtual Store preprocessReadSettings(const Store &data) const;
+    virtual Store prepareToWriteSettings(const Store &data) const;
 
     virtual RestoreData readFile(const FilePath &path) const;
-    virtual optional<Issue> writeFile(const FilePath &path, const QVariantMap &data) const;
+    virtual std::optional<Issue> writeFile(const FilePath &path, const Store &data) const;
+
+    QString m_docType;
+    QString m_applicationDisplayName;
 
 private:
     FilePath m_baseFilePath;
@@ -160,28 +141,28 @@ public:
     virtual int compare(const SettingsAccessor::RestoreData &data1,
                         const SettingsAccessor::RestoreData &data2) const;
 
-    virtual optional<FilePath>
-    backupName(const QVariantMap &oldData, const FilePath &path, const QVariantMap &data) const;
+    virtual std::optional<FilePath> backupName(const Store &oldData,
+                                               const FilePath &path,
+                                               const Store &data) const;
 };
 
 class QTCREATOR_UTILS_EXPORT BackingUpSettingsAccessor : public SettingsAccessor
 {
 public:
-    BackingUpSettingsAccessor(const QString &docType, const QString &displayName,
-                              const QString &applicationDisplayName);
-    BackingUpSettingsAccessor(std::unique_ptr<BackUpStrategy> &&strategy, const QString &docType,
-                              const QString &displayName, const QString &applicationDisplayName);
+    BackingUpSettingsAccessor();
 
     RestoreData readData(const FilePath &path, QWidget *parent) const override;
-    optional<Issue> writeData(const FilePath &path, const QVariantMap &data,
-                              QWidget *parent) const override;
+    std::optional<Issue> writeData(const FilePath &path,
+                                   const Store &data,
+                                   QWidget *parent) const override;
 
     BackUpStrategy *strategy() const { return m_strategy.get(); }
+    void setStrategy(std::unique_ptr<BackUpStrategy> &&strategy);
 
 private:
     FilePaths readFileCandidates(const FilePath &path) const;
     RestoreData bestReadFileData(const FilePaths &candidates, QWidget *parent) const;
-    void backupFile(const FilePath &path, const QVariantMap &data, QWidget *parent) const;
+    void backupFile(const FilePath &path, const Store &data, QWidget *parent) const;
 
     std::unique_ptr<BackUpStrategy> m_strategy;
 };
@@ -202,8 +183,9 @@ public:
     int compare(const SettingsAccessor::RestoreData &data1,
                 const SettingsAccessor::RestoreData &data2) const override;
 
-    optional<FilePath>
-    backupName(const QVariantMap &oldData, const FilePath &path, const QVariantMap &data) const override;
+    std::optional<FilePath> backupName(const Store &oldData,
+                                       const FilePath &path,
+                                       const Store &data) const override;
 
     const UpgradingSettingsAccessor *accessor() const { return m_accessor; }
 
@@ -211,7 +193,7 @@ protected:
     const UpgradingSettingsAccessor *m_accessor = nullptr;
 };
 
-// Handles updating a QVariantMap from version() to version() + 1
+// Handles updating a Store from version() to version() + 1
 class QTCREATOR_UTILS_EXPORT VersionUpgrader
 {
 public:
@@ -221,11 +203,11 @@ public:
     int version() const;
     QString backupExtension() const;
 
-    virtual QVariantMap upgrade(const QVariantMap &data) = 0;
+    virtual Store upgrade(const Store &data) = 0;
 
 protected:
-    using Change = QPair<QLatin1String,QLatin1String>;
-    QVariantMap renameKeys(const QList<Change> &changes, QVariantMap map) const;
+    using Change = QPair<Key, Key>;
+    Store renameKeys(const QList<Change> &changes, Store map) const;
 
 private:
     const int m_version;
@@ -237,10 +219,7 @@ class MergingSettingsAccessor;
 class QTCREATOR_UTILS_EXPORT UpgradingSettingsAccessor : public BackingUpSettingsAccessor
 {
 public:
-    UpgradingSettingsAccessor(const QString &docType,
-                              const QString &displayName, const QString &applicationDisplayName);
-    UpgradingSettingsAccessor(std::unique_ptr<BackUpStrategy> &&strategy, const QString &docType,
-                              const QString &displayName, const QString &appDisplayName);
+    UpgradingSettingsAccessor();
 
     int currentVersion() const;
     int firstSupportedVersion() const;
@@ -254,7 +233,7 @@ public:
     RestoreData readData(const FilePath &path, QWidget *parent) const override;
 
 protected:
-    QVariantMap prepareToWriteSettings(const QVariantMap &data) const override;
+    Store prepareToWriteSettings(const Store &data) const override;
 
     void setSettingsId(const QByteArray &id) { m_id = id; }
 
@@ -275,14 +254,12 @@ class QTCREATOR_UTILS_EXPORT MergingSettingsAccessor : public UpgradingSettingsA
 {
 public:
     struct SettingsMergeData {
-        QVariantMap main;
-        QVariantMap secondary;
-        QString key;
+        Store main;
+        Store secondary;
+        Key key;
     };
 
-    MergingSettingsAccessor(std::unique_ptr<BackUpStrategy> &&strategy,
-                            const QString &docType, const QString &displayName,
-                            const QString &applicationDisplayName);
+    MergingSettingsAccessor();
 
     RestoreData readData(const FilePath &path, QWidget *parent) const final;
 
@@ -294,10 +271,10 @@ protected:
 
     virtual SettingsMergeResult merge(const SettingsMergeData &global,
                                       const SettingsMergeData &local) const = 0;
-    static bool isHouseKeepingKey(const QString &key);
+    static bool isHouseKeepingKey(const Key &key);
 
-    virtual QVariantMap postprocessMerge(const QVariantMap &main, const QVariantMap &secondary,
-                                         const QVariantMap &result) const;
+    virtual Store postprocessMerge(const Store &main, const Store &secondary,
+                                   const Store &result) const;
 
 private:
     std::unique_ptr<SettingsAccessor> m_secondaryAccessor;
@@ -305,7 +282,7 @@ private:
 
 using SettingsMergeFunction = std::function<SettingsMergeResult(const MergingSettingsAccessor::SettingsMergeData &,
                                                                 const MergingSettingsAccessor::SettingsMergeData &)>;
-QTCREATOR_UTILS_EXPORT QVariant mergeQVariantMaps(const QVariantMap &mainTree, const QVariantMap &secondaryTree,
+QTCREATOR_UTILS_EXPORT QVariant mergeQVariantMaps(const Store &mainTree, const Store &secondaryTree,
                                                   const SettingsMergeFunction &merge);
 
 } // namespace Utils

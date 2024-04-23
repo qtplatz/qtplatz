@@ -1,57 +1,22 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "../coreplugin.h"
-
-#include "basefilefilter.h"
+#include "../testdatadir.h"
 #include "locatorfiltertest.h"
 
-#include <coreplugin/testdatadir.h>
 #include <utils/algorithm.h>
 #include <utils/fileutils.h>
 
 #include <QDir>
-#include <QTextStream>
 #include <QtTest>
 
 using namespace Core::Tests;
+using namespace Utils;
 
 namespace {
 
 QTC_DECLARE_MYTESTDATADIR("../../../tests/locators/")
-
-class MyBaseFileFilter : public Core::BaseFileFilter
-{
-public:
-    MyBaseFileFilter(const Utils::FilePaths &theFiles)
-    {
-        setFileIterator(new BaseFileFilter::ListIterator(theFiles));
-    }
-
-    void refresh(QFutureInterface<void> &) override {}
-};
 
 class ReferenceData
 {
@@ -74,14 +39,13 @@ void Core::Internal::CorePlugin::test_basefilefilter()
     QFETCH(QStringList, testFiles);
     QFETCH(QList<ReferenceData>, referenceDataList);
 
-    MyBaseFileFilter filter(Utils::transform(testFiles, &Utils::FilePath::fromString));
-    BasicLocatorFilterTest test(&filter);
-
-    for (const ReferenceData &reference : qAsConst(referenceDataList)) {
-        const QList<LocatorFilterEntry> filterEntries = test.matchesFor(reference.searchText);
+    LocatorFileCache cache;
+    cache.setFilePaths(FileUtils::toFilePathList(testFiles));
+    const LocatorMatcherTasks tasks = {cache.matcher()};
+    for (const ReferenceData &reference : std::as_const(referenceDataList)) {
+        const LocatorFilterEntries filterEntries = LocatorMatcher::runBlocking(
+            tasks, reference.searchText);
         const ResultDataList results = ResultData::fromFilterEntryList(filterEntries);
-//        QTextStream(stdout) << "----" << endl;
-//        ResultData::printFilterEntries(results);
         QCOMPARE(results, reference.results);
     }
 }
@@ -89,7 +53,7 @@ void Core::Internal::CorePlugin::test_basefilefilter()
 void Core::Internal::CorePlugin::test_basefilefilter_data()
 {
     auto shortNativePath = [](const QString &file) {
-        return Utils::FilePath::fromString(file).shortNativePath();
+        return FilePath::fromString(file).shortNativePath();
     };
 
     QTest::addColumn<QStringList>("testFiles");

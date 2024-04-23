@@ -1,0 +1,166 @@
+version: "3.7"
+
+x-default-service: &linux
+  working_dir: /qbs
+  environment:
+    - BUILD_OPTIONS
+    - QTEST_FUNCTION_TIMEOUT
+    - QBS_AUTOTEST_PROFILE
+    - QBS_TEST_SOURCE_ROOT
+    - WITH_ARCHIVE
+    - WITH_TESTS
+    - CLCACHE_DIR
+  volumes:
+    - .:/qbs
+    - ~/.ccache:/home/devel/.ccache
+  network_mode: bridge
+  cap_add:
+      - SYS_PTRACE
+
+services:
+  jammy-qt6: &jammy-qt6
+    << : *linux
+    hostname: jammy-qt6
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-0
+    build:
+      dockerfile: docker/jammy/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.3
+        QTCREATOR_VERSION: 11.0.3
+
+  jammy-qt5:
+    << : *linux
+    hostname: jammy-qt5
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-5.15.2_2.1.2-0
+    build:
+      dockerfile: docker/jammy/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.15.2
+        QTCREATOR_VERSION: 11.0.3
+
+  jammy:
+    << : *jammy-qt6
+
+  jammy-qt6-static:
+    << : *linux
+    hostname: jammy-qt6-static
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-static-6.5.0_2.1.2-0
+    build:
+      dockerfile: docker/jammy/test-qt6-static.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.0
+        QTCREATOR_VERSION: 11.0.3
+
+  jammy-android-515:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-5.15.2-0
+    build:
+      dockerfile: docker/jammy/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.15.2
+        ANDROID_NDK_VERSION: 23.0.7599858
+
+  jammy-android-62:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.2.4-0
+    build:
+      dockerfile: docker/jammy/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.2.4
+        ANDROID_NDK_VERSION: 23.0.7599858
+
+  jammy-android-65:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.5.0-0
+    build:
+      dockerfile: docker/jammy/test-android.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.0
+        ANDROID_NDK_VERSION: 25.1.8937393
+
+  jammy-android-ndk-r19c:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r19c-0
+    build:
+      dockerfile: docker/jammy/test-android-no-qt.Dockerfile
+      context: .
+      args:
+       ANDROID_NDK_VERSION: 19.2.5345600
+
+  jammy-android-ndk-r21e:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r21e-0
+    build:
+      dockerfile: docker/jammy/test-android-no-qt.Dockerfile
+      context: .
+      args:
+        ANDROID_NDK_VERSION: 21.4.7075529
+
+  jammy-android-ndk-r23:
+    << : *linux
+    hostname: jammy-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r23-0
+    build:
+      dockerfile: docker/jammy/test-android-no-qt.Dockerfile
+      context: .
+      args:
+        ANDROID_NDK_VERSION: 23.0.7599858
+
+  jammy-baremetal:
+    << : *linux
+    hostname: jammy-baremetal
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-baremetal-0
+    build:
+      dockerfile: docker/jammy/test-baremetal.Dockerfile
+      context: .
+
+  jammy-qt4:
+    << : *linux
+    hostname: jammy-qt4
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt4-0
+    build:
+      dockerfile: docker/jammy/test-qt4.Dockerfile
+      context: .
+
+  leap:
+    << : *linux
+    hostname: leap
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:leap-5.15.2_1.20.1-1
+    build:
+      dockerfile: docker/leap/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 5.15.2
+        QTCREATOR_VERSION: 5.0.3
+
+  windows:
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.6.0_1.24.0-0
+    build:
+      dockerfile: docker/windowsservercore/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.6.0
+        QTCREATOR_VERSION: 9.0.1
+    working_dir: 'C:/qbs'
+    environment:
+      - BUILD_OPTIONS
+      - WITH_DOCS
+    volumes:
+      - type: bind
+        source: .
+        target: C:\qbs
+      - type: bind
+        source: ~/.ccache
+        target: C:\.ccache
+    network_mode: nat

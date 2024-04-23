@@ -1,50 +1,79 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "openeditorsview.h"
+
+#include "documentmodel.h"
 #include "editormanager.h"
 #include "ieditor.h"
-#include "documentmodel.h"
+#include "../actionmanager/command.h"
+#include "../coreplugintr.h"
+#include "../inavigationwidgetfactory.h"
+#include "../opendocumentstreeview.h"
 
-#include <coreplugin/actionmanager/actionmanager.h>
-#include <coreplugin/actionmanager/command.h>
+#include <utils/fsengine/fileiconprovider.h>
 #include <utils/qtcassert.h>
 
-#include <QApplication>
+#include <QAbstractProxyModel>
 #include <QMenu>
 
-using namespace Core;
-using namespace Core::Internal;
+using namespace Utils;
 
-////
+namespace Core::Internal {
+
+class ProxyModel : public QAbstractProxyModel
+{
+public:
+    explicit ProxyModel(QObject *parent = nullptr);
+
+    QModelIndex mapFromSource(const QModelIndex & sourceIndex) const override;
+    QModelIndex mapToSource(const QModelIndex & proxyIndex) const override;
+
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex &child) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    void setSourceModel(QAbstractItemModel *sourceModel) override;
+
+    QVariant data(const QModelIndex &index, int role) const override;
+
+    // QAbstractProxyModel::sibling is broken in Qt 5
+    QModelIndex sibling(int row, int column, const QModelIndex &idx) const override;
+    // QAbstractProxyModel::supportedDragActions delegation is missing in Qt 5
+    Qt::DropActions supportedDragActions() const override;
+
+private:
+    void sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    void sourceRowsRemoved(const QModelIndex &parent, int start, int end);
+    void sourceRowsInserted(const QModelIndex &parent, int start, int end);
+    void sourceRowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+    void sourceRowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
+};
+
 // OpenEditorsWidget
-////
+
+class OpenEditorsWidget final : public OpenDocumentsTreeView
+{
+public:
+    OpenEditorsWidget();
+    ~OpenEditorsWidget() final;
+
+private:
+    void handleActivated(const QModelIndex &);
+    void updateCurrentItem(IEditor*);
+    void contextMenuRequested(QPoint pos);
+    void activateEditor(const QModelIndex &index);
+    void closeDocument(const QModelIndex &index);
+
+    bool userWantsContextMenu(const QMouseEvent *) const final;
+
+    ProxyModel *m_model;
+};
 
 OpenEditorsWidget::OpenEditorsWidget()
 {
-    setWindowTitle(tr("Open Documents"));
+    setWindowTitle(Tr::tr("Open Documents"));
     setDragEnabled(true);
     setDragDropMode(QAbstractItemView::DragOnly);
 
@@ -74,7 +103,7 @@ void OpenEditorsWidget::updateCurrentItem(IEditor *editor)
         clearSelection();
         return;
     }
-    const Utils::optional<int> index = DocumentModel::indexOfDocument(editor->document());
+    const std::optional<int> index = DocumentModel::indexOfDocument(editor->document());
     if (QTC_GUARD(index))
         setCurrentIndex(m_model->index(index.value(), 0));
     selectionModel()->select(currentIndex(),
@@ -111,6 +140,13 @@ void OpenEditorsWidget::closeDocument(const QModelIndex &index)
     updateCurrentItem(EditorManager::currentEditor());
 }
 
+bool OpenEditorsWidget::userWantsContextMenu(const QMouseEvent *e) const
+{
+    // block activating on entry on right click otherwise we might switch into another mode
+    // see QTCREATORBUG-30357
+    return e->button() == Qt::RightButton;
+}
+
 void OpenEditorsWidget::contextMenuRequested(QPoint pos)
 {
     QMenu contextMenu;
@@ -123,24 +159,6 @@ void OpenEditorsWidget::contextMenuRequested(QPoint pos)
     contextMenu.addSeparator();
     EditorManager::addNativeDirAndOpenWithActions(&contextMenu, entry);
     contextMenu.exec(mapToGlobal(pos));
-}
-
-///
-// OpenEditorsViewFactory
-///
-
-OpenEditorsViewFactory::OpenEditorsViewFactory()
-{
-    setId("Open Documents");
-    setDisplayName(OpenEditorsWidget::tr("Open Documents"));
-    setActivationSequence(QKeySequence(useMacShortcuts ? OpenEditorsWidget::tr("Meta+O")
-                                                       : OpenEditorsWidget::tr("Alt+O")));
-    setPriority(200);
-}
-
-NavigationView OpenEditorsViewFactory::createWidget()
-{
-    return {new OpenEditorsWidget, {}};
 }
 
 ProxyModel::ProxyModel(QObject *parent) : QAbstractProxyModel(parent)
@@ -223,6 +241,19 @@ void ProxyModel::setSourceModel(QAbstractItemModel *sm)
     }
 }
 
+QVariant ProxyModel::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::DecorationRole && index.column() == 0) {
+        const QVariant sourceDecoration = QAbstractProxyModel::data(index, role);
+        if (sourceDecoration.isValid())
+            return sourceDecoration;
+        const QVariant filePath = QAbstractProxyModel::data(index, DocumentModel::FilePathRole);
+        return FileIconProvider::icon(FilePath::fromVariant(filePath));
+    }
+
+    return QAbstractProxyModel::data(index, role);
+}
+
 QModelIndex ProxyModel::sibling(int row, int column, const QModelIndex &idx) const
 {
     return QAbstractItemModel::sibling(row, column, idx);
@@ -273,3 +304,29 @@ void ProxyModel::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
     int realEnd = parent.isValid() || end == 0 ? end : end - 1;
     beginInsertRows(parent, realStart, realEnd);
 }
+
+// OpenEditorsViewFactory
+
+class OpenEditorsViewFactory final : public INavigationWidgetFactory
+{
+public:
+    OpenEditorsViewFactory()
+    {
+        setId("Open Documents");
+        setDisplayName(Tr::tr("Open Documents"));
+        setActivationSequence(QKeySequence(useMacShortcuts ? Tr::tr("Meta+O") : Tr::tr("Alt+O")));
+        setPriority(200);
+    }
+
+    NavigationView createWidget() final
+    {
+        return {new OpenEditorsWidget, {}};
+    }
+};
+
+void createOpenEditorsViewFactory()
+{
+    static OpenEditorsViewFactory theOpenEditorsViewFactory;
+}
+
+} // Core::Internal

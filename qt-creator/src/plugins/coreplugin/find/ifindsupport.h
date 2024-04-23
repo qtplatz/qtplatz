@@ -1,31 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "textfindconstants.h"
+#include "../core_global.h"
+
+#include <utils/filesearch.h>
 
 #include <QObject>
 #include <QString>
@@ -44,25 +24,23 @@ public:
 
     virtual bool supportsReplace() const = 0;
     virtual bool supportsSelectAll() const;
-    virtual FindFlags supportedFindFlags() const = 0;
+    virtual Utils::FindFlags supportedFindFlags() const = 0;
     virtual void resetIncrementalSearch() = 0;
     virtual void clearHighlights() = 0;
     virtual QString currentFindString() const = 0;
     virtual QString completedFindString() const = 0;
 
-    virtual void highlightAll(const QString &, FindFlags) {}
-    virtual Result findIncremental(const QString &txt, FindFlags findFlags) = 0;
-    virtual Result findStep(const QString &txt, FindFlags findFlags) = 0;
-    virtual void replace(const QString &before, const QString &after,
-                         FindFlags findFlags);
+    virtual void highlightAll(const QString &, Utils::FindFlags) {}
+    virtual Result findIncremental(const QString &txt, Utils::FindFlags findFlags) = 0;
+    virtual Result findStep(const QString &txt, Utils::FindFlags findFlags) = 0;
+    virtual void replace(const QString &before, const QString &after, Utils::FindFlags findFlags);
     virtual bool replaceStep(const QString &before, const QString &after,
-        FindFlags findFlags);
-    virtual int replaceAll(const QString &before, const QString &after,
-        FindFlags findFlags);
-    virtual void selectAll(const QString &txt, FindFlags findFlags);
+                             Utils::FindFlags findFlags);
+    virtual int replaceAll(const QString &before, const QString &after, Utils::FindFlags findFlags);
+    virtual void selectAll(const QString &txt, Utils::FindFlags findFlags);
 
-    virtual void defineFindScope(){}
-    virtual void clearFindScope(){}
+    virtual void defineFindScope() {}
+    virtual void clearFindScope() {}
 
     static void showWrapIndicator(QWidget *parent);
 

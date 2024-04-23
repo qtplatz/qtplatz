@@ -1,18 +1,18 @@
 
 function( qtplatz_adplugin_output_dir varName provider )
   if ( APPLE )
-    set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE) # := QTPLATZ
+    # set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE)
+    set( ${varName} "bin/qtplatz.app/Contents/PlugIns/${provider}" PARENT_SCOPE)
   else()
-    #set( ${varName} "${QTC_BINARY_DIR}/${IDE_PLUGIN_PATH}" PARENT_SCOPE) # 'qtplatz'/'lib/qtcreator/plugins ; /'provider
     set( ${varName} "${QTC_BINARY_DIR}/lib/qtplatz/plugins" PARENT_SCOPE)
   endif()
 endfunction()
 
 function( qtplatz_adplugin_install_dir varName provider )
   if ( APPLE )
-    set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE)
+    # set( ${varName} "bin/${IDE_PLUGIN_PATH}/${provider}" PARENT_SCOPE)
+    set( ${varName} "bin/qtplatz.app/Contents/PlugIns/${provider}" PARENT_SCOPE)
   else()
-    #set( ${varName} "${IDE_PLUGIN_PATH}" PARENT_SCOPE)     # lib/qtcreator/plugins/ ; + provider
     set( ${varName} "lib/qtplatz/plugins" PARENT_SCOPE)
   endif()
 endfunction()

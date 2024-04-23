@@ -4,10 +4,8 @@ Git
 ```
 git clone https://github.com/qt-creator/qt-creator.git
 cd qt-creator
-git checkout v8.0.2
+git checkout v13.0.0
 ```
-
-v8.0.2 seems a last version, which support Qt5
 
 Build
 -----
@@ -204,7 +202,7 @@ qt-creator
 % mv src/libs/3rdparty/yaml-cpp deleted/src/libs/3rdparty
 
 % mv qbs deleted
-% mv src/shared/pch_files.qbs deleted/src/shared
+% mv src/shared/pch_files.qbs deleted/src/shared <--- error
 % mv src/src.qbs deleted/src
 
 % mv qtcreator.pri deleted
@@ -215,7 +213,7 @@ qt-creator
 ```
 
 
-2. plugin directory
+2. plugin directory (delete all files; except for CMakeFiles.txt and coreplugin)
 ----
 ```
 % mkdir -p deleted/src
@@ -273,3 +271,8 @@ tools directory
 % mkdir src/tools
 % mv deleted/src/tools/qtcreatorcrashhandler src/tools
 ```
+
+src/share directory
+-------
+
+rm -rf qtcreator

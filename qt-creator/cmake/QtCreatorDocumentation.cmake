@@ -9,20 +9,21 @@ add_feature_info("Build online documentation" WITH_ONLINE_DOCS "")
 # as this is not yet exported by cmake.
 # Used for QT_INSTALL_DOCS
 function(qt5_query_qmake)
-  if (NOT TARGET Qt5::qmake)
-    message(FATAL_ERROR "Qmake was not found. Add find_package(Qt5 COMPONENTS Core) to CMake to enable.")
+  if (NOT TARGET Qt::qmake)
+    message(FATAL_ERROR "Qmake was not found. Add find_package(Qt6 COMPONENTS Core) to CMake to enable.")
   endif()
   # dummy check for if we already queried qmake
   if (QT_INSTALL_BINS)
     return()
   endif()
 
-  get_target_property(_qmake_binary Qt5::qmake IMPORTED_LOCATION)
+  get_target_property(_qmake_binary Qt::qmake IMPORTED_LOCATION)
   execute_process(COMMAND "${_qmake_binary}" "-query"
                   TIMEOUT 10
                   RESULT_VARIABLE _qmake_result
                   OUTPUT_VARIABLE _qmake_stdout
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ${QTC_COMMAND_ERROR_IS_FATAL})
 
   if (NOT "${_qmake_result}" STREQUAL "0")
     message(FATAL_ERROR "Qmake did not execute successfully: ${_qmake_result}.")
@@ -40,23 +41,6 @@ function(qt5_query_qmake)
 
     set("${_key}" "${_value}" CACHE PATH "qmake import of ${_key}" FORCE)
   endforeach()
-endfunction()
-
-# Find programs:
-function(_doc_find_program result_var)
-  if (NOT TARGET Qt5::qmake)
-    message(FATAL_ERROR "QDoc is only available in Qt5 projects")
-  endif()
-
-  get_target_property(_qmake_binary Qt5::qmake IMPORTED_LOCATION)
-  get_filename_component(_qmake_dir "${_qmake_binary}" DIRECTORY)
-  find_program("_prg_${result_var}" ${ARGN} HINTS "${_qmake_dir}")
-  if ("_prg_${result_var}" STREQUAL "_prg_${result_var}-NOTFOUND")
-    set("_prg_${result_var}" "${result_var}-NOTFOUND")
-    message(WARNING "Could not find binary for ${result_var}")
-  endif()
-
-  set(${result_var} "${_prg_${result_var}}" PARENT_SCOPE)
 endfunction()
 
 function(_setup_doc_targets)
@@ -77,6 +61,11 @@ function(_setup_qdoc_targets _qdocconf_file _retval)
   cmake_parse_arguments(_arg "" "HTML_DIR;INSTALL_DIR;POSTFIX"
     "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS" ${ARGN})
 
+  if (NOT TARGET Qt::qdoc)
+    message(WARNING "qdoc missing: No documentation targets were generated. Add find_package(Qt5 COMPONENTS Help) to CMake to enable.")
+    return()
+  endif()
+
   foreach(_index ${_arg_INDEXES})
     list(APPEND _qdoc_index_args "-indexdir;${_index}")
   endforeach()
@@ -89,9 +78,9 @@ function(_setup_qdoc_targets _qdocconf_file _retval)
     list(APPEND _env "${_export}=${${_export}}")
   endforeach()
 
-  set(_full_qdoc_command "${_qdoc}")
+  get_target_property(_full_qdoc_command Qt::qdoc IMPORTED_LOCATION)
   if (_env)
-    set(_full_qdoc_command "${CMAKE_COMMAND}" "-E" "env" ${_env} "${_qdoc}")
+    set(_full_qdoc_command "${CMAKE_COMMAND}" "-E" "env" ${_env} "${_full_qdoc_command}")
   endif()
 
   if (_arg_HTML_DIR STREQUAL "")
@@ -152,8 +141,8 @@ function(_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
     set(_arg_QCH_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc")
   endif()
 
-  if (NOT TARGET Qt5::qhelpgenerator)
-    message(WARNING "qhelpgenerator missing: No QCH documentation targets were generated. Add find_package(Qt5 COMPONENTS Help) to CMake to enable.")
+  if (NOT TARGET Qt::qhelpgenerator)
+    message(WARNING "qhelpgenerator missing: No QCH documentation targets were generated. Add find_package(Qt6 COMPONENTS Help) to CMake to enable.")
     return()
   endif()
 
@@ -165,7 +154,7 @@ function(_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
   set(_qch_target "qch_docs_${_target}")
   set(_html_target "html_docs_${_target}")
   add_custom_target("${_qch_target}"
-    Qt5::qhelpgenerator "${_html_outputdir}/${_target}.qhp" -o "${_qch_outputdir}/${_target}.qch"
+    Qt::qhelpgenerator "${_html_outputdir}/${_target}.qhp" -o "${_qch_outputdir}/${_target}.qch"
     COMMENT "Build QCH documentation from ${_qdocconf_file}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     VERBATIM
@@ -180,12 +169,6 @@ endfunction()
 # Helper functions:
 function(qdoc_build_qdocconf_file _qdocconf_file)
   _setup_doc_targets()
-
-  _doc_find_program(_qdoc NAMES qdoc qdoc-qt5)
-  if (_qdoc STREQUAL "_prg__qdoc-NOTFOUND")
-     message(WARNING "No qdoc binary found: No documentation targets were generated")
-     return()
-  endif()
 
   cmake_parse_arguments(_arg "QCH" "HTML_DIR;QCH_DIR;INSTALL_DIR;POSTFIX"
     "INDEXES;INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS" ${ARGN})
@@ -205,7 +188,7 @@ function(qdoc_build_qdocconf_file _qdocconf_file)
     FRAMEWORK_PATHS ${_arg_FRAMEWORK_PATHS}
   )
 
-  if (_arg_QCH)
+  if (_arg_QCH AND _html_outputdir)
     _setup_qhelpgenerator_targets("${_qdocconf_file}" "${_html_outputdir}"
       QCH_DIR "${_arg_QCH_DIR}" INSTALL_DIR "${_arg_INSTALL_DIR}")
   endif()
@@ -242,7 +225,7 @@ endfunction()
 
 function(add_qtc_documentation qdocconf_file)
   cmake_parse_arguments(_arg "" ""
-    "INCLUDE_DIRECTORIES;FRAMEWORK_PATHS" ${ARGN})
+    "INCLUDE_DIRECTORIES;FRAMEWORK_PATHS;ENVIRONMENT_EXPORTS" ${ARGN})
   if (_arg_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "add_qtc_documentation has unknown arguments: ${_arg_UNPARSED_ARGUMENTS}.")
   endif()
@@ -279,10 +262,33 @@ function(add_qtc_documentation qdocconf_file)
     QTC_DOCS_DIR QTC_VERSION QTC_VERSION_TAG
     QTCREATOR_COPYRIGHT_YEAR
     QT_INSTALL_DOCS QDOC_INDEX_DIR
+    ${_arg_ENVIRONMENT_EXPORTS}
   )
 
   qdoc_build_qdocconf_file(${qdocconf_file} ${_qch_params} ${_qdoc_params}
     INCLUDE_DIRECTORIES ${_arg_INCLUDE_DIRECTORIES}
     FRAMEWORK_PATHS ${_arg_FRAMEWORK_PATHS}
   )
+endfunction()
+
+function(add_qtc_doc_attribution target attribution_file output_file qdocconf_file)
+  get_filename_component(doc_target "${qdocconf_file}" NAME_WE)
+  set(html_target "html_docs_${doc_target}")
+  if (NOT TARGET ${html_target})
+      # probably qdoc is missing, so other documentation targets are not there
+      return()
+  endif()
+  # make sure output directory exists
+  get_filename_component(output_dir "${output_file}" DIRECTORY)
+  file(MAKE_DIRECTORY ${output_dir})
+  # add target
+  add_custom_target(${target}
+      Qt6::qtattributionsscanner -o "${output_file}" --basedir "${PROJECT_SOURCE_DIR}" ${attribution_file}
+    COMMENT "Create attributions ${output_file} from ${attribution_file}"
+    DEPENDS "${attribution_file}"
+    SOURCES "${attribution_file}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    VERBATIM
+  )
+  add_dependencies(${html_target} ${target})
 endfunction()

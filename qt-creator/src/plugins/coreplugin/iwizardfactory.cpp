@@ -1,31 +1,10 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "iwizardfactory.h"
 
 #include "actionmanager/actionmanager.h"
+#include "coreplugintr.h"
 #include "documentmanager.h"
 #include "icore.h"
 #include "featureprovider.h"
@@ -33,7 +12,7 @@
 #include <extensionsystem/pluginspec.h>
 #include <extensionsystem/pluginmanager.h>
 
-#include <utils/fileutils.h>
+#include <utils/filepath.h>
 #include <utils/icon.h>
 #include <utils/qtcassert.h>
 #include <utils/wizard.h>
@@ -65,7 +44,7 @@
     To make your wizard known to the system, add your IWizardFactory instance to the
     plugin manager's object pool in your plugin's initialize function:
     \code
-        bool MyPlugin::initialize(const QStringList &arguments, QString *errorString)
+        void MyPlugin::initialize()
         {
             // ... do setup
             addAutoReleasedObject(new MyWizardFactory);
@@ -85,6 +64,17 @@
         The wizard creates one or more files.
     \value ProjectWizard
         The wizard creates a new project.
+*/
+
+/*!
+    \enum Core::IWizardFactory::WizardFlag
+
+    Holds information about the created projects and files.
+
+    \value PlatformIndependent
+        The wizard creates projects that run on all platforms.
+    \value ForceCapitalLetterForFileName
+        The wizard uses an initial capital letter for the names of new files.
 */
 
 /*!
@@ -195,30 +185,32 @@ QList<IWizardFactory*> IWizardFactory::allWizardFactories()
         s_areFactoriesLoaded = true;
 
         QHash<Id, IWizardFactory *> sanityCheck;
-        for (const FactoryCreator &fc : qAsConst(s_factoryCreators)) {
-            const QList<IWizardFactory *> tmp = fc();
-            for (IWizardFactory *newFactory : tmp) {
-                QTC_ASSERT(newFactory, continue);
+        for (const FactoryCreator &fc : std::as_const(s_factoryCreators)) {
+            for (IWizardFactory *newFactory : fc()) {
+                if (!newFactory) // should not happen, but maybe something went wrong
+                    continue;
                 IWizardFactory *existingFactory = sanityCheck.value(newFactory->id());
 
                 QTC_ASSERT(existingFactory != newFactory, continue);
                 if (existingFactory) {
-                    qWarning("%s", qPrintable(tr("Factory with id=\"%1\" already registered. Deleting.")
-                                              .arg(existingFactory->id().toString())));
+                    qWarning("%s",
+                             qPrintable(
+                                 Tr::tr("Factory with id=\"%1\" already registered. Deleting.")
+                                     .arg(existingFactory->id().toString())));
                     delete newFactory;
                     continue;
                 }
 
                 QTC_ASSERT(!newFactory->m_action, continue);
-                newFactory->m_action = new QAction(newFactory->displayName(), newFactory);
-                ActionManager::registerAction(newFactory->m_action, actionId(newFactory));
-
-                connect(newFactory->m_action, &QAction::triggered, newFactory, [newFactory]() {
-                    if (!ICore::isNewItemDialogRunning()) {
-                        FilePath path = newFactory->runPath({});
-                        newFactory->runWizard(path, ICore::dialogParent(), Id(), QVariantMap());
-                    }
-                });
+                ActionBuilder(newFactory, actionId(newFactory))
+                    .setText(newFactory->displayName())
+                    .bindContextAction(&newFactory->m_action)
+                    .addOnTriggered(newFactory, [newFactory] {
+                        if (!ICore::isNewItemDialogRunning()) {
+                            FilePath path = newFactory->runPath({});
+                            newFactory->runWizard(path, ICore::dialogParent(), Id(), QVariantMap());
+                        }
+                    });
 
                 sanityCheck.insert(newFactory->id(), newFactory);
                 s_allFactories << newFactory;
@@ -258,6 +250,9 @@ FilePath IWizardFactory::runPath(const FilePath &defaultPath) const
     The \a path argument is a suggestion for the location where files should be
     created. The wizard should fill this in its path selection elements as a
     default path.
+
+    When \a showWizard is \c false, the wizard instance is created and set up
+    but not actually shown.
 */
 Wizard *IWizardFactory::runWizard(const FilePath &path, QWidget *parent, Id platform,
                                   const QVariantMap &variables,
@@ -275,15 +270,15 @@ Wizard *IWizardFactory::runWizard(const FilePath &path, QWidget *parent, Id plat
         s_currentWizard = wizard;
         // Connect while wizard exists:
         if (m_action)
-            connect(m_action, &QAction::triggered, wizard, [wizard]() { ICore::raiseWindow(wizard); });
+            connect(m_action, &QAction::triggered, wizard, [wizard] { ICore::raiseWindow(wizard); });
         connect(s_inspectWizardAction, &QAction::triggered,
-                wizard, [wizard]() { wizard->showVariables(); });
+                wizard, [wizard] { wizard->showVariables(); });
         connect(wizard, &Utils::Wizard::finished, this, [wizard](int result) {
             if (result != QDialog::Accepted)
                 s_reopenData.clear();
             wizard->deleteLater();
         });
-        connect(wizard, &QObject::destroyed, this, []() {
+        connect(wizard, &QObject::destroyed, this, [] {
             s_isWizardRunning = false;
             s_currentWizard = nullptr;
             s_inspectWizardAction->setEnabled(false);
@@ -329,10 +324,15 @@ void IWizardFactory::registerFactoryCreator(const IWizardFactory::FactoryCreator
     s_factoryCreators << creator;
 }
 
+void IWizardFactory::registerFactoryCreator(const std::function<IWizardFactory *()> &creator)
+{
+    s_factoryCreators << [creator] { return QList<IWizardFactory *>({creator()}); };
+}
+
 QSet<Id> IWizardFactory::allAvailablePlatforms()
 {
     QSet<Id> platforms;
-    for (const IFeatureProvider *featureManager : qAsConst(s_providerList))
+    for (const IFeatureProvider *featureManager : std::as_const(s_providerList))
         platforms.unite(featureManager->availablePlatforms());
 
     return platforms;
@@ -340,7 +340,7 @@ QSet<Id> IWizardFactory::allAvailablePlatforms()
 
 QString IWizardFactory::displayNameForPlatform(Id i)
 {
-    for (const IFeatureProvider *featureManager : qAsConst(s_providerList)) {
+    for (const IFeatureProvider *featureManager : std::as_const(s_providerList)) {
         const QString displayName = featureManager->displayNameForPlatform(i);
         if (!displayName.isEmpty())
             return displayName;
@@ -385,7 +385,10 @@ void IWizardFactory::destroyFeatureProvider()
 
 void IWizardFactory::clearWizardFactories()
 {
-    for (IWizardFactory *factory : qAsConst(s_allFactories))
+    if (!s_areFactoriesLoaded)
+        return;
+
+    for (IWizardFactory *factory : std::as_const(s_allFactories))
         ActionManager::unregisterAction(factory->m_action, actionId(factory));
 
     qDeleteAll(s_allFactories);
@@ -412,7 +415,7 @@ QSet<Id> IWizardFactory::availableFeatures(Id platformId)
 {
     QSet<Id> availableFeatures;
 
-    for (const IFeatureProvider *featureManager : qAsConst(s_providerList))
+    for (const IFeatureProvider *featureManager : std::as_const(s_providerList))
         availableFeatures.unite(featureManager->availableFeatures(platformId));
 
     return availableFeatures;
@@ -422,15 +425,22 @@ void IWizardFactory::initialize()
 {
     connect(ICore::instance(), &ICore::coreAboutToClose, &IWizardFactory::clearWizardFactories);
 
-    auto resetAction = new QAction(tr("Reload All Wizards"), ActionManager::instance());
-    ActionManager::registerAction(resetAction, "Wizard.Factory.Reset");
+    QAction *resetAction = nullptr;
+    ActionBuilder(ActionManager::instance(), "Wizard.Factory.Reset")
+        .setText(Tr::tr("Reload All Wizards"))
+        .bindContextAction(&resetAction)
+        .addOnTriggered(&IWizardFactory::clearWizardFactories);
 
-    connect(resetAction, &QAction::triggered, &IWizardFactory::clearWizardFactories);
     connect(ICore::instance(), &ICore::newItemDialogStateChanged, resetAction,
-            [resetAction]() { resetAction->setEnabled(!ICore::isNewItemDialogRunning()); });
+            [resetAction] { resetAction->setEnabled(!ICore::isNewItemDialogRunning()); });
 
-    s_inspectWizardAction = new QAction(tr("Inspect Wizard State"), ActionManager::instance());
-    ActionManager::registerAction(s_inspectWizardAction, "Wizard.Inspect");
+    connect(ExtensionSystem::PluginManager::instance(),
+            &ExtensionSystem::PluginManager::pluginsChanged,
+            &IWizardFactory::clearWizardFactories);
+
+    ActionBuilder(ActionManager::instance(), "Wizard.Inspect")
+        .setText(Tr::tr("Inspect Wizard State"))
+        .bindContextAction(&s_inspectWizardAction);
 }
 
 static QIcon iconWithText(const QIcon &icon, const QString &text)

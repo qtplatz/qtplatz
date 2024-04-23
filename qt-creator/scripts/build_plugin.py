@@ -1,31 +1,6 @@
 #!/usr/bin/env python3
-#############################################################################
-##
-## Copyright (C) 2020 The Qt Company Ltd.
-## Contact: https://www.qt.io/licensing/
-##
-## This file is part of the release tools of the Qt Toolkit.
-##
-## $QT_BEGIN_LICENSE:GPL-EXCEPT$
-## Commercial License Usage
-## Licensees holding valid commercial Qt licenses may use this file in
-## accordance with the commercial license agreement provided with the
-## Software or, alternatively, in accordance with the terms contained in
-## a written agreement between you and The Qt Company. For licensing terms
-## and conditions see https://www.qt.io/terms-conditions. For further
-## information use the contact form at https://www.qt.io/contact-us.
-##
-## GNU General Public License Usage
-## Alternatively, this file may be used under the terms of the GNU
-## General Public License version 3 as published by the Free Software
-## Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-## included in the packaging of this file. Please review the following
-## information to ensure the GNU General Public License requirements will
-## be met: https://www.gnu.org/licenses/gpl-3.0.html.
-##
-## $QT_END_LICENSE$
-##
-#############################################################################
+# Copyright (C) 2020 The Qt Company Ltd.
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 # import the print function which is used in python 3.x
 from __future__ import print_function
@@ -34,6 +9,7 @@ import argparse
 import collections
 import glob
 import os
+import shlex
 
 import common
 
@@ -64,6 +40,16 @@ def get_arguments():
                         action='store_true', default=False)
     parser.add_argument('--build-type', help='Build type to pass to CMake (defaults to RelWithDebInfo)',
                         default='RelWithDebInfo')
+    # zipping
+    parser.add_argument('--zip-threads', help='Sets number of threads to use for 7z. Use "+" for turning threads on '
+                        'without a specific number of threads. This is directly passed to the "-mmt" option of 7z.',
+                        default='2')
+    # signing
+    parser.add_argument('--keychain-unlock-script',
+                        help='Path to script for unlocking the keychain used for signing (macOS)')
+    parser.add_argument('--sign-command',
+                        help='Command to use for signing (Windows). The installation directory to sign is added at the end. Is run in the CWD.')
+
     args = parser.parse_args()
     args.with_debug_info = args.build_type == 'RelWithDebInfo'
     return args
@@ -158,17 +144,35 @@ def build(args, paths):
 def package(args, paths):
     if not os.path.exists(paths.result):
         os.makedirs(paths.result)
-    common.check_print_call(['7z', 'a', '-mmt2', os.path.join(paths.result, args.name + '.7z'), '*'],
+    if common.is_windows_platform() and args.sign_command:
+        command = shlex.split(args.sign_command)
+        common.check_print_call(command + [paths.install])
+    common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads, os.path.join(paths.result, args.name + '.7z'), '*'],
                             paths.install)
     if os.path.exists(paths.dev_install):  # some plugins might not provide anything in Devel
-        common.check_print_call(['7z', 'a', '-mmt2',
+        common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
                                  os.path.join(paths.result, args.name + '_dev.7z'), '*'],
                                 paths.dev_install)
     # check for existence - the DebugInfo install target doesn't work for telemetry plugin
     if args.with_debug_info and os.path.exists(paths.debug_install):
-        common.check_print_call(['7z', 'a', '-mmt2',
+        common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
                                  os.path.join(paths.result, args.name + '-debug.7z'), '*'],
                                 paths.debug_install)
+    if common.is_mac_platform() and common.codesign_call():
+        if args.keychain_unlock_script:
+            common.check_print_call([args.keychain_unlock_script], paths.install)
+        if os.environ.get('SIGNING_IDENTITY'):
+            signed_install_path = paths.install + '-signed'
+            common.copytree(paths.install, signed_install_path, symlinks=True)
+            apps = [d for d in os.listdir(signed_install_path) if d.endswith('.app')]
+            if apps:
+                app = apps[0]
+                common.conditional_sign_recursive(os.path.join(signed_install_path, app),
+                                                  lambda ff: ff.endswith('.dylib'))
+                common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
+                                         os.path.join(paths.result, args.name + '-signed.7z'),
+                                         app],
+                                        signed_install_path)
 
 def get_paths(args):
     Paths = collections.namedtuple('Paths',

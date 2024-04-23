@@ -1,33 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuickDesignerTheme 1.0
-import HelperWidgets 2.0
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Controls
+import HelperWidgets
+import StudioTheme as StudioTheme
+import ItemLibraryBackend
+import QtQuickDesignerTheme
 
 Item {
     id: delegateRoot
@@ -56,8 +35,8 @@ Item {
             anchors.topMargin: styleConstants.cellVerticalMargin
             anchors.horizontalCenter: parent.horizontalCenter
 
-            width: itemLibraryIconWidth  // to be set in Qml context
-            height: itemLibraryIconHeight   // to be set in Qml context
+            width: ItemLibraryBackend.itemLibraryIconWidth  // to be set in Qml context
+            height: ItemLibraryBackend.itemLibraryIconHeight   // to be set in Qml context
             source: itemLibraryIconPath     // to be set by model
 
             // Icons generated for components can change if the component is edited,
@@ -90,17 +69,19 @@ Item {
             id: mouseRegion
             anchors.fill: parent
 
+            tooltip: toolTip
+
             onShowContextMenu: delegateRoot.showContextMenu()
             onPressed: (mouse)=> {
                 allowTooltip = false
                 hide()
                 if (mouse.button === Qt.LeftButton)
-                    rootView.startDragAndDrop(itemLibraryEntry, mapToGlobal(mouse.x, mouse.y))
+                    ItemLibraryBackend.rootView.startDragAndDrop(itemLibraryEntry, mapToGlobal(mouse.x, mouse.y))
             }
             onDoubleClicked: (mouse)=> {
                 if (mouse.button === Qt.LeftButton && itemComponentSource) {
                     hide()
-                    rootView.goIntoComponent(itemComponentSource)
+                    ItemLibraryBackend.rootView.goIntoComponent(itemComponentSource)
                 }
             }
         }

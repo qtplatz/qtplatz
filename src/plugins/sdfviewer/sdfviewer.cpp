@@ -52,8 +52,6 @@
 #include <QToolBar>
 #include <QWidget>
 
-#include <adportable/debug.hpp>
-
 using namespace Core;
 using namespace Utils;
 

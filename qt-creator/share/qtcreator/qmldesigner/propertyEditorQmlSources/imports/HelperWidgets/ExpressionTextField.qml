@@ -1,34 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Controls 2.15
-import QtQuickDesignerTheme 1.0
-import StudioControls 1.0 as StudioControls
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import StudioControls as StudioControls
+import StudioTheme as StudioTheme
 
 StudioControls.TextField {
     id: textField
@@ -223,21 +200,22 @@ StudioControls.TextField {
         listView.model = list
     }
 
-    Keys.onSpacePressed: function(event) {
-        if (event.modifiers & Qt.ControlModifier) {
-            var list = autoComplete(textField.text, textField.cursorPosition, true, textField.completeOnlyTypes)
-            textField.prefix = textField.text.substring(0, textField.cursorPosition)
-            if (list.length && list[list.length - 1] === textField.prefix)
-                list.pop()
+    // Currently deactivated as it is causing a crash when calling autoComplete()
+    //Keys.onSpacePressed: function(event) {
+    //    if (event.modifiers & Qt.ControlModifier) {
+    //        var list = autoComplete(textField.text, textField.cursorPosition, true, textField.completeOnlyTypes)
+    //        textField.prefix = textField.text.substring(0, textField.cursorPosition)
+    //        if (list.length && list[list.length - 1] === textField.prefix)
+    //            list.pop()
 
-            listView.model = list
-            textField.dotCompletion = false
+    //        listView.model = list
+    //        textField.dotCompletion = false
 
-            event.accepted = true;
-        } else {
-            event.accepted = false
-        }
-    }
+    //        event.accepted = true
+    //    } else {
+    //        event.accepted = false
+    //    }
+    //}
 
     Keys.onReturnPressed: function(event) {
         event.accepted = false

@@ -29,20 +29,6 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
 endif()
 ####################### END ##########################
 
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  set(COMPAT_VERSION 3.2.81)
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.pluginspec.in"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    )
-
-  execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    )
-endif()
-
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_SOURCE_DIR}/src/plugins
@@ -50,12 +36,6 @@ include_directories(
   )
 
 add_definitions( -DSERVANT_LIBRARY )
-
-if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
-  set( EXTENSIONSYSTEM "ExtensionSystem" )
-else()
-  set( EXTENSIONSYSTEM "extensionsystem" )
-endif()
 
 add_library( ${PROJECT_NAME} MODULE
     outputwindow.cpp
@@ -78,7 +58,7 @@ add_library( ${PROJECT_NAME} MODULE
     adplugin_manager
     adextension
     Core
-    ${EXTENSIONSYSTEM}
+    ExtensionSystem
     Qt::Core
   )
 

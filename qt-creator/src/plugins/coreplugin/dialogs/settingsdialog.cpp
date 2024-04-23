@@ -1,40 +1,25 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "settingsdialog.h"
 
-#include <coreplugin/icore.h>
-#include <coreplugin/dialogs/ioptionspage.h>
-#include <coreplugin/iwizardfactory.h>
+#include "ioptionspage.h"
+#include "../coreplugintr.h"
+#include "../icore.h"
+#include "../iwizardfactory.h"
 
 #include <utils/algorithm.h>
-#include <utils/hostosinfo.h>
 #include <utils/fancylineedit.h>
+#include <utils/guiutils.h>
+#include <utils/hostosinfo.h>
+#include <utils/icon.h>
 #include <utils/qtcassert.h>
+#include <utils/stylehelper.h>
 
+#include <QAbstractSpinBox>
 #include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QEventLoop>
@@ -49,12 +34,13 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSet>
-#include <QSettings>
 #include <QSortFilterProxyModel>
 #include <QSpacerItem>
 #include <QStackedLayout>
 #include <QStyle>
 #include <QStyledItemDelegate>
+
+#include <extensionsystem/pluginmanager.h>
 
 const int kInitialWidth = 750;
 const int kInitialHeight = 450;
@@ -62,6 +48,7 @@ const int kMaxMinimumWidth = 250;
 const int kMaxMinimumHeight = 250;
 
 static const char pageKeyC[] = "General/LastPreferencePage";
+static const char sortKeyC[] = "General/SortCategories";
 const int categoryIconSize = 24;
 
 using namespace Utils;
@@ -185,8 +172,10 @@ void CategoryModel::setPages(const QList<IOptionsPage*> &pages,
         }
         if (category->displayName.isEmpty())
             category->displayName = page->displayCategory();
-        if (category->icon.isNull())
-            category->icon = page->categoryIcon();
+        if (category->icon.isNull() && !page->categoryIconPath().isEmpty()) {
+            Icon icon({{page->categoryIconPath(), Theme::PanelTextColorDark}}, Icon::Tint);
+            category->icon = icon.icon();
+        }
         category->pages.append(page);
     }
 
@@ -202,8 +191,10 @@ void CategoryModel::setPages(const QList<IOptionsPage*> &pages,
         }
         if (category->displayName.isEmpty())
             category->displayName = provider->displayCategory();
-        if (category->icon.isNull())
-            category->icon = provider->categoryIcon();
+        if (category->icon.isNull()) {
+            Icon icon({{provider->categoryIconPath(), Theme::PanelTextColorDark}}, Icon::Tint);
+            category->icon = icon.icon();
+        }
         category->providers.append(provider);
     }
 
@@ -217,11 +208,11 @@ void CategoryModel::ensurePages(Category *category)
 {
     if (!category->providerPagesCreated) {
         QList<IOptionsPage *> createdPages;
-        for (const IOptionsPageProvider *provider : qAsConst(category->providers))
+        for (const IOptionsPageProvider *provider : std::as_const(category->providers))
             createdPages += provider->pages();
 
         // check for duplicate ids
-        for (const IOptionsPage *page : qAsConst(createdPages)) {
+        for (const IOptionsPage *page : std::as_const(createdPages)) {
             QTC_ASSERT(!m_pageIds.contains(page->id()),
                        qWarning("duplicate options page id '%s'", qPrintable(page->id().toString())));
         }
@@ -258,15 +249,33 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 };
 
+const char SETTING_HIDE_OPTION_CATEGORIES[] = "HideOptionCategories";
+
+static bool categoryVisible(const Id &id)
+{
+    static QStringList list
+        = Core::ICore::settings()->value(SETTING_HIDE_OPTION_CATEGORIES).toStringList();
+
+    if (anyOf(list, [id](const QString &str) { return id.toString().contains(str); }))
+        return false;
+
+    return true;
+}
+
 bool CategoryFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
+    const CategoryModel *cm = static_cast<CategoryModel *>(sourceModel());
+    const Category *category = cm->categories().at(sourceRow);
+
+    if (!categoryVisible(category->id))
+        return false;
+
     // Regular contents check, then check page-filter.
     if (QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent))
         return true;
 
     const QRegularExpression regex = filterRegularExpression();
-    const CategoryModel *cm = static_cast<CategoryModel*>(sourceModel());
-    const Category *category = cm->categories().at(sourceRow);
+
     for (const IOptionsPage *page : category->pages) {
         if (page->displayCategory().contains(regex) || page->displayName().contains(regex)
             || page->matches(regex))
@@ -331,17 +340,42 @@ public:
 
 // ----------- SmartScrollArea
 
+template <typename T>
+void setWheelScrollingWithoutFocusBlockedForChildren(QWidget *widget)
+{
+    const auto children = widget->findChildren<T>();
+    for (auto child : children)
+        setWheelScrollingWithoutFocusBlocked(child);
+}
+
 class SmartScrollArea : public QScrollArea
 {
 public:
-    explicit SmartScrollArea(QWidget *parent)
-        : QScrollArea(parent)
+    explicit SmartScrollArea(QWidget *parent, IOptionsPage *page)
+        : QScrollArea(parent), m_page(page)
     {
         setFrameStyle(QFrame::NoFrame | QFrame::Plain);
         viewport()->setAutoFillBackground(false);
         setWidgetResizable(true);
     }
+
 private:
+    void showEvent(QShowEvent *event) final
+    {
+        if (!widget()) {
+            if (QWidget *inner = m_page->widget()) {
+                setWheelScrollingWithoutFocusBlockedForChildren<QComboBox *>(inner);
+                setWheelScrollingWithoutFocusBlockedForChildren<QAbstractSpinBox *>(inner);
+                setWidget(inner);
+                inner->setAutoFillBackground(false);
+            } else {
+                QTC_CHECK(false);
+            }
+        }
+
+        QScrollArea::showEvent(event);
+    }
+
     void resizeEvent(QResizeEvent *event) final
     {
         QWidget *inner = widget();
@@ -390,6 +424,8 @@ private:
             return 0;
         return list.first()->sizeHint().width();
     }
+
+    IOptionsPage *m_page = nullptr;
 };
 
 // ----------- SettingsDialog
@@ -430,9 +466,9 @@ private:
     Id m_currentPage;
     QStackedLayout *m_stackedLayout;
     Utils::FancyLineEdit *m_filterLineEdit;
+    QCheckBox *m_sortCheckBox;
     QListView *m_categoryList;
     QLabel *m_headerLabel;
-    std::vector<QEventLoop *> m_eventLoops;
     bool m_running = false;
     bool m_applied = false;
     bool m_finished = false;
@@ -440,27 +476,35 @@ private:
 
 static QPointer<SettingsDialog> m_instance = nullptr;
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
-    QDialog(parent),
-    m_pages(sortedOptionsPages()),
-    m_stackedLayout(new QStackedLayout),
-    m_filterLineEdit(new Utils::FancyLineEdit),
-    m_categoryList(new CategoryListView),
-    m_headerLabel(new QLabel)
+SettingsDialog::SettingsDialog(QWidget *parent)
+    : QDialog(parent)
+    , m_pages(sortedOptionsPages())
+    , m_stackedLayout(new QStackedLayout)
+    , m_filterLineEdit(new Utils::FancyLineEdit)
+    , m_sortCheckBox(new QCheckBox(Tr::tr("Sort categories")))
+    , m_categoryList(new CategoryListView)
+    , m_headerLabel(new QLabel)
 {
     m_filterLineEdit->setFiltering(true);
 
     createGui();
-    setWindowTitle(QCoreApplication::translate("Core::Internal::SettingsDialog", "Preferences"));
+    setWindowTitle(Tr::tr("Preferences"));
 
     m_model.setPages(m_pages, IOptionsPageProvider::allOptionsPagesProviders());
 
+    m_proxyModel.setSortLocaleAware(true);
     m_proxyModel.setSourceModel(&m_model);
     m_proxyModel.setFilterCaseSensitivity(Qt::CaseInsensitive);
     m_categoryList->setIconSize(QSize(categoryIconSize, categoryIconSize));
     m_categoryList->setModel(&m_proxyModel);
     m_categoryList->setSelectionMode(QAbstractItemView::SingleSelection);
     m_categoryList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    connect(m_sortCheckBox, &QAbstractButton::toggled, this, [this](bool checked) {
+        m_proxyModel.sort(checked ? 0 : -1);
+    });
+    QtcSettings *settings = ICore::settings();
+    m_sortCheckBox->setChecked(settings->value(sortKeyC, false).toBool());
 
     connect(m_categoryList->selectionModel(), &QItemSelectionModel::currentRowChanged,
             this, &SettingsDialog::currentChanged);
@@ -485,8 +529,8 @@ void SettingsDialog::showPage(const Id pageId)
     // handle the case of "show last page"
     Id initialPageId = pageId;
     if (!initialPageId.isValid()) {
-        QSettings *settings = ICore::settings();
-        initialPageId = Id::fromSetting(settings->value(QLatin1String(pageKeyC)));
+        QtcSettings *settings = ICore::settings();
+        initialPageId = Id::fromSetting(settings->value(pageKeyC));
     }
 
     int initialCategoryIndex = -1;
@@ -539,14 +583,7 @@ void SettingsDialog::showPage(const Id pageId)
 
 void SettingsDialog::createGui()
 {
-    // Header label with large font and a bit of spacing (align with group boxes)
-    QFont headerLabelFont = m_headerLabel->font();
-    headerLabelFont.setBold(true);
-    // Paranoia: Should a font be set in pixels...
-    const int pointSize = headerLabelFont.pointSize();
-    if (pointSize > 0)
-        headerLabelFont.setPointSize(pointSize + 2);
-    m_headerLabel->setFont(headerLabelFont);
+    m_headerLabel->setFont(StyleHelper::uiFont(StyleHelper::UiElementH4));
 
     auto headerHLayout = new QHBoxLayout;
     const int leftMargin = QApplication::style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
@@ -570,8 +607,9 @@ void SettingsDialog::createGui()
     mainGridLayout->addWidget(m_filterLineEdit, 0, 0, 1, 1);
     mainGridLayout->addLayout(headerHLayout,    0, 1, 1, 1);
     mainGridLayout->addWidget(m_categoryList,   1, 0, 1, 1);
-    mainGridLayout->addLayout(m_stackedLayout,  1, 1, 1, 1);
-    mainGridLayout->addWidget(buttonBox,        2, 0, 1, 2);
+    mainGridLayout->addWidget(m_sortCheckBox,   2, 0, 1, 1);
+    mainGridLayout->addLayout(m_stackedLayout,  1, 1, 2, 1);
+    mainGridLayout->addWidget(buttonBox,        3, 0, 1, 2);
     mainGridLayout->setColumnStretch(1, 4);
     setLayout(mainGridLayout);
 
@@ -607,14 +645,8 @@ void SettingsDialog::ensureCategoryWidget(Category *category)
     m_model.ensurePages(category);
     auto tabWidget = new QTabWidget;
     tabWidget->tabBar()->setObjectName("qc_settings_main_tabbar"); // easier lookup in Squish
-    for (IOptionsPage *page : qAsConst(category->pages)) {
-        QWidget *widget = page->widget();
-        ICore::setupScreenShooter(page->displayName(), widget);
-        auto ssa = new SmartScrollArea(this);
-        ssa->setWidget(widget);
-        widget->setAutoFillBackground(false);
-        tabWidget->addTab(ssa, page->displayName());
-    }
+    for (IOptionsPage *page : std::as_const(category->pages))
+        tabWidget->addTab(new SmartScrollArea(this, page), page->displayName());
 
     connect(tabWidget, &QTabWidget::currentChanged,
             this, &SettingsDialog::currentTabChanged);
@@ -699,9 +731,9 @@ void SettingsDialog::accept()
     m_finished = true;
     disconnectTabWidgets();
     m_applied = true;
-    for (IOptionsPage *page : qAsConst(m_visitedPages))
+    for (IOptionsPage *page : std::as_const(m_visitedPages))
         page->apply();
-    for (IOptionsPage *page : qAsConst(m_pages))
+    for (IOptionsPage *page : std::as_const(m_pages))
         page->finish();
     done(QDialog::Accepted);
 }
@@ -712,29 +744,25 @@ void SettingsDialog::reject()
         return;
     m_finished = true;
     disconnectTabWidgets();
-    for (IOptionsPage *page : qAsConst(m_pages))
+    for (IOptionsPage *page : std::as_const(m_pages))
         page->finish();
     done(QDialog::Rejected);
 }
 
 void SettingsDialog::apply()
 {
-    for (IOptionsPage *page : qAsConst(m_visitedPages))
+    for (IOptionsPage *page : std::as_const(m_visitedPages))
         page->apply();
     m_applied = true;
 }
 
 void SettingsDialog::done(int val)
 {
-    QSettings *settings = ICore::settings();
-    settings->setValue(QLatin1String(pageKeyC), m_currentPage.toSetting());
+    QtcSettings *settings = ICore::settings();
+    settings->setValue(pageKeyC, m_currentPage.toSetting());
+    settings->setValue(sortKeyC, m_sortCheckBox->isChecked());
 
     ICore::saveSettings(ICore::SettingsDialogDone); // save all settings
-
-    // exit event loops in reverse order of addition
-    for (QEventLoop *eventLoop : m_eventLoops)
-        eventLoop->exit();
-    m_eventLoops.clear();
 
     QDialog::done(val);
 }
@@ -744,39 +772,44 @@ bool SettingsDialog::execDialog()
     if (!m_running) {
         m_running = true;
         m_finished = false;
-        static const QLatin1String kPreferenceDialogSize("Core/PreferenceDialogSize");
-        if (ICore::settings()->contains(kPreferenceDialogSize))
-            resize(ICore::settings()->value(kPreferenceDialogSize).toSize());
-        else
-            resize(kInitialWidth, kInitialHeight);
-        exec();
-        m_running = false;
-        m_instance = nullptr;
-        ICore::settings()->setValueWithDefault(kPreferenceDialogSize,
-                                               size(),
-                                               QSize(kInitialWidth, kInitialHeight));
-        // make sure that the current "single" instance is deleted
-        // we can't delete right away, since we still access the m_applied member
-        deleteLater();
-    } else {
-        // exec dialog is called while the instance is already running
-        // this can happen when a event triggers a code path that wants to
-        // show the settings dialog again
-        // e.g. when starting the debugger (with non-built debugging helpers),
-        // and manually opening the settings dialog, after the debugger hit
-        // a break point it will complain about missing helper, and offer the
-        // option to open the settings dialog.
-        // Keep the UI running by creating another event loop.
-        QEventLoop eventLoop;
-        m_eventLoops.emplace(m_eventLoops.begin(), &eventLoop);
-        eventLoop.exec();
-        QTC_ASSERT(m_eventLoops.empty(), return m_applied;);
+        static const char kPreferenceDialogSize[] = "Core/PreferenceDialogSize";
+        const QSize initialSize(kInitialWidth, kInitialHeight);
+        resize(ICore::settings()->value(kPreferenceDialogSize, initialSize).toSize());
+
+        // We call open here as exec is no longer the preferred method of displaying
+        // modal dialogs. The issue that triggered the change here was QTBUG-117814
+        // (on macOS: Caps Lock indicator does not update)
+        open();
+        connect(this, &QDialog::finished, this, [this, initialSize] {
+            m_running = false;
+            m_instance = nullptr;
+            ICore::settings()->setValueWithDefault(kPreferenceDialogSize, size(), initialSize);
+            // make sure that the current "single" instance is deleted
+            // we can't delete right away, since we still access the m_applied member
+            deleteLater();
+        });
     }
+
+    // This function needs to be blocking, so we need to wait for the dialog to finish.
+    // We cannot use QDialog::exec due to the issue described above at "open()".
+    // Since execDialog can be called multiple times, we need to run potentially multiple
+    // loops here, to have every invocation of execDialog() wait for the dialog to finish.
+    while (m_running)
+        QApplication::processEvents(QEventLoop::WaitForMoreEvents);
+
     return m_applied;
 }
 
 bool executeSettingsDialog(QWidget *parent, Id initialPage)
 {
+    if (!ExtensionSystem::PluginManager::isInitializationDone()) {
+        QObject::connect(ExtensionSystem::PluginManager::instance(),
+                         &ExtensionSystem::PluginManager::initializationDone,
+                         parent,
+                         [parent, initialPage]() { executeSettingsDialog(parent, initialPage); });
+        return false;
+    }
+
     // Make sure all wizards are there when the user might access the keyboard shortcuts:
     (void) IWizardFactory::allWizardFactories();
 

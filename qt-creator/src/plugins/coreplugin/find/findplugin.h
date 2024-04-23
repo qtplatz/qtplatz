@@ -1,31 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "textfindconstants.h"
+#include "../core_global.h"
+
+#include <utils/filesearch.h>
 
 #include <QObject>
 
@@ -52,15 +32,15 @@ public:
 
     enum { CompletionModelFindFlagsRole = Qt::UserRole + 1 };
 
-    static FindFlags findFlags();
-    static bool hasFindFlag(FindFlag flag);
-    static void updateFindCompletion(const QString &text, FindFlags flags = {});
+    static Utils::FindFlags findFlags();
+    static bool hasFindFlag(Utils::FindFlag flag);
+    static void updateFindCompletion(const QString &text, Utils::FindFlags flags = {});
     static void updateReplaceCompletion(const QString &text);
     static QAbstractListModel *findCompletionModel();
     static QStringListModel *replaceCompletionModel();
     static void setUseFakeVim(bool on);
     static void openFindToolBar(FindDirection direction);
-    static void openFindDialog(IFindFilter *filter);
+    static void openFindDialog(IFindFilter *filter, const QString &findString = {});
 
     static void setCaseSensitive(bool sensitive);
     static void setWholeWord(bool wholeOnly);

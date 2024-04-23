@@ -1,46 +1,26 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 VersionData {
     name: "Qt for MCUs 2.0"
 
-    bannedItems: ["QtQuick.AnimatedImage",
-        "QtQuick.FocusScope",
-        "QtQuick.TextInput",
-        "QtQuick.TextEdit",
+    bannedItems: [
+        "QtQuick.AnimatedImage",
+        "QtQuick.AnimatedSprite",
         "QtQuick.Flow",
+        "QtQuick.FocusScope",
         "QtQuick.Grid",
         "QtQuick.GridView",
-        "QtQuick.PathView",
         "QtQuick.Loader",
+        "QtQuick.PathView",
+        "QtQuick.TextEdit",
+        "QtQuick.TextInput",
         "QtQuick.Controls",
         "QtQuick.Controls.BusyIndicator",
         "QtQuick.Controls.ButtonGroup",
         "QtQuick.Controls.CheckDelegate",
-        "QtQuick.Controls.Container",
         "QtQuick.Controls.ComboBox",
+        "QtQuick.Controls.Container",
         "QtQuick.Controls.DelayButton",
         "QtQuick.Controls.Frame",
         "QtQuick.Controls.GroupBox",
@@ -57,27 +37,33 @@ VersionData {
         "QtQuick.Controls.StackView",
         "QtQuick.Controls.SwipeDelegate",
         "QtQuick.Controls.SwitchDelegate",
-        "QtQuick.Controls.ToolBar",
-        "QtQuick.Controls.ToolButton",
         "QtQuick.Controls.TabBar",
         "QtQuick.Controls.TabButton",
         "QtQuick.Controls.TextArea",
         "QtQuick.Controls.TextField",
+        "QtQuick.Controls.ToolBar",
+        "QtQuick.Controls.ToolButton",
         "QtQuick.Controls.ToolSeparator",
         "QtQuick.Controls.Tumbler",
         "QtQuick.Shapes.ConicalGradient",
         "QtQuick.Shapes.LinearGradient",
         "QtQuick.Shapes.RadialGradient",
-        "QtQuick.Shapes.ShapeGradient"]
+        "QtQuick.Shapes.ShapeGradient"
+    ]
 
-    allowedImports: ["QtQuick",
-        "QtQuick.Shapes",
+    allowedImports: [
+        "QtQuick",
         "QtQuick.Controls",
+        "QtQuick.Shapes",
         "QtQuick.Timeline",
         "QtQuickUltralite.Extras",
-        "QtQuickUltralite.Layers"]
+        "QtQuickUltralite.Layers"
+    ]
 
-    bannedImports: ["FlowView"]
+    bannedImports: [
+        "FlowView",
+        "SimulinkConnector"
+    ]
 
     //ComplexProperty is not a type, it's just a way to handle bigger props
     ComplexProperty {
@@ -85,6 +71,10 @@ VersionData {
         bannedProperties: ["wordSpacing", "letterSpacing", "hintingPreference",
             "kerning", "preferShaping",  "capitalization",
             "strikeout", "underline", "styleName"]
+    }
+
+    QtQml.Timer {
+        bannedProperties: ["triggeredOnStart"]
     }
 
     QtQuick.Item {

@@ -1,104 +1,68 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "locatorfiltersfilter.h"
 
 #include "locator.h"
-#include "locatorwidget.h"
+#include "../actionmanager/actionmanager.h"
+#include "../coreplugintr.h"
 
-#include <utils/qtcassert.h>
 #include <utils/utilsicons.h>
 
-using namespace Core;
-using namespace Core::Internal;
+using namespace Utils;
 
-Q_DECLARE_METATYPE(ILocatorFilter*)
+namespace Core::Internal {
 
 LocatorFiltersFilter::LocatorFiltersFilter():
     m_icon(Utils::Icons::NEXT.icon())
 {
     setId("FiltersFilter");
-    setDisplayName(tr("Available filters"));
+    setDisplayName(Tr::tr("Available filters"));
     setDefaultIncludedByDefault(true);
     setHidden(true);
     setPriority(Highest);
     setConfigurable(false);
 }
 
-void LocatorFiltersFilter::prepareSearch(const QString &entry)
+LocatorMatcherTasks LocatorFiltersFilter::matchers()
 {
-    m_filterShortcutStrings.clear();
-    m_filterDisplayNames.clear();
-    m_filterDescriptions.clear();
-    if (!entry.isEmpty())
-        return;
+    using namespace Tasking;
 
-    QMap<QString, ILocatorFilter *> uniqueFilters;
-    const QList<ILocatorFilter *> allFilters = Locator::filters();
-    for (ILocatorFilter *filter : allFilters) {
-        const QString filterId = filter->shortcutString() + ',' + filter->displayName();
-        uniqueFilters.insert(filterId, filter);
-    }
+    Storage<LocatorStorage> storage;
 
-    for (ILocatorFilter *filter : qAsConst(uniqueFilters)) {
-        if (!filter->shortcutString().isEmpty() && !filter->isHidden() && filter->isEnabled()) {
-            m_filterShortcutStrings.append(filter->shortcutString());
-            m_filterDisplayNames.append(filter->displayName());
-            m_filterDescriptions.append(filter->description());
+    const auto onSetup = [storage, icon = m_icon] {
+        if (!storage->input().isEmpty())
+            return;
+
+        QMap<QString, ILocatorFilter *> uniqueFilters;
+        const QList<ILocatorFilter *> allFilters = Locator::filters();
+        for (ILocatorFilter *filter : allFilters) {
+            const QString filterId = filter->shortcutString() + ',' + filter->displayName();
+            uniqueFilters.insert(filterId, filter);
         }
-    }
+
+        LocatorFilterEntries entries;
+        for (ILocatorFilter *filter : std::as_const(uniqueFilters)) {
+            const QString shortcutString = filter->shortcutString();
+            if (!shortcutString.isEmpty() && !filter->isHidden() && filter->isEnabled()) {
+                LocatorFilterEntry entry;
+                entry.displayName = shortcutString;
+                entry.acceptor = [shortcutString] {
+                    return AcceptResult{shortcutString + ' ', int(shortcutString.size() + 1)};
+                };
+                entry.displayIcon = icon;
+                entry.extraInfo = filter->displayName();
+                entry.toolTip = filter->description();
+                QString keyboardShortcut;
+                if (auto command = ActionManager::command(filter->actionId()))
+                    keyboardShortcut = command->keySequence().toString(QKeySequence::NativeText);
+                entry.displayExtra = keyboardShortcut;
+                entries.append(entry);
+            }
+        }
+        storage->reportOutput(entries);
+    };
+    return {{Sync(onSetup), storage}};
 }
 
-QList<LocatorFilterEntry> LocatorFiltersFilter::matchesFor(QFutureInterface<LocatorFilterEntry> &future, const QString &entry)
-{
-    Q_UNUSED(entry) // search is already done in the GUI thread in prepareSearch
-    QList<LocatorFilterEntry> entries;
-    for (int i = 0; i < m_filterShortcutStrings.size(); ++i) {
-        if (future.isCanceled())
-            break;
-        LocatorFilterEntry filterEntry(this,
-                                m_filterShortcutStrings.at(i),
-                                i,
-                                m_icon);
-        filterEntry.extraInfo = m_filterDisplayNames.at(i);
-        filterEntry.toolTip = m_filterDescriptions.at(i);
-        entries.append(filterEntry);
-    }
-    return entries;
-}
-
-void LocatorFiltersFilter::accept(const LocatorFilterEntry &selection,
-                                  QString *newText, int *selectionStart, int *selectionLength) const
-{
-    Q_UNUSED(selectionLength)
-    bool ok;
-    int index = selection.internalData.toInt(&ok);
-    QTC_ASSERT(ok && index >= 0 && index < m_filterShortcutStrings.size(), return);
-    const QString shortcutString = m_filterShortcutStrings.at(index);
-    if (!shortcutString.isEmpty()) {
-        *newText = shortcutString + ' ';
-        *selectionStart = shortcutString.length() + 1;
-    }
-}
+} // Core::Internal

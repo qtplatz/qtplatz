@@ -1,0 +1,9 @@
+add_qbs_test(api
+    DEFINES
+        "QBS_RELATIVE_LIBEXEC_PATH=\"${QBS_RELATIVE_LIBEXEC_PATH}\""
+        "QBS_RELATIVE_SEARCH_PATH=\"${QBS_RELATIVE_SEARCH_PATH}\""
+        "QBS_RELATIVE_PLUGINS_PATH=\"${QBS_RELATIVE_PLUGINS_PATH}\""
+    SOURCES
+        tst_api.cpp
+        tst_api.h
+    )

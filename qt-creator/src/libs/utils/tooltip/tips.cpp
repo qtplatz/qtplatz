@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "tips.h"
 #include "tooltip.h"
@@ -71,24 +49,12 @@ const QMetaObject *TipLabel::metaObject() const
     // CSS Tooltip styling depends on a the name of this class.
     // So set up a minimalist QMetaObject to fake a class name "QTipLabel":
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    static const uint tip_label_meta_data[15] = { 8 /* moc revision */ };
-
-    static const QMetaObject tipMetaObject {
-         &QLabel::staticMetaObject,                  // SuperData superdata;
-         QByteArrayLiteral("QTipLabel").data_ptr(),  // const QByteArrayData *stringdata;
-         tip_label_meta_data,                        // const uint *data;
-         nullptr,                                    // StaticMetacallFunction static_metacall;
-         nullptr,                                    // const SuperData *relatedMetaObjects;
-         nullptr                                     // void *extradata;
-    };
-#else
     static const uint tip_label_meta_data[15] = { 9 /* moc revision */ };
 
-    struct qt_meta_stringdata_Utils_t {
+    static const struct {
         const uint offsetsAndSize[2];
         char stringdata0[24];
-    } qt_meta_stringdata =  { {8, sizeof("QTipLabel")}, "QTipLabel" };
+    } qt_meta_stringdata = { {8, sizeof("QTipLabel")}, "QTipLabel" };
 
     static const QMetaObject tipMetaObject {
         &QLabel::staticMetaObject,                    // SuperData superdata
@@ -99,7 +65,6 @@ const QMetaObject *TipLabel::metaObject() const
         nullptr,                                      // QtPrivate::QMetaTypeInterface *const *metaTypes;
         nullptr,                                      // void *extradata;
     };
-#endif
 
     return &tipMetaObject;
 }
@@ -168,9 +133,13 @@ TextTip::TextTip(QWidget *parent) : TipLabel(parent)
     setWindowOpacity(style()->styleHint(QStyle::SH_ToolTipLabel_Opacity, nullptr, this) / 255.0);
 }
 
-static bool likelyContainsLink(const QString &s)
+static bool likelyContainsLink(const QString &s, const Qt::TextFormat &format)
 {
-    return s.contains(QLatin1String("href"), Qt::CaseInsensitive);
+    if (s.contains(QLatin1String("href"), Qt::CaseInsensitive))
+        return true;
+    if (format == Qt::MarkdownText)
+        return s.contains("](");
+    return false;
 }
 
 void TextTip::setContent(const QVariant &content)
@@ -183,13 +152,13 @@ void TextTip::setContent(const QVariant &content)
         m_format = item.second;
     }
 
-    bool containsLink = likelyContainsLink(m_text);
+    bool containsLink = likelyContainsLink(m_text, m_format);
     setOpenExternalLinks(containsLink);
 }
 
 bool TextTip::isInteractive() const
 {
-    return likelyContainsLink(m_text);
+    return likelyContainsLink(m_text, m_format);
 }
 
 void TextTip::configure(const QPoint &pos)

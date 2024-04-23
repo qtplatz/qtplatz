@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "launcherinterface.h"
 
@@ -29,8 +7,8 @@
 #include "launchersocket.h"
 #include "qtcassert.h"
 #include "temporarydirectory.h"
+#include "utilstr.h"
 
-#include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
 #include <QLocalServer>
@@ -42,33 +20,6 @@
 
 namespace Utils {
 namespace Internal {
-
-class LauncherProcess : public QProcess
-{
-public:
-    LauncherProcess(QObject *parent) : QProcess(parent)
-    {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0) && defined(Q_OS_UNIX)
-        setChildProcessModifier([this] { setupChildProcess_impl(); });
-#endif
-    }
-
-private:
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    void setupChildProcess() override
-    {
-        setupChildProcess_impl();
-    }
-#endif
-
-    void setupChildProcess_impl()
-    {
-#ifdef Q_OS_UNIX
-        const auto pid = static_cast<pid_t>(processId());
-        setpgid(pid, pid);
-#endif
-    }
-};
 
 static QString launcherSocketName()
 {
@@ -99,7 +50,7 @@ signals:
 private:
     QLocalServer * const m_server;
     Internal::LauncherSocket *const m_socket;
-    Internal::LauncherProcess *m_process = nullptr;
+    QProcess *m_process = nullptr;
     QString m_pathToLauncher;
 };
 
@@ -124,13 +75,22 @@ void LauncherInterfacePrivate::doStart()
         emit errorOccurred(m_server->errorString());
         return;
     }
-    m_process = new LauncherProcess(this);
+    m_process = new QProcess(this);
     connect(m_process, &QProcess::errorOccurred, this, &LauncherInterfacePrivate::handleProcessError);
-    connect(m_process,
-            static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+    connect(m_process, &QProcess::finished,
             this, &LauncherInterfacePrivate::handleProcessFinished);
     connect(m_process, &QProcess::readyReadStandardError,
             this, &LauncherInterfacePrivate::handleProcessStderr);
+#ifdef Q_OS_UNIX
+#  if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    m_process->setUnixProcessParameters(QProcess::UnixProcessFlag::CreateNewSession);
+#  else
+    m_process->setChildProcessModifier([] {
+        setpgid(0, 0);
+    });
+#  endif
+#endif
+
     m_process->start(launcherFilePath(), QStringList(m_server->fullServerName()));
 }
 
@@ -159,16 +119,14 @@ void LauncherInterfacePrivate::handleProcessError()
     if (m_process->error() == QProcess::FailedToStart) {
         const QString launcherPathForUser
                 = QDir::toNativeSeparators(QDir::cleanPath(m_process->program()));
-        emit errorOccurred(QCoreApplication::translate("Utils::LauncherSocket",
-                           "Failed to start process launcher at \"%1\": %2")
+        emit errorOccurred(Tr::tr("Failed to start process launcher at \"%1\": %2")
                            .arg(launcherPathForUser, m_process->errorString()));
     }
 }
 
 void LauncherInterfacePrivate::handleProcessFinished()
 {
-    emit errorOccurred(QCoreApplication::translate("Utils::LauncherSocket",
-                       "Process launcher closed unexpectedly: %1")
+    emit errorOccurred(Tr::tr("Process launcher closed unexpectedly: %1")
                        .arg(m_process->errorString()));
 }
 
@@ -196,7 +154,7 @@ LauncherInterface::LauncherInterface()
     m_private->setPathToLauncher(s_pathToLauncher);
     const FilePath launcherFilePath = FilePath::fromString(m_private->launcherFilePath())
             .cleanPath().withExecutableSuffix();
-    auto launcherIsNotExecutable = [&launcherFilePath]() {
+    auto launcherIsNotExecutable = [&launcherFilePath] {
         qWarning() << "The Creator's process launcher"
                    << launcherFilePath << "is not executable.";
     };

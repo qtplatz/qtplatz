@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -36,6 +14,8 @@
 QT_BEGIN_NAMESPACE
 class QTextStream;
 QT_END_NAMESPACE
+
+namespace Utils { class FutureSynchronizer; }
 
 namespace ExtensionSystem {
 class IPlugin;
@@ -84,9 +64,11 @@ public:
 
     static QObject *getObjectByName(const QString &name);
 
+    static void startProfiling();
     // Plugin operations
     static QVector<PluginSpec *> loadQueue();
     static void loadPlugins();
+    static void loadPluginsAtRuntime(const QSet<PluginSpec *> &plugins);
     static QStringList pluginPaths();
     static void setPluginPaths(const QStringList &paths);
     static QString pluginIID();
@@ -98,11 +80,12 @@ public:
     static const QSet<PluginSpec *> pluginsRequiringPlugin(PluginSpec *spec);
     static const QSet<PluginSpec *> pluginsRequiredByPlugin(PluginSpec *spec);
     static void checkForProblematicPlugins();
+    static PluginSpec *specForPlugin(IPlugin *plugin);
 
     // Settings
     static void setSettings(Utils::QtcSettings *settings);
     static Utils::QtcSettings *settings();
-    static void setGlobalSettings(Utils::QtcSettings *settings);
+    static void setInstallSettings(Utils::QtcSettings *settings);
     static Utils::QtcSettings *globalSettings();
     static void writeSettings();
 
@@ -143,16 +126,17 @@ public:
     static void setCreatorProcessData(const ProcessData &data);
     static ProcessData creatorProcessData();
 
-    static void profilingReport(const char *what, const PluginSpec *spec = nullptr);
-
     static QString platformName();
 
     static bool isInitializationDone();
+    static bool isShuttingDown();
 
     static void remoteArguments(const QString &serializedArguments, QObject *socket);
     static void shutdown();
 
     static QString systemInformation();
+
+    static Utils::FutureSynchronizer *futureSynchronizer();
 
 signals:
     void objectAdded(QObject *obj);

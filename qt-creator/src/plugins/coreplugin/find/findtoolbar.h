@@ -1,37 +1,24 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "ui_findwidget.h"
 #include "currentdocumentfind.h"
 
 #include <utils/id.h>
 #include <utils/styledbar.h>
 
 #include <QTimer>
+
+QT_BEGIN_NAMESPACE
+class QCompleter;
+class QHBoxLayout;
+class QLabel;
+class QSpacerItem;
+class QToolButton;
+QT_END_NAMESPACE
+
+namespace Utils { class FancyLineEdit; }
 
 namespace Core {
 
@@ -63,6 +50,8 @@ public:
     void setUseFakeVim(bool on);
 
     void setLightColoredIcon(bool lightColored);
+
+    QString getFindText();
 
 public slots:
     void setBackward(bool backward);
@@ -122,9 +111,9 @@ private:
 
     void installEventFilters();
     void invokeClearResults();
-    void setFindFlag(FindFlag flag, bool enabled);
-    bool hasFindFlag(FindFlag flag);
-    FindFlags effectiveFindFlags();
+    void setFindFlag(Utils::FindFlag flag, bool enabled);
+    bool hasFindFlag(Utils::FindFlag flag);
+    Utils::FindFlags effectiveFindFlags();
     static FindToolBarPlaceHolder *findToolBarPlaceHolder();
     bool toolBarHasFocus() const;
     ControlStyle controlStyle(bool replaceIsVisible);
@@ -134,7 +123,6 @@ private:
 
     bool eventFilter(QObject *obj, QEvent *event) override;
     void setFindText(const QString &text);
-    QString getFindText();
     QString getReplaceText();
     void selectFindText();
     void updateIcons();
@@ -143,7 +131,7 @@ private:
     void updateReplaceEnabled();
 
     CurrentDocumentFind *m_currentDocumentFind = nullptr;
-    Ui::FindWidget m_ui;
+
     QCompleter *m_findCompleter = nullptr;
     QCompleter *m_replaceCompleter = nullptr;
     QAction *m_goToCurrentFindAction = nullptr;
@@ -171,7 +159,22 @@ private:
     QAction *m_localReplacePreviousAction = nullptr;
     QAction *m_localReplaceAllAction = nullptr;
 
-    FindFlags m_findFlags;
+    QLabel *m_findLabel;
+    Utils::FancyLineEdit *m_findEdit;
+    QHBoxLayout *m_findButtonLayout;
+    QToolButton *m_findPreviousButton;
+    QToolButton *m_findNextButton;
+    QToolButton *m_selectAllButton;
+    QSpacerItem *m_horizontalSpacer;
+    QToolButton *m_close;
+    QLabel *m_replaceLabel;
+    Utils::FancyLineEdit *m_replaceEdit;
+    QWidget *m_replaceButtonsWidget;
+    QToolButton *m_replaceButton;
+    QToolButton *m_replaceNextButton;
+    QToolButton *m_replaceAllButton;
+    QToolButton *m_advancedButton;
+    Utils::FindFlags m_findFlags;
 
     QTimer m_findIncrementalTimer;
     QTimer m_findStepTimer;

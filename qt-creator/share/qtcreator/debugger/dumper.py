@@ -1,27 +1,5 @@
-############################################################################
-#
 # Copyright (C) 2016 The Qt Company Ltd.
-# Contact: https://www.qt.io/licensing/
-#
-# This file is part of Qt Creator.
-#
-# Commercial License Usage
-# Licensees holding valid commercial Qt licenses may use this file in
-# accordance with the commercial license agreement provided with the
-# Software or, alternatively, in accordance with the terms contained in
-# a written agreement between you and The Qt Company. For licensing terms
-# and conditions see https://www.qt.io/terms-conditions. For further
-# information use the contact form at https://www.qt.io/contact-us.
-#
-# GNU General Public License Usage
-# Alternatively, this file may be used under the terms of the GNU
-# General Public License version 3 as published by the Free Software
-# Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-# included in the packaging of this file. Please review the following
-# information to ensure the GNU General Public License requirements will
-# be met: https://www.gnu.org/licenses/gpl-3.0.html.
-#
-############################################################################
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import os
 import codecs
@@ -66,15 +44,15 @@ class ReportItem():
     subsequent better guesses during a putItem() run.
     """
 
-    def __init__(self, value=None, encoding=None, priority=-100, elided=None):
+    def __init__(self, value=None, encoding=None, priority=-100, length=None):
         self.value = value
         self.priority = priority
         self.encoding = encoding
-        self.elided = elided
+        self.length = length
 
     def __str__(self):
-        return 'Item(value: %s, encoding: %s, priority: %s, elided: %s)' \
-            % (self.value, self.encoding, self.priority, self.elided)
+        return 'Item(value: %s, encoding: %s, priority: %s, length: %s)' \
+            % (self.value, self.encoding, self.priority, self.length)
 
 
 class Timer():
@@ -128,13 +106,13 @@ class Children():
             self.d.putNumChild(0)
         if self.d.currentMaxNumChild is not None:
             if self.d.currentMaxNumChild < self.d.currentNumChild:
-                self.d.put('{name="<incomplete>",value="",type="",numchild="0"},')
+                self.d.put('{name="<load more>",value="",type="",numchild="1"},')
         self.d.currentChildType = self.savedChildType
         self.d.currentChildNumChild = self.savedChildNumChild
         self.d.currentNumChild = self.savedNumChild
         self.d.currentMaxNumChild = self.savedMaxNumChild
         if self.d.isCli:
-            self.d.output += '\n' + '   ' * self.d.indent
+            self.d.put('\n' + '   ' * self.d.indent)
         self.d.put(self.d.childrenSuffix)
         return True
 
@@ -189,13 +167,14 @@ class DumperBase():
         self.isGdb = False
         self.isLldb = False
         self.isCli = False
+        self.isDebugBuild = None
 
         # Later set, or not set:
         self.stringCutOff = 10000
         self.displayStringLimit = 100
         self.useTimeStamps = False
 
-        self.output = ''
+        self.output = []
         self.typesReported = {}
         self.typesToReport = {}
         self.qtNamespaceToReport = None
@@ -216,10 +195,16 @@ class DumperBase():
         self.childrenPrefix = 'children=['
         self.childrenSuffix = '],'
 
-        self.dumpermodules = [
-            os.path.splitext(os.path.basename(p))[0] for p in
-            glob.glob(os.path.join(os.path.dirname(__file__), '*types.py'))
-        ]
+        self.dumpermodules = []
+
+        try:
+            # Fails in the piping case
+            self.dumpermodules = [
+                os.path.splitext(os.path.basename(p))[0] for p in
+                glob.glob(os.path.join(os.path.dirname(__file__), '*types.py'))
+            ]
+        except:
+            pass
 
         # These values are never used, but the variables need to have
         # some value base for the swapping logic in Children.__enter__()
@@ -236,7 +221,7 @@ class DumperBase():
 
     def setVariableFetchingOptions(self, args):
         self.resultVarName = args.get('resultvarname', '')
-        self.expandedINames = set(args.get('expanded', []))
+        self.expandedINames = args.get('expanded', {})
         self.stringCutOff = int(args.get('stringcutoff', 10000))
         self.displayStringLimit = int(args.get('displaystringlimit', 100))
         self.typeformats = args.get('typeformats', {})
@@ -261,7 +246,6 @@ class DumperBase():
 
     def setFallbackQtVersion(self, args):
         version = int(args.get('version', self.fallbackQtVersion))
-        DumperBase.warn("got fallback qt version 0x%x" % version)
         self.fallbackQtVersion = version
 
     def resetPerStepCaches(self):
@@ -320,6 +304,11 @@ class DumperBase():
             return range(0, self.currentNumChild)
         return range(min(self.currentMaxNumChild, self.currentNumChild))
 
+    def maxArrayCount(self):
+        if self.currentIName in self.expandedINames:
+            return self.expandedINames[self.currentIName]
+        return 100
+
     def enterSubItem(self, item):
         if self.useTimeStamps:
             item.startTime = time.time()
@@ -331,9 +320,9 @@ class DumperBase():
                 self.putField('name', item.name)
         else:
             self.indent += 1
-            self.output += '\n' + '   ' * self.indent
+            self.put('\n' + '   ' * self.indent)
             if isinstance(item.name, str):
-                self.output += item.name + ' = '
+                self.put(item.name + ' = ')
         item.savedIName = self.currentIName
         item.savedValue = self.currentValue
         item.savedType = self.currentType
@@ -360,8 +349,8 @@ class DumperBase():
                 else:
                     if self.currentValue.encoding is not None:
                         self.put('valueencoded="%s",' % self.currentValue.encoding)
-                    if self.currentValue.elided:
-                        self.put('valueelided="%s",' % self.currentValue.elided)
+                    if self.currentValue.length:
+                        self.put('valuelen="%s",' % self.currentValue.length)
                     self.put('value="%s",' % self.currentValue.value)
             except:
                 pass
@@ -387,7 +376,7 @@ class DumperBase():
                         b = bytes(bytearray.fromhex(value))
                         value = codecs.decode(b, 'utf-16')
                     self.put('"%s"' % value)
-                    if self.currentValue.elided:
+                    if self.currentValue.length:
                         self.put('...')
 
                 if self.currentType.value:
@@ -431,7 +420,7 @@ class DumperBase():
 
     def charType(self):
         result = self.lookupType('char')
-        self.intType = lambda: result
+        self.charType = lambda: result
         return result
 
     def ptrSize(self):
@@ -444,25 +433,18 @@ class DumperBase():
         return None if nativeType is None else self.fromNativeType(nativeType)
 
     def registerKnownTypes(self):
-        typeId = 'unsigned short'
-        tdata = self.TypeData(self)
-        tdata.name = typeId
-        tdata.typeId = typeId
+        tdata = self.TypeData(self, 'unsigned short')
         tdata.lbitsize = 16
+        tdata.lalignment = 2
         tdata.code = TypeCode.Integral
-        self.registerType(typeId, tdata)
 
-        typeId = 'QChar'
-        tdata = self.TypeData(self)
-        tdata.name = typeId
-        tdata.typeId = typeId
+        tdata = self.TypeData(self, 'QChar')
         tdata.lbitsize = 16
+        tdata.lalignment = 2
         tdata.code = TypeCode.Struct
         tdata.lfields = [self.Field(dumper=self, name='ucs',
                                     type='unsigned short', bitsize=16, bitpos=0)]
-        tdata.lalignment = 2
-        tdata.templateArguments = []
-        self.registerType(typeId, tdata)
+        tdata.templateArguments = lambda: []
 
     def nativeDynamicType(self, address, baseType):
         return baseType  # Override in backends.
@@ -471,6 +453,10 @@ class DumperBase():
         return self.listTemplateParametersManually(typename)
 
     def listTemplateParametersManually(self, typename):
+        # Undo id mangling for template typedefs. Relevant for QPair.
+        if typename.endswith('}'):
+            typename = typename[typename.find('{') + 1 : -1]
+
         targs = []
         if not typename.endswith('>'):
             return targs
@@ -563,40 +549,40 @@ class DumperBase():
         # assume no Qt 3 support by default
         return False
 
-    # Clamps size to limit.
-    def computeLimit(self, size, limit):
+    # Clamps length to limit.
+    def computeLimit(self, length, limit=0):
         if limit == 0:
             limit = self.displayStringLimit
-        if limit is None or size <= limit:
-            return 0, size
-        return size, limit
+        if limit is None or length <= limit:
+            return length
+        return limit
 
     def vectorData(self, value):
         if self.qtVersion() >= 0x060000:
-            data, size, alloc = self.qArrayData(value)
+            data, length, alloc = self.qArrayData(value)
         elif self.qtVersion() >= 0x050000:
             vector_data_ptr = self.extractPointer(value)
             if self.ptrSize() == 4:
-                (ref, size, alloc, offset) = self.split('IIIp', vector_data_ptr)
+                (ref, length, alloc, offset) = self.split('IIIp', vector_data_ptr)
             else:
-                (ref, size, alloc, pad, offset) = self.split('IIIIp', vector_data_ptr)
+                (ref, length, alloc, pad, offset) = self.split('IIIIp', vector_data_ptr)
             alloc = alloc & 0x7ffffff
             data = vector_data_ptr + offset
         else:
             vector_data_ptr = self.extractPointer(value)
-            (ref, alloc, size) = self.split('III', vector_data_ptr)
+            (ref, alloc, length) = self.split('III', vector_data_ptr)
             data = vector_data_ptr + 16
-        self.check(0 <= size and size <= alloc and alloc <= 1000 * 1000 * 1000)
-        return data, size
+        self.check(0 <= length and length <= alloc and alloc <= 1000 * 1000 * 1000)
+        return data, length
 
     def qArrayData(self, value):
         if self.qtVersion() >= 0x60000:
-            dd, data, size = self.split('ppp', value)
+            dd, data, length = self.split('ppp', value)
             if dd:
                 _, _, alloc = self.split('iip', dd)
             else: # fromRawData
-                alloc = size
-            return data, size, alloc
+                alloc = length
+            return data, length, alloc
         return self.qArrayDataHelper(self.extractPointer(value))
 
     def qArrayDataHelper(self, array_data_ptr):
@@ -604,10 +590,10 @@ class DumperBase():
         if self.qtVersion() >= 0x050000:
             # QTypedArray:
             # - QtPrivate::RefCount ref
-            # - int size
+            # - int length
             # - uint alloc : 31, capacityReserved : 1
             # - qptrdiff offset
-            (ref, size, alloc, offset) = self.split('IIpp', array_data_ptr)
+            (ref, length, alloc, offset) = self.split('IIpp', array_data_ptr)
             alloc = alloc & 0x7ffffff
             data = array_data_ptr + offset
             if self.ptrSize() == 4:
@@ -617,44 +603,43 @@ class DumperBase():
         elif self.qtVersion() >= 0x040000:
             # Data:
             # - QBasicAtomicInt ref;
-            # - int alloc, size;
+            # - int alloc, length;
             # - [padding]
             # - char *data;
             if self.ptrSize() == 4:
-                (ref, alloc, size, data) = self.split('IIIp', array_data_ptr)
+                (ref, alloc, length, data) = self.split('IIIp', array_data_ptr)
             else:
-                (ref, alloc, size, pad, data) = self.split('IIIIp', array_data_ptr)
+                (ref, alloc, length, pad, data) = self.split('IIIIp', array_data_ptr)
         else:
             # Data:
             # - QShared count;
             # - QChar *unicode
             # - char *ascii
             # - uint len: 30
-            (dummy, dummy, dummy, size) = self.split('IIIp', array_data_ptr)
-            size = self.extractInt(array_data_ptr + 3 * self.ptrSize()) & 0x3ffffff
-            alloc = size  # pretend.
+            (dummy, dummy, dummy, length) = self.split('IIIp', array_data_ptr)
+            length = self.extractInt(array_data_ptr + 3 * self.ptrSize()) & 0x3ffffff
+            alloc = length  # pretend.
             data = self.extractPointer(array_data_ptr + self.ptrSize())
-        return data, size, alloc
+        return data, length, alloc
 
     def encodeStringHelper(self, value, limit):
-        data, size, alloc = self.qArrayData(value)
+        data, length, alloc = self.qArrayData(value)
         if alloc != 0:
-            self.check(0 <= size and size <= alloc and alloc <= 100 * 1000 * 1000)
-        elided, shown = self.computeLimit(2 * size, 2 * limit)
-        return elided, self.readMemory(data, shown)
+            self.check(0 <= length and length <= alloc and alloc <= 100 * 1000 * 1000)
+        shown = self.computeLimit(2 * length, 2 * limit)
+        return length, self.readMemory(data, shown)
 
     def encodeByteArrayHelper(self, value, limit):
-        data, size, alloc = self.qArrayData(value)
+        data, length, alloc = self.qArrayData(value)
         if alloc != 0:
-            self.check(0 <= size and size <= alloc and alloc <= 100 * 1000 * 1000)
-        elided, shown = self.computeLimit(size, limit)
-        return elided, self.readMemory(data, shown)
+            self.check(0 <= length and length <= alloc and alloc <= 100 * 1000 * 1000)
+        shown = self.computeLimit(length, limit)
+        return length, self.readMemory(data, shown)
 
-    def putCharArrayValue(self, data, size, charSize,
+    def putCharArrayValue(self, data, length, charSize,
                           displayFormat=DisplayFormat.Automatic):
-        bytelen = size * charSize
-        elided, shown = self.computeLimit(bytelen, self.displayStringLimit)
-        mem = self.readMemory(data, shown)
+        shown = self.computeLimit(length, self.displayStringLimit)
+        mem = self.readMemory(data, shown * charSize)
         if charSize == 1:
             if displayFormat in (DisplayFormat.Latin1String, DisplayFormat.SeparateLatin1String):
                 encodingType = 'latin1'
@@ -668,13 +653,13 @@ class DumperBase():
             encodingType = 'ucs4'
             #childType = 'int'
 
-        self.putValue(mem, encodingType, elided=elided)
+        self.putValue(mem, encodingType, length=length)
 
         if displayFormat in (
                 DisplayFormat.SeparateLatin1String,
                 DisplayFormat.SeparateUtf8String,
                 DisplayFormat.Separate):
-            elided, shown = self.computeLimit(bytelen, 100000)
+            shown = self.computeLimit(length, 100000)
             self.putDisplay(encodingType + ':separate', self.readMemory(data, shown))
 
     def putCharArrayHelper(self, data, size, charType,
@@ -694,15 +679,15 @@ class DumperBase():
         return self.hexencode(bytes(self.readRawMemory(addr, size)))
 
     def encodeByteArray(self, value, limit=0):
-        elided, data = self.encodeByteArrayHelper(value, limit)
+        _, data = self.encodeByteArrayHelper(value, limit)
         return data
 
     def putByteArrayValue(self, value):
-        elided, data = self.encodeByteArrayHelper(value, self.displayStringLimit)
-        self.putValue(data, 'latin1', elided=elided)
+        length, data = self.encodeByteArrayHelper(value, self.displayStringLimit)
+        self.putValue(data, 'latin1', length=length)
 
     def encodeString(self, value, limit=0):
-        elided, data = self.encodeStringHelper(value, limit)
+        _, data = self.encodeStringHelper(value, limit)
         return data
 
     def encodedUtf16ToUtf8(self, s):
@@ -748,8 +733,8 @@ class DumperBase():
         return inner
 
     def putStringValue(self, value):
-        elided, data = self.encodeStringHelper(value, self.displayStringLimit)
-        self.putValue(data, 'utf16', elided=elided)
+        length, data = self.encodeStringHelper(value, self.displayStringLimit)
+        self.putValue(data, 'utf16', length=length)
 
     def putPtrItem(self, name, value):
         with SubItem(self, name):
@@ -898,7 +883,12 @@ class DumperBase():
             self.putPlainChildren(value)
 
     def put(self, stuff):
-        self.output += stuff
+        self.output.append(stuff)
+
+    def takeOutput(self):
+        res = ''.join(self.output)
+        self.output = []
+        return res
 
     def check(self, exp):
         if not exp:
@@ -913,12 +903,12 @@ class DumperBase():
         if not self.isInt(thing):
             raise RuntimeError('Expected an integral value, got %s' % type(thing))
 
-    def readToFirstZero(self, base, tsize, maximum):
+    def readToFirstZero(self, base, typesize, maximum):
         self.checkIntType(base)
-        self.checkIntType(tsize)
+        self.checkIntType(typesize)
         self.checkIntType(maximum)
 
-        code = self.packCode + (None, 'b', 'H', None, 'I')[tsize]
+        code = self.packCode + (None, 'b', 'H', None, 'I')[typesize]
         #blob = self.readRawMemory(base, 1)
         blob = bytes()
         while maximum > 1:
@@ -929,8 +919,8 @@ class DumperBase():
                 maximum = int(maximum / 2)
                 self.warn('REDUCING READING MAXIMUM TO %s' % maximum)
 
-        #DumperBase.warn('BASE: 0x%x TSIZE: %s MAX: %s' % (base, tsize, maximum))
-        for i in range(0, maximum, tsize):
+        #DumperBase.warn('BASE: 0x%x TSIZE: %s MAX: %s' % (base, typesize, maximum))
+        for i in range(0, maximum, typesize):
             t = struct.unpack_from(code, blob, i)[0]
             if t == 0:
                 return 0, i, self.hexencode(blob[:i])
@@ -938,9 +928,9 @@ class DumperBase():
         # Real end is unknown.
         return -1, maximum, self.hexencode(blob[:maximum])
 
-    def encodeCArray(self, p, tsize, limit):
-        elided, shown, blob = self.readToFirstZero(p, tsize, limit)
-        return elided, blob
+    def encodeCArray(self, p, typesize, limit):
+        length, shown, blob = self.readToFirstZero(p, typesize, limit)
+        return length, blob
 
     def putItemCount(self, count, maximum=1000000000):
         # This needs to override the default value, so don't use 'put' directly.
@@ -1056,12 +1046,12 @@ class DumperBase():
                 self.currentType.value = typish.name
             self.currentType.priority = priority
 
-    def putValue(self, value, encoding=None, priority=0, elided=None):
+    def putValue(self, value, encoding=None, priority=0, length=None):
         # Higher priority values override lower ones.
-        # elided = 0 indicates all data is available in value,
+        # length = None indicates all data is available in value,
         # otherwise it's the true length.
         if priority >= self.currentValue.priority:
-            self.currentValue = ReportItem(value, encoding, priority, elided)
+            self.currentValue = ReportItem(value, encoding, priority, length)
 
     def putSpecialValue(self, encoding, value='', children=None):
         self.putValue(value, encoding)
@@ -1239,13 +1229,13 @@ class DumperBase():
 
         return False
 
-    def putSimpleCharArray(self, base, size=None):
-        if size is None:
-            elided, shown, data = self.readToFirstZero(base, 1, self.displayStringLimit)
+    def putSimpleCharArray(self, base, length=None):
+        if length is None:
+            length, shown, data = self.readToFirstZero(base, 1, self.displayStringLimit)
         else:
-            elided, shown = self.computeLimit(int(size), self.displayStringLimit)
+            shown = self.computeLimit(length)
             data = self.readMemory(base, shown)
-        self.putValue(data, 'latin1', elided=elided)
+        self.putValue(data, 'latin1', length=length)
 
     def putDisplay(self, editFormat, value):
         self.putField('editformat', editFormat)
@@ -1261,8 +1251,8 @@ class DumperBase():
             if targetType.name in ('char', 'signed char', 'unsigned char', 'uint8_t', 'CHAR'):
                 # Use UTF-8 as default for char *.
                 self.putType(typeName)
-                (elided, shown, data) = self.readToFirstZero(ptr, 1, limit)
-                self.putValue(data, 'utf8', elided=elided)
+                (length, shown, data) = self.readToFirstZero(ptr, 1, limit)
+                self.putValue(data, 'utf8', length=length)
                 if self.isExpanded():
                     self.putArrayData(ptr, shown, innerType)
                 return True
@@ -1270,55 +1260,55 @@ class DumperBase():
             if targetType.name in ('wchar_t', 'WCHAR'):
                 self.putType(typeName)
                 charSize = self.lookupType('wchar_t').size()
-                (elided, data) = self.encodeCArray(ptr, charSize, limit)
+                (length, data) = self.encodeCArray(ptr, charSize, limit)
                 if charSize == 2:
-                    self.putValue(data, 'utf16', elided=elided)
+                    self.putValue(data, 'utf16', length=length)
                 else:
-                    self.putValue(data, 'ucs4', elided=elided)
+                    self.putValue(data, 'ucs4', length=length)
                 return True
 
         if displayFormat == DisplayFormat.Latin1String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 1, limit)
-            self.putValue(data, 'latin1', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 1, limit)
+            self.putValue(data, 'latin1', length=length)
             return True
 
         if displayFormat == DisplayFormat.SeparateLatin1String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 1, limit)
-            self.putValue(data, 'latin1', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 1, limit)
+            self.putValue(data, 'latin1', length=length)
             self.putDisplay('latin1:separate', data)
             return True
 
         if displayFormat == DisplayFormat.Utf8String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 1, limit)
-            self.putValue(data, 'utf8', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 1, limit)
+            self.putValue(data, 'utf8', length=length)
             return True
 
         if displayFormat == DisplayFormat.SeparateUtf8String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 1, limit)
-            self.putValue(data, 'utf8', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 1, limit)
+            self.putValue(data, 'utf8', length=length)
             self.putDisplay('utf8:separate', data)
             return True
 
         if displayFormat == DisplayFormat.Local8BitString:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 1, limit)
-            self.putValue(data, 'local8bit', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 1, limit)
+            self.putValue(data, 'local8bit', length=length)
             return True
 
         if displayFormat == DisplayFormat.Utf16String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 2, limit)
-            self.putValue(data, 'utf16', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 2, limit)
+            self.putValue(data, 'utf16', length=length)
             return True
 
         if displayFormat == DisplayFormat.Ucs4String:
             self.putType(typeName)
-            (elided, data) = self.encodeCArray(ptr, 4, limit)
-            self.putValue(data, 'ucs4', elided=elided)
+            (length, data) = self.encodeCArray(ptr, 4, limit)
+            self.putValue(data, 'ucs4', length=length)
             return True
 
         return False
@@ -1399,7 +1389,7 @@ class DumperBase():
             self.putExpandable()
             return
 
-        if DisplayFormat.Array10 <= displayFormat and displayFormat <= DisplayFormat.Array1000:
+        if DisplayFormat.Array10 <= displayFormat and displayFormat <= DisplayFormat.Array10000:
             n = (10, 100, 1000, 10000)[displayFormat - DisplayFormat.Array10]
             self.putType(typeName)
             self.putItemCount(n)
@@ -2257,7 +2247,7 @@ class DumperBase():
             res = self.currentValue
         return res  # The 'short' display.
 
-    def putArrayData(self, base, n, innerType, childNumChild=None, maxNumChild=10000):
+    def putArrayData(self, base, n, innerType, childNumChild=None):
         self.checkIntType(base)
         self.checkIntType(n)
         addrBase = base
@@ -2265,13 +2255,15 @@ class DumperBase():
         self.putNumChild(n)
         #DumperBase.warn('ADDRESS: 0x%x INNERSIZE: %s INNERTYPE: %s' % (addrBase, innerSize, innerType))
         enc = innerType.simpleEncoding()
+        maxNumChild = self.maxArrayCount()
         if enc:
             self.put('childtype="%s",' % innerType.name)
             self.put('addrbase="0x%x",' % addrBase)
             self.put('addrstep="0x%x",' % innerSize)
             self.put('arrayencoding="%s",' % enc)
+            self.put('endian="%s",' % self.packCode)
             if n > maxNumChild:
-                self.put('childrenelided="%s",' % n)  # FIXME: Act on that in frontend
+                self.put('childrenelided="%s",' % n)
                 n = maxNumChild
             self.put('arraydata="')
             self.put(self.readMemory(addrBase, n * innerSize))
@@ -2305,7 +2297,7 @@ class DumperBase():
     def putPlotData(self, base, n, innerType, maxNumChild=1000 * 1000):
         self.putPlotDataHelper(base, n, innerType, maxNumChild=maxNumChild)
         if self.isExpanded():
-            self.putArrayData(base, n, innerType, maxNumChild=maxNumChild)
+            self.putArrayData(base, n, innerType)
 
     def putSpecialArgv(self, value):
         """
@@ -2519,7 +2511,10 @@ class DumperBase():
         try:
             if funcname.startswith('qdump__'):
                 typename = funcname[7:]
-                spec = inspect.getargspec(function)
+                if sys.version_info > (3,):
+                    spec = inspect.getfullargspec(function)
+                else:
+                    spec = inspect.getargspec(function)
                 if len(spec.args) == 2:
                     self.qqDumpers[typename] = function
                 elif len(spec.args) == 3 and len(spec.defaults) == 1:
@@ -2544,11 +2539,14 @@ class DumperBase():
         self.resetCaches()
 
         for mod in self.dumpermodules:
-            m = __import__(mod)
-            dic = m.__dict__
-            for name in dic.keys():
-                item = dic[name]
-                self.registerDumper(name, item)
+            try:
+                m = __import__(mod)
+                dic = m.__dict__
+                for name in dic.keys():
+                    item = dic[name]
+                    self.registerDumper(name, item)
+            except Exception as e:
+                print('Failed to load dumper module: %s (%s)' % (mod, e))
 
         msg = 'dumpers=['
         for key, value in self.qqFormats.items():
@@ -2582,17 +2580,17 @@ class DumperBase():
 
     def extractQStringFromQDataStream(self, buf, offset):
         """ Read a QString from the stream """
-        size = struct.unpack_from('!I', buf, offset)[0]
+        length = struct.unpack_from('!I', buf, offset)[0]
         offset += 4
-        string = buf[offset:offset + size].decode('utf-16be')
-        return (string, offset + size)
+        string = buf[offset:offset + length].decode('utf-16be')
+        return (string, offset + length)
 
     def extractQByteArrayFromQDataStream(self, buf, offset):
         """ Read a QByteArray from the stream """
-        size = struct.unpack_from('!I', buf, offset)[0]
+        length = struct.unpack_from('!I', buf, offset)[0]
         offset += 4
-        string = buf[offset:offset + size].decode('latin1')
-        return (string, offset + size)
+        string = buf[offset:offset + length].decode('latin1')
+        return (string, offset + length)
 
     def extractIntFromQDataStream(self, buf, offset):
         """ Read an int from the stream """
@@ -2809,6 +2807,8 @@ class DumperBase():
             return
 
         self.putAddress(value.address())
+        if value.lbitsize is not None:
+            self.putField('size', value.lbitsize // 8)
 
         if typeobj.code == TypeCode.Function:
             #DumperBase.warn('FUNCTION VALUE: %s' % value)
@@ -2832,7 +2832,7 @@ class DumperBase():
         if typeobj.code == TypeCode.Bitfield:
             #DumperBase.warn('BITFIELD VALUE: %s %d %s' % (value.name, value.lvalue, typeName))
             self.putNumChild(0)
-            dd = typeobj.ltarget.typeData().enumDisplay
+            dd = typeobj.ltarget.tdata.enumDisplay
             self.putValue(str(value.lvalue) if dd is None else dd(
                 value.lvalue, value.laddress, '%d'))
             self.putType(typeName)
@@ -2950,6 +2950,8 @@ class DumperBase():
 
     class Value():
         def __init__(self, dumper):
+            # This can be helpful to track down from where a Value was created
+            #self._stack = inspect.stack()
             self.dumper = dumper
             self.name = None
             self._type = None
@@ -3009,7 +3011,7 @@ class DumperBase():
 
         def displayEnum(self, form='%d', bitsize=None):
             intval = self.integer(bitsize)
-            dd = self.type.typeData().enumDisplay
+            dd = self.type.tdata.enumDisplay
             if dd is None:
                 return str(intval)
             return dd(intval, self.laddress, form)
@@ -3043,7 +3045,7 @@ class DumperBase():
                 or self.type.name.startswith('unsigned ') \
                 or self.type.name.find(' unsigned ') != -1
             if bitsize is None:
-                bitsize = self.type.bitsize()
+                bitsize = self.type.lbitsize
             return self.extractInteger(bitsize, unsigned)
 
         def floatingPoint(self):
@@ -3262,7 +3264,7 @@ class DumperBase():
             if self.type.code == TypeCode.Typedef:
                 return self.detypedef().members(includeBases)
 
-            tdata = self.type.typeData()
+            tdata = self.type.tdata
             #if isinstance(tdata.lfields, list):
             #    return tdata.lfields
 
@@ -3325,13 +3327,13 @@ class DumperBase():
                 else:
                     val = self.dumper.nativeValueDereferenceReference(self)
             elif self.type.code == TypeCode.Pointer:
-                if self.nativeValue is None:
+                try:
+                    val = self.dumper.nativeValueDereferencePointer(self)
+                except:
                     val.laddress = self.pointer()
                     val._type = self.type.dereference()
                     if self.dumper.useDynamicType:
                         val._type = self.dumper.nativeDynamicType(val.laddress, val.type)
-                else:
-                    val = self.dumper.nativeValueDereferencePointer(self)
             else:
                 raise RuntimeError("WRONG: %s" % self.type.code)
             #DumperBase.warn("DEREFERENCING FROM: %s" % self)
@@ -3479,33 +3481,28 @@ class DumperBase():
         item_count = type_name[pos1 + 1:pos2]
         return (type_name[0:pos1].strip(), type_name[pos2 + 1:].strip(), int(item_count))
 
-    def registerType(self, typeId, tdata):
-        #DumperBase.warn('REGISTER TYPE: %s' % typeId)
-        self.typeData[typeId] = tdata
-        #typeId = typeId.replace(' ', '')
-        #self.typeData[typeId] = tdata
-        #DumperBase.warn('REGISTERED: %s' % self.typeData)
-
     def registerTypeAlias(self, existingTypeId, aliasId):
         #DumperBase.warn('REGISTER ALIAS %s FOR %s' % (aliasId, existingTypeId))
         self.typeData[aliasId] = self.typeData[existingTypeId]
 
     class TypeData():
-        def __init__(self, dumper):
+        def __init__(self, dumper, type_id):
             self.dumper = dumper
             self.lfields = None  # None or Value -> list of member Values
             self.lalignment = None  # Function returning alignment of this struct
             self.lbitsize = None
             self.ltarget = None  # Inner type for arrays
-            self.templateArguments = []
+            self.templateArguments = None
             self.code = None
-            self.name = None
-            self.typeId = None
+            self.name = type_id
+            self.typeId = type_id
             self.enumDisplay = None
             self.moduleName = None
+            #DumperBase.warn('REGISTER TYPE: %s' % type_id)
+            dumper.typeData[type_id] = self
 
         def copy(self):
-            tdata = self.dumper.TypeData(self.dumper)
+            tdata = self.dumper.TypeData(self.dumper, self.typeId)
             tdata.dumper = self.dumper
             tdata.lfields = self.lfields
             tdata.lalignment = self.lalignment
@@ -3519,61 +3516,74 @@ class DumperBase():
             tdata.moduleName = self.moduleName
             return tdata
 
+        @property
+        def bitsize(self):
+            if callable(self.lbitsize):
+                self.lbitsize = self.lbitsize()
+            return self.lbitsize
+
     class Type():
         def __init__(self, dumper, typeId):
-            self.typeId = typeId
+            self.typeId = typeId.replace('@', dumper.qtNamespace())
             self.dumper = dumper
+            self.initialized = False
 
         def __str__(self):
             #return self.typeId
             return self.stringify()
 
-        def typeData(self):
-            tdata = self.dumper.typeData.get(self.typeId, None)
-            if tdata is not None:
-                #DumperBase.warn('USING : %s' % self.typeId)
-                return tdata
-            typeId = self.typeId.replace(' ', '')
-            if tdata is not None:
-                #DumperBase.warn('USING FALLBACK : %s' % self.typeId)
-                return tdata
-            #DumperBase.warn('EXPANDING LAZILY: %s' % self.typeId)
-            self.dumper.lookupType(self.typeId)
-            return self.dumper.typeData.get(self.typeId)
+        @property
+        def tdata(self):
+            if not self.initialized:
+                self.initialized = True
+                self.data = self.dumper.typeData.get(self.typeId, None)
+                if self.data is None:
+                    #DumperBase.warn('USING : %s' % self.typeId)
+                    self.dumper.lookupType(self.typeId)
+                    self.data = self.dumper.typeData.get(self.typeId)
+            return self.data
+
+        def setTdata(self, tdata):
+            self.initialized = True
+            self.data = tdata
 
         @property
         def name(self):
-            tdata = self.dumper.typeData.get(self.typeId)
-            if tdata is None:
-                return self.typeId
-            return tdata.name
+            return self.typeId if self.tdata is None else self.tdata.name
 
         @property
         def code(self):
-            return self.typeData().code
+            return self.tdata.code
 
         @property
         def lbitsize(self):
-            return self.typeData().lbitsize
+            return self.tdata.bitsize
 
         @property
         def lbitpos(self):
-            return self.typeData().lbitpos
+            return self.tdata.lbitpos
 
         @property
         def ltarget(self):
-            return self.typeData().ltarget
+            if isinstance(self.tdata.ltarget, str):
+                self.tdata.ltarget = self.dumper.createType(self.tdata.ltarget)
+            return self.tdata.ltarget
+
+        @property
+        def targetName(self):
+            if self.tdata.ltarget is None:
+                return ''
+            return self.tdata.ltarget if isinstance(self.tdata.ltarget, str) else self.tdata.ltarget.name
 
         @property
         def moduleName(self):
-            return self.typeData().moduleName
+            if callable(self.tdata.moduleName):
+                self.tdata.moduleName = self.tdata.moduleName()
+            return self.tdata.moduleName
 
         def stringify(self):
-            tdata = self.typeData()
-            if tdata is None:
-                return 'Type(id="%s")' % self.typeId
             return 'Type(name="%s",bsize=%s,code=%s)' \
-                % (tdata.name, tdata.lbitsize, tdata.code)
+                % (self.tdata.name, self.lbitsize, self.tdata.code)
 
         def __getitem__(self, index):
             if self.dumper.isInt(index):
@@ -3581,10 +3591,7 @@ class DumperBase():
             raise RuntimeError('CANNOT INDEX TYPE')
 
         def dynamicTypeName(self, address):
-            tdata = self.typeData()
-            if tdata is None:
-                return None
-            if tdata.code != TypeCode.Struct:
+            if self.tdata.code != TypeCode.Struct:
                 return None
             try:
                 vtbl = self.dumper.extractPointer(address)
@@ -3606,11 +3613,7 @@ class DumperBase():
             return self
 
         def check(self):
-            tdata = self.typeData()
-            if tdata is None:
-                raise RuntimeError('TYPE WITHOUT DATA: %s ALL: %s' %
-                                   (self.typeId, self.dumper.typeData.keys()))
-            if tdata.name is None:
+            if self.tdata.name is None:
                 raise RuntimeError('TYPE WITHOUT NAME: %s' % self.typeId)
 
         def dereference(self):
@@ -3623,16 +3626,14 @@ class DumperBase():
             return self
 
         def templateArguments(self):
-            tdata = self.typeData()
-            if tdata is None:
+            if self.tdata is None:
                 return self.dumper.listTemplateParameters(self.typeId)
-            return tdata.templateArguments
+            return self.tdata.templateArguments()
 
         def templateArgument(self, position):
-            tdata = self.typeData()
-            #DumperBase.warn('TDATA: %s' % tdata)
+            #DumperBase.warn('TDATA: %s' % self.tdata)
             #DumperBase.warn('ID: %s' % self.typeId)
-            if tdata is None:
+            if self.tdata is None or self.tdata.templateArguments is None:
                 # Native lookups didn't help. Happens for 'wrong' placement of 'const'
                 # etc. with LLDB. But not all is lost:
                 ta = self.dumper.listTemplateParameters(self.typeId)
@@ -3641,8 +3642,8 @@ class DumperBase():
                 #DumperBase.warn('RES: %s' % res.typeId)
                 return res
             #DumperBase.warn('TA: %s %s' % (position, self.typeId))
-            #DumperBase.warn('ARGS: %s' % tdata.templateArguments)
-            return tdata.templateArguments[position]
+            #DumperBase.warn('ARGS: %s' % self.tdata.templateArguments())
+            return self.tdata.templateArguments()[position]
 
         def simpleEncoding(self):
             res = {
@@ -3685,28 +3686,27 @@ class DumperBase():
             return self.code in (TypeCode.Integral, TypeCode.Float, TypeCode.Enum)
 
         def alignment(self):
-            tdata = self.typeData()
-            if tdata.code == TypeCode.Typedef:
-                return tdata.ltarget.alignment()
-            if tdata.code in (TypeCode.Integral, TypeCode.Float, TypeCode.Enum):
-                if tdata.name in ('double', 'long long', 'unsigned long long'):
+            if self.tdata.code == TypeCode.Typedef:
+                return self.ltarget.alignment()
+            if self.tdata.code in (TypeCode.Integral, TypeCode.Float, TypeCode.Enum):
+                if self.tdata.name in ('double', 'long long', 'unsigned long long'):
                     # Crude approximation.
                     return 8 if self.dumper.isWindowsTarget() else self.dumper.ptrSize()
                 return self.size()
-            if tdata.code in (TypeCode.Pointer, TypeCode.Reference, TypeCode.RValueReference):
+            if self.tdata.code in (TypeCode.Pointer, TypeCode.Reference, TypeCode.RValueReference):
                 return self.dumper.ptrSize()
-            if tdata.lalignment is not None:
-                #if isinstance(tdata.lalignment, function): # Does not work that way.
-                if hasattr(tdata.lalignment, '__call__'):
-                    return tdata.lalignment()
-                return tdata.lalignment
+            if self.tdata.lalignment is not None:
+                #if isinstance(self.tdata.lalignment, function): # Does not work that way.
+                if hasattr(self.tdata.lalignment, '__call__'):
+                    return self.tdata.lalignment()
+                return self.tdata.lalignment
             return 1
 
         def pointer(self):
             return self.dumper.createPointerType(self)
 
         def target(self):
-            return self.typeData().ltarget
+            return self.ltarget
 
         def stripTypedefs(self):
             if isinstance(self, self.dumper.Type) and self.code != TypeCode.Typedef:
@@ -3715,7 +3715,7 @@ class DumperBase():
             return self.ltarget
 
         def size(self):
-            bs = self.bitsize()
+            bs = self.lbitsize
             if bs % 8 != 0:
                 DumperBase.warn('ODD SIZE: %s' % self)
             return (7 + bs) >> 3
@@ -3825,17 +3825,15 @@ class DumperBase():
         return val
 
     def createPointerType(self, targetType):
-        if not isinstance(targetType, self.Type):
-            raise RuntimeError('Expected type in createPointerType(), got %s'
+        if not isinstance(targetType, (str, self.Type)):
+            raise RuntimeError('Expected type or str in createPointerType(), got %s'
                                % type(targetType))
-        typeId = targetType.typeId + ' *'
-        tdata = self.TypeData(self)
-        tdata.name = targetType.name + '*'
-        tdata.typeId = typeId
+        typeId = (targetType if isinstance(targetType, str) else targetType.typeId) + ' *'
+        tdata = self.TypeData(self, typeId)
+        tdata.name = (targetType if isinstance(targetType, str) else targetType.name) + '*'
         tdata.lbitsize = 8 * self.ptrSize()
         tdata.code = TypeCode.Pointer
         tdata.ltarget = targetType
-        self.registerType(typeId, tdata)
         return self.Type(self, typeId)
 
     def createReferenceType(self, targetType):
@@ -3843,14 +3841,12 @@ class DumperBase():
             raise RuntimeError('Expected type in createReferenceType(), got %s'
                                % type(targetType))
         typeId = targetType.typeId + ' &'
-        tdata = self.TypeData(self)
+        tdata = self.TypeData(self, typeId)
         tdata.name = targetType.name + ' &'
-        tdata.typeId = typeId
         tdata.code = TypeCode.Reference
         tdata.ltarget = targetType
         tdata.lbitsize = 8 * self.ptrSize()  # Needed for Gdb13393 test.
         #tdata.lbitsize = None
-        self.registerType(typeId, tdata)
         return self.Type(self, typeId)
 
     def createRValueReferenceType(self, targetType):
@@ -3858,13 +3854,11 @@ class DumperBase():
             raise RuntimeError('Expected type in createRValueReferenceType(), got %s'
                                % type(targetType))
         typeId = targetType.typeId + ' &&'
-        tdata = self.TypeData(self)
+        tdata = self.TypeData(self, typeId)
         tdata.name = targetType.name + ' &&'
-        tdata.typeId = typeId
         tdata.code = TypeCode.RValueReference
         tdata.ltarget = targetType
         tdata.lbitsize = None
-        self.registerType(typeId, tdata)
         return self.Type(self, typeId)
 
     def createArrayType(self, targetType, count):
@@ -3881,13 +3875,11 @@ class DumperBase():
             type_id = '%s[%d]' % (targetTypeId, count)
             type_name = '%s[%d]' % (targetType.name, count)
 
-        tdata = self.TypeData(self)
+        tdata = self.TypeData(self, type_id)
         tdata.name = type_name
-        tdata.typeId = type_id
         tdata.code = TypeCode.Array
         tdata.ltarget = targetType
         tdata.lbitsize = targetType.lbitsize * count
-        self.registerType(type_id, tdata)
         return self.Type(self, type_id)
 
     def createBitfieldType(self, targetType, bitsize):
@@ -3895,13 +3887,11 @@ class DumperBase():
             raise RuntimeError('Expected type in createBitfieldType(), got %s'
                                % type(targetType))
         typeId = '%s:%d' % (targetType.typeId, bitsize)
-        tdata = self.TypeData(self)
+        tdata = self.TypeData(self, typeId)
         tdata.name = '%s : %d' % (targetType.typeId, bitsize)
-        tdata.typeId = typeId
         tdata.code = TypeCode.Bitfield
         tdata.ltarget = targetType
         tdata.lbitsize = bitsize
-        self.registerType(typeId, tdata)
         return self.Type(self, typeId)
 
     def createTypedefedType(self, targetType, typeName, typeId=None):
@@ -3913,15 +3903,13 @@ class DumperBase():
         # Happens for C-style struct in GDB: typedef { int x; } struct S1;
         if targetType.typeId == typeId:
             return targetType
-        tdata = self.TypeData(self)
+        tdata = self.TypeData(self, typeId)
         tdata.name = typeName
-        tdata.typeId = typeId
         tdata.code = TypeCode.Typedef
         tdata.ltarget = targetType
         tdata.lbitsize = targetType.lbitsize
         #tdata.lfields = targetType.lfields
         tdata.lbitsize = targetType.lbitsize
-        self.registerType(typeId, tdata)
         return self.Type(self, typeId)
 
     def knownArrayTypeSize(self):
@@ -3967,7 +3955,7 @@ class DumperBase():
             tdata = self.typeData.get(typish, None)
             if tdata is not None:
                 if tdata.lbitsize is not None:
-                    if tdata.lbitsize > 0:
+                    if callable(tdata.lbitsize) or tdata.lbitsize > 0:
                         return self.Type(self, typish)
 
             knownType = self.lookupType(typish)
@@ -3977,34 +3965,36 @@ class DumperBase():
                 return knownType
 
             #DumperBase.warn('FAKING: %s SIZE: %s' % (typish, size))
-            tdata = self.TypeData(self)
-            tdata.name = typish
-            tdata.typeId = typish
-            tdata.templateArguments = self.listTemplateParameters(typish)
+            tdata = self.TypeData(self, typish)
+            tdata.templateArguments = lambda: self.listTemplateParameters(typish)
             if size is not None:
                 tdata.lbitsize = 8 * size
             if typish.endswith('*'):
                 tdata.code = TypeCode.Pointer
                 tdata.lbitsize = 8 * self.ptrSize()
-                tdata.ltarget = self.createType(typish[:-1].strip())
+                tdata.ltarget = typish[:-1].strip()
 
-            self.registerType(typish, tdata)
-            typeobj = self.Type(self, typish)
+            typeobj = self.Type(self, tdata.typeId)
             #DumperBase.warn('CREATE TYPE: %s' % typeobj.stringify())
             typeobj.check()
             return typeobj
         raise RuntimeError('NEED TYPE, NOT %s' % type(typish))
 
-    def createValue(self, datish, typish):
+    def createValueFromAddressAndType(self, address, typish):
         val = self.Value(self)
         val._type = self.createType(typish)
+        #DumperBase.warn('CREATING %s AT 0x%x' % (val.type.name, datish))
+        val.laddress = address
+        if self.useDynamicType:
+            val._type = val.type.dynamicType(address)
+        return val
+
+    def createValue(self, datish, typish):
         if self.isInt(datish):  # Used as address.
-            #DumperBase.warn('CREATING %s AT 0x%x' % (val.type.name, datish))
-            val.laddress = datish
-            if self.useDynamicType:
-                val._type = val.type.dynamicType(datish)
-            return val
+            return self.createValueFromAddressAndType(datish, typish)
         if isinstance(datish, bytes):
+            val = self.Value(self)
+            val._type = self.createType(typish)
             #DumperBase.warn('CREATING %s WITH DATA %s' % (val.type.name, self.hexencode(datish)))
             val.ldata = datish
             val.check()
@@ -4012,11 +4002,8 @@ class DumperBase():
         raise RuntimeError('EXPECTING ADDRESS OR BYTES, GOT %s' % type(datish))
 
     def createProxyValue(self, proxy_data, type_name):
-        tdata = self.TypeData(self)
-        tdata.name = type_name
-        tdata.typeId = type_name
+        tdata = self.TypeData(self, type_name)
         tdata.code = TypeCode.Struct
-        self.registerType(type_name, tdata)
         val = self.Value(self)
         val._type = self.Type(self, type_name)
         val.ldata = proxy_data

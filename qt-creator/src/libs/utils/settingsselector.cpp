@@ -1,29 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "settingsselector.h"
+
+#include "utilstr.h"
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -49,9 +29,9 @@ SettingsSelector::SettingsSelector(QWidget *parent) :
     m_configurationCombo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     m_configurationCombo->setMinimumContentsLength(80);
 
-    m_addButton = new QPushButton(tr("Add"), this);
-    m_removeButton = new QPushButton(tr("Remove"), this);
-    m_renameButton = new QPushButton(tr("Rename"), this);
+    m_addButton = new QPushButton(Tr::tr("Add"), this);
+    m_removeButton = new QPushButton(Tr::tr("Remove"), this);
+    m_renameButton = new QPushButton(Tr::tr("Rename"), this);
 
     m_label = new QLabel(this);
     m_label->setMinimumWidth(200);
@@ -72,8 +52,7 @@ SettingsSelector::SettingsSelector(QWidget *parent) :
             this, &SettingsSelector::removeButtonClicked);
     connect(m_renameButton, &QAbstractButton::clicked,
             this, &SettingsSelector::renameButtonClicked);
-    connect(m_configurationCombo,
-            QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(m_configurationCombo, &QComboBox::currentIndexChanged,
             this, &SettingsSelector::currentChanged);
 }
 
@@ -134,8 +113,8 @@ void SettingsSelector::removeButtonClicked()
     int pos = currentIndex();
     if (pos < 0)
         return;
-    const QString title = tr("Remove");
-    const QString message = tr("Do you really want to delete the configuration <b>%1</b>?")
+    const QString title = Tr::tr("Remove");
+    const QString message = Tr::tr("Do you really want to delete the configuration <b>%1</b>?")
                                 .arg(m_configurationCombo->currentText());
     QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes|QMessageBox::No, this);
     msgBox.setDefaultButton(QMessageBox::No);
@@ -158,9 +137,9 @@ void SettingsSelector::renameButtonClicked()
     QString baseName = model->data(idx, Qt::EditRole).toString();
 
     bool ok;
-    const QString message = tr("New name for configuration <b>%1</b>:").arg(baseName);
+    const QString message = Tr::tr("New name for configuration <b>%1</b>:").arg(baseName);
 
-    QString name = QInputDialog::getText(this, tr("Rename..."), message,
+    QString name = QInputDialog::getText(this, Tr::tr("Rename..."), message,
                                          QLineEdit::Normal, baseName, &ok);
     if (!ok)
         return;

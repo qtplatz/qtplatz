@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -41,6 +19,7 @@ QTCREATOR_UTILS_EXPORT extern const Icon LOCKED;
 QTCREATOR_UTILS_EXPORT extern const Icon UNLOCKED_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon UNLOCKED;
 QTCREATOR_UTILS_EXPORT extern const Icon PINNED;
+QTCREATOR_UTILS_EXPORT extern const Icon PINNED_SMALL;
 QTCREATOR_UTILS_EXPORT extern const Icon NEXT;
 QTCREATOR_UTILS_EXPORT extern const Icon NEXT_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon PREV;
@@ -57,8 +36,10 @@ QTCREATOR_UTILS_EXPORT extern const Icon BROKEN;
 QTCREATOR_UTILS_EXPORT extern const Icon BOOKMARK;
 QTCREATOR_UTILS_EXPORT extern const Icon BOOKMARK_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon BOOKMARK_TEXTEDITOR;
+QTCREATOR_UTILS_EXPORT extern const Icon SNAPSHOT;
 QTCREATOR_UTILS_EXPORT extern const Icon SNAPSHOT_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon NEWSEARCH_TOOLBAR;
+QTCREATOR_UTILS_EXPORT extern const Icon SETTINGS;
 QTCREATOR_UTILS_EXPORT extern const Icon SETTINGS_TOOLBAR;
 
 QTCREATOR_UTILS_EXPORT extern const Icon NEWFILE;
@@ -91,6 +72,7 @@ QTCREATOR_UTILS_EXPORT extern const Icon ARROW_UP;
 QTCREATOR_UTILS_EXPORT extern const Icon ARROW_UP_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon ARROW_DOWN;
 QTCREATOR_UTILS_EXPORT extern const Icon ARROW_DOWN_TOOLBAR;
+QTCREATOR_UTILS_EXPORT extern const Icon MINUS_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon MINUS;
 QTCREATOR_UTILS_EXPORT extern const Icon PLUS_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon PLUS;
@@ -139,7 +121,11 @@ QTCREATOR_UTILS_EXPORT extern const Icon STOP_SMALL;
 QTCREATOR_UTILS_EXPORT extern const Icon STOP_SMALL_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon INTERRUPT_SMALL;
 QTCREATOR_UTILS_EXPORT extern const Icon INTERRUPT_SMALL_TOOLBAR;
+QTCREATOR_UTILS_EXPORT extern const Icon CONTINUE_SMALL;
+QTCREATOR_UTILS_EXPORT extern const Icon CONTINUE_SMALL_TOOLBAR;
+
 QTCREATOR_UTILS_EXPORT extern const Icon BOUNDING_RECT;
+QTCREATOR_UTILS_EXPORT extern const Icon EYE_OPEN;
 QTCREATOR_UTILS_EXPORT extern const Icon EYE_OPEN_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon EYE_CLOSED_TOOLBAR;
 QTCREATOR_UTILS_EXPORT extern const Icon REPLACE;
@@ -166,6 +152,7 @@ QTCREATOR_UTILS_EXPORT extern const Icon CODEMODEL_FIXIT;
 
 QTCREATOR_UTILS_EXPORT extern const Icon MACOS_TOUCHBAR_BOOKMARK;
 QTCREATOR_UTILS_EXPORT extern const Icon MACOS_TOUCHBAR_CLEAR;
+
 } // namespace Icons
 
 namespace CodeModelIcon {

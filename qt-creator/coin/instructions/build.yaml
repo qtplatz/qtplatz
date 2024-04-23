@@ -1,9 +1,12 @@
 type: Group
 instructions:
+  - type: MakeDirectory
+    directory: "{{.AgentWorkingDir}}/build/qt_temp"
+
   - type: Group
     instructions:
       - type: ExecuteCommand
-        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}/build/qt_temp/elfutils-release_0.175qt-linux-x86_64.7z http://master.qt.io/development_releases/prebuilt/elfutils/elfutils-release_0.175qt-linux-x86_64.7z"
+        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}/build/qt_temp/elfutils-release_0.175qt-linux-x86_64.7z https://master.qt.io/development_releases/prebuilt/elfutils/elfutils-release_0.175qt-linux-x86_64.7z"
         maxTimeInSeconds: 3600
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to download elfutils package, check logs."
@@ -13,7 +16,7 @@ instructions:
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to extract elfutils package, check logs."
       - type: ExecuteCommand
-        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}/build/qt_temp/libclang.7z {{.Env.LLVM_BASE_URL}}-linux-Rhel8.2-gcc9.2-x86_64.7z"
+        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}/build/qt_temp/libclang.7z {{.Env.LLVM_BASE_URL}}-linux-Rhel8.4-gcc10.3-x86_64.7z"
         maxTimeInSeconds: 3600
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to download LLVM package, check logs."
@@ -27,6 +30,13 @@ instructions:
         maxTimeInSeconds: 36000
         maxTimeBetweenOutput: 3600
         userMessageOnFailure: "Failed to run build.py, check logs."
+      - type: ChangeDirectory
+        directory: "{{.AgentWorkingDir}}/build/tqtc-qtsdk/packaging_tools"
+      - type: ExecuteCommand
+        command: "python3 -m pipenv run python -u bld_sdktool.py --qt-url {{.Env.QTC_SDKTOOL_QT_BASE_URL}}{{.Env.QTC_SDKTOOL_QT_EXT}} --qt-build {{.AgentWorkingDir}}/build/sdktool/qt --src {{.AgentWorkingDir}}/qt-creator/qt-creator/src/tools/sdktool --build {{.AgentWorkingDir}}/build/sdktool/build --install {{.AgentWorkingDir}}/build/sdktool/install --make-command make"
+        maxTimeInSeconds: 36000
+        maxTimeBetweenOutput: 3600
+        userMessageOnFailure: "Failed to build sdktool, check logs."
     enable_if:
       condition: and
       conditions:
@@ -54,6 +64,16 @@ instructions:
         maxTimeInSeconds: 36000
         maxTimeBetweenOutput: 3600
         userMessageOnFailure: "Failed to run build.py, check logs."
+      - type: ChangeDirectory
+        directory: "{{.AgentWorkingDir}}/build/tqtc-qtsdk/packaging_tools"
+      - type: EnvironmentVariable
+        variableName: MACOSX_DEPLOYMENT_TARGET
+        variableValue: "{{.Env.SDKTOOL_MACOSX_DEPLOYMENT_TARGET}}"
+      - type: ExecuteCommand
+        command: "python3 -m pipenv run python -u bld_sdktool.py --qt-url {{.Env.QTC_SDKTOOL_QT_BASE_URL}}{{.Env.QTC_SDKTOOL_QT_EXT}} --qt-build {{.AgentWorkingDir}}/build/sdktool/qt --src {{.AgentWorkingDir}}/qt-creator/qt-creator/src/tools/sdktool --build {{.AgentWorkingDir}}/build/sdktool/build --install {{.AgentWorkingDir}}/build/sdktool/install --make-command make"
+        maxTimeInSeconds: 36000
+        maxTimeBetweenOutput: 3600
+        userMessageOnFailure: "Failed to build sdktool, check logs."
     enable_if:
       condition: property
       property: host.os
@@ -62,7 +82,7 @@ instructions:
   - type: Group
     instructions:
       - type: ExecuteCommand
-        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\elfutils-release_0.175qt-windows-x86_64.7z http://master.qt.io/development_releases/prebuilt/elfutils/elfutils-release_0.175qt-windows-x86_64.7z"
+        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\elfutils-release_0.175qt-windows-x86_64.7z https://master.qt.io/development_releases/prebuilt/elfutils/elfutils-release_0.175qt-windows-x86_64.7z"
         maxTimeInSeconds: 3600
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to download elfutils package, check logs."
@@ -72,7 +92,7 @@ instructions:
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to extract elfutils package, check logs."
       - type: ExecuteCommand
-        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\Python38-win-x64.7z http://master.qt.io/development_releases/prebuilt/python/Python38-win-x64.7z"
+        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\Python38-win-x64.7z https://master.qt.io/development_releases/prebuilt/python/Python38-win-x64.7z"
         maxTimeInSeconds: 3600
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to download python package, check logs."
@@ -96,6 +116,13 @@ instructions:
         maxTimeInSeconds: 36000
         maxTimeBetweenOutput: 3600
         userMessageOnFailure: "Failed to run build.py, check logs."
+      - type: ChangeDirectory
+        directory: "{{.AgentWorkingDir}}\\build\\tqtc-qtsdk\\packaging_tools"
+      - type: ExecuteCommand
+        command: "python -m pipenv run python -u bld_sdktool.py --qt-url {{.Env.QTC_SDKTOOL_QT_BASE_URL}}{{.Env.QTC_SDKTOOL_QT_EXT}} --qt-build {{.AgentWorkingDir}}\\build\\sdktool\\qt --src {{.AgentWorkingDir}}\\qt-creator\\qt-creator\\src\\tools\\sdktool --build {{.AgentWorkingDir}}\\build\\sdktool\\build --install {{.AgentWorkingDir}}\\build\\sdktool\\install --make-command nmake"
+        maxTimeInSeconds: 36000
+        maxTimeBetweenOutput: 3600
+        userMessageOnFailure: "Failed to build sdktool, check logs."
     enable_if:
       condition: and
       conditions:
@@ -114,7 +141,7 @@ instructions:
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to create folder qt_temp, check logs."
       - type: ExecuteCommand
-        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\Python38-win-x86.7z http://master.qt.io/development_releases/prebuilt/python/Python38-win-x86.7z"
+        command: "curl --fail -L --retry 5 --retry-delay 5 -o {{.AgentWorkingDir}}\\build\\qt_temp\\Python38-win-x86.7z https://master.qt.io/development_releases/prebuilt/python/Python38-win-x86.7z"
         maxTimeInSeconds: 3600
         maxTimeBetweenOutput: 360
         userMessageOnFailure: "Failed to download python package, check logs."
@@ -144,3 +171,7 @@ instructions:
     maxTimeInSeconds: 1800
     maxTimeBetweenOutput: 1800
 
+enable_if:
+  condition: property
+  property: features
+  not_contains_value: "Qt5"

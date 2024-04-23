@@ -1,51 +1,39 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "newdialogwidget.h"
-#include "ui_newdialog.h"
 
-#include <coreplugin/icontext.h>
-#include <coreplugin/icore.h>
+#include "../coreplugintr.h"
+#include "../icontext.h"
+#include "../icore.h"
+
 #include <utils/algorithm.h>
+#include <utils/layoutbuilder.h>
 #include <utils/qtcassert.h>
 #include <utils/utilsicons.h>
 
+#include <QCoreApplication>
+#include <QComboBox>
 #include <QDebug>
+#include <QDialogButtonBox>
+#include <QHeaderView>
 #include <QItemDelegate>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QListView>
 #include <QModelIndex>
 #include <QPainter>
 #include <QPushButton>
 #include <QSortFilterProxyModel>
 #include <QStandardItem>
+#include <QTextBrowser>
+#include <QTreeView>
 
 Q_DECLARE_METATYPE(Core::IWizardFactory*)
 
 using namespace Utils;
 
-namespace {
+namespace Core::Internal {
 
 const int ICON_SIZE = 48;
 const char LAST_CATEGORY_KEY[] = "Core/NewDialog/LastCategory";
@@ -54,9 +42,6 @@ const char ALLOW_ALL_TEMPLATES[] = "Core/NewDialog/AllowAllTemplates";
 const char SHOW_PLATOFORM_FILTER[] = "Core/NewDialog/ShowPlatformFilter";
 const char BLACKLISTED_CATEGORIES_KEY[] = "Core/NewDialog/BlacklistedCategories";
 const char ALTERNATIVE_WIZARD_STYLE[] = "Core/NewDialog/AlternativeWizardStyle";
-
-using namespace Core;
-using namespace Core::Internal;
 
 class WizardFactoryContainer
 {
@@ -163,66 +148,113 @@ public:
     }
 };
 
-}
+}  // Core::Internal
 
-Q_DECLARE_METATYPE(WizardFactoryContainer)
+Q_DECLARE_METATYPE(Core::Internal::WizardFactoryContainer)
 
-using namespace Core;
-using namespace Core::Internal;
+namespace Core::Internal {
 
-NewDialogWidget::NewDialogWidget(QWidget *parent) :
-    QDialog(parent),
-    m_ui(new Ui::NewDialog)
+NewDialogWidget::NewDialogWidget(QWidget *parent)
+    : QDialog(parent)
+    , m_comboBox(new QComboBox)
+    , m_templateCategoryView(new QTreeView)
+    , m_templatesView(new QListView)
+    , m_imageLabel(new QLabel)
+    , m_templateDescription(new QTextBrowser)
+
 {
+    setObjectName("Core.NewDialog");
     setAttribute(Qt::WA_DeleteOnClose);
     ICore::registerWindow(this, Context("Core.NewDialog"));
-    m_ui->setupUi(this);
-    QPalette p = m_ui->frame->palette();
+    resize(880, 520);
+
+    auto frame = new QFrame;
+    frame->setAutoFillBackground(true);
+    frame->setFrameShape(QFrame::StyledPanel);
+    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok,
+                                          Qt::Horizontal);
+
+    m_templateCategoryView->setObjectName("templateCategoryView");
+    m_templateCategoryView->setStyleSheet(QString::fromUtf8(" QTreeView::branch {\n"
+                                                            "         background: transparent;\n"
+                                                            " }"));
+    m_templateCategoryView->setIndentation(0);
+    m_templateCategoryView->setRootIsDecorated(false);
+    m_templateCategoryView->setItemsExpandable(false);
+    m_templateCategoryView->setHeaderHidden(true);
+    m_templateCategoryView->header()->setVisible(false);
+
+    m_templatesView->setObjectName("templatesView");
+    m_templatesView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_templatesView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    m_templatesView->setUniformItemSizes(false);
+
+    m_templateDescription->setObjectName("templateDescription");
+    m_templateDescription->setFocusPolicy(Qt::NoFocus);
+    m_templateDescription->setFrameShape(QFrame::NoFrame);
+
+    using namespace Layouting;
+
+    Column { m_imageLabel, m_templateDescription }.attachTo(frame);
+
+    Column {
+        Row { Tr::tr("Choose a template:"), st, m_comboBox },
+        Row { m_templateCategoryView, m_templatesView, frame },
+        buttonBox
+    }.attachTo(this);
+
+    QPalette p = frame->palette();
     p.setColor(QPalette::Window, p.color(QPalette::Base));
-    m_ui->frame->setPalette(p);
-    m_okButton = m_ui->buttonBox->button(QDialogButtonBox::Ok);
+    frame->setPalette(p);
+    m_okButton = buttonBox->button(QDialogButtonBox::Ok);
     m_okButton->setDefault(true);
-    m_okButton->setText(tr("Choose..."));
+    m_okButton->setText(Tr::tr("Choose..."));
 
     m_model = new QStandardItemModel(this);
 
     m_filterProxyModel = new PlatformFilterProxyModel(this);
     m_filterProxyModel->setSourceModel(m_model);
 
-    m_ui->templateCategoryView->setModel(m_filterProxyModel);
-    m_ui->templateCategoryView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_ui->templateCategoryView->setItemDelegate(new FancyTopLevelDelegate(this));
+    m_templateCategoryView->setModel(m_filterProxyModel);
+    m_templateCategoryView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_templateCategoryView->setItemDelegate(new FancyTopLevelDelegate(this));
 
-    m_ui->templatesView->setModel(m_filterProxyModel);
-    m_ui->templatesView->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
+    m_templatesView->setModel(m_filterProxyModel);
+    m_templatesView->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
 
     const bool alternativeWizardStyle = ICore::settings()->value(ALTERNATIVE_WIZARD_STYLE, false).toBool();
 
     if (alternativeWizardStyle) {
-        m_ui->templatesView->setGridSize(QSize(256, 128));
-        m_ui->templatesView->setIconSize(QSize(96, 96));
-        m_ui->templatesView->setSpacing(4);
+        m_templatesView->setGridSize(QSize(256, 128));
+        m_templatesView->setIconSize(QSize(96, 96));
+        m_templatesView->setSpacing(4);
 
-        m_ui->templatesView->setViewMode(QListView::IconMode);
-        m_ui->templatesView->setMovement(QListView::Static);
-        m_ui->templatesView->setResizeMode(QListView::Adjust);
-        m_ui->templatesView->setSelectionRectVisible(false);
-        m_ui->templatesView->setWrapping(true);
-        m_ui->templatesView->setWordWrap(true);
+        m_templatesView->setViewMode(QListView::IconMode);
+        m_templatesView->setMovement(QListView::Static);
+        m_templatesView->setResizeMode(QListView::Adjust);
+        m_templatesView->setSelectionRectVisible(false);
+        m_templatesView->setWrapping(true);
+        m_templatesView->setWordWrap(true);
     }
 
-    connect(m_ui->templateCategoryView->selectionModel(), &QItemSelectionModel::currentChanged,
-            this, &NewDialogWidget::currentCategoryChanged);
+    connect(m_templateCategoryView->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            this,
+            &NewDialogWidget::currentCategoryChanged);
 
-    connect(m_ui->templatesView->selectionModel(), &QItemSelectionModel::currentChanged,
-            this, &NewDialogWidget::currentItemChanged);
+    connect(m_templatesView->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            this,
+            &NewDialogWidget::currentItemChanged);
 
-    connect(m_ui->templatesView, &QListView::doubleClicked, this, &NewDialogWidget::accept);
-    connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &NewDialogWidget::accept);
-    connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &NewDialogWidget::reject);
+    connect(m_templatesView, &QListView::doubleClicked, this, &NewDialogWidget::accept);
+    connect(buttonBox, &QDialogButtonBox::accepted, this, &NewDialogWidget::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &NewDialogWidget::reject);
 
-    connect(m_ui->comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &NewDialogWidget::setSelectedPlatform);
+    connect(m_comboBox,
+            &QComboBox::currentIndexChanged,
+            this,
+            &NewDialogWidget::setSelectedPlatform);
 }
 
 // Sort by category. id
@@ -244,10 +276,10 @@ void NewDialogWidget::setWizardFactories(QList<IWizardFactory *> factories,
     m_model->clear();
     QStandardItem *parentItem = m_model->invisibleRootItem();
 
-    QStandardItem *projectKindItem = new QStandardItem(tr("Projects"));
+    QStandardItem *projectKindItem = new QStandardItem(Tr::tr("Projects"));
     projectKindItem->setData(IWizardFactory::ProjectWizard, Qt::UserRole);
     projectKindItem->setFlags({}); // disable item to prevent focus
-    QStandardItem *filesKindItem = new QStandardItem(tr("Files and Classes"));
+    QStandardItem *filesKindItem = new QStandardItem(Tr::tr("Files and Classes"));
     filesKindItem->setData(IWizardFactory::FileWizard, Qt::UserRole);
     filesKindItem->setFlags({}); // disable item to prevent focus
 
@@ -258,21 +290,21 @@ void NewDialogWidget::setWizardFactories(QList<IWizardFactory *> factories,
 
     const bool allowAllTemplates = ICore::settings()->value(ALLOW_ALL_TEMPLATES, true).toBool();
     if (allowAllTemplates)
-        m_ui->comboBox->addItem(tr("All Templates"), Id().toSetting());
+        m_comboBox->addItem(Tr::tr("All Templates"), Id().toSetting());
 
     for (Id platform : availablePlatforms) {
         const QString displayNameForPlatform = IWizardFactory::displayNameForPlatform(platform);
-        m_ui->comboBox->addItem(tr("%1 Templates").arg(displayNameForPlatform), platform.toSetting());
+        m_comboBox->addItem(Tr::tr("%1 Templates").arg(displayNameForPlatform), platform.toSetting());
     }
 
-    m_ui->comboBox->setCurrentIndex(0); // "All templates"
-    m_ui->comboBox->setEnabled(!availablePlatforms.isEmpty());
+    m_comboBox->setCurrentIndex(0); // "All templates"
+    m_comboBox->setEnabled(!availablePlatforms.isEmpty());
 
     const bool showPlatformFilter = ICore::settings()->value(SHOW_PLATOFORM_FILTER, true).toBool();
     if (!showPlatformFilter)
-        m_ui->comboBox->hide();
+        m_comboBox->hide();
 
-    for (IWizardFactory *factory : qAsConst(factories)) {
+    for (IWizardFactory *factory : std::as_const(factories)) {
         QStandardItem *kindItem;
         switch (factory->kind()) {
         case IWizardFactory::ProjectWizard:
@@ -295,35 +327,35 @@ void NewDialogWidget::showDialog()
 {
     QModelIndex idx;
 
-    QString lastPlatform = ICore::settings()->value(QLatin1String(LAST_PLATFORM_KEY)).toString();
-    QString lastCategory = ICore::settings()->value(QLatin1String(LAST_CATEGORY_KEY)).toString();
+    QString lastPlatform = ICore::settings()->value(LAST_PLATFORM_KEY).toString();
+    QString lastCategory = ICore::settings()->value(LAST_CATEGORY_KEY).toString();
 
     if (!lastPlatform.isEmpty()) {
-        int index = m_ui->comboBox->findData(lastPlatform);
+        int index = m_comboBox->findData(lastPlatform);
         if (index != -1)
-            m_ui->comboBox->setCurrentIndex(index);
+            m_comboBox->setCurrentIndex(index);
     }
 
     static_cast<PlatformFilterProxyModel *>(m_filterProxyModel)->manualReset();
 
     if (!lastCategory.isEmpty())
-        for (QStandardItem *item : qAsConst(m_categoryItems)) {
+        for (QStandardItem *item : std::as_const(m_categoryItems)) {
             if (item->data(Qt::UserRole) == lastCategory)
                 idx = m_filterProxyModel->mapFromSource(m_model->indexFromItem(item));
     }
     if (!idx.isValid())
         idx = m_filterProxyModel->index(0,0, m_filterProxyModel->index(0,0));
 
-    m_ui->templateCategoryView->setCurrentIndex(idx);
+    m_templateCategoryView->setCurrentIndex(idx);
 
     // We need to ensure that the category has default focus
-    m_ui->templateCategoryView->setFocus(Qt::NoFocusReason);
+    m_templateCategoryView->setFocus(Qt::NoFocusReason);
 
     for (int row = 0; row < m_filterProxyModel->rowCount(); ++row)
-        m_ui->templateCategoryView->setExpanded(m_filterProxyModel->index(row, 0), true);
+        m_templateCategoryView->setExpanded(m_filterProxyModel->index(row, 0), true);
 
     // Ensure that item description is visible on first show
-    currentItemChanged(m_filterProxyModel->index(0, 0, m_ui->templatesView->rootIndex()));
+    currentItemChanged(m_filterProxyModel->index(0, 0, m_templatesView->rootIndex()));
 
     updateOkButton();
     show();
@@ -331,8 +363,8 @@ void NewDialogWidget::showDialog()
 
 Id NewDialogWidget::selectedPlatform() const
 {
-    const int index = m_ui->comboBox->currentIndex();
-    return Id::fromSetting(m_ui->comboBox->itemData(index));
+    const int index = m_comboBox->currentIndex();
+    return Id::fromSetting(m_comboBox->itemData(index));
 }
 
 bool NewDialogWidget::event(QEvent *event)
@@ -349,12 +381,11 @@ bool NewDialogWidget::event(QEvent *event)
 
 NewDialogWidget::~NewDialogWidget()
 {
-    delete m_ui;
 }
 
 IWizardFactory *NewDialogWidget::currentWizardFactory() const
 {
-    QModelIndex index = m_filterProxyModel->mapToSource(m_ui->templatesView->currentIndex());
+    QModelIndex index = m_filterProxyModel->mapToSource(m_templatesView->currentIndex());
     return factoryOfItem(m_model->itemFromIndex(index));
 }
 
@@ -387,10 +418,10 @@ void NewDialogWidget::currentCategoryChanged(const QModelIndex &index)
     if (index.parent() != m_model->invisibleRootItem()->index()) {
         QModelIndex sourceIndex = m_filterProxyModel->mapToSource(index);
         sourceIndex = m_filterProxyModel->mapFromSource(sourceIndex);
-        m_ui->templatesView->setRootIndex(sourceIndex);
+        m_templatesView->setRootIndex(sourceIndex);
         // Focus the first item by default
-        m_ui->templatesView->setCurrentIndex(
-                    m_filterProxyModel->index(0, 0, m_ui->templatesView->rootIndex()));
+        m_templatesView->setCurrentIndex(
+            m_filterProxyModel->index(0, 0, m_templatesView->rootIndex()));
     }
 }
 
@@ -409,37 +440,36 @@ void NewDialogWidget::currentItemChanged(const QModelIndex &index)
             desciption.replace(QLatin1Char('\n'), QLatin1String("<br>"));
         desciption += QLatin1String("<br><br><b>");
         if (wizard->flags().testFlag(IWizardFactory::PlatformIndependent))
-            desciption += tr("Platform independent") + QLatin1String("</b>");
+            desciption += Tr::tr("Platform independent") + QLatin1String("</b>");
         else
-            desciption += tr("Supported Platforms")
+            desciption += Tr::tr("Supported Platforms")
                     + QLatin1String("</b>: <ul>")
                     + "<li>" + displayNamesForSupportedPlatforms.join("</li><li>") + "</li>"
                     + QLatin1String("</ul>");
 
-        m_ui->templateDescription->setHtml(desciption);
+        m_templateDescription->setHtml(desciption);
 
         if (!wizard->descriptionImage().isEmpty()) {
-            m_ui->imageLabel->setVisible(true);
-            m_ui->imageLabel->setPixmap(wizard->descriptionImage());
+            m_imageLabel->setVisible(true);
+            m_imageLabel->setPixmap(wizard->descriptionImage());
         } else {
-            m_ui->imageLabel->setVisible(false);
+            m_imageLabel->setVisible(false);
         }
 
     } else {
-        m_ui->templateDescription->clear();
+        m_templateDescription->clear();
     }
     updateOkButton();
 }
 
 void NewDialogWidget::saveState()
 {
-    const QModelIndex filterIdx = m_ui->templateCategoryView->currentIndex();
+    const QModelIndex filterIdx = m_templateCategoryView->currentIndex();
     const QModelIndex idx = m_filterProxyModel->mapToSource(filterIdx);
     QStandardItem *currentItem = m_model->itemFromIndex(idx);
     if (currentItem)
         ICore::settings()->setValue(LAST_CATEGORY_KEY, currentItem->data(Qt::UserRole));
-    ICore::settings()->setValueWithDefault(LAST_PLATFORM_KEY,
-                                           m_ui->comboBox->currentData().toString());
+    ICore::settings()->setValueWithDefault(LAST_PLATFORM_KEY, m_comboBox->currentData().toString());
 }
 
 static void runWizard(IWizardFactory *wizard, const FilePath &defaultLocation, Id platform,
@@ -452,7 +482,7 @@ static void runWizard(IWizardFactory *wizard, const FilePath &defaultLocation, I
 void NewDialogWidget::accept()
 {
     saveState();
-    if (m_ui->templatesView->currentIndex().isValid()) {
+    if (m_templatesView->currentIndex().isValid()) {
         IWizardFactory *wizard = currentWizardFactory();
         if (QTC_GUARD(wizard)) {
             QMetaObject::invokeMethod(wizard, std::bind(&runWizard, wizard, m_defaultLocation,
@@ -478,3 +508,5 @@ void NewDialogWidget::setSelectedPlatform(int /*platform*/)
     //The static cast allows us to keep PlatformFilterProxyModel anonymous
     static_cast<PlatformFilterProxyModel *>(m_filterProxyModel)->setPlatform(selectedPlatform());
 }
+
+} // Core::Internal

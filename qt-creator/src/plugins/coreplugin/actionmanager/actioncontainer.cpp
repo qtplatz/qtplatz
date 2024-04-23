@@ -1,33 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "actioncontainer_p.h"
 #include "actionmanager.h"
 
-#include <coreplugin/coreconstants.h>
-#include <coreplugin/icontext.h>
+#include "../coreconstants.h"
+#include "../icontext.h"
 
 #include <utils/qtcassert.h>
 
@@ -194,8 +172,11 @@ namespace Internal {
     \internal
 */
 
-ActionContainerPrivate::ActionContainerPrivate(Id id)
-    : m_onAllDisabledBehavior(Disable), m_id(id), m_updateRequested(false)
+ActionContainerPrivate::ActionContainerPrivate(Id id, ActionManagerPrivate *actionManagerPrivate)
+    : m_onAllDisabledBehavior(Disable)
+    , m_id(id)
+    , m_actionManagerPrivate(actionManagerPrivate)
+    , m_updateRequested(false)
 {
     appendGroup(Constants::G_DEFAULT_ONE);
     appendGroup(Constants::G_DEFAULT_TWO);
@@ -351,7 +332,7 @@ Command *ActionContainerPrivate::addSeparator(const Context &context, Id group, 
 void ActionContainerPrivate::clear()
 {
     for (Group &group : m_groups) {
-        for (QObject *item : qAsConst(group.items)) {
+        for (QObject *item : std::as_const(group.items)) {
             if (auto command = qobject_cast<Command *>(item)) {
                 removeAction(command);
                 disconnect(command, &Command::activeStateChanged,
@@ -369,11 +350,10 @@ void ActionContainerPrivate::clear()
     scheduleUpdate();
 }
 
-void ActionContainerPrivate::itemDestroyed()
+void ActionContainerPrivate::itemDestroyed(QObject *sender)
 {
-    QObject *obj = sender();
     for (Group &group : m_groups) {
-        if (group.items.removeAll(obj) > 0)
+        if (group.items.removeAll(sender) > 0)
             break;
     }
 }
@@ -405,16 +385,7 @@ bool ActionContainerPrivate::canAddAction(Command *action)
 
 void ActionContainerPrivate::scheduleUpdate()
 {
-    if (m_updateRequested)
-        return;
-    m_updateRequested = true;
-    QMetaObject::invokeMethod(this, &ActionContainerPrivate::update, Qt::QueuedConnection);
-}
-
-void ActionContainerPrivate::update()
-{
-    updateInternal();
-    m_updateRequested = false;
+    m_actionManagerPrivate->scheduleContainerUpdate(this);
 }
 
 // ---------- MenuActionContainer ------------
@@ -424,9 +395,9 @@ void ActionContainerPrivate::update()
     \internal
 */
 
-MenuActionContainer::MenuActionContainer(Id id)
-    : ActionContainerPrivate(id),
-      m_menu(new QMenu)
+MenuActionContainer::MenuActionContainer(Id id, ActionManagerPrivate *actionManagerPrivate)
+    : ActionContainerPrivate(id, actionManagerPrivate)
+    , m_menu(new QMenu)
 {
     m_menu->setObjectName(id.toString());
     m_menu->menuAction()->setMenuRole(QAction::NoRole);
@@ -473,7 +444,7 @@ void MenuActionContainer::removeMenu(ActionContainer *container)
     m_menu->removeAction(menu->menuAction());
 }
 
-bool MenuActionContainer::updateInternal()
+bool MenuActionContainer::update()
 {
     if (onAllDisabledBehavior() == Show)
         return true;
@@ -481,8 +452,8 @@ bool MenuActionContainer::updateInternal()
     bool hasitems = false;
     QList<QAction *> actions = m_menu->actions();
 
-    for (const Group &group : qAsConst(m_groups)) {
-        for (QObject *item : qAsConst(group.items)) {
+    for (const Group &group : std::as_const(m_groups)) {
+        for (QObject *item : std::as_const(group.items)) {
             if (auto container = qobject_cast<ActionContainerPrivate*>(item)) {
                 actions.removeAll(container->menu()->menuAction());
                 if (container == this) {
@@ -493,13 +464,15 @@ bool MenuActionContainer::updateInternal()
                     qWarning("%s", warning.constData());
                     continue;
                 }
-                if (container->updateInternal()) {
+                if (container->update()) {
                     hasitems = true;
                     break;
                 }
             } else if (auto command = qobject_cast<Command *>(item)) {
                 actions.removeAll(command->action());
-                if (command->isActive()) {
+                if (command->isActive()
+                    && !(HostOsInfo::isMacHost()
+                         && command->action()->menuRole() == QAction::ApplicationSpecificRole)) {
                     hasitems = true;
                     break;
                 }
@@ -512,7 +485,7 @@ bool MenuActionContainer::updateInternal()
     }
     if (!hasitems) {
         // look if there were actions added that we don't control and check if they are enabled
-        for (const QAction *action : qAsConst(actions)) {
+        for (const QAction *action : std::as_const(actions)) {
             if (!action->isSeparator() && action->isEnabled()) {
                 hasitems = true;
                 break;
@@ -541,8 +514,9 @@ bool MenuActionContainer::canBeAddedToContainer(ActionContainerPrivate *containe
     \internal
 */
 
-MenuBarActionContainer::MenuBarActionContainer(Id id)
-    : ActionContainerPrivate(id), m_menuBar(nullptr)
+MenuBarActionContainer::MenuBarActionContainer(Id id, ActionManagerPrivate *actionManagerPrivate)
+    : ActionContainerPrivate(id, actionManagerPrivate)
+    , m_menuBar(nullptr)
 {
     setOnAllDisabledBehavior(Show);
 }
@@ -587,7 +561,7 @@ void MenuBarActionContainer::removeMenu(ActionContainer *container)
     m_menuBar->removeAction(menu->menuAction());
 }
 
-bool MenuBarActionContainer::updateInternal()
+bool MenuBarActionContainer::update()
 {
     if (onAllDisabledBehavior() == Show)
         return true;
@@ -618,9 +592,12 @@ bool MenuBarActionContainer::canBeAddedToContainer(ActionContainerPrivate *) con
 
 const char ID_PREFIX[] = "io.qt.qtcreator.";
 
-TouchBarActionContainer::TouchBarActionContainer(Id id, const QIcon &icon, const QString &text)
-    : ActionContainerPrivate(id),
-      m_touchBar(std::make_unique<TouchBar>(id.withPrefix(ID_PREFIX).name(), icon, text))
+TouchBarActionContainer::TouchBarActionContainer(Id id,
+                                                 ActionManagerPrivate *actionManagerPrivate,
+                                                 const QIcon &icon,
+                                                 const QString &text)
+    : ActionContainerPrivate(id, actionManagerPrivate)
+    , m_touchBar(std::make_unique<TouchBar>(id.withPrefix(ID_PREFIX).name(), icon, text))
 {
 }
 
@@ -674,7 +651,7 @@ bool TouchBarActionContainer::canBeAddedToContainer(ActionContainerPrivate *cont
     return qobject_cast<TouchBarActionContainer *>(container);
 }
 
-bool TouchBarActionContainer::updateInternal()
+bool TouchBarActionContainer::update()
 {
     return false;
 }

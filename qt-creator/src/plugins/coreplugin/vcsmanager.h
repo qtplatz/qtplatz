@@ -1,33 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "core_global.h"
 
-#include <utils/fileutils.h>
+#include <utils/filepath.h>
 #include <utils/id.h>
 
 #include <QString>
@@ -37,7 +15,7 @@ namespace Core {
 
 class IVersionControl;
 
-namespace Internal { class MainWindow; }
+namespace Internal { class ICorePrivate; }
 
 /* VcsManager:
  * 1) Provides functionality for finding the IVersionControl * for a given
@@ -65,10 +43,10 @@ public:
 
     static void resetVersionControlForDirectory(const Utils::FilePath &inputDirectory);
     static IVersionControl *findVersionControlForDirectory(const Utils::FilePath &directory,
-                                                           QString *topLevelDirectory = nullptr);
+                                                           Utils::FilePath *topLevelDirectory = nullptr);
     static Utils::FilePath findTopLevelForDirectory(const Utils::FilePath &directory);
 
-    static QStringList repositories(const IVersionControl *);
+    static Utils::FilePaths repositories(const IVersionControl *versionControl);
 
     // Shows a confirmation dialog, whether the files should also be deleted
     // from revision control. Calls vcsDelete on the files. Returns the list
@@ -76,7 +54,7 @@ public:
     static Utils::FilePaths promptToDelete(const Utils::FilePaths &filePaths);
     static Utils::FilePaths promptToDelete(IVersionControl *versionControl,
                                            const Utils::FilePaths &filePaths);
-    static bool promptToDelete(IVersionControl *versionControl, const QString &fileName);
+    static bool promptToDelete(IVersionControl *versionControl, const Utils::FilePath &filePath);
 
     // Shows a confirmation dialog, whether the files in the list should be
     // added to revision control. Calls vcsAdd for each file.
@@ -106,11 +84,15 @@ private:
     explicit VcsManager(QObject *parent = nullptr);
     ~VcsManager() override;
 
-    void handleConfigurationChanges();
+    void handleConfigurationChanges(IVersionControl *vc);
     static void addVersionControl(IVersionControl *vc);
 
-    friend class Core::Internal::MainWindow;
-    friend class Core::IVersionControl;
+    friend class Internal::ICorePrivate;
+    friend class IVersionControl;
 };
+
+#ifdef WITH_TESTS
+namespace Internal { QObject *createVcsManagerTest(); }
+#endif
 
 } // namespace Core

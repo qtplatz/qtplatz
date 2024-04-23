@@ -1,57 +1,36 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "executefilter.h"
 
-#include <coreplugin/icore.h>
-#include <coreplugin/messagemanager.h>
+#include "../coreplugintr.h"
+#include "../icore.h"
+#include "../editormanager/editormanager.h"
+#include "../messagemanager.h"
+
 #include <utils/algorithm.h>
 #include <utils/environment.h>
 #include <utils/macroexpander.h>
+#include <utils/process.h>
 #include <utils/qtcassert.h>
-#include <utils/qtcprocess.h>
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMessageBox>
 
-using namespace Core;
-using namespace Core::Internal;
-
 using namespace Utils;
+
+namespace Core::Internal {
 
 ExecuteFilter::ExecuteFilter()
 {
     setId("Execute custom commands");
-    setDisplayName(tr("Execute Custom Commands"));
-    setDescription(tr(
+    setDisplayName(Tr::tr("Execute Custom Commands"));
+    setDescription(Tr::tr(
         "Runs an arbitrary command with arguments. The command is searched for in the PATH "
         "environment variable if needed. Note that the command is run directly, not in a shell."));
     setDefaultShortcutString("!");
     setPriority(High);
-    setDefaultIncludedByDefault(false);
 }
 
 ExecuteFilter::~ExecuteFilter()
@@ -59,100 +38,102 @@ ExecuteFilter::~ExecuteFilter()
     removeProcess();
 }
 
-QList<LocatorFilterEntry> ExecuteFilter::matchesFor(QFutureInterface<LocatorFilterEntry> &future,
-                                             const QString &entry)
+LocatorMatcherTasks ExecuteFilter::matchers()
 {
-    QList<LocatorFilterEntry> value;
-    if (!entry.isEmpty()) // avoid empty entry
-        value.append(LocatorFilterEntry(this, entry, QVariant()));
-    QList<LocatorFilterEntry> others;
-    const Qt::CaseSensitivity entryCaseSensitivity = caseSensitivity(entry);
-    for (const QString &cmd : qAsConst(m_commandHistory)) {
-        if (future.isCanceled())
-            break;
-        if (cmd == entry) // avoid repeated entry
-            continue;
-        LocatorFilterEntry filterEntry(this, cmd, QVariant());
-        const int index = cmd.indexOf(entry, 0, entryCaseSensitivity);
-        if (index >= 0) {
-            filterEntry.highlightInfo = {index, int(entry.length())};
-            value.append(filterEntry);
-        } else {
-            others.append(filterEntry);
+    using namespace Tasking;
+
+    Storage<LocatorStorage> storage;
+
+    const auto onSetup = [this, storage] {
+        const QString input = storage->input();
+        LocatorFilterEntries entries;
+        if (!input.isEmpty()) { // avoid empty entry
+            LocatorFilterEntry entry;
+            entry.displayName = input;
+            entry.acceptor = [this, input] { acceptCommand(input); return AcceptResult(); };
+            entries.append(entry);
         }
-    }
-    value.append(others);
-    return value;
+        LocatorFilterEntries others;
+        const Qt::CaseSensitivity entryCaseSensitivity = caseSensitivity(input);
+        for (const QString &cmd : std::as_const(m_commandHistory)) {
+            if (cmd == input) // avoid repeated entry
+                continue;
+            LocatorFilterEntry entry;
+            entry.displayName = cmd;
+            entry.acceptor = [this, cmd] { acceptCommand(cmd); return AcceptResult(); };
+            const int index = cmd.indexOf(input, 0, entryCaseSensitivity);
+            if (index >= 0) {
+                entry.highlightInfo = {index, int(input.length())};
+                entries.append(entry);
+            } else {
+                others.append(entry);
+            }
+        }
+        storage->reportOutput(entries + others);
+    };
+    return {{Sync(onSetup), storage}};
 }
 
-void ExecuteFilter::accept(const LocatorFilterEntry &selection,
-                           QString *newText, int *selectionStart, int *selectionLength) const
+void ExecuteFilter::acceptCommand(const QString &cmd)
 {
-    Q_UNUSED(newText)
-    Q_UNUSED(selectionStart)
-    Q_UNUSED(selectionLength)
-    auto p = const_cast<ExecuteFilter *>(this);
-
-    const QString value = selection.displayName.trimmed();
-
-    const int index = m_commandHistory.indexOf(value);
+    const QString displayName = cmd.trimmed();
+    const int index = m_commandHistory.indexOf(displayName);
     if (index != -1 && index != 0)
-        p->m_commandHistory.removeAt(index);
+        m_commandHistory.removeAt(index);
     if (index != 0)
-        p->m_commandHistory.prepend(value);
+        m_commandHistory.prepend(displayName);
     static const int maxHistory = 100;
-    while (p->m_commandHistory.size() > maxHistory)
-        p->m_commandHistory.removeLast();
+    while (m_commandHistory.size() > maxHistory)
+        m_commandHistory.removeLast();
 
     bool found;
-    QString workingDirectory = Utils::globalMacroExpander()->value("CurrentDocument:Path", &found);
+    QString workingDirectory = globalMacroExpander()->value("CurrentDocument:Path", &found);
     if (!found || workingDirectory.isEmpty())
-        workingDirectory = Utils::globalMacroExpander()->value("CurrentDocument:Project:Path", &found);
+        workingDirectory = globalMacroExpander()->value("CurrentDocument:Project:Path", &found);
 
-    ExecuteData d;
-    d.command = CommandLine::fromUserInput(value, Utils::globalMacroExpander());
-    d.workingDirectory = FilePath::fromString(workingDirectory);
-
+    const ExecuteData data{CommandLine::fromUserInput(displayName, globalMacroExpander()),
+                           FilePath::fromString(workingDirectory)};
     if (m_process) {
-        const QString info(tr("Previous command is still running (\"%1\").\nDo you want to kill it?")
-                           .arg(p->headCommand()));
-        int r = QMessageBox::question(ICore::dialogParent(), tr("Kill Previous Process?"), info,
-                                      QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
-                                      QMessageBox::Yes);
-        if (r == QMessageBox::Cancel)
+        const QString info(Tr::tr("Previous command is still running (\"%1\").\n"
+                                  "Do you want to kill it?").arg(headCommand()));
+        const auto result = QMessageBox::question(ICore::dialogParent(),
+                                                  Tr::tr("Kill Previous Process?"), info,
+                                                  QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                                                  QMessageBox::Yes);
+        if (result == QMessageBox::Cancel)
             return;
-        if (r == QMessageBox::No) {
-            p->m_taskQueue.enqueue(d);
+        if (result == QMessageBox::No) {
+            m_taskQueue.append(data);
             return;
         }
-        p->removeProcess();
+        removeProcess();
     }
-
-    p->m_taskQueue.enqueue(d);
-    p->runHeadCommand();
+    m_taskQueue.append(data);
+    runHeadCommand();
 }
 
 void ExecuteFilter::done()
 {
     QTC_ASSERT(m_process, return);
     MessageManager::writeFlashing(m_process->exitMessage());
+    EditorManager::updateWindowTitles(); // Refresh VCS topic if needed
 
     removeProcess();
     runHeadCommand();
 }
 
-void ExecuteFilter::readStandardOutput()
+void ExecuteFilter::readStdOutput()
 {
     QTC_ASSERT(m_process, return);
-    const QByteArray data = m_process->readAllStandardOutput();
+    const QByteArray data = m_process->readAllRawStandardOutput();
     MessageManager::writeSilently(
         QTextCodec::codecForLocale()->toUnicode(data.constData(), data.size(), &m_stdoutState));
 }
 
-void ExecuteFilter::readStandardError()
+void ExecuteFilter::readStdError()
 {
     QTC_ASSERT(m_process, return);
-    const QByteArray data = m_process->readAllStandardError();
+    const QByteArray data = m_process->readAllRawStandardError();
     MessageManager::writeSilently(
         QTextCodec::codecForLocale()->toUnicode(data.constData(), data.size(), &m_stderrState));
 }
@@ -160,15 +141,15 @@ void ExecuteFilter::readStandardError()
 void ExecuteFilter::runHeadCommand()
 {
     if (!m_taskQueue.isEmpty()) {
-        const ExecuteData &d = m_taskQueue.head();
+        const ExecuteData &d = m_taskQueue.first();
         if (d.command.executable().isEmpty()) {
-            MessageManager::writeDisrupting(
-                tr("Could not find executable for \"%1\".").arg(d.command.executable().toUserOutput()));
-            m_taskQueue.dequeue();
+            MessageManager::writeDisrupting(Tr::tr("Could not find executable for \"%1\".")
+                                                .arg(d.command.executable().toUserOutput()));
+            m_taskQueue.removeFirst();
             runHeadCommand();
             return;
         }
-        MessageManager::writeDisrupting(tr("Starting command \"%1\".").arg(headCommand()));
+        MessageManager::writeDisrupting(Tr::tr("Starting command \"%1\".").arg(headCommand()));
         QTC_CHECK(!m_process);
         createProcess();
         m_process->setWorkingDirectory(d.workingDirectory);
@@ -182,11 +163,11 @@ void ExecuteFilter::createProcess()
     if (m_process)
         return;
 
-    m_process = new Utils::QtcProcess;
-    m_process->setEnvironment(Utils::Environment::systemEnvironment());
-    connect(m_process, &QtcProcess::done, this, &ExecuteFilter::done);
-    connect(m_process, &QtcProcess::readyReadStandardOutput, this, &ExecuteFilter::readStandardOutput);
-    connect(m_process, &QtcProcess::readyReadStandardError, this, &ExecuteFilter::readStandardError);
+    m_process = new Process;
+    m_process->setEnvironment(Environment::systemEnvironment());
+    connect(m_process, &Process::done, this, &ExecuteFilter::done);
+    connect(m_process, &Process::readyReadStandardOutput, this, &ExecuteFilter::readStdOutput);
+    connect(m_process, &Process::readyReadStandardError, this, &ExecuteFilter::readStdError);
 }
 
 void ExecuteFilter::removeProcess()
@@ -194,7 +175,7 @@ void ExecuteFilter::removeProcess()
     if (!m_process)
         return;
 
-    m_taskQueue.dequeue();
+    m_taskQueue.removeFirst();
     m_process->deleteLater();
     m_process = nullptr;
 }
@@ -217,6 +198,8 @@ QString ExecuteFilter::headCommand() const
 {
     if (m_taskQueue.isEmpty())
         return QString();
-    const ExecuteData &data = m_taskQueue.head();
+    const ExecuteData &data = m_taskQueue.first();
     return data.command.toUserOutput();
 }
+
+} // namespace Core::Internal

@@ -3,7 +3,7 @@
     "supportedProjectTypes": [ "MesonProjectManager.MesonProject","CMakeProjectManager.CMakeProject", "Qt4ProjectManager.Qt4Project", "Qbs.QbsProject" ],
     "id": "C.QtWidgets",
     "category": "D.ApplicationQt",
-    "trDescription": "Creates a widget-based Qt application that contains a Qt Designer-based main window.\n\nPreselects a desktop Qt for building the application if available.",
+    "trDescription": "Creates a widget-based Qt application that contains a Qt Designer-based main window and C++ source and header files to implement the application logic.\n\nPreselects a desktop Qt for building the application if available.",
     "trDisplayName": "Qt Widgets Application",
     "trDisplayCategory": "Application (Qt)",
     "icon": "../../global/guiapplication.png",
@@ -22,7 +22,7 @@
         { "key": "UiHdrFileName", "value": "%{JS: (value('BuildSystem') === 'cmake' ? (Util.path(value('FormFileName')) + '/') : '') + 'ui_' + Util.completeBaseName(value('FormFileName')) + '.h'}" },
         { "key": "CN", "value": "%{JS: Cpp.className(value('Class'))}" },
         { "key": "HasTranslation", "value": "%{JS: value('TsFileName') !== ''}" },
-        { "key": "GUARD", "value": "%{JS: Cpp.classToHeaderGuard(value('Class'), Util.suffix(value('HdrFileName')))}" }
+        { "key": "GUARD", "value": "%{JS: Cpp.headerGuard(value('HdrFileName'))}" }
     ],
 
     "pages":
@@ -102,7 +102,7 @@
                     "data":
                     {
                         "validator": "(?:(?:[a-zA-Z_][a-zA-Z_0-9]*::)*[a-zA-Z_][a-zA-Z_0-9]*|)",
-                        "trText": "%{JS: value('BaseClass') ? value('BaseClass').slice(1) : 'MyClass'}"
+                        "text": "%{JS: value('BaseClass') ? value('BaseClass').slice(1) : 'MyClass'}"
                     }
                 },
                 {
@@ -123,14 +123,14 @@
                     "type": "LineEdit",
                     "trDisplayName": "Header file:",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++hdr'))}" }
+                    "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++hdr'))}" }
                 },
                 {
                     "name": "SrcFileName",
                     "type": "LineEdit",
                     "trDisplayName": "Source file:",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++src'))}" }
+                    "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-c++src'))}" }
                 },
                 {
                     "name": "GenerateForm",
@@ -144,7 +144,7 @@
                     "trDisplayName": "Form file:",
                     "enabled": "%{GenerateForm}",
                     "mandatory": true,
-                    "data": { "trText": "%{JS: Cpp.classToFileName(value('Class'), 'ui')}" }
+                    "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), 'ui')}" }
                 }
             ]
         },

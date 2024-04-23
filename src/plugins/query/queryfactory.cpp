@@ -39,12 +39,10 @@ QueryFactory::~QueryFactory()
 {
 }
 
-#if QTC_VERSION >= 0x08'00'00
-
 QueryFactory::QueryFactory()
 {
     setId( Constants::C_QUERY );
-    setDisplayName( tr("QueryView") );
+    setDisplayName( QObject::tr("QueryView") );
     setEditorCreator( [] {
         return new QueryEditor();
     });
@@ -56,24 +54,3 @@ QueryFactory::QueryFactory()
         addMimeType( QString::fromLatin1(format) );
     }
 }
-
-#else
-
-QueryFactory::QueryFactory( QObject * owner ) : Core::IEditorFactory( owner )
-{
-    setId( Constants::C_QUERY );
-
-    setDisplayName( tr( "OpenWidth::Query", "Query processor" ) );
-
-    addMimeType( "application/adfs" );
-    //addMimeType( "application/csv" );
-    //addMimeType( "application/txt" );
-}
-
-// implementation for IEditorFactory
-Core::IEditor *
-QueryFactory::createEditor()
-{
-    return new QueryEditor;
-}
-#endif

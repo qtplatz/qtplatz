@@ -1,35 +1,18 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "extensionsystem_global.h"
+#include "pluginspec.h"
 
 #include <utils/treemodel.h>
 
+#include <QMetaType>
+#include <QSet>
 #include <QWidget>
+
+#include <unordered_map>
 
 namespace Utils {
 class CategorySortFilterModel;
@@ -55,11 +38,12 @@ public:
 
     PluginSpec *currentPlugin() const;
     void setFilter(const QString &filter);
+    void cancelChanges();
 
 signals:
     void currentPluginChanged(ExtensionSystem::PluginSpec *spec);
     void pluginActivated(ExtensionSystem::PluginSpec *spec);
-    void pluginSettingsChanged(ExtensionSystem::PluginSpec *spec);
+    void pluginsChanged(const QSet<ExtensionSystem::PluginSpec *> &spec, bool enabled);
 
 private:
     PluginSpec *pluginForIndex(const QModelIndex &index) const;
@@ -69,9 +53,12 @@ private:
     Utils::TreeView *m_categoryView;
     Utils::TreeModel<Utils::TreeItem, Internal::CollectionItem, Internal::PluginItem> *m_model;
     Utils::CategorySortFilterModel *m_sortModel;
+    std::unordered_map<PluginSpec *, bool> m_affectedPlugins;
 
     friend class Internal::CollectionItem;
     friend class Internal::PluginItem;
 };
 
-} // namespae ExtensionSystem
+} // namespace ExtensionSystem
+
+Q_DECLARE_METATYPE(ExtensionSystem::PluginSpec *)

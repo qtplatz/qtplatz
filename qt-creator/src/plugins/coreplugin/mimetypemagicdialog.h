@@ -1,36 +1,23 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
-#include "ui_mimetypemagicdialog.h"
-
 #include <utils/mimeutils.h>
 
-namespace Core {
-namespace Internal {
+#include <QtCore/QVariant>
+#include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
+
+namespace Core::Internal {
 
 class MagicData
 {
@@ -57,7 +44,6 @@ public:
 
 class MimeTypeMagicDialog : public QDialog
 {
-    Q_DECLARE_TR_FUNCTIONS(Core::Internal::MimeTypeMagicDialog)
 public:
     explicit MimeTypeMagicDialog(QWidget *parent = nullptr);
 
@@ -70,13 +56,23 @@ private:
     void validateAccept();
     Utils::MimeMagicRule createRule(QString *errorMessage = nullptr) const;
 
-    Ui::MimeTypeMagicDialog ui;
     int m_customRangeStart = 0;
     int m_customRangeEnd = 0;
     int m_customPriority = 50;
+
+    QLineEdit *m_valueLineEdit;
+    QComboBox *m_typeSelector;
+    QLineEdit *m_maskLineEdit;
+    QGroupBox *m_useRecommendedGroupBox;
+    QLabel *m_noteLabel;
+    QLabel *m_startRangeLabel;
+    QLabel *m_endRangeLabel;
+    QLabel *m_priorityLabel;
+    QSpinBox *m_prioritySpinBox;
+    QSpinBox *m_startRangeSpinBox;
+    QSpinBox *m_endRangeSpinBox;
 };
 
-} // Internal
-} // Core
+} // Core::Internal
 
 Q_DECLARE_METATYPE(Core::Internal::MagicData)

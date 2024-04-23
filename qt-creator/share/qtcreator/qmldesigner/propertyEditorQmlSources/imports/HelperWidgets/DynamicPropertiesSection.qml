@@ -266,7 +266,6 @@ Section {
 
             ItemFilterComboBox {
                 typeFilter: "QtQuick3D.TextureInput"
-                validator: RegExpValidator { regExp: /(^$|^[a-z_]\w*)/ }
                 backendValue: layoutTextureInput.backendValue
                 implicitWidth: StudioTheme.Values.singleControlColumnWidth
                                + StudioTheme.Values.actionIndicatorWidth
@@ -516,6 +515,8 @@ Section {
                         if (propertyType == "alias")
                             return aliasEditor
                         if (propertyType == "variant")
+                            return readonlyEditor
+                        if (propertyType == "var")
                             return readonlyEditor
                         if (propertyType == "TextureInput")
                             return textureInputEditor

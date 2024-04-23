@@ -1,34 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15 as Controls
-import QtQuick.Layouts 1.15
-import QtQuickDesignerTheme 1.0
-import StudioControls 1.0 as StudioControls
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Controls as Controls
+import QtQuick.Layouts
+import StudioControls as StudioControls
+import StudioTheme as StudioTheme
 
 Item {
     id: section
@@ -40,7 +17,14 @@ Item {
     property alias showTopSeparator: topSeparator.visible
     property alias showArrow: arrow.visible
     property alias showLeftBorder: leftBorder.visible
+    property alias showCloseButton: closeButton.visible
+    property alias closeButtonToolTip: closeButton.tooltip
+    property alias showEyeButton: eyeButton.visible
+    property alias eyeButtonToolTip: eyeButton.tooltip
     property alias spacing: column.spacing
+    property alias draggable: dragButton.visible
+    property alias fillBackground: sectionBackground.visible
+    property alias highlightBorder: sectionBorder.visible
 
     property int leftPadding: StudioTheme.Values.sectionLeftPadding
     property int rightPadding: 0
@@ -57,8 +41,11 @@ Item {
     property bool addBottomPadding: true
     property bool dropEnabled: false
     property bool highlight: false
+    property bool eyeEnabled: true // eye button enabled (on)
 
     property bool useDefaulContextMenu: true
+
+    property string category: "properties"
 
     clip: true
 
@@ -71,11 +58,29 @@ Item {
 
     Connections {
         target: Controller
-        function onCollapseAll() {
-            if (collapsible)
-                section.expanded = false
+        function onCollapseAll(cat) {
+            if (collapsible && cat === section.category) {
+                if (section.expandOnClick)
+                    section.expanded = false
+                else
+                    section.collapse()
+            }
         }
-        function onExpandAll() { section.expanded = true }
+        function onExpandAll(cat) {
+            if (cat === section.category) {
+                if (section.expandOnClick)
+                    section.expanded = true
+                else
+                    section.expand()
+            }
+        }
+        function onCloseContextMenu() {
+            contextMenu.close()
+        }
+        function onCountChanged(cat, count) {
+            if (section.showEyeButton && cat === section.category)
+                dragButton.enabled = count > 1
+        }
     }
 
     signal drop(var drag)
@@ -83,6 +88,12 @@ Item {
     signal dropExit()
     signal showContextMenu()
     signal toggleExpand()
+    signal expand()
+    signal collapse()
+    signal closeButtonClicked()
+    signal eyeButtonClicked()
+    signal startDrag(var section)
+    signal stopDrag()
 
     DropArea {
         id: dropArea
@@ -90,8 +101,8 @@ Item {
         enabled: section.dropEnabled
         anchors.fill: parent
 
-        onEntered: (drag)=> section.dropEnter(drag)
-        onDropped: (drag)=> section.drop(drag)
+        onEntered: (drag) => section.dropEnter(drag)
+        onDropped: (drag) => section.drop(drag)
         onExited: section.dropExit()
     }
 
@@ -111,13 +122,15 @@ Item {
 
                 StudioControls.MenuItem {
                     text: qsTr("Expand All")
-                    onTriggered: Controller.expandAll()
+                    onTriggered: Controller.expandAll(section.category)
                 }
 
                 StudioControls.MenuItem {
                     text: qsTr("Collapse All")
-                    onTriggered: Controller.collapseAll()
+                    onTriggered: Controller.collapseAll(section.category)
                 }
+
+                onOpenedChanged: Controller.contextMenuOpened = contextMenu.opened
             }
         }
 
@@ -127,7 +140,7 @@ Item {
             height: 4
             source: "image://icons/down-arrow"
             anchors.left: parent.left
-            anchors.leftMargin: 4 + (section.level * section.levelShift)
+            anchors.leftMargin: 4 + (section.level * section.levelShift) + (section.draggable ? 20 : 0) + (section.showEyeButton ? 25 : 0)
             anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -135,7 +148,7 @@ Item {
             id: label
             anchors.verticalCenter: parent.verticalCenter
             color: StudioTheme.Values.themeTextColor
-            x: 22 + (section.level * section.levelShift)
+            x: arrow.x + 18
             font.pixelSize: StudioTheme.Values.myFontSize
             font.capitalization: Font.AllUppercase
         }
@@ -159,7 +172,65 @@ Item {
                 }
             }
         }
+
+        IconButton {
+            id: closeButton
+
+            icon: StudioTheme.Constants.closeCross
+            buttonSize: 22
+            iconScale: containsMouse ? 1.2 : 1
+            transparentBg: true
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            visible: false
+
+            onClicked: root.closeButtonClicked()
+        }
+
+        IconButton {
+            id: dragButton
+
+            icon: StudioTheme.Constants.dragmarks
+            buttonSize: 22
+            iconScale: dragButton.enabled && dragButton.containsMouse ? 1.2 : 1
+            transparentBg: true
+
+            visible: false
+            drag.target: dragButton.enabled ? section : null
+            drag.axis: Drag.YAxis
+
+            onPressed: {
+                section.startDrag(section)
+
+                section.z = ++section.parent.z // put the dragged section on top
+            }
+
+            onReleased: {
+                section.stopDrag()
+            }
+        }
+
+        IconButton {
+            id: eyeButton
+
+            anchors.left: dragButton.right
+
+            icon: section.eyeEnabled ? StudioTheme.Constants.visible_small : StudioTheme.Constants.invisible_small
+            buttonSize: 22
+            iconScale: eyeButton.containsMouse ? 1.2 : 1
+            transparentBg: true
+
+            visible: false
+
+            onClicked: {
+                section.eyeEnabled = !section.eyeEnabled
+                root.eyeButtonClicked()
+            }
+        }
     }
+
+    Drag.active: dragButton.drag.active
+    Drag.source: dragButton
 
     Rectangle {
         id: topSeparator
@@ -178,6 +249,23 @@ Item {
 
     implicitHeight: Math.round(column.height + header.height + topSpacer.height + bottomSpacer.height)
 
+    Rectangle {
+        id: sectionBackground
+        anchors.top: header.bottom
+        width: section.width
+        height: topSpacer.height + column.height + bottomSpacer.height
+        color: StudioTheme.Values.themePanelBackground
+        visible: false
+    }
+
+    Rectangle {
+        id: sectionBorder
+        anchors.fill: parent
+        color: "transparent"
+        border.color: StudioTheme.Values.themeInteraction
+        border.width: 1
+        visible: false
+    }
     Item {
         id: topSpacer
         height: section.addTopPadding && column.height > 0 ? section.topPadding : 0

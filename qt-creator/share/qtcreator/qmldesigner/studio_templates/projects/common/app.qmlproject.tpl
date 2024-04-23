@@ -6,6 +6,7 @@ import QmlProject 1.1
 
 Project {
     mainFile: "content/App.qml"
+    mainUiFile: "content/Screen01.ui.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {
@@ -59,7 +60,20 @@ Project {
     }
 
     Files {
+        filter: "*.qsb"
+    }
+
+    Files {
+        filter: "*.json"
+    }
+
+    Files {
         filter: "*.mesh"
+        directory: "asset_imports"
+    }
+
+    Files {
+        filter: "*.qad"
         directory: "asset_imports"
     }
 
@@ -71,6 +85,7 @@ Project {
     Environment {
        QT_QUICK_CONTROLS_CONF: "qtquickcontrols2.conf"
        QT_AUTO_SCREEN_SCALE_FACTOR: "1"
+       QML_COMPAT_RESOLVE_URLS_ON_ASSIGNMENT: "1"
 @if %{IsQt6Project}
 @else
        QMLSCENE_CORE_PROFILE: "true" // Required for macOS, but can create issues on embedded Linux
@@ -99,7 +114,7 @@ Project {
     /* Required for deployment */
     targetDirectory: "/opt/%{ProjectName}"
 
-    qdsVersion: "3.7"
+    qdsVersion: "4.3"
 
     quickVersion: "%{QtQuickVersion}"
 

@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -60,7 +38,10 @@ Section {
     onPixelSizeChanged: sizeWidget.setPointPixelSize()
 
     SectionLayout {
-        PropertyLabel { text: qsTr("Text") }
+        PropertyLabel {
+            text: qsTr("Text")
+            tooltip: qsTr("Sets the text to display.")
+        }
 
         SecondColumnLayout {
             LineEdit {
@@ -125,7 +106,10 @@ Section {
             }
         }
 
-        PropertyLabel { text: qsTr("Font") }
+        PropertyLabel {
+            text: qsTr("Font")
+            tooltip: qsTr("Sets the font of the text.")
+        }
 
         SecondColumnLayout {
             FontComboBox {
@@ -142,7 +126,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Style name")
-            tooltip: qsTr("Font's style.")
+            tooltip: qsTr("Sets the style of the selected font. This is prioritized over <b>Weight</b> and <b>Emphasis</b>.")
             enabled: styleNameComboBox.model.length
             blockedByTemplate: !styleNameComboBox.backendValue.isAvailable
         }
@@ -163,7 +147,10 @@ Section {
             ExpandingSpacer {}
         }
 
-        PropertyLabel { text: qsTr("Size") }
+        PropertyLabel {
+            text: qsTr("Size")
+            tooltip: qsTr("Sets the font size in pixels or points.")
+        }
 
         SecondColumnLayout {
             id: sizeWidget
@@ -242,7 +229,10 @@ Section {
             ExpandingSpacer {}
         }
 
-        PropertyLabel { text: qsTr("Text color") }
+        PropertyLabel {
+            text: qsTr("Text color")
+            tooltip: qsTr("Sets the text color.")
+        }
 
         ColorEditor {
             backendValue: backendValues.color
@@ -251,7 +241,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Weight")
-            tooltip: qsTr("Font's weight.")
+            tooltip: qsTr("Sets the overall thickness of the font.")
             enabled: !styleNameComboBox.styleSet
         }
 
@@ -271,6 +261,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Emphasis")
+            tooltip: qsTr("Sets the text to bold, italic, underlined, or strikethrough.")
             enabled: !styleNameComboBox.styleSet
         }
 
@@ -282,7 +273,10 @@ Section {
             enabled: !styleNameComboBox.styleSet
         }
 
-        PropertyLabel { text: qsTr("Alignment H") }
+        PropertyLabel {
+            text: qsTr("Alignment H")
+            tooltip: qsTr("Sets the horizontal alignment position.")
+        }
 
         SecondColumnLayout {
             AlignmentHorizontalButtons {}
@@ -290,7 +284,10 @@ Section {
             ExpandingSpacer {}
         }
 
-        PropertyLabel { text: qsTr("Alignment V") }
+        PropertyLabel {
+            text: qsTr("Alignment V")
+            tooltip: qsTr("Sets the vertical alignment position.")
+        }
 
         SecondColumnLayout {
             AlignmentVerticalButtons { visible: root.showVerticalAlignment }
@@ -300,7 +297,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Letter spacing")
-            tooltip: qsTr("Letter spacing for the font.")
+            tooltip: qsTr("Sets the letter spacing for the text.")
             blockedByTemplate: !root.getBackendValue("letterSpacing").isAvailable
         }
 
@@ -321,7 +318,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Word spacing")
-            tooltip: qsTr("Word spacing for the font.")
+            tooltip: qsTr("Sets the word spacing for the text.")
             blockedByTemplate: !root.getBackendValue("wordSpacing").isAvailable
         }
 
@@ -343,7 +340,7 @@ Section {
         PropertyLabel {
             visible: root.showLineHeight
             text: qsTr("Line height")
-            tooltip: qsTr("Line height for the text.")
+            tooltip: qsTr("Sets the line height for the text.")
             blockedByTemplate: !lineHeightSpinBox.enabled
         }
 

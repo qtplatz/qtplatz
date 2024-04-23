@@ -1,0 +1,919 @@
+name: Build and test Qbs
+
+on:
+  push:
+    paths-ignore:
+      - 'changelogs/**'
+      - 'doc/**'
+
+jobs:
+  build-linux:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Linux (Jammy, gcc)',
+            image: 'jammy-qt6',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-linux-jammy-${{ github.run_id }}
+                      products.qbs_archive.includeTests:true',
+            script: './scripts/build-qbs-with-qbs.sh',
+            cacheid: 'gcc-qt6-jammy',
+            suffix: 'linux-jammy',
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: ccache cache files
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
+    - name: Pull the Docker Image
+      run: docker-compose pull ${{ matrix.config.image }}
+    - name: Print ccache stats
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
+    - name: Build Qbs
+      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
+    - name: Print ccache stats
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v4'
+      with:
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+        path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+
+  build-linux-extra:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Linux (clang_tidy)',
+            script: './scripts/run-analyzer.sh',
+            image: 'jammy-qt6',
+            options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
+            cacheid: 'clang',
+          }
+        - {
+            name: 'Build on Linux (CMake)',
+            script: './scripts/build-qbs-with-cmake.sh',
+            image: 'jammy-qt6',
+            cacheid: 'cmake',
+          }
+        - {
+            name: 'Build on Linux (gcc, ASAN)',
+            image: 'jammy-qt6',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbsbuildconfig.enableAddressSanitizer:true
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            cacheid: 'gcc-asan',
+          }
+        - {
+            name: 'Build on Linux (gcc, UBSAN)',
+            image: 'jammy-qt6',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbsbuildconfig.enableUbSanitizer:true
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            cacheid: 'gcc-ubsan',
+          }
+        - {
+            name: 'Build on Linux (gcc, Qt 5.15)',
+            image: 'jammy-qt5',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true',
+            cacheid: 'gcc-qt5',
+          }
+    env:
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      QTEST_FUNCTION_TIMEOUT: 9000000
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: ccache cache files
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
+    - name: Pull the Docker Image
+      run: docker-compose pull ${{ matrix.config.image }}
+    - name: Print ccache stats
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
+    - name: Build Qbs
+      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
+    - name: Print ccache stats
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
+
+  clang-format:
+    name: Check Style
+    runs-on: macos-13
+    timeout-minutes: 60
+    strategy:
+        fail-fast: false
+    steps:
+    - uses: actions/checkout@v1
+    - name: Update PATH
+      run: echo "$(brew --prefix llvm@15)/bin" >> ${GITHUB_PATH}
+    - name: Run clang-format
+      run: |
+        git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@15)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
+    - name: Check diff
+      run: git diff --exit-code
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macos-12
+    timeout-minutes: 60
+    env:
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:ccache
+        modules.qbs.debugInformation:true
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
+        products.qbs_archive.includeTests:true
+      WITH_TESTS: 0
+    steps:
+    - uses: actions/checkout@v1
+    - name: Create .ccache dir
+      run: mkdir -p ~/.ccache
+    - name: ccache cache files
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ${{ runner.os }}-ccache
+    - name: Install required packages
+      run: |
+        brew install ccache p7zip
+        python3 -m pip install --user beautifulsoup4 lxml
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: clang_64
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt --detect
+        qbs config profiles.qt.baseProfile xcode_13_2_1-macosx-x86_64
+        qbs config defaultProfile qt
+        qbs config --list
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v4'
+      with:
+        name: qbs-macos-${{ github.run_id }}.tar.gz
+        path: release/qbs-macos-${{ github.run_id }}.tar.gz
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:clcache
+        modules.qbs.debugInformation:true
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
+        products.qbs_archive.includeTests:true,
+      WITH_TESTS: 0
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+    steps:
+    - uses: actions/checkout@v1
+    - name: clcache cache files
+      uses: actions/cache@v4
+      with:
+        path: ~/clcache
+        key: ${{ runner.os }}-msvc-clcache
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+    - name: Install required packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
+        pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: win64_msvc2019_64
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt $(which qmake).exe qt
+        qbs config profiles.qt.baseProfile MSVC2022-1-x86_x64
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Print clcache stats
+      run: clcache -s
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+      shell: bash
+    - name: Print clcache stats
+      run: clcache -s
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v4'
+      with:
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: release/qbs-windows-${{ github.run_id }}.zip
+
+  build-windows-mingw:
+    name: Build on Windows (MinGW)
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      BUILD_OPTIONS: |
+        modules.cpp.compilerWrapper:ccache
+        modules.qbsbuildconfig.enableAddressSanitizer:false
+        modules.qbsbuildconfig.enableBundledQt:true
+        products.qbs_archive.targetName:qbs-windows-mingw-${{ github.run_id }}
+        products.qbs_archive.includeTests:true,
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+      WITH_TESTS: 0
+      CCACHE_DIR: ${{ github.workspace }}\ccache
+    steps:
+    - uses: actions/checkout@v1
+    - name: ccache cache files
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/ccache
+        key: ${{ runner.os }}-mingw-ccache
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.8
+    - name: Install required packages
+      run: |
+        choco install ccache
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: win64_mingw
+    - name: Install Qt Creator
+      uses: ./.github/actions/download-qtc
+    - name: Install MinGW
+      uses: ./.github/actions/download-mingw
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --type mingw $(which g++).exe mingw-qt
+        qbs setup-qt $(which qmake).exe qt
+        qbs config profiles.qt.baseProfile mingw-qt
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Build Qbs
+      run: scripts/build-qbs-with-qbs.sh
+      shell: bash
+    - name: Print ccache stats
+      run: ccache -s
+    - name: Upload artifacts
+      uses: 'actions/upload-artifact@v4'
+      with:
+        name: qbs-windows-mingw-${{ github.run_id }}.zip
+        path: release/qbs-windows-mingw-${{ github.run_id }}.zip
+
+  test-linux:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run Linux tests (gcc, Qt 6)',
+            image: 'jammy-qt6',
+            suffix: 'linux-jammy',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Linux tests (clang, Qt 6)',
+            image: 'jammy-qt6',
+            suffix: 'linux-jammy',
+            profile: 'qt-clang_64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Linux tests (gcc, Qt 5)',
+            image: 'jammy-qt5',
+            suffix: 'linux-jammy',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qt.sh',
+          }
+        - {
+            name: 'Run Linux tests (gcc, Qt 6.5 static)',
+            image: 'jammy-qt6-static',
+            suffix: 'linux-jammy',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qt.sh',
+          }
+        - {
+            name: 'Run Android tests (Qt 5.15)',
+            image: 'jammy-android-515',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (Qt 6.2)',
+            image: 'jammy-android-62',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-qt-for-android.sh',
+          }
+        - {
+              name: 'Run Android tests (Qt 6.5)',
+              image: 'jammy-android-65',
+              suffix: 'linux-jammy',
+              profile: '',
+              script: './scripts/test-qt-for-android.sh',
+            }
+        - {
+            name: 'Run Android tests (ndk r19c)',
+            image: 'jammy-android-ndk-r19c',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (ndk r21e)',
+            image: 'jammy-android-ndk-r21e',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
+            name: 'Run Android tests (ndk r23)',
+            image: 'jammy-android-ndk-r23',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-for-android.sh',
+          }
+        - {
+            name: 'Run Linux tests (Qt 4.8.7)',
+            image: 'jammy-qt4',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-qt4.sh',
+          }
+
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QBS_AUTOTEST_PROFILE: ${{ matrix.config.profile }}
+      QTEST_FUNCTION_TIMEOUT: 9000000
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xzf qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz -C release/install-root/
+    - name: Pull the Docker Image
+      run: docker-compose pull ${{ matrix.config.image }}
+    - name: Run tests
+      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
+
+  test-baremetal:
+    name: Run Baremetal tests (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: build-linux
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-linux-jammy-${{ github.run_id }}.tar.gz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-jammy-${{ github.run_id }}.tar.gz -C release/install-root/
+    - name: Pull the Docker Image
+      run: docker-compose pull jammy-baremetal
+    - name: arm-none-eabi-gcc-10_3
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: avr-gcc-5_4
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: msp430-gcc-4_6
+      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: riscv64-unknown-elf-gcc-10_2
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_2 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: xtensa-lx106-elf-gcc-10_3
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+
+  test-baremetal-windows:
+    name: Run Baremetal tests (Windows)
+    runs-on: [self-hosted, windows, x64]
+    timeout-minutes: 30
+    needs: build-windows
+    # baremetal VM is down, disable the workflow for now
+    if: 'false'
+    env:
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+      QTEST_FUNCTION_TIMEOUT: 9000000
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && unzip qbs-windows-${{ github.run_id }}.zip -d release/install-root/
+      shell: bash
+    - name: keil-9_53_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=keil-9_53_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-5_60_0-mcs251
+      run: QBS_AUTOTEST_PROFILE=keil-5_60_0-mcs251 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-7_57_0-c166
+      run: QBS_AUTOTEST_PROFILE=keil-7_57_0-c166 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-5_30_0-arm
+      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: keil-llvm-5_30_0-arm
+      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-8_50_5-arm
+      run: QBS_AUTOTEST_PROFILE=iar-8_50_5-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-10_30_1-mcs51
+      run: QBS_AUTOTEST_PROFILE=iar-10_30_1-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-7_30_1-avr
+      run: QBS_AUTOTEST_PROFILE=iar-7_30_1-avr scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_30_2-avr32
+      run: QBS_AUTOTEST_PROFILE=iar-4_30_2-avr32 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-7_20_1-msp430
+      run: QBS_AUTOTEST_PROFILE=iar-7_20_1-msp430 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_11_2_234-stm8
+      run: QBS_AUTOTEST_PROFILE=iar-3_11_2_234-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_20_1-rx
+      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rx scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_20_1-rl78
+      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rl78 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-5_10_1-v850
+      run: QBS_AUTOTEST_PROFILE=iar-5_10_1-v850 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-2_21_1-rh850
+      run: QBS_AUTOTEST_PROFILE=iar-2_21_1-rh850 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-2_30_1-sh
+      run: QBS_AUTOTEST_PROFILE=iar-2_30_1-sh scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_81_1-78k
+      run: QBS_AUTOTEST_PROFILE=iar-4_81_1-78k scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-4_10_1-hcs12
+      run: QBS_AUTOTEST_PROFILE=iar-4_10_1-hcs12 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-1_40_2-r32c
+      run: QBS_AUTOTEST_PROFILE=iar-1_40_2-r32c scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_71_1-m16c
+      run: QBS_AUTOTEST_PROFILE=iar-3_71_1-m16c scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-1_21_1-riscv
+      run: QBS_AUTOTEST_PROFILE=iar-1_21_1-riscv scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: iar-3_30_1-cr16
+      run: QBS_AUTOTEST_PROFILE=iar-3_30_1-cr16 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: sdcc-4_0_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: avr-gcc-4_6_2
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-4_6_2 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: avr32-gcc-4_4_3
+      run: QBS_AUTOTEST_PROFILE=avr32-gcc-4_4_3 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m32c-elf-gcc-4_7_3
+      run: QBS_AUTOTEST_PROFILE=m32c-elf-gcc-4_7_3 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m32r-elf-gcc-4_8_0
+      run: QBS_AUTOTEST_PROFILE=m32r-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: m68k-elf-gcc-4_8_0
+      run: QBS_AUTOTEST_PROFILE=m68k-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: msp430-elf-gcc-8_3_1
+      run: QBS_AUTOTEST_PROFILE=msp430-elf-gcc-8_3_1 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: riscv64-unknown-elf-gcc-10_1_0
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_1_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: v850-elf-gcc-4_7_2
+      run: QBS_AUTOTEST_PROFILE=v850-elf-gcc-4_7_2 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: arm-none-eabi-gcc-9_3_1
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_3_1 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: xtensa-lx106-elf-gcc-5_2_0
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-5_2_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: xtensa-esp32-elf-gcc-8_4_0
+      run: QBS_AUTOTEST_PROFILE=xtensa-esp32-elf-gcc-8_4_0 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: rl78-elf-gcc-4_9_2_202002-GNURL78
+      run: QBS_AUTOTEST_PROFILE=rl78-elf-gcc-4_9_2_202002-GNURL78 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: rx-elf-gcc-8_3_0_202004-GNURX
+      run: QBS_AUTOTEST_PROFILE=rx-elf-gcc-8_3_0_202004-GNURX scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: cosmic-4_3_11-arm
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_3_11-arm scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: cosmic-4_5_2-stm8
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_5_2-stm8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: cosmic-4_6_3-hcs8
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_6_3-hcs8 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: cosmic-4_8_11-hcs12
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_8_11-hcs12 scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+    - name: cosmic-4_1_0-m68k
+      run: QBS_AUTOTEST_PROFILE=cosmic-4_1_0-m68k scripts/test-baremetal.sh release/install-root/bin
+      shell: bash
+
+  test-macos:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.runner }}
+    timeout-minutes: 60
+    needs: build-macos
+    env:
+      QTEST_FUNCTION_TIMEOUT: 9000000
+      QBS_AUTOTEST_PROFILE: 'qt'
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QBS_EXTRA_GRPC_LIBS: 'absl_cord,absl_cordz_handle,absl_cordz_info,absl_synchronization,grpc,gpr'
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run macOS tests (Xcode 15.1)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '15.1',
+            testProfile: 'xcode_15_1-macosx-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run macOS tests (Xcode 15.1, Qt 5.15)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '15.1',
+            testProfile: 'xcode_15_1-macosx-x86_64',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qt.sh',
+          }
+        - {
+            name: 'Run iOS tests (Xcode 15.1)',
+            runner: 'macos-13',
+            target: 'ios',
+            toolchain: 'ios',
+            xcodeVersion: '15.1',
+            testProfile: 'xcode_15_1-iphoneos-arm64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run iOS-sim tests (Xcode 15.1)',
+            runner: 'macos-13',
+            target: 'ios',
+            toolchain: 'ios',
+            xcodeVersion: '15.1',
+            testProfile: 'xcode_15_1-iphonesimulator-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run macOS tests (Xcode 14.3.1)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '14.3.1',
+            testProfile: 'xcode_14_3_1-macosx-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run macOS tests (Xcode 14.2)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '14.2',
+            testProfile: 'xcode_14_2-macosx-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run macOS tests (Xcode-less)',
+            runner: 'macos-13',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '',
+            testProfile: 'xcode_13_4_1-macosx-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-macos-${{ github.run_id }}.tar.gz
+        path: ./
+    - name: Unpack artifact
+      run: mkdir -p release/install-root/ && tar xzf qbs-macos-${{ github.run_id }}.tar.gz -C release/install-root/
+    - name: Update PATH
+      run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
+    - name: Install required packages
+      run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+    - name: Install Host Qt
+      if: matrix.config.toolchain == 'ios'
+      uses: ./.github/actions/download-qt
+      with:
+        target: 'desktop'
+        toolchain: 'clang_64'
+        version: ${{ matrix.config.qtVersion }}
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        target: ${{ matrix.config.target }}
+        toolchain: ${{ matrix.config.toolchain }}
+        version: ${{ matrix.config.qtVersion }}
+    - name: Select Xcode
+      run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.config.xcodeVersion }}.app
+      if: matrix.config.xcodeVersion != ''
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-qt $(which qmake) qt
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+      if: matrix.config.xcodeVersion != ''
+    - name: Setup Qbs (Xcode-less)
+      run: |
+        qbs setup-toolchains /usr/bin/clang++ ${{ matrix.config.testProfile }}
+        qbs setup-qt $(which qmake) qt
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+      if: matrix.config.xcodeVersion == ''
+    - name: Run Tests
+      run: |
+        sudo chmod g+w /cores
+        ulimit -c unlimited
+        ${{ matrix.config.script }} ./release/install-root/usr/local/bin
+    - name: Coredump on failure
+      if: ${{ failure() }}
+      run: |
+        for f in $(find /cores -maxdepth 1 -name 'core.*' -print); do
+          lldb --core $f --batch --one-line "bt all"
+        done;
+
+  test-windows:
+    name: ${{ matrix.config.name }}
+    runs-on: windows-2022
+    timeout-minutes: 60
+    needs: build-windows
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run Windows tests (MSVC 2022)',
+            target: 'desktop',
+            toolchain: 'win64_msvc2019_64',
+            testProfile: 'MSVC2022-x64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Windows tests (MSVC 2022, Qt 5.15)',
+            target: 'desktop',
+            toolchain: 'win64_msvc2019_64',
+            testProfile: 'MSVC2022-x64',
+            qtVersion: '5.15.2',
+            script: './scripts/test-qt.sh',
+          }
+        - {
+            name: 'Run Windows tests (clang-cl)',
+            target: 'desktop',
+            toolchain: 'win64_msvc2019_64',
+            testProfile: 'clang-cl-x86_64',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
+            name: 'Run Windows tests (MinGW)',
+            target: 'desktop',
+            toolchain: 'win64_mingw',
+            testProfile: 'mingw-qt',
+            qtVersion: '6.5.0',
+            script: './scripts/test-qbs.sh',
+          }
+    env:
+      QTEST_FUNCTION_TIMEOUT: 9000000
+      QBS_AUTOTEST_PROFILE: 'qt'
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: ./
+    - name: Unpack artifact
+      run: |
+        mkdir -p release/install-root
+        cd release/install-root
+        7z x ../../qbs-windows-${{ github.run_id }}.zip
+      shell: bash
+    - name: Update PATH
+      run: echo "./release/install-root/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Install required packages
+      run: choco install -y pkgconfiglite --download-checksum=6004df17818f5a6dbf19cb335cc92702
+      continue-on-error: true  # pkgconfiglite installation is flaky
+    - name: Install Qt
+      uses: ./.github/actions/download-qt
+      with:
+        toolchain: ${{ matrix.config.toolchain }}
+        version: ${{ matrix.config.qtVersion }}
+    - name: Install MinGW
+      uses: ./.github/actions/download-mingw
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs setup-toolchains --type mingw $(which g++).exe mingw-qt
+        qbs setup-qt $(which qmake).exe qt
+        qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile qt
+        qbs config --list
+      shell: bash
+    - name: Setup self-signed certificate
+      run: |
+        New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
+        Export-Certificate -Cert (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert)[0] -FilePath qbs-code-signing.crt
+        Import-Certificate -FilePath .\qbs-code-signing.crt -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
+      shell: powershell
+    - name: Run Tests
+      run: ${{ matrix.config.script }} ./release/install-root/bin
+      shell: bash
+
+  test-windows-extra:
+    name: ${{ matrix.config.name }}
+    runs-on: windows-latest
+    timeout-minutes: 60
+    needs: build-windows
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Run Windows tests (OpenWatcom DOS 32 bit)',
+            testProfile: 'watcom-2_0_0-dos-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom DOS 16 bit)',
+            testProfile: 'watcom-2_0_0-dos-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom OS/2 32 bit)',
+            testProfile: 'watcom-2_0_0-os2-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom OS/2 16 bit)',
+            testProfile: 'watcom-2_0_0-os2-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom Windows 32 bit)',
+            testProfile: 'watcom-2_0_0-windows-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (OpenWatcom Windows 16 bit)',
+            testProfile: 'watcom-2_0_0-windows-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars DOS 16 bit)',
+            testProfile: 'dmc-8_57_0-dos-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 32 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86',
+            script: './scripts/test-baremetal.sh',
+          }
+        - {
+            name: 'Run Windows tests (DigitalMars Windows 16 bit)',
+            testProfile: 'dmc-8_57_0-windows-x86_16',
+            script: './scripts/test-baremetal.sh',
+          }
+    env:
+      QTEST_FUNCTION_TIMEOUT: 9000000
+      QBS_AUTOTEST_PROFILE: 'extra'
+      QBS_TEST_SOURCE_ROOT: 'tests'
+      QT_ASSUME_STDERR_HAS_CONSOLE: 1
+    steps:
+    - uses: actions/checkout@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-windows-${{ github.run_id }}.zip
+        path: ./
+    - name: Unpack artifact
+      run: |
+        mkdir -p release/install-root
+        cd release/install-root
+        7z x ../../qbs-windows-${{ github.run_id }}.zip
+      shell: bash
+    - name: Update PATH
+      run: echo "./release/install-root/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name: Install OpenWatcom
+      uses: ./.github/actions/download-ow
+    - name: Install DigitalMars
+      uses: ./.github/actions/download-dm
+    - name: Setup Qbs
+      run: |
+        qbs setup-toolchains --detect
+        qbs config profiles.extra.baseProfile ${{ matrix.config.testProfile }}
+        qbs config defaultProfile extra
+        qbs config --list
+      shell: bash
+    - name: Run Tests
+      run: ${{ matrix.config.script }} ./release/install-root/bin
+      shell: bash

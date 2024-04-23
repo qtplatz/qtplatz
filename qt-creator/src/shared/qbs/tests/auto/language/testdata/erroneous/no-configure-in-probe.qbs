@@ -1,0 +1,5 @@
+Product {
+    Probe {
+        id: hurz
+    }
+}

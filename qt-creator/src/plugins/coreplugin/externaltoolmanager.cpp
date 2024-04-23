@@ -1,32 +1,11 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 Digia Plc and/or its subsidiary(-ies).
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 Digia Plc and/or its subsidiary(-ies).
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "externaltoolmanager.h"
+
 #include "externaltool.h"
 #include "coreconstants.h"
-#include "icontext.h"
+#include "coreplugintr.h"
 #include "icore.h"
 #include "messagemanager.h"
 #include "actionmanager/actionmanager.h"
@@ -77,7 +56,7 @@ ExternalToolManager::ExternalToolManager()
 
     // add the external tools menu
     ActionContainer *mexternaltools = ActionManager::createMenu(Id(Constants::M_TOOLS_EXTERNAL));
-    mexternaltools->menu()->setTitle(ExternalToolManager::tr("&External"));
+    mexternaltools->menu()->setTitle(Tr::tr("&External"));
     ActionContainer *mtools = ActionManager::actionContainer(Constants::M_TOOLS);
     mtools->addMenu(mexternaltools, Constants::G_DEFAULT_THREE);
 
@@ -127,23 +106,23 @@ void ExternalToolManager::parseDirectory(const QString &directory,
         QString error;
         ExternalTool *tool = ExternalTool::createFromFile(Utils::FilePath::fromString(fileName), &error, ICore::userInterfaceLanguage());
         if (!tool) {
-            qWarning() << ExternalTool::tr("Error while parsing external tool %1: %2").arg(fileName, error);
+            qWarning() << Tr::tr("Error while parsing external tool %1: %2").arg(fileName, error);
             continue;
         }
         if (tools->contains(tool->id())) {
             if (isPreset) {
                 // preset that was changed
                 ExternalTool *other = tools->value(tool->id());
-                other->setPreset(QSharedPointer<ExternalTool>(tool));
+                other->setPreset(std::shared_ptr<ExternalTool>(tool));
             } else {
-                qWarning() << ExternalToolManager::tr("Error: External tool in %1 has duplicate id").arg(fileName);
+                qWarning() << Tr::tr("Error: External tool in %1 has duplicate id").arg(fileName);
                 delete tool;
             }
             continue;
         }
         if (isPreset) {
             // preset that wasn't changed --> save original values
-            tool->setPreset(QSharedPointer<ExternalTool>(new ExternalTool(tool)));
+            tool->setPreset(std::shared_ptr<ExternalTool>(new ExternalTool(tool)));
         }
         tools->insert(tool->id(), tool);
         (*categoryMenus)[tool->displayCategory()].insert(tool->order(), tool);
@@ -222,16 +201,16 @@ void ExternalToolManager::setToolsByCategory(const QMap<QString, QList<ExternalT
                 action = d->m_actions.value(toolId);
                 command = ActionManager::command(externalToolsPrefix.withSuffix(toolId));
             } else {
-                action = new QAction(tool->displayName(), m_instance);
-                d->m_actions.insert(toolId, action);
-                connect(action, &QAction::triggered, tool, [tool] {
+                ActionBuilder external(m_instance, externalToolsPrefix.withSuffix(toolId));
+                external.setCommandAttribute(Command::CA_UpdateText);
+                external.addOnTriggered(tool, [tool] {
                     auto runner = new ExternalToolRunner(tool);
                     if (runner->hasError())
                         MessageManager::writeFlashing(runner->errorString());
                 });
-
-                command = ActionManager::registerAction(action, externalToolsPrefix.withSuffix(toolId));
-                command->setAttribute(Command::CA_UpdateText);
+                action = external.contextAction();
+                d->m_actions.insert(toolId, action);
+                command = external.command();
             }
             action->setText(tool->displayName());
             action->setToolTip(tool->description());
@@ -253,11 +232,11 @@ void ExternalToolManager::setToolsByCategory(const QMap<QString, QList<ExternalT
 void ExternalToolManager::readSettings(const QMap<QString, ExternalTool *> &tools,
                                        QMap<QString, QList<ExternalTool *> > *categoryMap)
 {
-    QSettings *settings = ICore::settings();
-    settings->beginGroup(QLatin1String("ExternalTools"));
+    QtcSettings *settings = ICore::settings();
+    settings->beginGroup("ExternalTools");
 
     if (categoryMap) {
-        settings->beginGroup(QLatin1String("OverrideCategories"));
+        settings->beginGroup("OverrideCategories");
         const QStringList settingsCategories = settings->childGroups();
         for (const QString &settingsCategory : settingsCategories) {
             QString displayCategory = settingsCategory;
@@ -266,7 +245,7 @@ void ExternalToolManager::readSettings(const QMap<QString, ExternalTool *> &tool
             int count = settings->beginReadArray(settingsCategory);
             for (int i = 0; i < count; ++i) {
                 settings->setArrayIndex(i);
-                const QString &toolId = settings->value(QLatin1String("Tool")).toString();
+                const QString &toolId = settings->value("Tool").toString();
                 if (tools.contains(toolId)) {
                     ExternalTool *tool = tools.value(toolId);
                     // remove from old category
@@ -287,11 +266,11 @@ void ExternalToolManager::readSettings(const QMap<QString, ExternalTool *> &tool
 
 static void writeSettings()
 {
-    QSettings *settings = ICore::settings();
-    settings->beginGroup(QLatin1String("ExternalTools"));
-    settings->remove(QLatin1String(""));
+    QtcSettings *settings = ICore::settings();
+    settings->beginGroup("ExternalTools");
+    settings->remove("");
 
-    settings->beginGroup(QLatin1String("OverrideCategories"));
+    settings->beginGroup("OverrideCategories");
     for (auto it = d->m_categoryMap.cbegin(), end = d->m_categoryMap.cend(); it != end; ++it) {
         QString category = it.key();
         if (category.isEmpty())
@@ -301,7 +280,7 @@ static void writeSettings()
         const QList<ExternalTool *> values = it.value();
         for (const ExternalTool *tool : values) {
             settings->setArrayIndex(i);
-            settings->setValue(QLatin1String("Tool"), tool->id());
+            settings->setValue("Tool", tool->id());
             ++i;
         }
         settings->endArray();

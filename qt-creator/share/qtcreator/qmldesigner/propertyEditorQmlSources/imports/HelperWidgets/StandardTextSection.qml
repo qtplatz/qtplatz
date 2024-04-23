@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
@@ -120,6 +98,7 @@ Section {
         PropertyLabel {
             visible: root.showVerticalAlignment
             text: qsTr("Wrap mode")
+            tooltip: qsTr("Sets how overflowing text is handled.")
             blockedByTemplate: !backendValues.wrapMode.isAvailable
         }
 
@@ -141,6 +120,7 @@ Section {
         PropertyLabel {
             visible: root.showElide
             text: qsTr("Elide")
+            tooltip: qsTr("Sets how to indicate that more text is available.")
             blockedByTemplate: !backendValues.elide.isAvailable
         }
 
@@ -162,7 +142,7 @@ Section {
         PropertyLabel {
             visible: root.showElide
             text: qsTr("Max line count")
-            tooltip: qsTr("Limits the number of lines that the text component will show.")
+            tooltip: qsTr("Sets the max number of lines that the text component shows.")
             blockedByTemplate: !backendValues.maximumLineCount.isAvailable
         }
 
@@ -200,6 +180,7 @@ Section {
         PropertyLabel {
             visible: root.showFormatProperty
             text: qsTr("Format")
+            tooltip: qsTr("Sets the formatting method of the text.")
             blockedByTemplate: !backendValues.textFormat.isAvailable
         }
 
@@ -220,7 +201,7 @@ Section {
 
         PropertyLabel {
             text: qsTr("Render type")
-            tooltip: qsTr("Overrides the default rendering type for this component.")
+            tooltip: qsTr("Sets the rendering type for this component.")
             blockedByTemplate: !backendValues.renderType.isAvailable
         }
 
@@ -241,7 +222,7 @@ Section {
         PropertyLabel {
             visible: root.showFontSizeMode
             text: qsTr("Size mode")
-            tooltip: qsTr("Specifies how the font size of the displayed text is determined.")
+            tooltip: qsTr("Sets how the font size is determined.")
             blockedByTemplate: !backendValues.fontSizeMode.isAvailable
         }
 
@@ -264,6 +245,7 @@ Section {
         PropertyLabel {
             visible: root.showFontSizeMode
             text: qsTr("Min size")
+            tooltip: qsTr("Sets the minimum font size to use. This has no effect when <b>Size</b> mode is set to Fixed.")
             blockedByTemplate: !backendValues.minimumPixelSize.isAvailable
                                && !backendValues.minimumPointSize.isAvailable
         }
@@ -342,7 +324,7 @@ Section {
         PropertyLabel {
             visible: root.showLineHeight
             text: qsTr("Line height mode")
-            tooltip: qsTr("Determines how the line height is specified.")
+            tooltip: qsTr("Sets how to calculate the line height based on the <b>Line height</b> value.")
             blockedByTemplate: !backendValues.lineHeightMode.isAvailable
         }
 

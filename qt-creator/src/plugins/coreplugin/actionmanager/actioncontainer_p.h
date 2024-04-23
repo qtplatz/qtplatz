@@ -1,34 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "actionmanager_p.h"
 
-#include <coreplugin/actionmanager/actioncontainer.h>
-#include <coreplugin/actionmanager/command.h>
+#include "actioncontainer.h"
+#include "command.h"
 
 #include <utils/touchbar/touchbar.h>
 
@@ -47,22 +25,22 @@ class ActionContainerPrivate : public ActionContainer
     Q_OBJECT
 
 public:
-    ActionContainerPrivate(Utils::Id id);
+    ActionContainerPrivate(Utils::Id id, ActionManagerPrivate *actionManagerPrivate);
     ~ActionContainerPrivate() override = default;
 
-    void setOnAllDisabledBehavior(OnAllDisabledBehavior behavior) override;
-    ActionContainer::OnAllDisabledBehavior onAllDisabledBehavior() const override;
+    void setOnAllDisabledBehavior(OnAllDisabledBehavior behavior) final;
+    ActionContainer::OnAllDisabledBehavior onAllDisabledBehavior() const final;
 
-    QAction *insertLocation(Utils::Id groupId) const override;
-    void appendGroup(Utils::Id id) override;
-    void insertGroup(Utils::Id before, Utils::Id groupId) override;
-    void addAction(Command *action, Utils::Id group = {}) override;
-    void addMenu(ActionContainer *menu, Utils::Id group = {}) override;
-    void addMenu(ActionContainer *before, ActionContainer *menu) override;
-    Command *addSeparator(const Context &context, Utils::Id group = {}, QAction **outSeparator = nullptr) override;
-    void clear() override;
+    QAction *insertLocation(Utils::Id groupId) const final;
+    void appendGroup(Utils::Id id) final;
+    void insertGroup(Utils::Id before, Utils::Id groupId) final;
+    void addAction(Command *action, Utils::Id group = {}) final;
+    void addMenu(ActionContainer *menu, Utils::Id group = {}) final;
+    void addMenu(ActionContainer *before, ActionContainer *menu) final;
+    Command *addSeparator(const Context &context, Utils::Id group = {}, QAction **outSeparator = nullptr) final;
+    void clear() final;
 
-    Utils::Id id() const override;
+    Utils::Id id() const final;
 
     QMenu *menu() const override;
     QMenuBar *menuBar() const override;
@@ -77,7 +55,7 @@ public:
     virtual void removeAction(Command *command) = 0;
     virtual void removeMenu(ActionContainer *container) = 0;
 
-    virtual bool updateInternal() = 0;
+    virtual bool update() = 0;
 
 protected:
     static bool canAddAction(Command *action);
@@ -89,14 +67,14 @@ protected:
 
 private:
     void scheduleUpdate();
-    void update();
-    void itemDestroyed();
+    void itemDestroyed(QObject *sender);
 
     QList<Group>::const_iterator findGroup(Utils::Id groupId) const;
     QAction *insertLocation(QList<Group>::const_iterator group) const;
 
     OnAllDisabledBehavior m_onAllDisabledBehavior;
     Utils::Id m_id;
+    ActionManagerPrivate *m_actionManagerPrivate = nullptr;
     bool m_updateRequested;
 };
 
@@ -105,7 +83,7 @@ class MenuActionContainer : public ActionContainerPrivate
     Q_OBJECT
 
 public:
-    explicit MenuActionContainer(Utils::Id id);
+    explicit MenuActionContainer(Utils::Id id, ActionManagerPrivate *actionManagerPrivate);
     ~MenuActionContainer() override;
 
     QMenu *menu() const override;
@@ -120,7 +98,7 @@ public:
 
 protected:
     bool canBeAddedToContainer(ActionContainerPrivate *container) const override;
-    bool updateInternal() override;
+    bool update() override;
 
 private:
     QPointer<QMenu> m_menu;
@@ -131,7 +109,7 @@ class MenuBarActionContainer : public ActionContainerPrivate
     Q_OBJECT
 
 public:
-    explicit MenuBarActionContainer(Utils::Id id);
+    explicit MenuBarActionContainer(Utils::Id id, ActionManagerPrivate *actionManagerPrivate);
 
     void setMenuBar(QMenuBar *menuBar);
     QMenuBar *menuBar() const override;
@@ -146,7 +124,7 @@ public:
 
 protected:
     bool canBeAddedToContainer(ActionContainerPrivate *container) const override;
-    bool updateInternal() override;
+    bool update() override;
 
 private:
     QMenuBar *m_menuBar;
@@ -157,7 +135,10 @@ class TouchBarActionContainer : public ActionContainerPrivate
     Q_OBJECT
 
 public:
-    TouchBarActionContainer(Utils::Id id, const QIcon &icon, const QString &text);
+    TouchBarActionContainer(Utils::Id id,
+                            ActionManagerPrivate *actionManagerPrivate,
+                            const QIcon &icon,
+                            const QString &text);
     ~TouchBarActionContainer() override;
 
     Utils::TouchBar *touchBar() const override;
@@ -172,7 +153,7 @@ public:
     void removeMenu(ActionContainer *container) override;
 
     bool canBeAddedToContainer(ActionContainerPrivate *container) const override;
-    bool updateInternal() override;
+    bool update() override;
 
 private:
     std::unique_ptr<Utils::TouchBar> m_touchBar;

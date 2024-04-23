@@ -1,42 +1,6 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2015 Klaralvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author David Faure <david.faure@kdab.com>
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the QtCore module of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:LGPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2015 Klaralvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author David Faure <david.faure@kdab.com>
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <qplatformdefs.h> // always first
 
@@ -49,12 +13,14 @@
 
 #include "algorithm.h"
 
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QStandardPaths>
-#include <QtCore/QBuffer>
-#include <QtCore/QUrl>
-#include <QtCore/QDebug>
+#include <nanotrace/nanotrace.h>
+
+#include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
+#include <QBuffer>
+#include <QUrl>
+#include <QDebug>
 
 #include <algorithm>
 #include <functional>
@@ -126,6 +92,7 @@ static void updateOverriddenMimeTypes(std::vector<std::unique_ptr<MimeProviderBa
 
 void MimeDatabasePrivate::loadProviders()
 {
+    NANOTRACE_SCOPE("Utils", "MimeDatabasePrivate::loadProviders");
 #if 0
     // We use QStandardPaths every time to check if new files appeared
     const QStringList mimeDirs = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QLatin1String("mime"), QStandardPaths::LocateDirectory);
@@ -259,7 +226,7 @@ MimeType MimeDatabasePrivate::mimeTypeForName(const QString &nameOrAlias)
 QStringList MimeDatabasePrivate::mimeTypeForFileName(const QString &fileName)
 {
     if (fileName.endsWith(QLatin1Char('/')))
-        return QStringList() << QLatin1String("inode/directory");
+        return {"inode/directory"};
 
     const MimeGlobMatchResult result = findByFileName(fileName);
     QStringList matchingMimeTypes = result.m_matchingMimeTypes;
@@ -467,7 +434,7 @@ MimeType MimeDatabasePrivate::mimeTypeForFileNameAndData(const QString &fileName
                     *accuracyPtr = 100;
                     return candidateByData;
                 }
-                for (const QString &m : qAsConst(candidatesByName.m_allMatchingMimeTypes)) {
+                for (const QString &m : std::as_const(candidatesByName.m_allMatchingMimeTypes)) {
                     if (inherits(m, sniffedMime)) {
                         // We have magic + pattern pointing to this, so it's a pretty good match
                         *accuracyPtr = 100;
@@ -595,11 +562,8 @@ MimeDatabase::~MimeDatabase()
  */
 MimeType MimeDatabase::mimeTypeForName(const QString &nameOrAlias) const
 {
+    d->checkInitPhase(nameOrAlias);
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-        qWarning("Accessing MimeDatabase for %s before plugins are initialized",
-                 qPrintable(nameOrAlias));
 
     return d->mimeTypeForName(nameOrAlias);
 }
@@ -634,11 +598,8 @@ MimeType MimeDatabase::mimeTypeForName(const QString &nameOrAlias) const
 */
 MimeType MimeDatabase::mimeTypeForFile(const QFileInfo &fileInfo, MatchMode mode) const
 {
+    d->checkInitPhase(fileInfo.filePath());
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-        qWarning("Accessing MimeDatabase for %s before plugins are initialized",
-                 qPrintable(fileInfo.filePath()));
 
     if (fileInfo.isDir())
         return d->mimeTypeForName(QLatin1String("inode/directory"));
@@ -692,11 +653,8 @@ MimeType MimeDatabase::mimeTypeForFile(const QFileInfo &fileInfo, MatchMode mode
 MimeType MimeDatabase::mimeTypeForFile(const QString &fileName, MatchMode mode) const
 {
     if (mode == MatchExtension) {
+        d->checkInitPhase(fileName);
         QMutexLocker locker(&d->mutex);
-
-        if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-            qWarning("Accessing MimeDatabase for %s before plugins are initialized",
-                     qPrintable(fileName));
 
         const QStringList matches = d->mimeTypeForFileName(fileName);
         const int matchCount = matches.count();
@@ -729,11 +687,8 @@ MimeType MimeDatabase::mimeTypeForFile(const QString &fileName, MatchMode mode) 
 */
 QList<MimeType> MimeDatabase::mimeTypesForFileName(const QString &fileName) const
 {
+    d->checkInitPhase(fileName);
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-        qWarning("Accessing MimeDatabase for %s before plugins are initialized",
-                 qPrintable(fileName));
 
     const QStringList matches = d->mimeTypeForFileName(fileName);
     QList<MimeType> mimes;
@@ -764,10 +719,8 @@ QString MimeDatabase::suffixForFileName(const QString &fileName) const
 */
 MimeType MimeDatabase::mimeTypeForData(const QByteArray &data) const
 {
+    d->checkInitPhase("data");
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-        qWarning("Accessing MimeDatabase for data before plugins are initialized");
 
     int accuracy = 0;
     return d->findByData(data, &accuracy);
@@ -896,10 +849,8 @@ MimeType MimeDatabase::mimeTypeForFileNameAndData(const QString &fileName, const
 */
 QList<MimeType> MimeDatabase::allMimeTypes() const
 {
+    d->checkInitPhase("all mime types");
     QMutexLocker locker(&d->mutex);
-
-    if (d->m_startupPhase <= int(MimeStartupPhase::PluginsInitializing))
-        qWarning("Accessing MimeDatabase for all mime types before plugins are initialized");
 
     return d->allMimeTypes();
 }
@@ -955,6 +906,29 @@ void MimeDatabasePrivate::setGlobPatternsForMimeType(const MimeType &mimeType,
             return;
         }
     }
+}
+
+void MimeDatabasePrivate::checkInitPhase(const QString &info)
+{
+    QReadLocker locker(&m_initMutex);
+    if (m_startupPhase <= int(MimeStartupPhase::PluginsInitializing)) {
+        qWarning("Accessing MimeDatabase for %s before plugins are initialized", qPrintable(info));
+        return;
+    }
+    // run initialization functions and ensure providers are loaded
+    // the initializers will call other MIME database functions which "checkInitPhase" again,
+    // so make sure not to recurse
+    if (!m_initialized.exchange(true)) {
+        for (const std::function<void()> &f : m_initializers)
+            f();
+        QMutexLocker locker(&mutex);
+        providers();
+    }
+}
+
+void MimeDatabasePrivate::addInitializer(const std::function<void()> &init)
+{
+    m_initializers.append(init);
 }
 
 } // namespace Utils

@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.14)
 
 project(%{ProjectName} LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -37,5 +35,8 @@ else()
 endif()
 @endif
 
+include(GNUInstallDirs)
 install(TARGETS %{ProjectName}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

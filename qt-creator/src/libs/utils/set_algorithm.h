@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2019 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -44,13 +22,6 @@ public:
     explicit function_output_iterator(const Callable &callable)
         : m_callable(&callable)
     {}
-
-    function_output_iterator &operator=(const function_output_iterator &iterator)
-    {
-        m_callable = iterator.m_callable;
-
-        return *this;
-    }
 
     struct helper
     {
@@ -89,14 +60,69 @@ bool set_intersection_compare(
             ++first1;
         } else {
             if (!comp(*first2, *first1)) {
-                if (call(*first1++, *first2))
-                    return true;
+                if constexpr (std::is_void_v<std::invoke_result_t<Callable,
+                                                                  decltype(*first1),
+                                                                  decltype(*first2)>>) {
+                    call(*first1, *first2);
+                    ++first1;
+                } else {
+                    auto success = call(*first1, *first2);
+                    ++first1;
+                    if (success)
+                        return true;
+                }
             }
             ++first2;
         }
     }
 
     return false;
+}
+
+template<class InputIt1, class InputIt2, class Callable, class Compare>
+bool set_greedy_intersection_compare(
+    InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, Callable call, Compare comp)
+{
+    while (first1 != last1 && first2 != last2) {
+        if (comp(*first1, *first2)) {
+            ++first1;
+        } else {
+            if (!comp(*first2, *first1)) {
+                if constexpr (std::is_void_v<std::invoke_result_t<Callable,
+                                                                  decltype(*first1),
+                                                                  decltype(*first2)>>) {
+                    call(*first1, *first2);
+                    ++first1;
+                } else {
+                    auto success = call(*first1, *first2);
+                    ++first1;
+                    if (success)
+                        return true;
+                }
+            } else {
+                ++first2;
+            }
+        }
+    }
+
+    return false;
+}
+
+template<typename InputIt1, typename InputIt2, typename OutputIt>
+constexpr OutputIt set_greedy_intersection(
+    InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, OutputIt result)
+{
+    while (first1 != last1 && first2 != last2)
+        if (*first1 < *first2)
+            ++first1;
+        else if (*first2 < *first1)
+            ++first2;
+        else {
+            *result = *first1;
+            ++first1;
+            ++result;
+        }
+    return result;
 }
 
 template<class InputIt1, class InputIt2, class Callable, class Compare>

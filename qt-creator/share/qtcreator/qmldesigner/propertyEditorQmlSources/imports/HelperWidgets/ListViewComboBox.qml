@@ -1,60 +1,71 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Quick 3D.
-**
-** $QT_BEGIN_LICENSE:GPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 or (at your option) any later version
-** approved by the KDE Free Qt Foundation. The licenses are as published by
-** the Free Software Foundation and appearing in the file LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
+// Copyright (C) 2021 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-import QtQuick 2.15
+import QtQuick
 import HelperWidgets 2.0 as HelperWidgets
 import StudioControls 1.0 as StudioControls
 
 StudioControls.ComboBox {
-    id: comboBox
-
-    property alias typeFilter: itemFilterModel.typeFilter
+    id: root
 
     property var initialModelData
     property bool __isCompleted: false
 
     editable: true
-    model: itemFilterModel.itemModel
-
-    HelperWidgets.ItemFilterModel {
-        id: itemFilterModel
-        modelNodeBackendProperty: modelNodeBackend
-    }
+    textRole: "id"
+    valueRole: "id"
 
     Component.onCompleted: {
-        comboBox.__isCompleted = true
+        root.__isCompleted = true
+        root.resetInitialIndex()
+    }
+
+    onInitialModelDataChanged: root.resetInitialIndex()
+    onValueRoleChanged: root.resetInitialIndex()
+    onModelChanged: root.resetInitialIndex()
+    onTextRoleChanged: root.resetInitialIndex()
+
+    function resetInitialIndex() {
+        let currentSelectedDataIndex = -1
 
         // Workaround for proper initialization. Use the initial modelData value and search for it
         // in the model. If nothing was found, set the editText to the initial modelData.
-        comboBox.currentIndex = comboBox.find(comboBox.initialModelData)
+        if (root.textRole === root.valueRole) {
+            currentSelectedDataIndex = root.find(root.initialModelData)
+        } else {
+            for (let i = 0; i < root.count; ++i) {
+                if (root.valueAt(i) === root.initialModelData) {
+                    currentSelectedDataIndex = i
+                    break
+                }
+            }
+        }
+        root.currentIndex = currentSelectedDataIndex
+        if (root.currentIndex === -1)
+            root.editText = root.initialModelData
+    }
 
-        if (comboBox.currentIndex === -1)
-            comboBox.editText = comboBox.initialModelData
+    function availableValue() {
+        if (root.currentIndex !== -1 && root.currentValue !== "")
+            return root.currentValue
+
+        return root.editText
+    }
+
+    // Checks if the given parameter can be found as a value or text (valueRole vs. textRole). If
+    // both searches result an index !== -1 the text is preferred, otherwise index will be returned
+    // or -1 if not found.
+    // Text is preferred due to the fact that usually the users use the autocomplete functionality
+    // of an editable ComboBox hence there will be more hits on text search then on value.
+    function indexOfString(text) {
+        let textIndex = root.find(text)
+        if (textIndex !== -1)
+            return textIndex
+
+        let valueIndex = root.indexOfValue(text)
+        if (valueIndex !== -1)
+            return valueIndex
+
+        return -1
     }
 }

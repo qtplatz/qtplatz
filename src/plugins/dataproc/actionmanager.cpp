@@ -56,7 +56,9 @@
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/mainwindow.h>
+#if QTC_VERSION <= 0x08'00'02
+# include <coreplugin/mainwindow.h>
+#endif
 #include <utils/hostosinfo.h>
 #include <extensionsystem/pluginmanager.h>
 #include <QAction>

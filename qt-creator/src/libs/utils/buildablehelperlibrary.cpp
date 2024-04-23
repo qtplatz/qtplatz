@@ -1,38 +1,17 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "buildablehelperlibrary.h"
 #include "environment.h"
 #include "hostosinfo.h"
-#include "qtcprocess.h"
+#include "process.h"
 
 #include <QDebug>
-#include <QDir>
 #include <QRegularExpression>
 
 #include <set>
+
+using namespace std::chrono_literals;
 
 namespace Utils {
 
@@ -44,24 +23,21 @@ bool BuildableHelperLibrary::isQtChooser(const FilePath &filePath)
 FilePath BuildableHelperLibrary::qtChooserToQmakePath(const FilePath &qtChooser)
 {
     const QString toolDir = QLatin1String("QTTOOLDIR=\"");
-    QtcProcess proc;
-    proc.setTimeoutS(1);
+    Process proc;
     proc.setCommand({qtChooser, {"-print-env"}});
-    proc.runBlocking();
+    proc.runBlocking(1s);
     if (proc.result() != ProcessResult::FinishedWithSuccess)
         return {};
     const QString output = proc.cleanedStdOut();
     int pos = output.indexOf(toolDir);
     if (pos == -1)
         return {};
-    pos += toolDir.count();
+    pos += toolDir.size();
     int end = output.indexOf('\"', pos);
     if (end == -1)
         return {};
 
-    FilePath qmake = qtChooser;
-    qmake.setPath(output.mid(pos, end - pos) + "/qmake");
-    return qmake;
+    return qtChooser.withNewPath(output.mid(pos, end - pos) + "/qmake");
 }
 
 static bool isQmake(FilePath path)
@@ -108,10 +84,10 @@ FilePath BuildableHelperLibrary::findSystemQt(const Environment &env)
 FilePaths BuildableHelperLibrary::findQtsInEnvironment(const Environment &env, int maxCount)
 {
     FilePaths qmakeList;
-    std::set<QString> canonicalEnvPaths;
+    std::set<FilePath> canonicalEnvPaths;
     const FilePaths paths = env.path();
     for (const FilePath &path : paths) {
-        if (!canonicalEnvPaths.insert(path.toFileInfo().canonicalFilePath()).second)
+        if (!canonicalEnvPaths.insert(path.canonicalPath()).second)
             continue;
         const FilePath qmake = findQmakeInDir(path);
         if (qmake.isEmpty())
@@ -128,10 +104,9 @@ QString BuildableHelperLibrary::qtVersionForQMake(const FilePath &qmakePath)
     if (qmakePath.isEmpty())
         return QString();
 
-    QtcProcess qmake;
-    qmake.setTimeoutS(5);
+    Process qmake;
     qmake.setCommand({qmakePath, {"--version"}});
-    qmake.runBlocking();
+    qmake.runBlocking(5s);
     if (qmake.result() != ProcessResult::FinishedWithSuccess) {
         qWarning() << qmake.exitMessage();
         return QString();

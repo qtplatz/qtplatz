@@ -1,42 +1,21 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "pathlisteditor.h"
 
 #include "fileutils.h"
 #include "hostosinfo.h"
+#include "utilstr.h"
 
 #include <QMimeData>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSharedPointer>
 #include <QTextBlock>
 #include <QVBoxLayout>
 
 /*!
     \class Utils::PathListEditor
+    \inmodule QtCreator
 
     \brief The PathListEditor class is a control that lets the user edit a list
     of (directory) paths
@@ -84,9 +63,9 @@ void PathListPlainTextEdit::insertFromMimeData(const QMimeData *source)
         // replace separator
         QString text = source->text().trimmed();
         text.replace(HostOsInfo::pathListSeparator(), QLatin1Char('\n'));
-        QSharedPointer<QMimeData> fixed(new QMimeData);
+        QMimeData *fixed = new QMimeData;
         fixed->setText(text);
-        QPlainTextEdit::insertFromMimeData(fixed.data());
+        QPlainTextEdit::insertFromMimeData(fixed);
     } else {
         QPlainTextEdit::insertFromMimeData(source);
     }
@@ -119,13 +98,13 @@ PathListEditor::PathListEditor(QWidget *parent) :
         d(new PathListEditorPrivate)
 {
     setLayout(d->layout);
-    addButton(tr("Insert..."), this, [this] {
+    addButton(Tr::tr("Insert..."), this, [this] {
         const FilePath dir = FileUtils::getExistingDirectory(this, d->fileDialogTitle);
         if (!dir.isEmpty())
             insertPathAtCursor(dir.toUserOutput());
     });
-    addButton(tr("Delete Line"), this, [this] { deletePathAtCursor(); });
-    addButton(tr("Clear"), this, [this] { d->edit->clear(); });
+    addButton(Tr::tr("Delete Line"), this, [this] { deletePathAtCursor(); });
+    addButton(Tr::tr("Clear"), this, [this] { d->edit->clear(); });
     connect(d->edit, &QPlainTextEdit::textChanged, this, &PathListEditor::changed);
 }
 
@@ -158,7 +137,7 @@ QStringList PathListEditor::pathList() const
 {
     const QString text = d->edit->toPlainText().trimmed();
     if (text.isEmpty())
-        return QStringList();
+        return {};
     // trim each line
     QStringList rc = text.split('\n', Qt::SkipEmptyParts);
     const QStringList::iterator end = rc.end();

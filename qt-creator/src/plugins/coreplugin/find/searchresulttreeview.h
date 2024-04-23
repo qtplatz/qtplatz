@@ -1,36 +1,14 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "searchresultwindow.h"
 
 #include <utils/itemviews.h>
+#include <utils/searchresultitem.h>
 
 namespace Core {
-class SearchResultColor;
 
 namespace Internal {
 
@@ -44,11 +22,12 @@ public:
     explicit SearchResultTreeView(QWidget *parent = nullptr);
 
     void setAutoExpandResults(bool expand);
-    void setTextEditorFont(const QFont &font, const SearchResultColors &colors);
+    void setRelativePaths(bool relative);
+    void setTextEditorFont(const QFont &font, const Utils::SearchResultColors &colors);
     void setTabWidth(int tabWidth);
 
     SearchResultFilterModel *model() const;
-    void addResults(const QList<SearchResultItem> &items, SearchResult::AddMode mode);
+    void addResults(const Utils::SearchResultItems &items, SearchResult::AddMode mode);
     void setFilter(SearchResultFilter *filter);
     bool hasFilter() const;
     void showFilterWidget(QWidget *parent);
@@ -57,7 +36,7 @@ public:
     bool event(QEvent *e) override;
 
 signals:
-    void jumpToSearchResult(const SearchResultItem &item);
+    void jumpToSearchResult(const Utils::SearchResultItem &item);
     void filterInvalidated();
     void filterChanged();
 

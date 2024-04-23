@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -68,9 +46,14 @@ const char C_EDITORMANAGER[]       = "Core.EditorManager";
 const char C_NAVIGATION_PANE[]     = "Core.NavigationPane";
 const char C_PROBLEM_PANE[]        = "Core.ProblemPane";
 const char C_GENERAL_OUTPUT_PANE[] = "Core.GeneralOutputPane";
+// Special context that leads to all "more specific" contexts to be ignored.
+// If you use Context(mycontextId, C_GLOBAL_CUTOFF) for a widget that has focus,
+// mycontextId will be enabled but the contexts for all parent widgets, the manually added
+// "additional" contexts, and the global context will be turned off.
+const char C_GLOBAL_CUTOFF[]       = "Global Cutoff";
 
 // Default editor kind
-const char K_DEFAULT_TEXT_EDITOR_DISPLAY_NAME[] = QT_TRANSLATE_NOOP("OpenWith::Editors", "Plain Text Editor");
+const char K_DEFAULT_TEXT_EDITOR_DISPLAY_NAME[] = QT_TRANSLATE_NOOP("QtC::Core", "Plain Text Editor");
 const char K_DEFAULT_TEXT_EDITOR_ID[] = "Core.PlainTextEditor";
 const char K_DEFAULT_BINARY_EDITOR_ID[] = "Core.BinaryEditor";
 
@@ -91,6 +74,7 @@ const char NEW[]                   = "QtCreator.New";
 const char NEW_FILE[]              = "QtCreator.NewFile";
 const char OPEN[]                  = "QtCreator.Open";
 const char OPEN_WITH[]             = "QtCreator.OpenWith";
+const char OPEN_FROM_DEVICE[]      = "QtCreator.OpenFromDevice";
 const char REVERTTOSAVED[]         = "QtCreator.RevertToSaved";
 const char SAVE[]                  = "QtCreator.Save";
 const char SAVEAS[]                = "QtCreator.SaveAs";
@@ -102,16 +86,17 @@ const char OPTIONS[]               = "QtCreator.Options";
 const char LOGGER[]                = "QtCreator.Logger";
 const char TOGGLE_LEFT_SIDEBAR[]   = "QtCreator.ToggleLeftSidebar";
 const char TOGGLE_RIGHT_SIDEBAR[]  = "QtCreator.ToggleRightSidebar";
+const char TOGGLE_MENUBAR[]        = "QtCreator.ToggleMenubar";
 const char CYCLE_MODE_SELECTOR_STYLE[] =
                                      "QtCreator.CycleModeSelectorStyle";
 const char TOGGLE_FULLSCREEN[]     = "QtCreator.ToggleFullScreen";
 const char THEMEOPTIONS[]          = "QtCreator.ThemeOptions";
 
-const char TR_SHOW_LEFT_SIDEBAR[]  = QT_TRANSLATE_NOOP("Core", "Show Left Sidebar");
-const char TR_HIDE_LEFT_SIDEBAR[]  = QT_TRANSLATE_NOOP("Core", "Hide Left Sidebar");
+const char TR_SHOW_LEFT_SIDEBAR[] = QT_TRANSLATE_NOOP("QtC::Core", "Show Left Sidebar");
+const char TR_HIDE_LEFT_SIDEBAR[] = QT_TRANSLATE_NOOP("QtC::Core", "Hide Left Sidebar");
 
-const char TR_SHOW_RIGHT_SIDEBAR[] = QT_TRANSLATE_NOOP("Core", "Show Right Sidebar");
-const char TR_HIDE_RIGHT_SIDEBAR[] = QT_TRANSLATE_NOOP("Core", "Hide Right Sidebar");
+const char TR_SHOW_RIGHT_SIDEBAR[] = QT_TRANSLATE_NOOP("QtC::Core", "Show Right Sidebar");
+const char TR_HIDE_RIGHT_SIDEBAR[] = QT_TRANSLATE_NOOP("QtC::Core", "Hide Right Sidebar");
 
 const char MINIMIZE_WINDOW[]       = "QtCreator.MinimizeWindow";
 const char ZOOM_WINDOW[]           = "QtCreator.ZoomWindow";
@@ -136,6 +121,7 @@ const char GO_FORWARD[]            = "QtCreator.GoForward";
 const char GOTOLASTEDIT[]          = "QtCreator.GotoLastEdit";
 const char ABOUT_QTCREATOR[]       = "QtCreator.AboutQtCreator";
 const char ABOUT_PLUGINS[]         = "QtCreator.AboutPlugins";
+const char CHANGE_LOG[]            = "QtCreator.ChangeLog";
 const char S_RETURNTOEDITOR[]      = "QtCreator.ReturnToEditor";
 const char SHOWINGRAPHICALSHELL[]  = "QtCreator.ShowInGraphicalShell";
 const char SHOWINFILESYSTEMVIEW[]  = "QtCreator.ShowInFileSystemView";
@@ -158,6 +144,7 @@ const char G_HELP[]                = "QtCreator.Group.Help";
 // File menu groups
 const char G_FILE_NEW[]            = "QtCreator.Group.File.New";
 const char G_FILE_OPEN[]           = "QtCreator.Group.File.Open";
+const char G_FILE_SESSION[]         = "QtCreator.Group.File.Recent";
 const char G_FILE_PROJECT[]        = "QtCreator.Group.File.Project";
 const char G_FILE_SAVE[]           = "QtCreator.Group.File.Save";
 const char G_FILE_EXPORT[]         = "QtCreator.Group.File.Export";
@@ -210,7 +197,7 @@ const char G_TOUCHBAR_NAVIGATION[] = "QtCreator.Group.TouchBar.Navigation";
 const char G_TOUCHBAR_OTHER[]      = "QtCreator.Group.TouchBar.Other";
 
 const char WIZARD_CATEGORY_QT[] = "R.Qt";
-const char WIZARD_TR_CATEGORY_QT[] = QT_TRANSLATE_NOOP("Core", "Qt");
+const char WIZARD_TR_CATEGORY_QT[] = QT_TRANSLATE_NOOP("QtC::Core", "Qt");
 const char WIZARD_KIND_UNKNOWN[] = "unknown";
 const char WIZARD_KIND_PROJECT[] = "project";
 const char WIZARD_KIND_FILE[] = "file";
@@ -229,11 +216,13 @@ const char SETTINGS_THEME[] = "Core/CreatorTheme";
 const char DEFAULT_THEME[] = "flat";
 const char DEFAULT_DARK_THEME[] = "flat-dark";
 
-const char TR_CLEAR_MENU[]         = QT_TRANSLATE_NOOP("Core", "Clear Menu");
+const char TR_CLEAR_MENU[]         = QT_TRANSLATE_NOOP("QtC::Core", "Clear Menu");
 
 const int MODEBAR_ICON_SIZE = 34;
 const int MODEBAR_ICONSONLY_BUTTON_SIZE = MODEBAR_ICON_SIZE + 4;
 const int DEFAULT_MAX_CHAR_COUNT = 10000000;
+
+const char SETTINGS_MENU_HIDE_TOOLS[] = "Menu/HideTools";
 
 } // namespace Constants
 } // namespace Core

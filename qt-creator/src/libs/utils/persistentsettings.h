@@ -1,33 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "utils_global.h"
 
 #include "filepath.h"
+#include "store.h"
 
 #include <QVariant>
 
@@ -41,12 +20,14 @@ class QTCREATOR_UTILS_EXPORT PersistentSettingsReader
 {
 public:
     PersistentSettingsReader();
-    QVariant restoreValue(const QString &variable, const QVariant &defaultValue = QVariant()) const;
-    QVariantMap restoreValues() const;
+    QVariant restoreValue(const Key &variable, const QVariant &defaultValue = {}) const;
+    Store restoreValues() const;
     bool load(const FilePath &fileName);
+    FilePath filePath();
 
 private:
-    QMap<QString, QVariant> m_valueMap;
+    QVariantMap m_valueMap;
+    FilePath m_filePath;
 };
 
 class QTCREATOR_UTILS_EXPORT PersistentSettingsWriter
@@ -54,21 +35,21 @@ class QTCREATOR_UTILS_EXPORT PersistentSettingsWriter
 public:
     PersistentSettingsWriter(const FilePath &fileName, const QString &docType);
 
-    bool save(const QVariantMap &data, QString *errorString) const;
+    bool save(const Store &data, QString *errorString) const;
 #ifdef QT_GUI_LIB
-    bool save(const QVariantMap &data, QWidget *parent) const;
+    bool save(const Store &data, QWidget *parent) const;
 #endif
 
     FilePath fileName() const;
 
-    void setContents(const QVariantMap &data);
+    void setContents(const Store &data);
 
 private:
-    bool write(const QVariantMap &data, QString *errorString) const;
+    bool write(const Store &data, QString *errorString) const;
 
     const FilePath m_fileName;
     const QString m_docType;
-    mutable QMap<QString, QVariant> m_savedData;
+    mutable Store m_savedData;
 };
 
 } // namespace Utils

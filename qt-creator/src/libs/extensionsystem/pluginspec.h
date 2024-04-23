@@ -1,33 +1,9 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
 #include "extensionsystem_global.h"
-
-#include <utils/porting.h>
 
 #include <QHash>
 #include <QStaticPlugin>
@@ -61,7 +37,7 @@ struct EXTENSIONSYSTEM_EXPORT PluginDependency
 
     PluginDependency() : type(Required) {}
 
-    friend Utils::QHashValueType qHash(const PluginDependency &value);
+    friend size_t qHash(const PluginDependency &value);
 
     QString name;
     QString version;
@@ -75,6 +51,24 @@ struct EXTENSIONSYSTEM_EXPORT PluginArgumentDescription
     QString name;
     QString parameter;
     QString description;
+};
+
+struct EXTENSIONSYSTEM_EXPORT PerformanceData
+{
+    qint64 load = 0;
+    qint64 initialize = 0;
+    qint64 extensionsInitialized = 0;
+    qint64 delayedInitialize = 0;
+
+    qint64 total() const { return load + initialize + extensionsInitialized + delayedInitialize; }
+    QString summary() const
+    {
+        return QString("l: %1ms, i: %2ms, x: %3ms, d: %4ms")
+            .arg(load, 3)
+            .arg(initialize, 3)
+            .arg(extensionsInitialized, 3)
+            .arg(delayedInitialize, 3);
+    }
 };
 
 class EXTENSIONSYSTEM_EXPORT PluginSpec
@@ -92,6 +86,7 @@ public:
     QString copyright() const;
     QString license() const;
     QString description() const;
+    QString longDescription() const;
     QString url() const;
     QString category() const;
     QString revision() const;
@@ -99,14 +94,17 @@ public:
     bool isAvailableForHostPlatform() const;
     bool isRequired() const;
     bool isExperimental() const;
+    bool isDeprecated() const;
     bool isEnabledByDefault() const;
     bool isEnabledBySettings() const;
     bool isEffectivelyEnabled() const;
     bool isEnabledIndirectly() const;
     bool isForceEnabled() const;
     bool isForceDisabled() const;
+    bool isSoftLoadable() const;
     QVector<PluginDependency> dependencies() const;
     QJsonObject metaData() const;
+    const PerformanceData &performanceData() const;
 
     using PluginArgumentDescriptions = QVector<PluginArgumentDescription>;
     PluginArgumentDescriptions argumentDescriptions() const;

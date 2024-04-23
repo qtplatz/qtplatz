@@ -1,0 +1,3 @@
+QtApplication {
+    files: ["main.cpp"]
+}

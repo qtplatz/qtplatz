@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "fancyactionbar.h"
 
@@ -203,21 +181,16 @@ void FancyToolButton::paintEvent(QPaintEvent *event)
     const bool isTitledAction = defaultAction() && defaultAction()->property("titledAction").toBool();
     // draw popup texts
     if (isTitledAction && !m_iconsOnly) {
-        QFont normalFont(painter.font());
+        const QFont normalFont = StyleHelper::uiFont(StyleHelper::UiElementCaption);
         QRect centerRect = rect();
-        normalFont.setPointSizeF(StyleHelper::sidebarFontSize());
-        QFont boldFont(normalFont);
-        boldFont.setBold(true);
+        const QFont boldFont = StyleHelper::uiFont(StyleHelper::UiElementCaptionStrong);
         const QFontMetrics fm(normalFont);
         const QFontMetrics boldFm(boldFont);
         const int lineHeight = boldFm.height();
         const int textFlags = Qt::AlignVCenter | Qt::AlignHCenter;
 
         const QString projectName = defaultAction()->property("heading").toString();
-        if (!projectName.isNull())
-            centerRect.adjust(0, lineHeight + 4, 0, 0);
-
-        centerRect.adjust(0, 0, 0, -lineHeight * 2 - 4);
+        centerRect.adjust(0, lineHeight + 4, 0, -lineHeight * 2 - 4);
 
         iconRect.moveCenter(centerRect.center());
         StyleHelper::drawIconWithShadow(icon(), iconRect, &painter, iconMode);
@@ -311,17 +284,15 @@ QSize FancyToolButton::sizeHint() const
 
     QSizeF buttonSize = iconSize().expandedTo(QSize(64, 38));
     if (defaultAction() && defaultAction()->property("titledAction").toBool()) {
-        QFont boldFont(font());
-        boldFont.setPointSizeF(StyleHelper::sidebarFontSize());
-        boldFont.setBold(true);
+        const QFont boldFont = StyleHelper::uiFont(StyleHelper::UiElementCaptionStrong);
         const QFontMetrics fm(boldFont);
         const qreal lineHeight = fm.height();
-        const QString projectName = defaultAction()->property("heading").toString();
-        buttonSize += QSizeF(0, 10);
-        if (!projectName.isEmpty())
-            buttonSize += QSizeF(0, lineHeight + 2);
-
-        buttonSize += QSizeF(0, lineHeight * 2 + 2);
+        const int extraHeight = 10             // Spacing between top and projectName
+                           + lineHeight        // projectName height
+                           + 2                 // Spacing between projectName and icon
+                           + lineHeight * 2    // configurationName height (2 lines)
+                           + 2;                // Spacing between configurationName and bottom
+        buttonSize.rheight() += extraHeight;
     }
     return buttonSize.toSize();
 }

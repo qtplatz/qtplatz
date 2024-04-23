@@ -1,7 +1,7 @@
 [General]
+Includes=light.figmatokens
 ThemeName=Design Light
 PreferredStyles=
-
 
 [Palette]
 shadowBackground=ffd1cfcf
@@ -26,8 +26,106 @@ textColorLink=ff007af4
 textColorLinkVisited=ffa57aff
 backgroundColorDisabled=ff8e8e8e
 
+;DS Theme Palette START
+;greyscale
+fullWhite=ffffffff
+lightWhite=ffdfdfdf
+offWhite=ffdcdada
+slateGrey=ff8d8d8d
+concreteGrey=ffbbbbbb
+smokeGrey=ff8b8b8b
+shadowGrey=ff636363
+duskGrey=ff606060
+raincloudGrey=ff4d4d4d
+graniteGrey=ff343434
+ashGrey=ff434343
+midnightGrey=ff333333
+dawnGrey=ff2a2a2a
+coalGrey=ff282828
+offBlack=ff202020
+nearBlack=ff1b1b1b
+fullBlack=ff000000
+
+;special colors
+idleGreen=ff649a5d
+runningGreen=ff2eff68
+successGreen=ff2bcf32
+idleRed=ff6a4242
+recordingRed=ffcc3c34
+errorRed=ffaf2b2b
+warningOrange=ffca8113
+splitterBlue=ff64daff
+rgbBlue=ff64daff
+highlightBlue=ff57b9fc
+highlightHover=ff74CBFC
+;DS Theme Palette END
+
 [Colors]
 ;DS controls theme START
+
+;NEW FOR QtDS 4
+;4.0
+DScontrolBackground_toolbarIdle=offWhite
+DScontrolBackground_toolbarHover=offWhite
+DScontrolBackground_topToolbarHover=concreteGrey
+DScontrolBackground_statusbarIdle=concreteGrey
+DSControlBackground_statusbarHover=lightWhite
+DScontrolOutline_topToolbarIdle=concreteGrey
+DScontrolOutline_topToolbarHover=lightWhite
+DSidleGreen=idleGreen
+DSrunningGreen=runningGreen
+DStoolbarBackground=offWhite
+DStoolbarIcon_blocked=shadowGrey
+DSthumbnailBackground_baseState=smokeGrey
+DStextColor=raincloudGrey
+DSstatusbarBackground=concreteGrey
+DSprimaryButton_hoverHighlight=highlightHover
+DSstateBackgroundColor_hover=concreteGrey
+DSstateControlBackgroundColor_globalHover=concreteGrey
+DSstateControlBackgroundColor_hover=smokeGrey
+DSpanelBackground=dawnGrey
+
+;4.3
+DSpopoutBackground=offWhite
+DSpopoutControlBackground_idle=offWhite
+DSpopoutControlBackground_hover=lightWhite
+DSpopoutControlBackground_globalHover=lightWhite
+DSpopoutControlBackground_interaction=highlightBlue
+DSpopoutControlBackground_disabled=offWhite
+DSpopoutPopupBackground=lightWhite
+
+DSpopoutControlBorder_idle=slateGrey
+DSpopoutControlBorder_hover=concreteGrey
+DSpopoutControlBorder_interaction=highlightBlue
+DSpopoutControlBorder_disabled=offWhite
+
+DSpopoutButtonBackground_idle=offWhite
+DSpopoutButtonBackground_hover=lightWhite
+DSpopoutButtonBackground_interaction=highlightBlue
+DSpopoutButtonBackground_disabled=offWhite
+
+DSpopoutButtonBorder_idle=smokeGrey
+DSpopoutButtonBorder_hover=shadowGrey
+DSpopoutButtonBorder_interaction=highlightBlue
+DSpopoutButtonBorder_disabled=offWhite
+
+;4.4
+DSconnectionCodeEditor=lightWhite
+DSconnectionEditorMicroToolbar=concreteGrey
+DSconnectionEditorButtonBackground_hover=lightWhite
+DSconnectionEditorButtonBorder_hover=duskGrey
+DSpillText=fullWhite
+DSpillTextSelected=fullBlack
+DspillTextEdit=fullBlack
+DSpillDefaultBackgroundIdle=shadowGrey
+DSpillDefaultBackgroundHover=smokeGrey
+DSpillOperatorBackgroundIdle=ff6b2a7b
+DSpillOperatorBackgroundHover=ff7e478b
+DSpillLiteralBackgroundIdle=ff447953
+DSpillLiteralBackgroundHover=ff61866B
+
+;END NEW FOR QtDS 4
+
 DSpanelBackground=ffeaeaea
 
 DSwelcomeScreenBackground=ffEAEAEA
@@ -39,12 +137,12 @@ DSgreenLight=ff5cdc68
 DSamberLight=ffffbf00
 DSredLight=ffff0401
 
-DSinteraction=ff2aafd3
+DSinteraction=highlightBlue
 DSerrorColor=ffdf3a3a
 DSwarningColor=warning
 DSdisabledColor=ff8e8e8e
 
-DSinteractionHover=ff74cbfc
+DSinteractionHover=highlightHover
 
 DScontrolBackground=ffeaeaea
 DScontrolBackgroundInteraction=ffc9c9c9
@@ -56,7 +154,6 @@ DScontrolOutline=ffcecccc
 DScontrolOutlineInteraction=ff2aafd3
 DScontrolOutlineDisabled=ff707070
 
-DStextColor=ff262626
 DStextColorDisabled=ff707070
 DStextSelectionColor=ff2aafd3
 DStextSelectedTextColor=ff000000
@@ -89,8 +186,9 @@ DSsliderHandleHover=ff606060
 DSsliderHandleFocus=ff0492c9
 DSsliderHandleInteraction=ff2aafd3
 
-DSscrollBarTrack=ffb5b4b4
-DSscrollBarHandle=ff9b9b9b
+DSscrollBarTrack=smokeGrey
+DSscrollBarHandle=shadowGrey
+DSscrollBarHandle_idle=slateGrey
 
 DSsectionHeadBackground=ffd8d8d8
 
@@ -118,9 +216,8 @@ DStableHeaderText=ff00ff00
 
 DSdockContainerBackground=ff323232
 DSdockContainerSplitter=ff323232
-DSdockAreaBackground=ff262728
-
-DSdockWidgetBackground=ff00ff00
+DSdockAreaBackground=ffeaeaea
+DSdockWidgetBackground=ffeaeaea
 DSdockWidgetSplitter=ff595959
 DSdockWidgetTitleBar=ffeaeaea
 
@@ -189,7 +286,6 @@ BadgeLabelBackgroundColorChecked=ffe0e0e0
 BadgeLabelBackgroundColorUnchecked=ff808080
 BadgeLabelTextColorChecked=ff606060
 BadgeLabelTextColorUnchecked=ffffffff
-CanceledSearchTextColor=ff0000
 ComboBoxArrowColor=toolBarItem
 ComboBoxArrowColorDisabled=toolBarItemDisabled
 ComboBoxTextColor=fancyBarsNormalTextColor
@@ -315,16 +411,6 @@ Debugger_WatchItem_ValueChanged=ffbf0303
 
 Debugger_Breakpoint_TextMarkColor=ffff4040
 
-Welcome_TextColor=ff000000
-Welcome_ForegroundPrimaryColor=ff404040
-Welcome_ForegroundSecondaryColor=ff727272
-Welcome_BackgroundPrimaryColor=ffeaeaea
-Welcome_BackgroundSecondaryColor=ffefefef
-Welcome_HoverColor=ffe1e1e1
-Welcome_AccentColor=ff25709a
-Welcome_LinkColor=ff104090
-Welcome_DisabledLinkColor=textDisabled
-
 Timeline_TextColor=text
 Timeline_BackgroundColor1=normalBackground
 Timeline_BackgroundColor2=fff6f6f6
@@ -345,6 +431,7 @@ VcsBase_FileUnmerged_TextColor=ffee0000
 Bookmarks_TextMarkColor=ffa0a0ff
 
 TextEditor_SearchResult_ScrollBarColor=ff00c000
+TextEditor_Selection_ScrollBarColor=ffcccccc
 TextEditor_CurrentLine_ScrollBarColor=ff404040
 
 ProjectExplorer_TaskError_TextMarkColor=error
@@ -397,6 +484,27 @@ PaletteWindowTextDisabled=textDisabled
 PaletteBaseDisabled=backgroundColorDisabled
 PaletteTextDisabled=textDisabled
 
+TerminalForeground=ff000000
+TerminalBackground=normalBackground
+TerminalSelection=3f000000
+TerminalFindMatch=7fffff00
+TerminalAnsi0=000000
+TerminalAnsi1=8b1b10
+TerminalAnsi2=4aa32e
+TerminalAnsi3=9a9a2f
+TerminalAnsi4=0000ab
+TerminalAnsi5=a320ac
+TerminalAnsi6=49a3b0
+TerminalAnsi7=bfbfbf
+TerminalAnsi8=666666
+TerminalAnsi9=d22d1f
+TerminalAnsi10=62d63f
+TerminalAnsi11=dac911
+TerminalAnsi12=0000fe
+TerminalAnsi13=d22dde
+TerminalAnsi14=69e2e4
+TerminalAnsi15=e5e5e6
+
 [Flags]
 ComboBoxDrawTextShadow=false
 DerivePaletteFromTheme=true
@@ -413,8 +521,4 @@ FlatMenuBar=true
 ToolBarIconShadow=false
 WindowColorAsBase=false
 DarkUserInterface=false
-
-[Gradients]
-DetailsWidgetHeaderGradient\1\color=00000000
-DetailsWidgetHeaderGradient\1\pos=1
-DetailsWidgetHeaderGradient\size=1
+QDSTheme=true

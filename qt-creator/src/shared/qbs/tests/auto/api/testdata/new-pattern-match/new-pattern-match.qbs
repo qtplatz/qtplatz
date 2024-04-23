@@ -1,0 +1,3 @@
+Product {
+    files: "*.txt"
+}

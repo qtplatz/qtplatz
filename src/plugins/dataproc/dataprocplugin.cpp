@@ -92,10 +92,10 @@
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>
-#if EXCLUDE
-#include <coreplugin/mimedatabase.h>
+#if QTC_VERSION <= 0x08'00'02
+# include <utils/mimetypes/mimedatabase.h>
 #else
-#include <utils/mimetypes/mimedatabase.h>
+# include <utils/mimetypes2/mimedatabase.h>
 #endif
 #include <coreplugin/minisplitter.h>
 #include <coreplugin/outputpane.h>

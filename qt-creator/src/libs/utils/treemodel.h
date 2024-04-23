@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #pragma once
 
@@ -29,7 +7,7 @@
 
 #include "indexedcontainerproxyconstiterator.h"
 
-#include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
 
 #include <functional>
 
@@ -61,6 +39,7 @@ public:
 
     void removeChildAt(int pos);
     void removeChildren();
+    void removeChildrenSilently();
     void sortChildren(const std::function<bool(const TreeItem *, const TreeItem *)> &cmp);
     void update();
     void updateAll();
@@ -71,7 +50,7 @@ public:
     TreeItem *lastChild() const;
     int level() const;
 
-    using const_iterator = QVector<TreeItem *>::const_iterator;
+    using const_iterator = QList<TreeItem *>::const_iterator;
     using value_type = TreeItem *;
     int childCount() const { return m_children.size(); }
     int indexInParent() const;
@@ -103,7 +82,7 @@ private:
 
     TreeItem *m_parent = nullptr; // Not owned.
     BaseTreeModel *m_model = nullptr; // Not owned.
-    QVector<TreeItem *> m_children; // Owned.
+    QList<TreeItem *> m_children; // Owned.
     friend class BaseTreeModel;
 };
 
@@ -202,7 +181,8 @@ protected:
     void clear();
 
     TreeItem *rootItem() const;
-    void setRootItem(TreeItem *item);
+    void setRootItem(TreeItem *item); // resets the model
+    void setRootItemInternal(TreeItem *item);
     TreeItem *itemForIndex(const QModelIndex &) const;
     QModelIndex indexForItem(const TreeItem *needle) const;
 
@@ -364,6 +344,21 @@ public:
     BestItem *itemForIndex(const QModelIndex &idx) const {
         return static_cast<BestItem *>(BaseTreeModel::itemForIndex(idx));
     }
+};
+
+// By default, does natural sorting by display name. Call setLessThan() to customize.
+class QTCREATOR_UTILS_EXPORT SortModel : public QSortFilterProxyModel
+{
+public:
+    using QSortFilterProxyModel::QSortFilterProxyModel;
+    using LessThan = std::function<bool(const QModelIndex &, const QModelIndex &)>;
+    void setLessThan(const LessThan &lessThan) { m_lessThan = lessThan; }
+
+protected:
+    bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override;
+
+private:
+    LessThan m_lessThan;
 };
 
 } // namespace Utils

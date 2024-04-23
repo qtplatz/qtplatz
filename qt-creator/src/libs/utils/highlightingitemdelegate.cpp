@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2017 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "highlightingitemdelegate.h"
 
@@ -156,13 +134,29 @@ void HighlightingItemDelegate::drawText(QPainter *painter,
     if (index.model()->hasChildren(index))
         text += " (" + QString::number(index.model()->rowCount(index)) + ')';
 
-    QVector<int> searchTermStarts =
-            index.model()->data(index, int(HighlightingItemRole::StartColumn)).value<QVector<int>>();
-    QVector<int> searchTermLengths =
-            index.model()->data(index, int(HighlightingItemRole::Length)).value<QVector<int>>();
+    QList<int> searchTermStarts
+        = index.model()->data(index, int(HighlightingItemRole::StartColumn)).value<QList<int>>();
+    QList<int> searchTermLengths
+        = index.model()->data(index, int(HighlightingItemRole::Length)).value<QList<int>>();
+
+    QList<QTextLayout::FormatRange> formats;
+
+    const QString extraText
+        = index.model()->data(index, int(HighlightingItemRole::DisplayExtra)).toString();
+    if (!extraText.isEmpty()) {
+        if (!option.state.testFlag(QStyle::State_Selected)) {
+            int start = text.length();
+            auto dataType = int(HighlightingItemRole::DisplayExtraForeground);
+            const QColor highlightForeground = index.model()->data(index, dataType).value<QColor>();
+            QTextCharFormat extraFormat;
+            extraFormat.setForeground(highlightForeground);
+            formats.append({start, int(extraText.length()), extraFormat});
+        }
+        text.append(extraText);
+    }
 
     if (searchTermStarts.isEmpty()) {
-        drawDisplay(painter, option, rect, text.replace('\t', m_tabString), {});
+        drawDisplay(painter, option, rect, text.replace('\t', m_tabString), formats);
         return;
     }
 
@@ -197,7 +191,6 @@ void HighlightingItemDelegate::drawText(QPainter *painter,
     highlightFormat.setForeground(highlightForeground);
     highlightFormat.setBackground(highlightBackground);
 
-    QVector<QTextLayout::FormatRange> formats;
     for (int i = 0, size = searchTermStarts.size(); i < size; ++i)
         formats.append({searchTermStarts.at(i), searchTermLengths.at(i), highlightFormat});
 
@@ -208,7 +201,7 @@ void HighlightingItemDelegate::drawText(QPainter *painter,
 static QString replaceNewLine(QString text)
 {
     static const QChar nl = '\n';
-    for (int i = 0; i < text.count(); ++i)
+    for (int i = 0; i < text.size(); ++i)
         if (text.at(i) == nl)
             text[i] = QChar::LineSeparator;
     return text;
@@ -237,7 +230,7 @@ QSizeF doTextLayout(QTextLayout *textLayout, int lineWidth)
 void HighlightingItemDelegate::drawDisplay(QPainter *painter,
                                            const QStyleOptionViewItem &option,
                                            const QRect &rect, const QString &text,
-                                           const QVector<QTextLayout::FormatRange> &format) const
+                                           const QList<QTextLayout::FormatRange> &format) const
 {
     QPalette::ColorGroup cg = option.state & QStyle::State_Enabled
                               ? QPalette::Normal : QPalette::Disabled;

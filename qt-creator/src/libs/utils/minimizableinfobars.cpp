@@ -1,33 +1,12 @@
-/****************************************************************************
-**
-** Copyright (C) 2022 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "minimizableinfobars.h"
 
 #include "qtcassert.h"
 #include "qtcsettings.h"
 #include "utilsicons.h"
+#include "utilstr.h"
 
 #include <QAction>
 #include <QToolButton>
@@ -54,7 +33,7 @@ void MinimizableInfoBars::setPossibleInfoBarEntries(const QList<Utils::InfoBarEn
     createActions();
 }
 
-void MinimizableInfoBars::setSettingsGroup(const QString &settingsGroup)
+void MinimizableInfoBars::setSettingsGroup(const Key &settingsGroup)
 {
     m_settingsGroup = settingsGroup;
 }
@@ -62,12 +41,12 @@ void MinimizableInfoBars::setSettingsGroup(const QString &settingsGroup)
 void MinimizableInfoBars::createActions()
 {
     QTC_CHECK(m_actions.isEmpty());
-    for (const Utils::InfoBarEntry &entry : qAsConst(m_infoEntries)) {
+    for (const Utils::InfoBarEntry &entry : std::as_const(m_infoEntries)) {
         const Id id = entry.id();
         auto action = new QAction(this);
         action->setToolTip(entry.text());
         action->setIcon(Icons::WARNING_TOOLBAR.pixmap());
-        connect(action, &QAction::triggered, this, [this, id]() {
+        connect(action, &QAction::triggered, this, [this, id] {
             setShowInInfoBar(id, true);
             updateInfo(id);
         });
@@ -76,10 +55,10 @@ void MinimizableInfoBars::createActions()
     }
 }
 
-QString MinimizableInfoBars::settingsKey(const Id &id) const
+Key MinimizableInfoBars::settingsKey(const Id &id) const
 {
     QTC_CHECK(!m_settingsGroup.isEmpty());
-    return m_settingsGroup + '/' + SETTINGS_PREFIX + id.toString();
+    return m_settingsGroup + '/' + SETTINGS_PREFIX + id.name();
 }
 
 void MinimizableInfoBars::createShowInfoBarActions(const ActionCreator &actionCreator) const
@@ -129,7 +108,7 @@ void MinimizableInfoBars::showInfoBar(const Id &id)
     // The minimizer() might delete the "Minimize" button immediately and as
     // result invalid reads will happen in QToolButton::mouseReleaseEvent().
     // Avoid this by running the minimizer in the next event loop iteration.
-    info.addCustomButton(MinimizableInfoBars::tr("Minimize"), [this, id] {
+    info.addCustomButton(Tr::tr("Minimize"), [this, id] {
         QMetaObject::invokeMethod(
             this,
             [id, this] {
@@ -148,10 +127,7 @@ bool MinimizableInfoBars::showInInfoBar(const Id &id) const
 
 void MinimizableInfoBars::setShowInInfoBar(const Id &id, bool show)
 {
-    QtcSettings::setValueWithDefault(InfoBar::settings(),
-                                     settingsKey(id),
-                                     show,
-                                     kShowInInfoBarDefault);
+    InfoBar::settings()->setValueWithDefault(settingsKey(id), show, kShowInInfoBarDefault);
 }
 
 } // namespace Utils

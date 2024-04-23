@@ -1,36 +1,17 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "ifindfilter.h"
 
-#include <coreplugin/coreicons.h>
+#include "../coreicons.h"
+#include "../coreplugintr.h"
 
 #include <QApplication>
 #include <QKeySequence>
 #include <QPainter>
 #include <QPixmap>
+
+using namespace Utils;
 
 /*!
     \class Core::IFindFilter
@@ -57,7 +38,7 @@
     A common way to present the search results to the user, is to use the
     shared \uicontrol{Search Results} pane.
 
-    \image qtcreator-searchresults.png
+    \image qtcreator-search-results.webp {Search Results view}
 
     If you want to implement a find filter that is doing a file based text
     search, you should use \l Core::BaseTextFind, which already implements all
@@ -111,7 +92,7 @@
     Returns the name of the find filter or scope as presented to the user.
 
     This is the name that appears in the scope selection combo box, for example.
-    Always return a translatable string. That is, use \c tr() for the return
+    Always return a translatable string. That is, use \c {Tr::tr()} for the return
     value.
 */
 
@@ -151,7 +132,7 @@
 */
 
 /*!
-    \fn void Core::IFindFilter::findAll(const QString &txt, Core::FindFlags findFlags)
+    \fn void Core::IFindFilter::findAll(const QString &txt, Utils::FindFlags findFlags)
     This function is called when the user selected this find scope and
     initiated a search.
 
@@ -168,7 +149,7 @@
 */
 
 /*!
-    \fn void Core::IFindFilter::replaceAll(const QString &txt, Core::FindFlags findFlags)
+    \fn void Core::IFindFilter::replaceAll(const QString &txt, Utils::FindFlags findFlags)
     Override this function if you want to support search and replace.
 
     This function is called when the user selected this find scope and
@@ -273,8 +254,8 @@ QKeySequence IFindFilter::defaultShortcut() const
 
     Depending on the returned value, the default find option widgets are
     enabled or disabled.
-    The default is Core::FindCaseSensitively, Core::FindRegularExpression
-    and Core::FindWholeWords.
+    The default is Utils::FindCaseSensitively, Utils::FindRegularExpression
+    and Uitls::FindWholeWords.
 */
 FindFlags IFindFilter::supportedFindFlags() const
 {
@@ -337,18 +318,18 @@ QString IFindFilter::descriptionForFindFlags(FindFlags flags)
 {
     QStringList flagStrings;
     if (flags & FindCaseSensitively)
-        flagStrings.append(tr("Case sensitive"));
+        flagStrings.append(Tr::tr("Case sensitive"));
     if (flags & FindWholeWords)
-        flagStrings.append(tr("Whole words"));
+        flagStrings.append(Tr::tr("Whole words"));
     if (flags & FindRegularExpression)
-        flagStrings.append(tr("Regular expressions"));
+        flagStrings.append(Tr::tr("Regular expressions"));
     if (flags & FindPreserveCase)
-        flagStrings.append(tr("Preserve case"));
-    QString description = tr("Flags: %1");
+        flagStrings.append(Tr::tr("Preserve case"));
+    QString description = Tr::tr("Flags: %1");
     if (flagStrings.isEmpty())
-        description = description.arg(tr("None"));
+        description = description.arg(Tr::tr("None"));
     else
-        description = description.arg(flagStrings.join(tr(", ")));
+        description = description.arg(flagStrings.join(Tr::tr(", ")));
     return description;
 }
 

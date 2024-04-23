@@ -1,45 +1,32 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "findtoolwindow.h"
+
 #include "ifindfilter.h"
 #include "findplugin.h"
+#include "../coreplugintr.h"
+#include "../icore.h"
 
-#include <coreplugin/icore.h>
-#include <utils/qtcassert.h>
 #include <utils/algorithm.h>
+#include <utils/fancylineedit.h>
+#include <utils/layoutbuilder.h>
+#include <utils/qtcassert.h>
 
-#include <QSettings>
-#include <QStringListModel>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QCompleter>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QLayout>
+#include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollArea>
+#include <QStringListModel>
 
-using namespace Core;
-using namespace Core::Internal;
+using namespace Utils;
+
+namespace Core::Internal {
 
 static FindToolWindow *m_instance = nullptr;
 
@@ -47,7 +34,7 @@ static bool validateRegExp(Utils::FancyLineEdit *edit, QString *errorMessage)
 {
     if (edit->text().isEmpty()) {
         if (errorMessage)
-            *errorMessage = FindToolWindow::tr("Empty search term.");
+            *errorMessage = Tr::tr("Empty search term.");
         return false;
     }
     if (Find::hasFindFlag(FindRegularExpression)) {
@@ -67,35 +54,97 @@ FindToolWindow::FindToolWindow(QWidget *parent)
     m_configWidget(nullptr)
 {
     m_instance = this;
-    m_ui.setupUi(this);
-    m_ui.searchTerm->setFiltering(true);
-    m_ui.searchTerm->setPlaceholderText(QString());
-    setFocusProxy(m_ui.searchTerm);
 
-    connect(m_ui.searchButton, &QAbstractButton::clicked, this, &FindToolWindow::search);
-    connect(m_ui.replaceButton, &QAbstractButton::clicked, this, &FindToolWindow::replace);
-    connect(m_ui.matchCase, &QAbstractButton::toggled, Find::instance(), &Find::setCaseSensitive);
-    connect(m_ui.wholeWords, &QAbstractButton::toggled, Find::instance(), &Find::setWholeWord);
-    connect(m_ui.regExp, &QAbstractButton::toggled, Find::instance(), &Find::setRegularExpression);
-    connect(m_ui.filterList, QOverload<int>::of(&QComboBox::activated),
-            this, QOverload<int>::of(&FindToolWindow::setCurrentFilter));
+    m_searchButton = new QPushButton(this);
+    m_searchButton->setText(Tr::tr("&Search", nullptr));
+    m_searchButton->setDefault(true);
+
+    m_replaceButton = new QPushButton(this);
+    m_replaceButton->setText(Tr::tr("Search && &Replace", nullptr));
+
+    m_searchTerm = new FancyLineEdit(this);
+    m_searchTerm->setFiltering(true);
+    m_searchTerm->setPlaceholderText({});
+
+    m_searchLabel = new QLabel(this);
+    m_searchLabel->setText(Tr::tr("Search f&or:", nullptr));
+    m_searchLabel->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+    m_searchLabel->setBuddy(m_searchTerm);
+
+    m_filterList = new QComboBox;
+    m_filterList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_filterList->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+    m_optionsWidget = new QWidget(this);
+
+    m_matchCase = new QCheckBox(m_optionsWidget);
+    m_matchCase->setText(Tr::tr("&Case sensitive", nullptr));
+
+    m_wholeWords = new QCheckBox(m_optionsWidget);
+    m_wholeWords->setText(Tr::tr("Whole words o&nly", nullptr));
+
+    m_regExp = new QCheckBox(m_optionsWidget);
+    m_regExp->setText(Tr::tr("Use re&gular expressions", nullptr));
+
+    auto label = new QLabel(this);
+    label->setText(Tr::tr("Sco&pe:", nullptr));
+    label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+    label->setMinimumSize(QSize(80, 0));
+    label->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+    label->setBuddy(m_filterList);
+
+    m_uiConfigWidget = new QWidget(this);
+    QSizePolicy sizePolicy2(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    sizePolicy2.setHorizontalStretch(0);
+    sizePolicy2.setVerticalStretch(10);
+    m_uiConfigWidget->setSizePolicy(sizePolicy2);
+    m_uiConfigWidget->setMinimumSize(QSize(680, 0));
+
+    setFocusProxy(m_searchTerm);
+
+    using namespace Layouting;
+
+    Row {
+        m_matchCase,
+        m_wholeWords,
+        m_regExp,
+        st,
+        noMargin
+    }.attachTo(m_optionsWidget);
+
+    Grid {
+        label, m_filterList, br,
+        m_searchLabel, m_searchTerm, br,
+        empty, m_optionsWidget, br,
+        Span(2, m_uiConfigWidget), br,
+        Span(2, Row { st, m_searchButton, m_replaceButton }), br,
+    }.attachTo(this);
+
+    layout()->setSizeConstraint(QLayout::SetFixedSize);
+
+    connect(m_searchButton, &QAbstractButton::clicked, this, &FindToolWindow::search);
+    connect(m_replaceButton, &QAbstractButton::clicked, this, &FindToolWindow::replace);
+    connect(m_matchCase, &QAbstractButton::toggled, Find::instance(), &Find::setCaseSensitive);
+    connect(m_wholeWords, &QAbstractButton::toggled, Find::instance(), &Find::setWholeWord);
+    connect(m_regExp, &QAbstractButton::toggled, Find::instance(), &Find::setRegularExpression);
+    connect(m_filterList, &QComboBox::activated, this, &FindToolWindow::setCurrentFilterIndex);
 
     m_findCompleter->setModel(Find::findCompletionModel());
-    m_ui.searchTerm->setSpecialCompleter(m_findCompleter);
-    m_ui.searchTerm->installEventFilter(this);
+    m_searchTerm->setSpecialCompleter(m_findCompleter);
+    m_searchTerm->installEventFilter(this);
     connect(m_findCompleter, QOverload<const QModelIndex &>::of(&QCompleter::activated),
             this, &FindToolWindow::findCompleterActivated);
 
-    m_ui.searchTerm->setValidationFunction(validateRegExp);
+    m_searchTerm->setValidationFunction(validateRegExp);
     connect(Find::instance(), &Find::findFlagsChanged,
-            m_ui.searchTerm, &Utils::FancyLineEdit::validate);
-    connect(m_ui.searchTerm, &Utils::FancyLineEdit::validChanged,
+            m_searchTerm, &Utils::FancyLineEdit::validate);
+    connect(m_searchTerm, &Utils::FancyLineEdit::validChanged,
             this, &FindToolWindow::updateButtonStates);
 
     auto layout = new QVBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-    m_ui.configWidget->setLayout(layout);
+    m_uiConfigWidget->setLayout(layout);
     updateButtonStates();
 
     connect(Find::instance(), &Find::findFlagsChanged, this, &FindToolWindow::updateFindFlags);
@@ -118,7 +167,7 @@ bool FindToolWindow::event(QEvent *event)
         if ((ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter)
                 && (ke->modifiers() == Qt::NoModifier || ke->modifiers() == Qt::KeypadModifier)) {
             ke->accept();
-            if (m_ui.searchButton->isEnabled())
+            if (m_searchButton->isEnabled())
                 search();
             return true;
         }
@@ -128,10 +177,10 @@ bool FindToolWindow::event(QEvent *event)
 
 bool FindToolWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == m_ui.searchTerm && event->type() == QEvent::KeyPress) {
+    if (obj == m_searchTerm && event->type() == QEvent::KeyPress) {
         auto ke = static_cast<QKeyEvent *>(event);
         if (ke->key() == Qt::Key_Down) {
-            if (m_ui.searchTerm->text().isEmpty())
+            if (m_searchTerm->text().isEmpty())
                 m_findCompleter->setCompletionPrefix(QString());
             m_findCompleter->complete();
         }
@@ -143,34 +192,34 @@ void FindToolWindow::updateButtonStates()
 {
     bool filterEnabled = m_currentFilter && m_currentFilter->isEnabled();
     bool enabled = filterEnabled && (!m_currentFilter->showSearchTermInput()
-                                     || m_ui.searchTerm->isValid()) && m_currentFilter->isValid();
-    m_ui.searchButton->setEnabled(enabled);
-    m_ui.replaceButton->setEnabled(m_currentFilter
+                                     || m_searchTerm->isValid()) && m_currentFilter->isValid();
+    m_searchButton->setEnabled(enabled);
+    m_replaceButton->setEnabled(m_currentFilter
                                    && m_currentFilter->isReplaceSupported() && enabled);
     if (m_configWidget)
         m_configWidget->setEnabled(filterEnabled);
 
     if (m_currentFilter) {
-        m_ui.searchTerm->setVisible(m_currentFilter->showSearchTermInput());
-        m_ui.searchLabel->setVisible(m_currentFilter->showSearchTermInput());
-        m_ui.optionsWidget->setVisible(m_currentFilter->supportedFindFlags()
+        m_searchTerm->setVisible(m_currentFilter->showSearchTermInput());
+        m_searchLabel->setVisible(m_currentFilter->showSearchTermInput());
+        m_optionsWidget->setVisible(m_currentFilter->supportedFindFlags()
                                        & (FindCaseSensitively | FindWholeWords | FindRegularExpression));
     }
 
-    m_ui.matchCase->setEnabled(filterEnabled
+    m_matchCase->setEnabled(filterEnabled
                                && (m_currentFilter->supportedFindFlags() & FindCaseSensitively));
-    m_ui.wholeWords->setEnabled(filterEnabled
+    m_wholeWords->setEnabled(filterEnabled
                                 && (m_currentFilter->supportedFindFlags() & FindWholeWords));
-    m_ui.regExp->setEnabled(filterEnabled
+    m_regExp->setEnabled(filterEnabled
                             && (m_currentFilter->supportedFindFlags() & FindRegularExpression));
-    m_ui.searchTerm->setEnabled(filterEnabled);
+    m_searchTerm->setEnabled(filterEnabled);
 }
 
 void FindToolWindow::updateFindFlags()
 {
-    m_ui.matchCase->setChecked(Find::hasFindFlag(FindCaseSensitively));
-    m_ui.wholeWords->setChecked(Find::hasFindFlag(FindWholeWords));
-    m_ui.regExp->setChecked(Find::hasFindFlag(FindRegularExpression));
+    m_matchCase->setChecked(Find::hasFindFlag(FindCaseSensitively));
+    m_wholeWords->setChecked(Find::hasFindFlag(FindWholeWords));
+    m_regExp->setChecked(Find::hasFindFlag(FindRegularExpression));
 }
 
 
@@ -178,20 +227,20 @@ void FindToolWindow::setFindFilters(const QList<IFindFilter *> &filters)
 {
     qDeleteAll(m_configWidgets);
     m_configWidgets.clear();
-    for (IFindFilter *filter : qAsConst(m_filters))
+    for (IFindFilter *filter : std::as_const(m_filters))
         filter->disconnect(this);
     m_filters = filters;
-    m_ui.filterList->clear();
+    m_filterList->clear();
     QStringList names;
     for (IFindFilter *filter : filters) {
         names << filter->displayName();
         m_configWidgets.append(filter->createConfigWidget());
         connect(filter, &IFindFilter::displayNameChanged,
-                this, [this, filter]() { updateFindFilterName(filter); });
+                this, [this, filter] { updateFindFilterName(filter); });
     }
-    m_ui.filterList->addItems(names);
+    m_filterList->addItems(names);
     if (m_filters.size() > 0)
-        setCurrentFilter(0);
+        setCurrentFilterIndex(0);
 }
 
 QList<IFindFilter *> FindToolWindow::findFilters() const
@@ -203,12 +252,12 @@ void FindToolWindow::updateFindFilterName(IFindFilter *filter)
 {
     int index = m_filters.indexOf(filter);
     if (QTC_GUARD(index >= 0))
-        m_ui.filterList->setItemText(index, filter->displayName());
+        m_filterList->setItemText(index, filter->displayName());
 }
 
 void FindToolWindow::setFindText(const QString &text)
 {
-    m_ui.searchTerm->setText(text);
+    m_searchTerm->setText(text);
 }
 
 void FindToolWindow::setCurrentFilter(IFindFilter *filter)
@@ -217,15 +266,15 @@ void FindToolWindow::setCurrentFilter(IFindFilter *filter)
         filter = m_currentFilter;
     int index = m_filters.indexOf(filter);
     if (index >= 0)
-        setCurrentFilter(index);
+        setCurrentFilterIndex(index);
     updateFindFlags();
-    m_ui.searchTerm->setFocus();
-    m_ui.searchTerm->selectAll();
+    m_searchTerm->setFocus();
+    m_searchTerm->selectAll();
 }
 
-void FindToolWindow::setCurrentFilter(int index)
+void FindToolWindow::setCurrentFilterIndex(int index)
 {
-    m_ui.filterList->setCurrentIndex(index);
+    m_filterList->setCurrentIndex(index);
     for (int i = 0; i < m_configWidgets.size(); ++i) {
         QWidget *configWidget = m_configWidgets.at(i);
         if (i == index) {
@@ -243,13 +292,13 @@ void FindToolWindow::setCurrentFilter(int index)
                     this, &FindToolWindow::updateButtonStates);
             updateButtonStates();
             if (m_configWidget)
-                m_ui.configWidget->layout()->addWidget(m_configWidget);
+                m_uiConfigWidget->layout()->addWidget(m_configWidget);
         } else {
             if (configWidget)
                 configWidget->setParent(nullptr);
         }
     }
-    QWidget *w = m_ui.configWidget;
+    QWidget *w = m_uiConfigWidget;
     while (w) {
         auto sa = qobject_cast<QScrollArea *>(w);
         if (sa) {
@@ -258,7 +307,7 @@ void FindToolWindow::setCurrentFilter(int index)
         }
         w = w->parentWidget();
     }
-    for (w = m_configWidget ? m_configWidget : m_ui.configWidget; w; w = w->parentWidget()) {
+    for (w = m_configWidget ? m_configWidget : m_uiConfigWidget; w; w = w->parentWidget()) {
         if (w->layout())
             w->layout()->activate();
     }
@@ -268,9 +317,9 @@ void FindToolWindow::acceptAndGetParameters(QString *term, IFindFilter **filter)
 {
     QTC_ASSERT(filter, return);
     *filter = nullptr;
-    Find::updateFindCompletion(m_ui.searchTerm->text(), Find::findFlags());
-    int index = m_ui.filterList->currentIndex();
-    QString searchTerm = m_ui.searchTerm->text();
+    Find::updateFindCompletion(m_searchTerm->text(), Find::findFlags());
+    int index = m_filterList->currentIndex();
+    QString searchTerm = m_searchTerm->text();
     if (index >= 0)
         *filter = m_filters.at(index);
     if (term)
@@ -303,21 +352,21 @@ void FindToolWindow::writeSettings()
     settings->beginGroup("Find");
     settings->setValueWithDefault("CurrentFilter",
                                   m_currentFilter ? m_currentFilter->id() : QString());
-    for (IFindFilter *filter : qAsConst(m_filters))
+    for (IFindFilter *filter : std::as_const(m_filters))
         filter->writeSettings(settings);
     settings->endGroup();
 }
 
 void FindToolWindow::readSettings()
 {
-    QSettings *settings = ICore::settings();
-    settings->beginGroup(QLatin1String("Find"));
-    const QString currentFilter = settings->value(QLatin1String("CurrentFilter")).toString();
+    QtcSettings *settings = ICore::settings();
+    settings->beginGroup("Find");
+    const QString currentFilter = settings->value("CurrentFilter").toString();
     for (int i = 0; i < m_filters.size(); ++i) {
         IFindFilter *filter = m_filters.at(i);
         filter->readSettings(settings);
         if (filter->id() == currentFilter)
-            setCurrentFilter(i);
+            setCurrentFilterIndex(i);
     }
     settings->endGroup();
 }
@@ -332,3 +381,5 @@ void FindToolWindow::findCompleterActivated(const QModelIndex &index)
     Find::setRegularExpression(findFlags.testFlag(FindRegularExpression));
     Find::setPreserveCase(findFlags.testFlag(FindPreserveCase));
 }
+
+} // Core::Internal

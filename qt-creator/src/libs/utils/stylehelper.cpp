@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "stylehelper.h"
 
@@ -33,7 +11,9 @@
 #include <QCommonStyle>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QIcon>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPixmapCache>
 #include <QStyleOption>
 #include <QWindow>
@@ -58,6 +38,11 @@ static int range(float x, int min, int max)
 
 namespace Utils {
 
+static StyleHelper::ToolbarStyle s_toolbarStyle = StyleHelper::defaultToolbarStyle;
+// Invalid by default, setBaseColor needs to be called at least once
+static QColor s_baseColor;
+static QColor s_requestedBaseColor;
+
 QColor StyleHelper::mergedColors(const QColor &colorA, const QColor &colorB, int factor)
 {
     const int maxFactor = 100;
@@ -80,9 +65,34 @@ QColor StyleHelper::alphaBlendedColors(const QColor &colorA, const QColor &color
                 );
 }
 
-qreal StyleHelper::sidebarFontSize()
+QColor StyleHelper::sidebarHighlight()
 {
-    return HostOsInfo::isMacHost() ? 10 : 7.5;
+    return QColor(255, 255, 255, 40);
+}
+
+QColor StyleHelper::sidebarShadow()
+{
+    return QColor(0, 0, 0, 40);
+}
+
+QColor StyleHelper::toolBarDropShadowColor()
+{
+    return QColor(0, 0, 0, 70);
+}
+
+int StyleHelper::navigationWidgetHeight()
+{
+    return s_toolbarStyle == ToolbarStyleCompact ? 24 : 30;
+}
+
+void StyleHelper::setToolbarStyle(ToolbarStyle style)
+{
+    s_toolbarStyle = style;
+}
+
+StyleHelper::ToolbarStyle StyleHelper::toolbarStyle()
+{
+    return s_toolbarStyle;
 }
 
 QColor StyleHelper::notTooBrightHighlightColor()
@@ -111,16 +121,25 @@ QColor StyleHelper::panelTextColor(bool lightColored)
         return Qt::black;
 }
 
-// Invalid by default, setBaseColor needs to be called at least once
-QColor StyleHelper::m_baseColor;
-QColor StyleHelper::m_requestedBaseColor;
-
 QColor StyleHelper::baseColor(bool lightColored)
 {
     static const QColor windowColor = QApplication::palette().color(QPalette::Window);
     static const bool windowColorAsBase = creatorTheme()->flag(Theme::WindowColorAsBase);
 
-    return (lightColored || windowColorAsBase) ? windowColor : m_baseColor;
+    return (lightColored || windowColorAsBase) ? windowColor : s_baseColor;
+}
+
+QColor StyleHelper::requestedBaseColor()
+{
+    return s_requestedBaseColor;
+}
+
+QColor StyleHelper::toolbarBaseColor(bool lightColored)
+{
+    if (creatorTheme()->flag(Theme::QDSTheme))
+        return creatorTheme()->color(Utils::Theme::DStoolbarBackground);
+    else
+        return StyleHelper::baseColor(lightColored);
 }
 
 QColor StyleHelper::highlightColor(bool lightColored)
@@ -163,12 +182,17 @@ QColor StyleHelper::toolBarBorderColor()
                            clamp(base.value() * 0.80f));
 }
 
+QColor StyleHelper::buttonTextColor()
+{
+    return QColor(0x4c4c4c);
+}
+
 // We try to ensure that the actual color used are within
 // reasonalbe bounds while generating the actual baseColor
 // from the users request.
 void StyleHelper::setBaseColor(const QColor &newcolor)
 {
-    m_requestedBaseColor = newcolor;
+    s_requestedBaseColor = newcolor;
 
     const QColor themeBaseColor = creatorTheme()->color(Theme::PanelStatusBarBackgroundColor);
     const QColor defaultBaseColor = QColor(DEFAULT_BASE_COLOR);
@@ -185,9 +209,9 @@ void StyleHelper::setBaseColor(const QColor &newcolor)
                      value);
     }
 
-    if (color.isValid() && color != m_baseColor) {
-        m_baseColor = color;
-        const QList<QWidget *> widgets = QApplication::topLevelWidgets();
+    if (color.isValid() && color != s_baseColor) {
+        s_baseColor = color;
+        const QWidgetList widgets = QApplication::allWidgets();
         for (QWidget *w : widgets)
             w->update();
     }
@@ -328,7 +352,14 @@ void StyleHelper::drawArrow(QStyle::PrimitiveElement element, QPainter *painter,
             static const QCommonStyle* const style = qobject_cast<QCommonStyle*>(QApplication::style());
             if (!style)
                 return;
-            tweakedOption.palette.setColor(QPalette::ButtonText, color.rgb());
+
+            // Workaround for QTCREATORBUG-28470
+            QPalette pal = tweakedOption.palette;
+            pal.setBrush(QPalette::Base, pal.text()); // Base and Text differ, causing a detachment.
+                                                      // Inspired by tst_QPalette::cacheKey()
+            pal.setColor(QPalette::ButtonText, color.rgb());
+
+            tweakedOption.palette = pal;
             tweakedOption.rect = rect;
             painter.setOpacity(color.alphaF());
             style->QCommonStyle::drawPrimitive(element, &tweakedOption, &painter);
@@ -349,6 +380,117 @@ void StyleHelper::drawArrow(QStyle::PrimitiveElement element, QPainter *painter,
     int xOffset = r.x() + (r.width() - size)/2;
     int yOffset = r.y() + (r.height() - size)/2;
     painter->drawPixmap(xOffset, yOffset, pixmap);
+}
+
+void StyleHelper::drawMinimalArrow(QStyle::PrimitiveElement element, QPainter *painter, const QStyleOption *option)
+{
+    if (option->rect.width() <= 1 || option->rect.height() <= 1)
+        return;
+
+    const qreal devicePixelRatio = painter->device()->devicePixelRatio();
+    const bool enabled = option->state & QStyle::State_Enabled;
+    QRect r = option->rect;
+    int size = qMin(r.height(), r.width());
+    QPixmap pixmap;
+    const QString pixmapName = QString::asprintf("StyleHelper::drawMinimalArrow-%d-%d-%d-%f",
+                                                 element, size, enabled, devicePixelRatio);
+    if (!QPixmapCache::find(pixmapName, &pixmap)) {
+        QImage image(size * devicePixelRatio, size * devicePixelRatio, QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        QPainter painter(&image);
+        QStyleOption tweakedOption(*option);
+
+        double rotation = 0;
+        switch (element) {
+        case QStyle::PE_IndicatorArrowLeft:
+            rotation = 45;
+            break;
+        case QStyle::PE_IndicatorArrowUp:
+            rotation = 135;
+            break;
+        case QStyle::PE_IndicatorArrowRight:
+            rotation = 225;
+            break;
+        case QStyle::PE_IndicatorArrowDown:
+            rotation = 315;
+            break;
+        default:
+            break;
+        }
+
+        auto drawArrow = [&tweakedOption, rotation, &painter](const QRect &rect, const QColor &color) -> void
+        {
+            static const QCommonStyle* const style = qobject_cast<QCommonStyle*>(QApplication::style());
+            if (!style)
+                return;
+
+            // Workaround for QTCREATORBUG-28470
+            QPalette pal = tweakedOption.palette;
+            pal.setBrush(QPalette::Base, pal.text()); // Base and Text differ, causing a detachment.
+            // Inspired by tst_QPalette::cacheKey()
+            pal.setColor(QPalette::ButtonText, color.rgb());
+
+            tweakedOption.palette = pal;
+            tweakedOption.rect = rect;
+
+            painter.save();
+            painter.setOpacity(color.alphaF());
+
+            double minDim = std::min(rect.width(), rect.height());
+            double innerWidth = minDim/M_SQRT2;
+            int penWidth = std::max(innerWidth/4, 1.0);
+            innerWidth -= penWidth;
+
+            QPen pPen(pal.color(QPalette::ButtonText), penWidth);
+            pPen.setJoinStyle(Qt::MiterJoin);
+            painter.setBrush(pal.text());
+            painter.setPen(pPen);
+
+            painter.translate(rect.center());
+            painter.rotate(rotation);
+            painter.translate(-innerWidth/2, -innerWidth/2);
+
+            const QPointF points[3] = {
+                {0, 0},
+                {0, innerWidth},
+                {innerWidth, innerWidth}
+            };
+
+            painter.drawPolyline(points, 3);
+            painter.restore();
+        };
+
+        if (enabled) {
+            if (creatorTheme()->flag(Theme::ToolBarIconShadow))
+                drawArrow(image.rect().translated(0, devicePixelRatio), toolBarDropShadowColor());
+            drawArrow(image.rect(), creatorTheme()->color(Theme::IconsBaseColor));
+        } else {
+            drawArrow(image.rect(), creatorTheme()->color(Theme::IconsDisabledColor));
+        }
+        painter.end();
+        pixmap = QPixmap::fromImage(image);
+        pixmap.setDevicePixelRatio(devicePixelRatio);
+        QPixmapCache::insert(pixmapName, pixmap);
+    }
+    int xOffset = r.x() + (r.width() - size)/2;
+    int yOffset = r.y() + (r.height() - size)/2;
+    painter->drawPixmap(xOffset, yOffset, pixmap);
+}
+
+void StyleHelper::drawPanelBgRect(QPainter *painter, const QRectF &rect, const QBrush &brush)
+{
+    if (toolbarStyle() == ToolbarStyleCompact) {
+        painter->fillRect(rect.toRect(), brush);
+    } else {
+        constexpr int margin = 2;
+        constexpr int radius = 5;
+        QPainterPath path;
+        path.addRoundedRect(rect.adjusted(margin, margin, -margin, -margin), radius, radius);
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        painter->fillPath(path, brush);
+        painter->restore();
+    }
 }
 
 void StyleHelper::menuGradient(QPainter *painter, const QRect &spanRect, const QRect &clipRect)
@@ -374,6 +516,11 @@ void StyleHelper::menuGradient(QPainter *painter, const QRect &spanRect, const Q
     }
 }
 
+bool StyleHelper::usePixmapCache()
+{
+    return true;
+}
+
 QPixmap StyleHelper::disabledSideBarIcon(const QPixmap &enabledicon)
 {
     QImage im = enabledicon.toImage().convertToFormat(QImage::Format_ARGB32);
@@ -394,7 +541,7 @@ void StyleHelper::drawIconWithShadow(const QIcon &icon, const QRect &rect,
                                      QPainter *p, QIcon::Mode iconMode, int dipRadius, const QColor &color, const QPoint &dipOffset)
 {
     QPixmap cache;
-    const int devicePixelRatio = p->device()->devicePixelRatio();
+    const qreal devicePixelRatio = p->device()->devicePixelRatioF();
     QString pixmapName = QString::fromLatin1("icon %0 %1 %2 %3")
             .arg(icon.cacheKey()).arg(iconMode).arg(rect.height()).arg(devicePixelRatio);
 
@@ -406,7 +553,7 @@ void StyleHelper::drawIconWithShadow(const QIcon &icon, const QRect &rect,
         // pixels.
         QWindow *window = dynamic_cast<QWidget*>(p->device())->window()->windowHandle();
         QPixmap px = icon.pixmap(window, rect.size(), iconMode);
-        int radius = dipRadius * devicePixelRatio;
+        int radius = int(dipRadius * devicePixelRatio);
         QPoint offset = dipOffset * devicePixelRatio;
         cache = QPixmap(px.size() + QSize(radius * 2, radius * 2));
         cache.fill(Qt::transparent);
@@ -546,6 +693,27 @@ QLinearGradient StyleHelper::statusBarGradient(const QRect &statusBarRect)
     return grad;
 }
 
+void StyleHelper::setPanelWidget(QWidget *widget, bool value)
+{
+    widget->setProperty(C_PANEL_WIDGET, value);
+}
+
+void StyleHelper::setPanelWidgetSingleRow(QWidget *widget, bool value)
+{
+    widget->setProperty(C_PANEL_WIDGET_SINGLE_ROW, value);
+}
+
+bool StyleHelper::isQDSTheme()
+{
+    return creatorTheme() ? creatorTheme()->flag(Theme::QDSTheme) : false;
+}
+
+Qt::HighDpiScaleFactorRoundingPolicy StyleHelper::defaultHighDpiScaleFactorRoundingPolicy()
+{
+    return HostOsInfo::isMacHost() ? Qt::HighDpiScaleFactorRoundingPolicy::Unset
+                                   : Qt::HighDpiScaleFactorRoundingPolicy::Round;
+}
+
 QIcon StyleHelper::getIconFromIconFont(const QString &fontName, const QList<IconFontHelper> &parameters)
 {
     QFontDatabase a;
@@ -605,7 +773,7 @@ QIcon StyleHelper::getIconFromIconFont(const QString &fontName, const QString &i
             painter.save();
             painter.setPen(color);
             painter.setFont(font);
-            painter.drawText(QRectF(QPoint(0, 0), size), iconSymbol);
+            painter.drawText(QRectF(QPoint(0, 0), size), Qt::AlignCenter, iconSymbol);
             painter.restore();
 
             icon.addPixmap(pixmap);
@@ -681,7 +849,7 @@ QString StyleHelper::dpiSpecificImageFile(const QString &fileName)
     if (qApp->devicePixelRatio() > 1.0) {
         const QString atDprfileName =
                 imageFileWithResolution(fileName, qRound(qApp->devicePixelRatio()));
-        if (QFile::exists(atDprfileName))
+        if (QFileInfo::exists(atDprfileName))
             return atDprfileName;
     }
     return fileName;
@@ -689,11 +857,7 @@ QString StyleHelper::dpiSpecificImageFile(const QString &fileName)
 
 QString StyleHelper::imageFileWithResolution(const QString &fileName, int dpr)
 {
-    const QFileInfo fi(fileName);
-    return dpr == 1 ? fileName :
-                      fi.path() + QLatin1Char('/') + fi.completeBaseName()
-                      + QLatin1Char('@') + QString::number(dpr)
-                      + QLatin1String("x.") + fi.suffix();
+    return qt_findAtNxFile(fileName, dpr);
 }
 
 QList<int> StyleHelper::availableImageResolutions(const QString &fileName)
@@ -701,7 +865,7 @@ QList<int> StyleHelper::availableImageResolutions(const QString &fileName)
     QList<int> result;
     const int maxResolutions = qApp->devicePixelRatio();
     for (int i = 1; i <= maxResolutions; ++i)
-        if (QFile::exists(imageFileWithResolution(fileName, i)))
+        if (QFileInfo::exists(imageFileWithResolution(fileName, i)))
             result.append(i);
     return result;
 }
@@ -739,6 +903,149 @@ bool StyleHelper::isReadableOn(const QColor &background, const QColor &foregroun
     // following the W3C Recommendation on contrast for large Text
     // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef
     return contrastRatio(background, foreground) > 3;
+}
+
+QColor StyleHelper::ensureReadableOn(const QColor &background, const QColor &desiredForeground)
+{
+    if (isReadableOn(background, desiredForeground))
+        return desiredForeground;
+
+    int h, s, v;
+    QColor foreground = desiredForeground;
+    foreground.getHsv(&h, &s, &v);
+    // adjust the color value to ensure better readability
+    if (luminance(background) < .5)
+        v = v + 64;
+    else if (v >= 64)
+        v = v - 64;
+    v %= 256;
+
+    foreground.setHsv(h, s, v);
+    if (!isReadableOn(background, foreground)) {
+        s = (s + 128) % 256;    // adjust the saturation to ensure better readability
+        foreground.setHsv(h, s, v);
+        if (!isReadableOn(background, foreground)) // we failed to create some better foreground
+            return desiredForeground;
+    }
+    return foreground;
+}
+
+static const QStringList &applicationFontFamilies()
+{
+    const static QStringList families = [] {
+        const QLatin1String familyName("Inter");
+        // Font is either installed in the system, or was loaded from share/qtcreator/fonts/
+        return QFontDatabase::hasFamily(familyName) ? QStringList(familyName) : QStringList();
+    }();
+    return families;
+}
+
+static const QStringList &brandFontFamilies()
+{
+    const static QStringList families = []{
+        const int id = QFontDatabase::addApplicationFont(":/studiofonts/TitilliumWeb-Regular.ttf");
+        return id >= 0 ? QFontDatabase::applicationFontFamilies(id) : QStringList();
+    }();
+    return families;
+}
+
+struct UiFontMetrics {
+    // Original "text token" values are defined in pixels
+    const int pixelSize = -1;
+    const int lineHeight = -1;
+    const QFont::Weight weight = QFont::Normal;
+};
+
+static const UiFontMetrics& uiFontMetrics(StyleHelper::UiElement element)
+{
+    static const std::map<StyleHelper::UiElement, UiFontMetrics> metrics {
+        {StyleHelper::UiElementH1,                  {36, 54, QFont::DemiBold}},
+        {StyleHelper::UiElementH2,                  {28, 44, QFont::DemiBold}},
+        {StyleHelper::UiElementH3,                  {16, 20, QFont::Bold}},
+        {StyleHelper::UiElementH4,                  {16, 20, QFont::Bold}},
+        {StyleHelper::UiElementH5,                  {14, 16, QFont::DemiBold}},
+        {StyleHelper::UiElementH6,                  {12, 14, QFont::DemiBold}},
+        {StyleHelper::UiElementH6Capital,           {12, 14, QFont::DemiBold}},
+        {StyleHelper::UiElementBody1,               {14, 20, QFont::Light}},
+        {StyleHelper::UiElementBody2,               {12, 20, QFont::Light}},
+        {StyleHelper::UiElementButtonMedium,        {12, 16, QFont::Bold}},
+        {StyleHelper::UiElementButtonSmall,         {10, 12, QFont::Bold}},
+        {StyleHelper::UiElementCaptionStrong,       {10, 12, QFont::DemiBold}},
+        {StyleHelper::UiElementCaption,             {10, 12, QFont::Normal}},
+        {StyleHelper::UiElementIconStandard,        {12, 16, QFont::Medium}},
+        {StyleHelper::UiElementIconActive,          {12, 16, QFont::DemiBold}},
+    };
+    QTC_ASSERT(metrics.count(element) > 0, return metrics.at(StyleHelper::UiElementCaptionStrong));
+    return metrics.at(element);
+}
+
+QFont StyleHelper::uiFont(UiElement element)
+{
+    QFont font;
+
+    switch (element) {
+    case UiElementH1:
+        font.setFamilies(brandFontFamilies());
+        font.setWordSpacing(2);
+        break;
+    case UiElementH2:
+        font.setFamilies(brandFontFamilies());
+        break;
+    case UiElementH3:
+    case UiElementH6Capital:
+        font.setCapitalization(QFont::AllUppercase);
+        [[fallthrough]];
+    default:
+        if (!applicationFontFamilies().isEmpty())
+            font.setFamilies(applicationFontFamilies());
+        break;
+    }
+
+    const UiFontMetrics &metrics = uiFontMetrics(element);
+
+    // On macOS, by default 72 dpi are assumed for conversion between point and pixel size.
+    // For non-macOS, it is 96 dpi.
+    constexpr qreal defaultDpi = HostOsInfo::isMacHost() ? 72.0 : 96.0;
+    constexpr qreal pixelsToPointSizeFactor = 72.0 / defaultDpi;
+    const qreal qrealPointSize = metrics.pixelSize * pixelsToPointSizeFactor;
+    font.setPointSizeF(qrealPointSize);
+
+    font.setWeight(metrics.weight);
+
+    return font;
+}
+
+int StyleHelper::uiFontLineHeight(UiElement element)
+{
+    const UiFontMetrics &metrics = uiFontMetrics(element);
+    const qreal lineHeightToPixelSizeRatio = qreal(metrics.lineHeight) / metrics.pixelSize;
+    const QFontInfo fontInfo(uiFont(element));
+    return qCeil(fontInfo.pixelSize() * lineHeightToPixelSizeRatio);
+}
+
+QString StyleHelper::fontToCssProperties(const QFont &font)
+{
+    const QString fontSize = font.pixelSize() != -1 ? QString::number(font.pixelSize()) + "px"
+                                                    : QString::number(font.pointSizeF()) + "pt";
+    const QString fontStyle = QLatin1String(font.style() == QFont::StyleNormal
+                                                ? "normal" : font.style() == QFont::StyleItalic
+                                                      ? "italic" : "oblique");
+    const QString fontShorthand = fontStyle + " " + QString::number(font.weight()) + " "
+                                  + fontSize + " '" + font.family() + "'";
+    const QString textDecoration = QLatin1String(font.underline() ? "underline" : "none");
+    const QString textTransform = QLatin1String(font.capitalization() == QFont::AllUppercase
+                                                    ? "uppercase"
+                                                    : font.capitalization() == QFont::AllLowercase
+                                                          ? "lowercase" : "none");
+    const QString propertyTemplate = "%1: %2";
+    const QStringList cssProperties = {
+        propertyTemplate.arg("font").arg(fontShorthand),
+        propertyTemplate.arg("text-decoration").arg(textDecoration),
+        propertyTemplate.arg("text-transform").arg(textTransform),
+        propertyTemplate.arg("word-spacing").arg(font.wordSpacing()),
+    };
+    const QString fontCssStyle = cssProperties.join("; ");
+    return fontCssStyle;
 }
 
 } // namespace Utils

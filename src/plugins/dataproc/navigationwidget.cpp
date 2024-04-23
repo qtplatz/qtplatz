@@ -70,6 +70,7 @@
 #include <QStandardItemModel>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QKeyEvent>
 #include <boost/json.hpp>
 #include <boost/json/value_from.hpp>
 #include <boost/uuid/uuid_io.hpp>

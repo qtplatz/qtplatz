@@ -1,36 +1,15 @@
-/****************************************************************************
-**
-** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import StudioControls 1.0 as StudioControls
+import QtQuick
+import StudioControls as StudioControls
+import StudioTheme as StudioTheme
 
-Item {
-    id: wrapper
+Row {
+    id: root
 
     property string propertyName
+    property string gradientTypeName
 
     property alias decimals: spinBox.decimals
     property alias value: spinBox.realValue
@@ -40,13 +19,27 @@ Item {
 
     property alias pixelsPerUnit: spinBox.pixelsPerUnit
 
-    width: 90
-    implicitHeight: spinBox.height
+    property real spinBoxWidth: 100
+    property real unitWidth: 50
+
+    spacing: StudioTheme.Values.controlGap
 
     onFocusChanged: restoreCursor()
 
+    property bool __isPercentage: false
+    property bool __mightHavePercents: gradientLine.model.isPercentageSupportedByProperty(root.propertyName, root.gradientTypeName)
+
     function readValue() {
-        spinBox.realValue = gradientLine.model.readGradientProperty(wrapper.propertyName)
+        root.__isPercentage = (gradientLine.model.readGradientPropertyUnits(root.propertyName) === GradientModel.Percentage);
+
+        if (root.__isPercentage) {
+            unitType.currentIndex = 1;
+            spinBox.realValue = gradientLine.model.readGradientPropertyPercentage(root.propertyName)
+        }
+        else {
+            unitType.currentIndex = 0;
+            spinBox.realValue = gradientLine.model.readGradientProperty(root.propertyName)
+        }
     }
 
     StudioControls.RealSpinBox {
@@ -54,21 +47,46 @@ Item {
 
         __devicePixelRatio: devicePixelRatio()
 
-        width: wrapper.width
+        implicitWidth: root.spinBoxWidth
+        width: spinBox.implicitWidth
         actionIndicatorVisible: false
 
         realFrom: -9999
         realTo: 9999
-        realStepSize: 1
-        decimals: 0
+        realStepSize: root.__isPercentage ? 0.1 : 1
+        decimals: root.__isPercentage ? 4 : 0
 
-        Component.onCompleted: wrapper.readValue()
+        Component.onCompleted: root.readValue()
         onCompressedRealValueModified: {
-            gradientLine.model.setGradientProperty(wrapper.propertyName, spinBox.realValue)
+            if (root.__isPercentage)
+                gradientLine.model.setGradientPropertyPercentage(root.propertyName, spinBox.realValue)
+            else
+                gradientLine.model.setGradientProperty(root.propertyName, spinBox.realValue)
         }
 
         onDragStarted: hideCursor()
         onDragEnded: restoreCursor()
         onDragging: holdCursorInPlace()
+    }
+
+    StudioControls.ComboBox {
+        id: unitType
+        implicitWidth: root.unitWidth
+        width: unitType.implicitWidth
+        model: ["px", "%"] //px = 0, % = 1
+        actionIndicatorVisible: false
+        visible: root.__mightHavePercents
+
+        onActivated: {
+            if (!root.__mightHavePercents)
+                return
+
+            if (unitType.currentIndex === 0)
+                gradientLine.model.setGradientPropertyUnits(root.propertyName, GradientModel.Pixels)
+            else
+                gradientLine.model.setGradientPropertyUnits(root.propertyName, GradientModel.Percentage)
+
+            root.readValue()
+        }
     }
 }

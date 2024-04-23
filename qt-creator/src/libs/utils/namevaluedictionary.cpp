@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2019 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2019 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "algorithm.h"
 #include "namevaluedictionary.h"
@@ -119,34 +97,34 @@ int NameValueDictionary::size() const
     return m_values.size();
 }
 
-void NameValueDictionary::modify(const NameValueItems &items)
+void NameValueDictionary::modify(const EnvironmentItems &items)
 {
     NameValueDictionary resultKeyValueDictionary = *this;
-    for (const NameValueItem &item : items)
+    for (const EnvironmentItem &item : items)
         item.apply(&resultKeyValueDictionary);
     *this = resultKeyValueDictionary;
 }
 
-NameValueItems NameValueDictionary::diff(const NameValueDictionary &other, bool checkAppendPrepend) const
+EnvironmentItems NameValueDictionary::diff(const NameValueDictionary &other, bool checkAppendPrepend) const
 {
     NameValueMap::const_iterator thisIt = constBegin();
     NameValueMap::const_iterator otherIt = other.constBegin();
 
-    NameValueItems result;
+    EnvironmentItems result;
     while (thisIt != constEnd() || otherIt != other.constEnd()) {
         if (thisIt == constEnd()) {
             result.append({other.key(otherIt), other.value(otherIt),
-                otherIt.value().second ? NameValueItem::SetEnabled : NameValueItem::SetDisabled});
+                otherIt.value().second ? EnvironmentItem::SetEnabled : EnvironmentItem::SetDisabled});
             ++otherIt;
         } else if (otherIt == other.constEnd()) {
-            result.append(NameValueItem(key(thisIt), QString(), NameValueItem::Unset));
+            result.append(EnvironmentItem(key(thisIt), QString(), EnvironmentItem::Unset));
             ++thisIt;
         } else if (thisIt.key() < otherIt.key()) {
-            result.append(NameValueItem(key(thisIt), QString(), NameValueItem::Unset));
+            result.append(EnvironmentItem(key(thisIt), QString(), EnvironmentItem::Unset));
             ++thisIt;
         } else if (thisIt.key() > otherIt.key()) {
             result.append({other.key(otherIt), otherIt.value().first,
-                otherIt.value().second ? NameValueItem::SetEnabled : NameValueItem::SetDisabled});
+                otherIt.value().second ? EnvironmentItem::SetEnabled : EnvironmentItem::SetDisabled});
             ++otherIt;
         } else {
             const QString &oldValue = thisIt.value().first;
@@ -159,16 +137,16 @@ NameValueItems NameValueDictionary::diff(const NameValueDictionary &other, bool 
                     QString appended = newValue.right(newValue.size() - oldValue.size());
                     if (appended.startsWith(OsSpecificAspects::pathListSeparator(osType())))
                         appended.remove(0, 1);
-                    result.append(NameValueItem(other.key(otherIt), appended, NameValueItem::Append));
+                    result.append(EnvironmentItem(other.key(otherIt), appended, EnvironmentItem::Append));
                 } else if (checkAppendPrepend && newValue.endsWith(oldValue)
                            && oldEnabled == newEnabled) {
                     QString prepended = newValue.left(newValue.size() - oldValue.size());
                     if (prepended.endsWith(OsSpecificAspects::pathListSeparator(osType())))
                         prepended.chop(1);
-                    result.append(NameValueItem(other.key(otherIt), prepended, NameValueItem::Prepend));
+                    result.append(EnvironmentItem(other.key(otherIt), prepended, EnvironmentItem::Prepend));
                 } else {
                     result.append({other.key(otherIt), newValue, newEnabled
-                            ? NameValueItem::SetEnabled : NameValueItem::SetDisabled});
+                            ? EnvironmentItem::SetEnabled : EnvironmentItem::SetDisabled});
                 }
             }
             ++otherIt;

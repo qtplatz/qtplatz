@@ -1,0 +1,1 @@
+Product { name: "p2" }

@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "searchresulttreeitemdelegate.h"
 #include "searchresulttreeitemroles.h"
@@ -50,7 +28,7 @@ static std::pair<int, QString> lineNumberInfo(const QStyleOptionViewItem &option
     if (lineNumber < 1)
         return {0, {}};
     const QString lineNumberText = QString::number(lineNumber);
-    const int lineNumberDigits = qMax(minimumLineNumberDigits, lineNumberText.count());
+    const int lineNumberDigits = qMax(minimumLineNumberDigits, lineNumberText.size());
     const int fontWidth = option.fontMetrics.horizontalAdvance(QString(lineNumberDigits, QLatin1Char('0')));
     const QStyle *style = option.widget ? option.widget->style() : QApplication::style();
     return {lineNumberAreaHorizontalPadding + fontWidth + lineNumberAreaHorizontalPadding
@@ -59,32 +37,28 @@ static std::pair<int, QString> lineNumberInfo(const QStyleOptionViewItem &option
 }
 
 // Aligns text by appending spaces
-static QPair<QString, QString> align(QString text, const QString& containingFunction) {
+static QString align(QString text)
+{
     constexpr int minimumTextSize = 80;
     constexpr int textSizeIncrement = 20;
 
     int textSize = ((text.size() / textSizeIncrement) + 1) * textSizeIncrement;
     textSize = std::max(minimumTextSize, textSize);
     text.resize(textSize, ' ');
-    return QPair<QString, QString>{std::move(text), containingFunction};
+    return text;
 }
 
 static QPair<QString, QString> itemText(const QModelIndex &index)
 {
     QString text = index.data(Qt::DisplayRole).toString();
     // show number of subresults in displayString
-    QString containingFunction;
-    const auto contFnName = index.data(ItemDataRoles::ContainingFunctionNameRole).toString();
-    if (contFnName.length())
-        containingFunction = QLatin1String("[in ") + contFnName + QLatin1String("]");
+    if (index.model()->hasChildren(index))
+        text += " (" + QString::number(index.model()->rowCount(index)) + ')';
 
-    if (index.model()->hasChildren(index)) {
-        QString textAndCount{text + QLatin1String(" (")
-                             + QString::number(index.model()->rowCount(index)) + QLatin1Char(')')};
-
-        return align(std::move(textAndCount), containingFunction);
-    }
-    return align(std::move(text), containingFunction);
+    const auto functionName = index.data(ItemDataRoles::ContainingFunctionNameRole).toString();
+    if (!functionName.isEmpty())
+        return {align(std::move(text)), "[in " + functionName + "]"};
+    return {text, {}};
 }
 
 LayoutInfo SearchResultTreeItemDelegate::getLayoutInfo(const QStyleOptionViewItem &option,

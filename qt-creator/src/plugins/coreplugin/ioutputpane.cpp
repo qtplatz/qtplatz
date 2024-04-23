@@ -1,29 +1,7 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 Falko Arps
-** Copyright (C) 2016 Sven Klein
-** Copyright (C) 2016 Giuliano Schneider
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 Falko Arps
+// Copyright (C) 2016 Sven Klein
+// Copyright (C) 2016 Giuliano Schneider
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "ioutputpane.h"
 
@@ -69,22 +47,6 @@ namespace Core {
     \fn QList<QWidget *> IOutputPane::toolBarWidgets() const
 
     Returns the toolbar widgets for the output pane.
-*/
-
-/*!
-    \fn QString IOutputPane::displayName() const
-
-    Returns the translated display name of the output pane.
-*/
-
-/*!
-    \fn int IOutputPane::priorityInStatusBar() const
-
-    Determines the position of the output pane on the status bar.
-    \list
-        \li 100 to 0 from front to end
-        \li -1 do not show in status bar
-    \endlist
 */
 
 /*!

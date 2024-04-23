@@ -1,33 +1,13 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "helpmanager_implementation.h"
 
 #include "coreplugin.h"
 
+#include <extensionsystem/pluginmanager.h>
 #include <extensionsystem/pluginspec.h>
+
 #include <utils/qtcassert.h>
 
 #include <QCoreApplication>
@@ -44,12 +24,17 @@ static Implementation *m_instance = nullptr;
 
 static bool checkInstance()
 {
-    auto plugin = Internal::CorePlugin::instance();
-    // HelpManager API can only be used after the actual implementation has been created by the
-    // Help plugin, so check that the plugins have all been created. That is the case
-    // when the Core plugin is initialized.
-    QTC_CHECK(plugin && plugin->pluginSpec()
-              && plugin->pluginSpec()->state() >= ExtensionSystem::PluginSpec::Initialized);
+    static bool afterPluginCreation = false;
+    if (!afterPluginCreation) {
+        using namespace ExtensionSystem;
+        auto plugin = Internal::CorePlugin::instance();
+        // HelpManager API can only be used after the actual implementation has been created by the
+        // Help plugin, so check that the plugins have all been created. That is the case
+        // when the Core plugin is initialized.
+        PluginSpec *pluginSpec = PluginManager::specForPlugin(plugin);
+        afterPluginCreation = (plugin && pluginSpec && pluginSpec->state() >= PluginSpec::Initialized);
+        QTC_CHECK(afterPluginCreation);
+    }
     return m_instance != nullptr;
 }
 
@@ -110,6 +95,12 @@ void showHelpUrl(const QUrl &url, HelpManager::HelpViewerLocation location)
 void showHelpUrl(const QString &url, HelpViewerLocation location)
 {
     showHelpUrl(QUrl(url), location);
+}
+
+void setBlockedDocumentation(const QStringList &fileNames)
+{
+    if (checkInstance())
+        m_instance->setBlockedDocumentation(fileNames);
 }
 
 } // HelpManager

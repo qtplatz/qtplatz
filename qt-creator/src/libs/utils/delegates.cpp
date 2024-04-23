@@ -1,27 +1,5 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qt Creator.
-**
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-****************************************************************************/
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "delegates.h"
 
@@ -141,7 +119,7 @@ QWidget *PathChooserDelegate::createEditor(QWidget *parent, const QStyleOptionVi
     editor->setAutoFillBackground(true); // To hide the text beneath the editor widget
     editor->lineEdit()->setMinimumWidth(0);
 
-    connect(editor, &PathChooser::browsingFinished, this, [this, editor]() {
+    connect(editor, &PathChooser::browsingFinished, this, [this, editor] {
         emit const_cast<PathChooserDelegate*>(this)->commitData(editor);
     });
 
@@ -150,7 +128,7 @@ QWidget *PathChooserDelegate::createEditor(QWidget *parent, const QStyleOptionVi
 
 void PathChooserDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if (auto *pathChooser = qobject_cast<PathChooser *>(editor)) {
+    if (auto pathChooser = qobject_cast<PathChooser *>(editor)) {
         pathChooser->setExpectedKind(m_kind);
         pathChooser->setPromptDialogFilter(m_filter);
         pathChooser->setFilePath(FilePath::fromVariant(index.model()->data(index, Qt::EditRole)));
@@ -173,7 +151,7 @@ void PathChooserDelegate::updateEditorGeometry(QWidget *editor, const QStyleOpti
     editor->setGeometry(option.rect);
 }
 
-void PathChooserDelegate::setHistoryCompleter(const QString &key)
+void PathChooserDelegate::setHistoryCompleter(const Key &key)
 {
     m_historyKey = key;
 }

@@ -1,28 +1,7 @@
-############################################################################
-#
 # Copyright (C) 2016 The Qt Company Ltd.
-# Contact: https://www.qt.io/licensing/
-#
-# This file is part of Qt Creator.
-#
-# Commercial License Usage
-# Licensees holding valid commercial Qt licenses may use this file in
-# accordance with the commercial license agreement provided with the
-# Software or, alternatively, in accordance with the terms contained in
-# a written agreement between you and The Qt Company. For licensing terms
-# and conditions see https://www.qt.io/terms-conditions. For further
-# information use the contact form at https://www.qt.io/contact-us.
-#
-# GNU General Public License Usage
-# Alternatively, this file may be used under the terms of the GNU
-# General Public License version 3 as published by the Free Software
-# Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-# included in the packaging of this file. Please review the following
-# information to ensure the GNU General Public License requirements will
-# be met: https://www.gnu.org/licenses/gpl-3.0.html.
-#
-############################################################################
+# SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
+import argparse
 import os
 import locale
 import shutil
@@ -218,13 +197,13 @@ def is_not_debug(path, filenames):
     files = [fn for fn in filenames if os.path.isfile(os.path.join(path, fn))]
     return [fn for fn in files if not is_debug_file(os.path.join(path, fn))]
 
-def codesign_call():
-    signing_identity = os.environ.get('SIGNING_IDENTITY')
+def codesign_call(identity=None, flags=None):
+    signing_identity = identity or os.environ.get('SIGNING_IDENTITY')
     if not signing_identity:
         return None
     codesign_call = ['codesign', '-o', 'runtime', '--force', '-s', signing_identity,
                      '-v']
-    signing_flags = os.environ.get('SIGNING_FLAGS')
+    signing_flags = flags or os.environ.get('SIGNING_FLAGS')
     if signing_flags:
         codesign_call.extend(signing_flags.split())
     return codesign_call
@@ -250,8 +229,8 @@ def conditional_sign_recursive(path, filter):
     if is_mac_platform():
         os_walk(path, filter, lambda fp: codesign_executable(fp))
 
-def codesign(app_path):
-    codesign = codesign_call()
+def codesign(app_path, identity=None, flags=None):
+    codesign = codesign_call(identity, flags)
     if not codesign or not is_mac_platform():
         return
     # sign all executables in Resources
@@ -265,3 +244,20 @@ def codesign(app_path):
     entitlements_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'dist',
                                      'installer', 'mac', 'entitlements.plist')
     subprocess.check_call(codesign + ['--deep', app_path, '--entitlements', entitlements_path])
+
+def codesign_main(args):
+    codesign(args.app_bundle, args.identity, args.flags)
+
+def main():
+    parser = argparse.ArgumentParser(description='Qt Creator build tools')
+    subparsers = parser.add_subparsers(title='subcommands', required=True)
+    parser_codesign = subparsers.add_parser('codesign', description='Codesign macOS app bundle')
+    parser_codesign.add_argument('app_bundle')
+    parser_codesign.add_argument('-s', '--identity', help='Codesign identity')
+    parser_codesign.add_argument('--flags', help='Additional flags')
+    parser_codesign.set_defaults(func=codesign_main)
+    args = parser.parse_args()
+    args.func(args)
+
+if __name__ == '__main__':
+    main()

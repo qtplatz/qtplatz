@@ -1,5 +1,7 @@
+%{Cpp:LicenseTemplate}\
 #include "%{HdrFileName}"
 #include "%{ConstantsHdrFileName}"
+#include "%{TrHdrFileName}"
 
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
@@ -13,8 +15,7 @@
 #include <QMainWindow>
 #include <QMenu>
 
-namespace %{PluginName} {
-namespace Internal {
+namespace %{PluginName}::Internal {
 
 %{CN}::%{CN}()
 {
@@ -27,7 +28,7 @@ namespace Internal {
     // Delete members
 }
 
-bool %{CN}::initialize(const QStringList &arguments, QString *errorString)
+void %{CN}::initialize()
 {
     // Register objects in the plugin manager's object pool
     // Load settings
@@ -36,21 +37,20 @@ bool %{CN}::initialize(const QStringList &arguments, QString *errorString)
     // In the initialize function, a plugin can be sure that the plugins it
     // depends on have initialized their members.
 
-    Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
+    // If you need access to command line arguments or to report errors, use the
+    //    bool IPlugin::initialize(const QStringList &arguments, QString *errorString)
+    // overload.
 
-    auto action = new QAction(tr("%{PluginName} Action"), this);
+    auto action = new QAction(Tr::tr("%{PluginName} Action"), this);
     Core::Command *cmd = Core::ActionManager::registerAction(action, Constants::ACTION_ID,
                          Core::Context(Core::Constants::C_GLOBAL));
-    cmd->setDefaultKeySequence(QKeySequence(tr("Ctrl+Alt+Meta+A")));
+    cmd->setDefaultKeySequence(QKeySequence(Tr::tr("Ctrl+Alt+Meta+A")));
     connect(action, &QAction::triggered, this, &%{CN}::triggerAction);
 
     Core::ActionContainer *menu = Core::ActionManager::createMenu(Constants::MENU_ID);
-    menu->menu()->setTitle(tr("%{PluginName}"));
+    menu->menu()->setTitle(Tr::tr("%{PluginName}"));
     menu->addAction(cmd);
     Core::ActionManager::actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
-
-    return true;
 }
 
 void %{CN}::extensionsInitialized()
@@ -71,9 +71,8 @@ ExtensionSystem::IPlugin::ShutdownFlag %{CN}::aboutToShutdown()
 void %{CN}::triggerAction()
 {
     QMessageBox::information(Core::ICore::mainWindow(),
-                             tr("Action Triggered"),
-                             tr("This is an action from %{PluginName}."));
+                             Tr::tr("Action Triggered"),
+                             Tr::tr("This is an action from %{PluginName}."));
 }
 
-} // namespace Internal
-} // namespace %{PluginName}
+} // namespace %{PluginName}::Internal
