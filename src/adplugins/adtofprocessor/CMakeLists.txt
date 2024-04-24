@@ -63,5 +63,3 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION "${_adplugin_output_dir}" COMPONENT plugins
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
 )
-
-install( FILES "${OUTPUT_DIR}/${PROJECT_NAME}.adplugin" DESTINATION "${_adplugin_output_dir}" COMPONENT plugins )
