@@ -28,6 +28,8 @@
 
 #include <coreplugin/editormanager/ieditor.h>
 #include <memory>
+#include <QObject>
+#include <QEvent>
 
 class QEveng;
 
@@ -41,41 +43,10 @@ namespace dataproc {
         Q_OBJECT
     public:
         ~DataprocEditor();
-#if QTC_VERSION < 0x08'00'00
-        DataprocEditor( Core::IEditorFactory * ); // for Qt5/QtCreator3
-#else
         DataprocEditor();  // for QtCreator8
-#endif
 
-#if QTC_VERSION < 0x08'00'00
-        void setDataprocessor( Dataprocessor * );
-
-        bool portfolio_create( const QString &token );
-        // implement Core::IEditor
-
-        bool open( QString*, const QString&, const QString& ) override;
-        Core::IDocument * document() override;
-
-        QByteArray saveState() const override;
-        bool restoreState( const QByteArray &state ) override;
-        // bool isTemporary() const override;
-        QWidget *toolBar() override;
-        // const char * uniqueModeName() const override;
-
-        Core::Context context() const override;
-
-    protected slots:
-        void handleTitleChanged( const QString& title );
-
-    private:
-        std::shared_ptr< Dataprocessor > processor_; // IDocument
-        QWidget * widget_;  // dummy widget (fake display for EditorManager)
-        Core::IEditorFactory * factory_;
-        Core::Context context_;
-        QString displayName_;
-#endif
         bool eventFilter( QObject * object, QEvent * event ) override;
-#if QTC_VERSION >= 0x08'00'00
+
         ////////////// Qt6/QtCreator9 ///////////////////
     public:
         Core::IDocument * document() const override;
@@ -84,7 +55,7 @@ namespace dataproc {
     private:
         class impl;
         std::unique_ptr< impl > impl_;
-#endif
+
     };
 
 }

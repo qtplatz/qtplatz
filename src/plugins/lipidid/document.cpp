@@ -247,7 +247,7 @@ void
 document::handleProcessed( adextension::iSessionManager *
                            , const QString& file, const portfolio::Folium& folium )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
     // this may call togather with handleSelectionChanged;
 }
 

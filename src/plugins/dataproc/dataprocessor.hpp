@@ -100,7 +100,11 @@ namespace dataproc {
 #else
         bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false);
 #endif
-
+#if QTC_VERSION >= 0x09'00'00
+    protected:
+        bool saveImpl( QString *errorString, const Utils::FilePath &filePath, bool autoSave) override;
+#endif
+    public:
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;

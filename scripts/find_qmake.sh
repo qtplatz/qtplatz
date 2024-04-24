@@ -7,12 +7,11 @@ function find_qmake() {
 
     case "${__uname}" in
 		Linux*|MINGW64_NT*)
-			# contained qt-creator is not compatible with qt-6.6
 			local hints=( "6.5.3" "5.15.2" )
 			;;
 		Darwin*)
-			# contained qt-creator is not compatible with qt-6.6
-			local hints=( #"/Qt/6.6.1/macos"
+			local hints=(
+				"/Qt/6.7.0/macos"
 				"/Qt/6.5.3/macos" "/Qt5/5.15.2" "/Qt/5.15.2/clang_64" )
 			;;
 	esac

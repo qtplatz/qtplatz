@@ -86,7 +86,7 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
-    ADDEBUG() << "===> datafile_factory::open(" << filename << ")";
+    // ADDEBUG() << "===> datafile_factory::open(" << filename << ")";
     std::filesystem::path path(filename);
     datafile * p = new datafile;
     if ( p->open( filename, readonly ) )

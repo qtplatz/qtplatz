@@ -30,11 +30,8 @@
 #include "mainwindow.hpp"
 #include "msprocessingwnd.hpp"
 #include "sessionmanager.hpp"
-#if QTC_VERSION < 0x08'00'00
-# include <coreplugin/id.h>
-#else
-# include <utils/id.h>
-#endif
+#include <utils/id.h>
+
 #include <coreplugin/modemanager.h>
 #include <coreplugin/documentmanager.h>
 #include <coreplugin/icore.h>

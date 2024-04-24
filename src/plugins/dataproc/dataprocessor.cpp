@@ -359,6 +359,12 @@ Dataprocessor::open( QString *errorString
 }
 
 bool
+Dataprocessor::saveImpl( QString *errorString, const Utils::FilePath &filePath, bool autoSave)
+{
+    return save( errorString, filePath, autoSave );
+}
+
+bool
 Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
 {
     bool isSave = filePath.isEmpty(); // or isSaveAs
