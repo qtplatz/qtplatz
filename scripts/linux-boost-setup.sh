@@ -218,8 +218,12 @@ function boost_build {
 			  #OSX_VERSION_MIN=-mmacosx-version-min=10.12
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
+			  export BZIP2_SOURCE="${BUILD_ROOT}/bzip2-1.0.8"
+			  export ZLIB_SOURCE="${BUILD_ROOT}/zlib-1.3.1"
+			  echo "BZIP2_SOURCE=${BZIP2_SOURCE}"
+			  echo "ZLIB_SOURCE=${ZLIB_SOURCE}"
 			  echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
-							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
+				   --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}

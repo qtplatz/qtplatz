@@ -8,7 +8,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-#find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED PrintSupport Svg Core Widgets Gui )
 find_package( qwt )
 
 include_directories(
@@ -76,7 +75,6 @@ set( adplot_SOURCES
   timingchart.hpp
   xyseriesdata.cpp
   xyseriesdata.hpp
-  # ${CMAKE_SOURCE_DIR}/../qwt-6.1/src/qwt_plot_axis.cpp
 )
 
 add_library( adplot SHARED ${adplot_SOURCES} )
@@ -96,17 +94,17 @@ runtime_install_path( _runtime_destination ${PROJECT_NAME} )
 library_install_path( _library_destination ${PROJECT_NAME} )
 archive_install_path( _archive_destination ${PROJECT_NAME} )
 
-if( APPLE )
-  install( TARGETS ${PROJECT_NAME}
-    EXPORT ${QTPLATZ_TARGETS}
-    RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
-    LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
-    ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
-else()
+#if( APPLE )
+#  install( TARGETS ${PROJECT_NAME}
+#    EXPORT ${QTPLATZ_TARGETS}
+#    RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
+#    LIBRARY DESTINATION Contents/PlugIns COMPONENT libraries
+#    ARCHIVE DESTINATION Contents/PlugIns COMPONENT libraries )
+#else()
   install( TARGETS ${PROJECT_NAME}
     EXPORT ${QTPLATZ_TARGETS}
     RUNTIME DESTINATION ${_runtime_destination} COMPONENT applications
     LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
     ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
     )
-endif()
+#endif()
