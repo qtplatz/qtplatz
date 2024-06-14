@@ -138,7 +138,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 if ( APPLE )
   set_target_properties( ${PROJECT_NAME}
     PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${_plugin_output_dir}"
     )
 else()
   set_target_properties( ${PROJECT_NAME}

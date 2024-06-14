@@ -10,8 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package( QT NAMES Qt6 Qt5 CONFIG REQUIRED Multimedia )
-if ( ${QT_VERSION_MAJOR} GREATER 5 )
+if ( QT_VERSION_MAJOR EQUAL 6 )
   find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED SvgWidgets )
 endif()
 
@@ -37,7 +36,6 @@ if ( QT_VERSION_MAJOR EQUAL 6 )
   include_directories(
     "${Qt6SvgWidgets_INCLUDE_DIRS}" # Qt6
     )
-  set (SVGWIDGETS_LIBRARIES "Qt::SvgWidgets" )
 endif()
 
 if ( rdkit_FOUND )
@@ -161,7 +159,7 @@ target_link_libraries( adwidgets LINK_PUBLIC
   Qt::Core
   Qt::OpenGL
   Qt::Multimedia
-  ${SVGWIDGETS_LIBRARIES} # <-- Qt6
+  Qt::SvgWidgets
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
 )

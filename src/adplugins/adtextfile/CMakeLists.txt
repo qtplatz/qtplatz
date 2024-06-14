@@ -15,18 +15,7 @@ file(GLOB Resources *.qrc)
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core Widgets )
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
-
-#configure_file(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
-#  "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}/${PROJECT_NAME}.adplugin"
-#)
-
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
-
-##get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-##foreach(dir ${dirs})
-##  message(STATUS "dir='${dir}'")
-##endforeach()
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
 

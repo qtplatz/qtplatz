@@ -11,11 +11,6 @@ qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
-#configure_file(
-#  "${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.adplugin.in"
-#  "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}/${PROJECT_NAME}.adplugin"
-#)
-
 include_directories(
   ${ACQRS_DIR}/include
   ${CMAKE_SOURCE_DIR}/src/libs
