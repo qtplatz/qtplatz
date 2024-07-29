@@ -32,7 +32,7 @@ namespace adcontrols { class MassSpectrum; }
 namespace dataproc {
 
     class MSPeakTable : public adwidgets::MSPeakTable {
-        // Q_OBJECT
+        Q_OBJECT
     public:
         explicit MSPeakTable(QWidget *parent = 0);
 

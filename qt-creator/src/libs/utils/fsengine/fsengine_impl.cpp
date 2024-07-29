@@ -274,14 +274,14 @@ QString FSEngineImpl::owner(FileOwner) const
     return "<unknown>";
 }
 
-bool FSEngineImpl::setFileTime(const QDateTime &newDate, FileTime time)
+ bool FSEngineImpl::setFileTime(const QDateTime &newDate, QFile::FileTime time)
 {
     Q_UNUSED(newDate)
     Q_UNUSED(time)
     return false;
 }
 
-QDateTime FSEngineImpl::fileTime(FileTime time) const
+QDateTime FSEngineImpl::fileTime(QFile::FileTime time) const
 {
     Q_UNUSED(time)
     return g_filePathInfoCache.cached(m_filePath, createCacheData).filePathInfo.lastModified;

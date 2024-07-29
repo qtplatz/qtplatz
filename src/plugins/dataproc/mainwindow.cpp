@@ -329,7 +329,7 @@ MainWindow::createStyledBarTop()
         }
 
         if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spB%1%" ) % i ).str().c_str() ) ) {
-            sp->setRange( -200000.0, 200000.0 );
+            sp->setRange( -100'000'000.0, 100'000'000.0 );
             sp->setDecimals( 3 );
             sp->setSingleStep( 0.1 );
             toolBarLayout->addWidget( sp );
@@ -337,7 +337,7 @@ MainWindow::createStyledBarTop()
         }
 
         if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( (boost::format( "spH%1%" ) % i ).str().c_str() ) ) {
-            sp->setRange( -200000.0, 200000.0 );
+            sp->setRange( -100'000'000.0, 100'000'000.0 );
             sp->setDecimals( 3 );
             sp->setSingleStep( 0.1 );
             toolBarLayout->addWidget( sp );
@@ -576,7 +576,7 @@ MainWindow::createStyledBarMiddle()
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1B%2" ).arg(r).arg(c) ) ) {
-                sp->setRange( -200000.0, 200000.0 );
+                sp->setRange( -200'000'000.0, 200'000'000.0 );
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
@@ -584,7 +584,7 @@ MainWindow::createStyledBarMiddle()
             }
 
             if ( auto sp = qtwrapper::make_widget< QDoubleSpinBox >( QString( "sp%1H%2" ).arg(r).arg(c) ) ) {
-                sp->setRange( -200000.0, 200000.0 );
+                sp->setRange( -200'000'000.0, 200'000'000.0 );
                 sp->setDecimals( 3 );
                 sp->setSingleStep( 0.1 );
                 toolBarLayout->addWidget( sp );
