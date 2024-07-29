@@ -49,7 +49,7 @@ if [ -z $cross_target ]; then
 	if [ `uname` == "Darwin" ]; then
 		cmake_args+=( "-DBOOST_ROOT=${BOOST_ROOT}"
 					  "-DRDK_BUILD_INCHI_SUPPORT=ON"
-					  "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
+					  "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
 					  "-DPYTHON_EXECUTABLE=${PYTHON}"
 					  "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
 					  "-DPYTHON_NUMPY_INCLUDE_PATH=${NUMPY_INCLUDE}"

@@ -41,8 +41,8 @@ add_definitions( -DCHEMISTRY_LIBRARY )
 add_definitions( -DBOOST_CERTIFY_HEADER_ONLY=1 )
 
 find_package( OpenSSL )
-if ( NOT OPENSSL_FOUND )
-  add_definitions( -DOPENSSL_FOUND=1 )
+if ( OPENSSL_FOUND )
+  add_definitions( -DOPENSSL_FOUND=1 -DPUBCHEM_REST=1 )
 endif()
 
 if ( MSVC )
@@ -101,7 +101,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
   pug
-  certify::sshlib
+#  certify::sshlib
 )
 
 if ( APPLE )

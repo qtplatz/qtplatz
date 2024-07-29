@@ -28,6 +28,7 @@
 #include <QGraphicsView>
 #include <QSvgRenderer>
 #include <QGraphicsSvgItem>
+#include <QtCore/qtmetamacros.h>
 #include <memory>
 
 //QT_BEGIN_NAMESPACE
@@ -40,6 +41,7 @@ class QPaintEvent;
 namespace adwidgets {
 
     class ADWIDGETSSHARED_EXPORT MolView : public QGraphicsView {
+        Q_OBJECT;
     public:
         explicit MolView( QWidget * parent = nullptr );
 

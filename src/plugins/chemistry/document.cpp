@@ -556,6 +556,7 @@ document::findCSIDFromInChI( const QString& InChI )
 void
 document::PubChemREST( const QByteArray& ba )
 {
+#if PUBCHEM_REST
     auto rest= boost::json::value_to< adcontrols::PUGREST >(  adportable::json_helper::parse( ba.toStdString() ) );
 
     auto url = rest.pug_url().empty() ? adcontrols::PUGREST::to_url( rest, true ) : rest.pug_url();
@@ -569,19 +570,20 @@ document::PubChemREST( const QByteArray& ba )
 
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
-#if OPENSSL_FOUND
+# if OPENSSL_FOUND
     // verify SSL context
     {
         ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
         ctx.set_default_verify_paths();
         boost::certify::enable_native_https_server_verification(ctx);
     }
-#else
+# else
     load_root_certificates(ctx);
-#endif
+# endif
     auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 
     auto res = future.get();
     emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
+#endif
 }
