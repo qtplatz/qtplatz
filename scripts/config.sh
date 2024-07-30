@@ -87,3 +87,10 @@ fi
 if [ -z ${GNUPLOT_VERSION} ]; then
 	GNUPLOT_VERSION=5.4.9
 fi
+
+if [ -z ${OPENSSL_VERSION} ]; then
+	OPENSSL_VERSION=3.3.1
+fi
+if [ -z ${OPENSSL_INSTALL_PREFIX} ]; then
+	OPENSSL_INSTALL_PREFIX="${INSTALL_PREFIX}"
+fi

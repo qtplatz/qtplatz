@@ -41,6 +41,7 @@ default_darwin:
 	@echo "make maeparser (depend on boost)"
 	@echo "make rdkit     (depend on maeparser,boost)"
 	@echo "make qwt"
+	@echo "make openssl   (don't use homebrew's openssl, which clashes Chemistry plugins)"
 	@echo "make netcdf-c"
 	@echo "make opencv" || "make opencv.debug"
 	@echo "make cmake"
@@ -167,6 +168,9 @@ rdkit:
 
 qwt:
 	./linux-qwt-setup.sh
+
+openssl:
+	./linux-openssl-setup.sh
 
 netcdf-c:
 	./linux-netcdf-setup.sh clean

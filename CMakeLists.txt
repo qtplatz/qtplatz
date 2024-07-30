@@ -80,6 +80,9 @@ if ( WIN32 )
   set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
   set ( OPENSSL_USE_STATIC_LIBS FALSE )
 endif()
+if ( APPLE )
+  set ( OPENSSL_ROOT_DIR "/usr/local" ) # prepend to use homebrew version
+endif()
 
 find_package( OpenSSL QUIET )
 
