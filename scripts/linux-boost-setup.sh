@@ -65,11 +65,9 @@ function python_dirs {
 }
 
 function make_user_config_darwin {
-#Catalina workaround, which failed to find pyconfig.h
-	PYTHON=$(which python3)
+	PYTHON=$(python3 -c "import sys; print(sys.executable)")
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
-	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
 	if [ -f ~/user-config.jam ]; then
 		mv ~/user-config.jam ~/user-config.jam.orig
 	fi
@@ -85,10 +83,9 @@ END
 # using clang : : : <cxxflags>"-mmacosx-version-min=10.15" ;
 
 function make_user_config_linux {
-	PYTHON=$(which python3)
 	PYTHON_INCLUDE=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"include\"])")
 	PYTHON_ROOT=$(python3 -c "from sysconfig import get_paths as gp; print(gp()[\"data\"])")
-	#	PYTHON=$(python3 -c "import sys; print(sys.executable)")
+	PYTHON=$(python3 -c "import sys; print(sys.executable)")
 
 	if [ -f ~/user-config.jam ]; then
 		mv ~/user-config.jam ~/user-config.jam.orig
@@ -219,17 +216,15 @@ function boost_build {
 			  CXX_FLAGS="-std=c++17"
 			  LINKFLAGS="-stdlib=libc++"
 			  export BZIP2_SOURCE="${BUILD_ROOT}/bzip2-1.0.8"
-			  #export ZLIB_SOURCE="${BUILD_ROOT}/zlib-1.3.1"
 			  echo "BZIP2_SOURCE=${BZIP2_SOURCE}"
+			  #export ZLIB_SOURCE="${BUILD_ROOT}/zlib-1.3.1" <-- this will conflict w/ libz-1.2.12 (macOS native) at macdeployqt step
 			  #echo "ZLIB_SOURCE=${ZLIB_SOURCE}"
 			  echo ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 				   --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
+			  echo ./b2 -j $nproc address-model=64 cxxflags="-std=c++20" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  prompt
 			  ./bootstrap.sh --prefix=$BOOST_INSTALL_PREFIX --with-toolset=clang --with-python=${PYTHON} \
 							 --with-python-root=${PYTHON_ROOT} --with-python-version=${PYTHON_VERSION}
-			  #echo ./b2 -j $nproc address-model=64 cxxflags="-std=c++14 -mmacosx-version-min=10.15" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
-			  echo ./b2 -j $nproc address-model=64 cxxflags="-std=c++20" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
-			  prompt
 			  ./b2 -j $nproc address-model=64 cxxflags="-std=c++20" toolset=clang linkflags="$LINKFLAGS" include=${PYTHON_INCLUDE}
 			  sudo ./b2 install
 			  ;;

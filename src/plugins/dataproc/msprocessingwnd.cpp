@@ -1449,7 +1449,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
         }
 
         //doc.print( &printer );
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() ) {
             auto atts = it->attachments();
@@ -1463,13 +1463,12 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                     auto result = dom.load_string( pugi::as_utf8( o.str() ).c_str() );
                     if ( result ) {
                         ADDEBUG() << "########################### TODO ###################################";
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
                         adpublisher::printer::print( printer, painter, drawRect, dom, "process-method-html.xsl" );
-#endif
                     }
                 }
             }
         }
+#endif
     }
 
     ///////////

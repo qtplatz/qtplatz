@@ -61,10 +61,9 @@ fi
 
 ############### boost ################
 if [ -z $BOOST_VERSION ]; then
-	BOOST_VERSION=1_84_0
+	BOOST_VERSION=1_85_0
 fi
 
-## /usr/local/boost-1_79
 if [ -z $BOOST_ROOT ]; then
     a=(${BOOST_VERSION//_/ })
 	BOOST_INSTALL_PREFIX="${INSTALL_PREFIX}/boost-${a[0]}_${a[1]}"

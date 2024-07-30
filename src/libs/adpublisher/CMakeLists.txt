@@ -29,25 +29,32 @@ include_directories(
   ${QtXml_INCLUDE_DIRS}
   ${QtXmlPatterns_INCLUDE_DIRS}
   ${QtCore_INCLUDE_DIRS}
-  )
+)
 
 if ( NOT WIN32 )
 
-  find_package( libxml2 )
-  if ( NOT libxml2_FOUND )
+  find_package( LibXml2 ) # cmake 3.12
+
+  if ( NOT LIBXML2_FOUND )
     message( FATAL_ERROR "*** libxml2 NOT FOUND ***")
   endif()
 
-  find_package( libxslt )
-  if ( NOT libxslt_FOUND )
+  find_package( LibXslt ) # cmake 3.12
+  if ( NOT LIBXSLT_FOUND )
     message( FATAL_ERROR "*** libxslt NOT FOUND ***")
   endif()
 
-  include_directories( ${libxml2_INCLUDE_DIRS} )
+  include_directories( ${LIBXML2_INCLUDE_DIRS} )
   include_directories( ${libxslt_INCLUDE_DIRS} )
 
   set( _xslt_sources libxslt_transformer.cpp libxslt_transformer.hpp )
-  set( _xslt_libs ${libxml2_LIBRARIES} ${libxslt_LIBRARIES} )
+  set( _xslt_libs ${LIBXML2_LIBRARIES} ${LIBXSLT_LIBRARIES} )
+  message( STATUS "###############################################################" )
+  message( STATUS "##### libxml2: ${LIBXML2_LIBRARIES}" )
+  message( STATUS "##### libxml2: ${LIBXML2_INCLUDE_DIR}" )
+  message( STATUS "##### libxslt: ${LIBXSLT_LIBRARIES}" )
+  message( STATUS "##### libxslt: ${LIBXSLT_INCLUDE_DIR}" )
+  message( STATUS "###############################################################" )
 
 else()
 

@@ -49,7 +49,7 @@ if [ -z $cross_target ]; then
 	if [ `uname` == "Darwin" ]; then
 		cmake_args+=( "-DBOOST_ROOT=${BOOST_ROOT}"
 					  "-DRDK_BUILD_INCHI_SUPPORT=ON"
-					  "-DRDK_BUILD_PYTHON_WRAPPERS=OFF"
+					  "-DRDK_BUILD_PYTHON_WRAPPERS=ON"
 					  "-DPYTHON_EXECUTABLE=${PYTHON}"
 					  "-DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE}"
 					  "-DPYTHON_NUMPY_INCLUDE_PATH=${NUMPY_INCLUDE}"
@@ -58,7 +58,7 @@ if [ -z $cross_target ]; then
 					  "-DBoost_NO_BOOST_CMAKE=ON"
 					  "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
 					  "-DRDK_BUILD_RPATH_SUPPORT=ON"
-					  "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0"
+					  "-DCMAKE_OSX_DEPLOYMENT_TARGET=14.0"
 					)
 		if (( $nproc < 8 )); then
 			cmake_args+=(

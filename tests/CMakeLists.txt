@@ -3,6 +3,8 @@ cmake_policy( SET CMP0042 NEW )
 
 project( tests )
 
+set( CMAKE_CXX_STANDARD 20 )
+
 find_package( Boost 1.75 REQUIRED COMPONENTS
   unit_test_framework
   json
@@ -22,7 +24,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
 #add_subdirectory( test_json )
 #add_subdirectory( test_pkarea )
 add_subdirectory( test_regex )
-add_subdirectory( pug )
+add_subdirectory( test_numpy )
 
 if ( NOT CMAKE_CROSSCOMPILING )
 #  add_subdirectory( test_dataprocessor )
