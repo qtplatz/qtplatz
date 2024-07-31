@@ -1449,7 +1449,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
         }
 
         //doc.print( &printer );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+//#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         it = portfolio::Folium::find<adcontrols::MassSpectrumPtr>( attachments.begin(), attachments.end() );
         if ( it != attachments.end() ) {
             auto atts = it->attachments();
@@ -1468,7 +1468,7 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                 }
             }
         }
-#endif
+//#endif
     }
 
     ///////////
