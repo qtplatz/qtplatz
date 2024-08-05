@@ -1,5 +1,9 @@
 # find RDKit
 
+if ( VERBOSE )
+  message( STATUS "------------- cmake/Modules/Findrdkit.cmake ------------" )
+endif()
+
 if ( rdkit_FOUND )
   return()
 endif()

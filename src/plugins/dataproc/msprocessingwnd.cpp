@@ -1358,7 +1358,8 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
     {
         // Targeting results
         portfolio::Folio attachments = folium.attachments();
-        auto it = std::find_if( attachments.begin(), attachments.end(), []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
+        auto it = std::find_if( attachments.begin(), attachments.end()
+                                , []( auto& f ){ return f.name() == Constants::F_CENTROID_SPECTRUM; } );
         if ( it != attachments.end() ) {
 
             if ( adportable::a_type< std::shared_ptr< adcontrols::MassSpectrum > >::is_a( it->data() ) ) {
@@ -1381,7 +1382,8 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                                 ;
                             html << "<table border=\"1\" align=\"center\" width=\"90%\" cellspacing=\"0\" cellpadding=\"4\">";
                             html << "<tr>";
-                            html << "<th>Formula</th> <th>Charge</th> <th>Exact m/z</th> <th>Exact ratio</th> <th>m/z</th> <th>Error(mDa)</th> <th>Abundance</th> <th>Ratio</th> <th>Error(%)</th>";
+                            html << "<th>Formula</th> <th>Charge</th> <th>Exact m/z</th> <th>Exact ratio</th> "
+                                      "<th>m/z</th> <th>Error(mDa)</th> <th>Abundance</th> <th>Ratio</th> <th>Error(%)</th>";
                             html << "</tr>";
 
                             for ( const auto& c: targeting->candidates() ) {
@@ -1424,11 +1426,16 @@ MSProcessingWnd::handlePrintCurrentView( const QString& pdfname )
                             html << "</table></font></body></html>";
 
                             doc.setHtml( QString::fromStdString( html.str() ) );
-                            doc.setDefaultStyleSheet( "table{ border-collapse:collapse; } th,td{ border-style: none;}");
+                            //doc.setDefaultStyleSheet( "table{ border-collapse:collapse; } th,td{ border-style: none;}");
+                            doc.setDefaultStyleSheet( "table{ border-collapse:collapse; } th,td{ border: solid;}");
 
                             {
-                                std::ofstream of( "/home/toshi/debug.html" );
-                                of << html.str();
+                                for ( auto download: QStandardPaths::standardLocations( QStandardPaths::DownloadLocation ) ) {
+                                    auto name = std::filesystem::path( download.toStdString() ) / "debug.html";
+                                    std::ofstream of( name );
+                                    of << html.str();
+                                    break;
+                                }
                             }
 
 
