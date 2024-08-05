@@ -25,70 +25,48 @@ int
 main(int argc, char **argv)
 {
     // RDKit::RWMOL_SPTR mol_r(RDKit::SmartsToMol( "[C:1](O)(=O)[C:2]" ) );
-    RDKit::ROMOL_SPTR water( RDKit::SmilesToMol("O") );
-    water->updatePropertyCache();
     RDKit::ROMOL_SPTR pfoa( RDKit::SmilesToMol( "FC(F)(C(F)(F)C(=O)O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F" ) );
-    pfoa->updatePropertyCache();
+    RDKit::ROMOL_SPTR water( RDKit::SmilesToMol("O") );
+    RDKit::ROMOL_SPTR core( RDKit::SmilesToMol("C(F).C") );
+    for ( const auto& mol: { pfoa, water, core } )
+        mol->updatePropertyCache();
 
     auto reactant = pfoa;
 
-    std::vector<RDKit::MOL_SPTR_VECT> prods_1;
-    if ( auto rxn_1 = AllChem::ReactionFromSmarts( "[C:1](O)(=O)[C:2]>>[C-:2].[C:1](=O)(=O)" ) ) {
-        prods_1 = rxn_1->runReactants(RDKit::MOL_SPTR_VECT{ reactant } );
-        printer("rxn_1:\t")(*rxn_1);
-        printer("prod_1:\t")( prods_1 );
-        reactant = prods_1[0][0];
-    }
-
-    if ( auto rxn_2 = AllChem::ReactionFromSmarts( "[C-:1].[O:2]>>[C-0:1][O:2].[H+]" ) ) {
-        auto prods_2 = rxn_2->runReactants( RDKit::MOL_SPTR_VECT{ reactant, water } );
-        printer("rxn_2:\t")( *rxn_2 );
-        printer("prod_2:\t")( prods_2 );
-    }
-    RDKit::ROMOL_SPTR core( RDKit::SmilesToMol("C(F).C") );
-    RDKit::MatchVectType matchVect;
-    std::cout << "substructmatch: " << std::boolalpha << RDKit::SubstructMatch( *reactant, *core, matchVect )
-              << std::endl;
-
     std::vector< RDKit::ChemicalReaction > rxns;
-    if ( auto rxn_1 = AllChem::ReactionFromSmarts( "[C:1](O)(=O)[C:2]>>[C-:2].[C:1](=O)(=O)" ) ) {
-        rxns.emplace_back( std::move( *rxn_1 ) );
+    for ( const auto& smarts:
+              { "[C:1](O)(=O)[C:2]>>[C-:2].[C:1](=O)(=O)"
+                , "[C-:1].[O:2]>>[C-0:1][O:2].[H+]"
+                , "[C:1](O)([F:2])>>[C:1](O).[F:2]"
+                , "[C:1](O)([F:2])>>[C:1]([O])(=O).[F:2]" } ) {
+        if ( auto rxn = AllChem::ReactionFromSmarts( smarts ) )
+            rxns.emplace_back( std::move( *rxn ) );
+        else
+            std::cerr << "Got an error for " << smarts << std::endl;
     }
-    if ( auto rxn_2 = AllChem::ReactionFromSmarts( "[C-:1].[O:2]>>[C-0:1][O:2].[H+]" ) ) {
-        rxns.emplace_back( std::move( *rxn_2 ) );
-    }
-    if ( auto rxn_3 = AllChem::ReactionFromSmarts("[C:1](O)([F:2])>>[C:1](O).[F:2]") ) {
-        rxns.emplace_back( std::move( *rxn_3 ) );
-    }
-    if ( auto rxn_4 = AllChem::ReactionFromSmarts("[C:1](F)(F)>>[C:1]=O") ) {
-        rxns.emplace_back( std::move( *rxn_4 ) );
-    }
+
+    std::cout << "----------------------------------------" << std::endl;
+    for ( const auto& rxn: rxns )
+        printer("rxn: ")(rxn);
+    std::cout << "----------------------------------------" << std::endl;
 
     reactant = pfoa;
+    RDKit::MOL_SPTR_VECT products;
+    RDKit::MatchVectType matchVect;
 
-    // while ( RDKit::SubstructMatch( *reactant, *core, matchVect ) ) {
-    //     auto p1 = rxns[0].runReactants( RDKit::MOL_SPTR_VECT{ reactant } );
-    //     auto p2 = rxns[0].runReactants( RDKit::MOL_SPTR_VECT{ p1[0], water } );
-    // }
-
-
-#if 0
-    rxn_3 = AllChem.ReactionFromSmarts("[C:1](O)([F:2])>>[C:1](O).[F:2]");
-    rxn_4 = AllChem.ReactionFromSmarts("[C:1](F)(F)>>[C:1]=O");
-    while ( reactant.HasSubstructMatch(Chem.MolFromSmarts("C(F).C")) ) {
-        p1 = rxn_1.RunReactants((reactant, ))[0];
-        p2 = rxn_2.RunReactants((p1[0],water,))[0];
-        p3 = rxn_3.RunReactants((p2[0],))[0];
-        p4 = rxn_4.RunReactants((p3[0], ))[0];
-        Chem.SanitizeMol( p1[0] );
-        Chem.SanitizeMol( p2[0] );
-        Chem.SanitizeMol( p3[0] );
-        Chem.SanitizeMol( p4[0] );
-        products.append( reactant );
-        products.append( p1[0] );
-        products.append( p2[0] );
-        products.append( p3[0] );
+    while ( RDKit::SubstructMatch( *reactant, *core, matchVect ) ) {
+        auto p1 = rxns[0].runReactants( RDKit::MOL_SPTR_VECT{ reactant } );
+        auto p2 = rxns[1].runReactants( RDKit::MOL_SPTR_VECT{ p1[0][0], water } );
+        auto p3 = rxns[2].runReactants( RDKit::MOL_SPTR_VECT{ p2[0][0] } );
+        auto p4 = rxns[3].runReactants( RDKit::MOL_SPTR_VECT{ p3[0][0] } );
+        reactant = p4[0][0];
+        products.emplace_back( std::move( p1[0][0] ) );
+        products.emplace_back( std::move( p2[0][0] ) );
+        products.emplace_back( std::move( p3[0][0] ) );
+        products.emplace_back( std::move( p4[0][0] ) );
     }
-#endif
+
+    printer()( products );
+
     return 0;
 }

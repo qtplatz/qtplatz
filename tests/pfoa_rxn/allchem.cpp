@@ -83,6 +83,23 @@ printer::operator()( const RDKit::ChemicalReaction& rxn, std::ostream& out ) con
 }
 
 const printer&
+printer::operator()( const RDKit::MOL_SPTR_VECT& vect, std::ostream& out ) const
+{
+    int id{0};
+
+    for ( const auto& m: vect ) {
+        m->updatePropertyCache();
+        out << heading_;
+        out << "[" << id++ << "]\t{"
+            << RDKit::MolToSmiles( *m ) << "}\t"
+            << "\t" << RDKit::Descriptors::calcExactMW( *m )
+            << std::endl;
+    }
+    return *this;
+}
+
+
+const printer&
 printer::operator()( const std::vector<RDKit::MOL_SPTR_VECT>& vect, std::ostream& out ) const
 {
     std::pair< int, int > id{0,0};

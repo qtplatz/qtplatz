@@ -42,5 +42,6 @@ struct printer {
     const std::string heading_;
     printer( const std::string& h = {}) : heading_(h) {}
     const printer& operator()( const RDKit::ChemicalReaction&, std::ostream& = std::cout ) const;
+    const printer& operator()( const RDKit::MOL_SPTR_VECT&, std::ostream& = std::cout ) const;
     const printer& operator()( const std::vector<RDKit::MOL_SPTR_VECT>&, std::ostream& = std::cout ) const;
 };
