@@ -45,10 +45,32 @@ main(int argc, char **argv)
         printer("rxn_2:\t")( *rxn_2 );
         printer("prod_2:\t")( prods_2 );
     }
-    RDKit::ROMOL_SPTR minimum( RDKit::SmilesToMol("C(F).C") );
+    RDKit::ROMOL_SPTR core( RDKit::SmilesToMol("C(F).C") );
     RDKit::MatchVectType matchVect;
-    std::cout << "substructmatch: " << std::boolalpha << RDKit::SubstructMatch( *reactant, *minimum, matchVect )
+    std::cout << "substructmatch: " << std::boolalpha << RDKit::SubstructMatch( *reactant, *core, matchVect )
               << std::endl;
+
+    std::vector< RDKit::ChemicalReaction > rxns;
+    if ( auto rxn_1 = AllChem::ReactionFromSmarts( "[C:1](O)(=O)[C:2]>>[C-:2].[C:1](=O)(=O)" ) ) {
+        rxns.emplace_back( std::move( *rxn_1 ) );
+    }
+    if ( auto rxn_2 = AllChem::ReactionFromSmarts( "[C-:1].[O:2]>>[C-0:1][O:2].[H+]" ) ) {
+        rxns.emplace_back( std::move( *rxn_2 ) );
+    }
+    if ( auto rxn_3 = AllChem::ReactionFromSmarts("[C:1](O)([F:2])>>[C:1](O).[F:2]") ) {
+        rxns.emplace_back( std::move( *rxn_3 ) );
+    }
+    if ( auto rxn_4 = AllChem::ReactionFromSmarts("[C:1](F)(F)>>[C:1]=O") ) {
+        rxns.emplace_back( std::move( *rxn_4 ) );
+    }
+
+    reactant = pfoa;
+
+    // while ( RDKit::SubstructMatch( *reactant, *core, matchVect ) ) {
+    //     auto p1 = rxns[0].runReactants( RDKit::MOL_SPTR_VECT{ reactant } );
+    //     auto p2 = rxns[0].runReactants( RDKit::MOL_SPTR_VECT{ p1[0], water } );
+    // }
+
 
 #if 0
     rxn_3 = AllChem.ReactionFromSmarts("[C:1](O)([F:2])>>[C:1](O).[F:2]");
