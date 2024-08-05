@@ -29,31 +29,18 @@ main(int argc, char **argv)
     RDKit::ROMOL_SPTR pfoa( RDKit::SmilesToMol( "FC(F)(C(F)(F)C(=O)O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F" ) );
     pfoa->updatePropertyCache();
 
-    RDKit::ChemicalReaction rxn_1;
-    rxn_1.addReactantTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol( "[C:1](O)(=O)[C:2]" ) ) );
-    rxn_1.addProductTemplate( RDKit::RWMOL_SPTR(RDKit::SmartsToMol( "[C-:2]" ) ) );
-    rxn_1.addProductTemplate( RDKit::RWMOL_SPTR(RDKit::SmartsToMol( "[C:1](=O)(=O)" ) ) );
+    std::vector<RDKit::MOL_SPTR_VECT> prods_1;
+    if ( auto rxn_1 = AllChem::ReactionFromSmarts( "[C:1](O)(=O)[C:2]>>[C-:2].[C:1](=O)(=O)" ) ) {
+        printer("rxn_1:\t")(*rxn_1);
+        prods_1 = rxn_1->runReactants(RDKit::MOL_SPTR_VECT{ pfoa } );
+        printer("prod_1:\t")( prods_1 );
+    }
 
-    printer("rxn_1:\t")(rxn_1);
-
-    rxn_1.initReactantMatchers();
-    std::vector<RDKit::MOL_SPTR_VECT> prods = rxn_1.runReactants(RDKit::MOL_SPTR_VECT{ pfoa } );
-    std::cout << std::endl;
-    printer("prod_1:\t")( prods );
-
-    //---------------------------------------------------------
-    RDKit::ChemicalReaction rxn_2;
-    //rxn_2.addReactantTemplate( RDKit::ROMOL_SPTR( "[C-:1].[O:2]>>[C-0:1][O:2].[H+]" ) );
-    rxn_2.addReactantTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol("[C-:1]") ) );
-    rxn_2.addReactantTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol("[O:2]") ) );
-    rxn_2.addProductTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol("[C-0:1][O:2]") ) );
-    rxn_2.addProductTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol("[H+]") ) );
-    rxn_2.initReactantMatchers();
-    printer("rxn_2:\t")( rxn_2 );
-
-    std::vector<RDKit::MOL_SPTR_VECT> prods2 = rxn_2.runReactants( RDKit::MOL_SPTR_VECT{ prods[0][0], water } );
-    printer("prod_2:\t")( prods2 );
-
+    if ( auto rxn_2 = AllChem::ReactionFromSmarts( "[C-:1].[O:2]>>[C-0:1][O:2].[H+]" ) ) {
+        printer("rxn_2:\t")( *rxn_2 );
+        auto prods_2 = rxn_2->runReactants( RDKit::MOL_SPTR_VECT{ prods_1[0][0], water } );
+        printer("prod_2:\t")( prods_2 );
+    }
 
 #if 0
     rxn_3 = AllChem.ReactionFromSmarts("[C:1](O)([F:2])>>[C:1](O).[F:2]");
