@@ -9,7 +9,8 @@ endif()
 
 add_library( ${PROJECT_NAME} SHARED
   pugiwrapper.cpp
-  pugixml-1.12/src/pugixml.cpp )
+  pugixml-1.14/src/pugixml.cpp
+)
 
 target_include_directories( ${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}"

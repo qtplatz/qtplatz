@@ -92,6 +92,19 @@ main(int argc, char **argv)
     printer()( products );
 
     std::ofstream of( "draw.html" );
+    of << "<!DOCTYPE html>\n"
+        "<html>\n"
+        "   <body>\n"
+        "<table>\n"
+        "   <tr>\n"
+        "       <th>MOL</th>\n"
+        "   </tr>\n";
+    of << "<tr>\n"
+        "<td>\n";
     drawer().moltosvg( *__pfoa,  "C(F).C"_smiles, of );
-
+    of << "</td>\n"
+        "</tr>\n";
+    of << "</table>"
+        " </body>\n"
+        "</html>" << std::endl;
 }
