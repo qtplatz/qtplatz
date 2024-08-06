@@ -14,7 +14,7 @@ add_library( ${PROJECT_NAME} SHARED
 
 target_include_directories( ${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/pugixml-1.12/src"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pugixml-1.14/src"
   )
 
 runtime_install_path( _runtime_destination ${PROJECT_NAME} )
