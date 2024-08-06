@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
-#include "allchem.hpp"
+#include "printer.hpp"
 #include <adportable/smarts_parser.hpp>
 
 #include <GraphMol/RWMol.h>
@@ -45,18 +45,69 @@ SOFTWARE.
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/inchi.h>
 
-std::optional< RDKit::ChemicalReaction >
-AllChem::ReactionFromSmarts( std::string smarts )
+const printer&
+printer::operator()( const RDKit::ChemicalReaction& rxn, std::ostream& out ) const
 {
-    using smarts_parser = adportable::smarts_parser;
-    RDKit::ChemicalReaction rxn;
-    if ( auto ctx = smarts_parser::parse( smarts ) ) {
-        for ( const auto& r: std::get<0>(*ctx) )
-            rxn.addReactantTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol( r ) ) );
-        for ( const auto& p: std::get<1>(*ctx) )
-            rxn.addProductTemplate( RDKit::ROMOL_SPTR( RDKit::SmartsToMol( p ) ) );
-        rxn.initReactantMatchers();
-        return rxn;
+    out << heading_;
+    size_t n = rxn.getNumReactantTemplates();
+    for ( const auto& r: rxn.getReactants() ) {
+        out << RDKit::MolToSmiles( *r );
+        if ( --n )
+            out << ".";
     }
-    return {};
+    out << ">>";
+    n = rxn.getNumProductTemplates();
+    for ( const auto& p: rxn.getProducts() ) {
+        out << RDKit::MolToSmiles( *p );
+        if ( --n )
+            out << ".";
+    }
+    out << std::endl;
+    return *this;
+}
+
+const printer&
+printer::operator()( const RDKit::ROMol& m, std::ostream& out ) const
+{
+    out << heading_;
+    out << RDKit::MolToSmiles( m ) << std::endl;
+    return *this;
+}
+
+const printer&
+printer::operator()( const RDKit::MOL_SPTR_VECT& vect, std::ostream& out ) const
+{
+    int id{0};
+
+    for ( const auto& m: vect ) {
+        m->updatePropertyCache();
+        out << heading_;
+        out << "[" << id++ << "]\t{"
+            << RDKit::MolToSmiles( *m ) << "}\t"
+            << "\t" << RDKit::Descriptors::calcExactMW( *m )
+            << std::endl;
+    }
+    return *this;
+}
+
+
+const printer&
+printer::operator()( const std::vector<RDKit::MOL_SPTR_VECT>& vect, std::ostream& out ) const
+{
+    std::pair< int, int > id{0,0};
+
+    for ( const auto& v: vect ) {
+        for ( const auto& m: v ) {
+            m->updatePropertyCache();
+            out << heading_;
+            out << "[" << std::get<0>(id) << ", " << std::get<1>(id) << "]\t{"
+                << RDKit::MolToSmiles( *m ) << "}\t"
+                << "\t" << RDKit::Descriptors::calcExactMW( *m )
+                << std::endl;
+            std::get<1>(id)++;
+        }
+        std::get<0>(id)++;
+        out << std::endl;
+    }
+    return *this;
 }

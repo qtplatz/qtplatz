@@ -40,9 +40,41 @@ add_executable( ${PROJECT_NAME}
   ../../src/libs/adportable/smarts_parser.hpp
   ../../src/libs/adportable/smarts_parser.cpp
   allchem.cpp allchem.hpp
-  )
+  printer.cpp printer.hpp
+  drawer.cpp drawer.hpp
+)
+
+add_executable( example17
+  example17.cpp
+)
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
+  "${Boost_LIBRARIES}"
+  RDKit::Catalogs
+  RDKit::ChemReactions
+  RDKit::DataStructs
+  RDKit::Depictor
+  RDKit::Descriptors
+  RDKit::EigenSolvers
+  RDKit::FileParsers
+  RDKit::FilterCatalog
+  RDKit::Fingerprints
+  RDKit::GraphMol
+  RDKit::MolDraw2D
+  RDKit::PartialCharges
+  RDKit::SubstructMatch
+  RDKit::ChemTransforms
+  RDKit::Subgraphs
+  RDKit::MolTransforms
+  RDKit::RDGeometryLib
+  RDKit::RDGeneral
+  RDKit::Inchi
+  RDKit::RDInchiLib
+  RDKit::SmilesParse
+  RDKit::RDStreams
+)
+
+target_link_libraries( example17 LINK_PUBLIC
   "${Boost_LIBRARIES}"
   RDKit::Catalogs
   RDKit::ChemReactions

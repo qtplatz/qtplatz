@@ -23,17 +23,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
-#pragma once
-
-#include <optional>
-#include <string>
-#include <iostream>
+#include "drawer.hpp"
+#include <Geometry/point.h>
+#include <GraphMol/Atom.h>
+#include <GraphMol/Depictor/RDDepictor.h>
+#include <GraphMol/Descriptors/MolDescriptors.h>
+#include <GraphMol/FileParsers/FileParsers.h>
+#include <GraphMol/FileParsers/MolSupplier.h>
+#include <GraphMol/MolDraw2D/MolDraw2DSVG.h>
+#include <GraphMol/RDKitBase.h>
+#include <GraphMol/ROMol.h>
 #include <GraphMol/RWMol.h>
+#include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/SmilesParse/SmilesWrite.h>
+#include <GraphMol/inchi.h>
+#include <RDGeneral/utils.h>
+#include <RDGeneral/versions.h>
 
-namespace RDKit {
-    class ChemicalReaction;
+drawer::~drawer()
+{
 }
 
-struct AllChem {
-    static std::optional< RDKit::ChemicalReaction > ReactionFromSmarts( std::string smarts );
-};
+drawer::drawer()
+{
+}
+
+const void
+drawer::moltosvg( const RDKit::ROMol& mol, std::ostream& out ) const
+{
+    RDKit::ROMol mol1( mol );
+    RDDepict::compute2DCoords( mol1 );
+
+    std::ostringstream o;
+    RDKit::MolDraw2DSVG svg_drawer( 300, 300, out );
+    // moldrawer.drawOptions().backgroundColour = background;
+
+    svg_drawer.drawMolecule( mol1 );
+    svg_drawer.tagAtoms( mol );
+    svg_drawer.finishDrawing();
+}

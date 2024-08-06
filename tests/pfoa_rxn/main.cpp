@@ -20,6 +20,7 @@
 #include <RDGeneral/utils.h>
 #include <boost/spirit/home/x3.hpp>
 #include "allchem.hpp"
+#include "printer.hpp"
 
 int
 main(int argc, char **argv)
