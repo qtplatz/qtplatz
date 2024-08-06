@@ -66,7 +66,7 @@ int main() {
   std::vector<int> hit1_bonds = get_all_hit_bonds(*mol, hit1_atoms);
   {
     // all atoms and bonds highlighted the same colour
-    std::ofstream outs(file_root + "example_17_1.svg");
+    std::ofstream outs("example_17_1.svg");
     MolDraw2DSVG drawer(500, 500, outs);
     drawer.drawMolecule(*mol, &hit1_atoms, &hit1_bonds);
     drawer.finishDrawing();
