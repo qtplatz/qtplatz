@@ -26,6 +26,7 @@ SOFTWARE.
 #include "drawer.hpp"
 #include <Geometry/point.h>
 #include <GraphMol/Atom.h>
+#include <GraphMol/Bond.h>
 #include <GraphMol/Depictor/RDDepictor.h>
 #include <GraphMol/Descriptors/MolDescriptors.h>
 #include <GraphMol/FileParsers/FileParsers.h>
@@ -39,6 +40,21 @@ SOFTWARE.
 #include <GraphMol/inchi.h>
 #include <RDGeneral/utils.h>
 #include <RDGeneral/versions.h>
+
+std::vector<int>
+get_all_hit_bonds(const RDKit::ROMol& mol, const std::vector<int>& hit_atoms) {
+    std::vector<int> hit_bonds;
+    for (int i : hit_atoms) {
+        for (int j : hit_atoms) {
+            if (i > j) {
+                if ( const RDKit::Bond *bnd = mol.getBondBetweenAtoms(i, j) ) {
+                    hit_bonds.emplace_back(bnd->getIdx());
+                }
+            }
+        }
+    }
+    return hit_bonds;
+}
 
 drawer::~drawer()
 {
@@ -54,11 +70,34 @@ drawer::moltosvg( const RDKit::ROMol& mol, std::ostream& out ) const
     RDKit::ROMol mol1( mol );
     RDDepict::compute2DCoords( mol1 );
 
-    std::ostringstream o;
     RDKit::MolDraw2DSVG svg_drawer( 300, 300, out );
     // moldrawer.drawOptions().backgroundColour = background;
-
     svg_drawer.drawMolecule( mol1 );
-    svg_drawer.tagAtoms( mol );
     svg_drawer.finishDrawing();
+}
+
+const void
+drawer::moltosvg( const RDKit::ROMol& mol, const RDKit::ROMol& sss, std::ostream& out ) const
+{
+    RDKit::MolDraw2DSVG svg_drawer( 300, 300, out );
+
+    std::vector< RDKit::MatchVectType > matchVect;
+    if ( RDKit::SubstructMatch( mol, sss, matchVect ) ) { // find all match
+        std::vector< int > atoms;
+        for ( auto& t: matchVect ) {
+            for ( auto& q: t )
+                atoms.emplace_back( q.second );
+        }
+        auto bonds = get_all_hit_bonds( mol, atoms );
+        svg_drawer.drawMolecule( mol, &atoms, &bonds );
+    } else {
+        svg_drawer.drawMolecule( mol );
+    }
+    svg_drawer.finishDrawing();
+}
+
+const void
+drawer::moltosvg( const RDKit::ROMol& mol, std::unique_ptr< RDKit::ROMol >&& sss, std::ostream& out ) const
+{
+    moltosvg( mol, *sss, out );
 }

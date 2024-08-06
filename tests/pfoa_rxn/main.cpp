@@ -23,6 +23,7 @@
 #include <RDGeneral/utils.h>
 #include <boost/spirit/home/x3.hpp>
 #include "allchem.hpp"
+#include "drawer.hpp"
 #include "printer.hpp"
 
 std::vector<int> get_all_hit_bonds(RDKit::ROMol &mol,
@@ -91,16 +92,6 @@ main(int argc, char **argv)
     printer()( products );
 
     std::ofstream of( "draw.html" );
-    std::vector< RDKit::MatchVectType > matchVect;
-    if ( RDKit::SubstructMatch( *__pfoa, *__sss, matchVect ) ) { // find all match
-        std::vector< int > hit_atoms;
-        for ( auto& t: matchVect ) {
-            for ( auto& q: t )
-                hit_atoms.emplace_back( q.second );
-        }
-        RDKit::MolDraw2DSVG drawer( 300, 300, of );
-        auto bonds = get_all_hit_bonds( *__pfoa, hit_atoms );
-        drawer.drawMolecule( *__pfoa, &hit_atoms, &bonds );
-        drawer.finishDrawing();
-    }
+    drawer().moltosvg( *__pfoa,  "C(F).C"_smiles, of );
+
 }

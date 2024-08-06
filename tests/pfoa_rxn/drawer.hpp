@@ -38,4 +38,6 @@ struct drawer {
     ~drawer();
     drawer();
     const void moltosvg( const RDKit::ROMol&, std::ostream& = std::cout ) const;
+    const void moltosvg( const RDKit::ROMol&, const RDKit::ROMol& sss, std::ostream& = std::cout ) const;
+    const void moltosvg( const RDKit::ROMol&, std::unique_ptr< RDKit::ROMol >&& sss, std::ostream& = std::cout ) const;
 };
