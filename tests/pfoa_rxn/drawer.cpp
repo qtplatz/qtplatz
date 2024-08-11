@@ -40,6 +40,7 @@ SOFTWARE.
 #include <GraphMol/inchi.h>
 #include <RDGeneral/utils.h>
 #include <RDGeneral/versions.h>
+#include <sstream>
 
 std::vector<int>
 get_all_hit_bonds(const RDKit::ROMol& mol, const std::vector<int>& hit_atoms) {
@@ -100,4 +101,20 @@ const void
 drawer::moltosvg( const RDKit::ROMol& mol, std::unique_ptr< RDKit::ROMol >&& sss, std::ostream& out ) const
 {
     moltosvg( mol, *sss, out );
+}
+
+std::string
+drawer::toSvg( const RDKit::ROMol& mol )
+{
+    std::ostringstream o;
+    drawer().moltosvg( mol, o );
+    return o.str();
+}
+
+std::string
+drawer::toSvg( const RDKit::ROMol& mol, const RDKit::ROMol& sss )
+{
+    std::ostringstream o;
+    drawer().moltosvg( mol, sss, o );
+    return o.str();
 }

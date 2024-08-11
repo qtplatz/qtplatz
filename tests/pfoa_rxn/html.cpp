@@ -23,23 +23,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
-#pragma once
+#include "html.hpp"
 
-#include <optional>
-#include <string>
-#include <iostream>
-#include <GraphMol/RWMol.h>
+using namespace html;
 
-namespace RDKit {
-    class ChemicalReaction;
+html_writer::html_writer( std::ostream& o ) : o_( o )
+{
+    o_ << R"(<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+</style>
+</head>
+<body>
+)";
 }
 
-struct drawer {
-    ~drawer();
-    drawer();
-    const void moltosvg( const RDKit::ROMol&, std::ostream& = std::cout ) const;
-    const void moltosvg( const RDKit::ROMol&, const RDKit::ROMol& sss, std::ostream& = std::cout ) const;
-    const void moltosvg( const RDKit::ROMol&, std::unique_ptr< RDKit::ROMol >&& sss, std::ostream& = std::cout ) const;
-    static std::string toSvg( const RDKit::ROMol& );
-    static std::string toSvg( const RDKit::ROMol&, const RDKit::ROMol& sss );
-};
+html_writer::~html_writer()
+{
+    o_ << R"(
+</body>
+</html>
+)"
+       << std::endl;
+}

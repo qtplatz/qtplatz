@@ -24,22 +24,38 @@ SOFTWARE.
 **************************************************************************/
 
 #pragma once
-
-#include <optional>
+#include <sstream>
 #include <string>
-#include <iostream>
-#include <GraphMol/RWMol.h>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-namespace RDKit {
-    class ChemicalReaction;
+namespace html {
+
+    struct table {};
+    // tuple<...> --> table cells
+
+    class html_writer {
+        std::ostream& o_;
+        template<class Tuple, std::size_t... Is>
+        void html_writer_tuple_impl(const Tuple& t, std::index_sequence<Is...>){
+            (((*this) << (Is == 0 ? "" : "<td>") << std::get<Is>(t) << "</td>"), ...);
+        }
+    public:
+        ~html_writer();
+        html_writer( std::ostream& o );
+
+        html_writer& operator<<( std::ostream&(*f)(std::ostream&) ) { o_ << f; return *this; } // handle std::endl;
+
+        template< typename T > html_writer& operator << ( const T& t ) { o_ << t; return *this; }
+
+        template<typename... Args> html_writer& operator << ( const std::tuple< Args...>& t ) {
+            (*this) << "<tr>";
+            (*this) << "<td>";
+            html_writer_tuple_impl( t, std::index_sequence_for<Args...>{});
+            return (*this) << "</tr>\n";
+        }
+
+    };
+
 }
-
-struct drawer {
-    ~drawer();
-    drawer();
-    const void moltosvg( const RDKit::ROMol&, std::ostream& = std::cout ) const;
-    const void moltosvg( const RDKit::ROMol&, const RDKit::ROMol& sss, std::ostream& = std::cout ) const;
-    const void moltosvg( const RDKit::ROMol&, std::unique_ptr< RDKit::ROMol >&& sss, std::ostream& = std::cout ) const;
-    static std::string toSvg( const RDKit::ROMol& );
-    static std::string toSvg( const RDKit::ROMol&, const RDKit::ROMol& sss );
-};

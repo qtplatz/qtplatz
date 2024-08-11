@@ -25,6 +25,7 @@
 #include "allchem.hpp"
 #include "drawer.hpp"
 #include "printer.hpp"
+#include "html.hpp"
 
 std::vector<int> get_all_hit_bonds(RDKit::ROMol &mol,
                                    const std::vector<int> &hit_atoms) {
@@ -92,19 +93,25 @@ main(int argc, char **argv)
     printer()( products );
 
     std::ofstream of( "draw.html" );
-    of << "<!DOCTYPE html>\n"
-        "<html>\n"
-        "   <body>\n"
-        "<table>\n"
-        "   <tr>\n"
-        "       <th>MOL</th>\n"
-        "   </tr>\n";
-    of << "<tr>\n"
-        "<td>\n";
-    drawer().moltosvg( *__pfoa,  "C(F).C"_smiles, of );
-    of << "</td>\n"
-        "</tr>\n";
-    of << "</table>"
-        " </body>\n"
-        "</html>" << std::endl;
+    html::html_writer html(of);
+
+    html << "<table>" << std::endl;
+    size_t id(0);
+    html << R"(<tr>
+<th>id</th>
+<th>smiles</th>
+<th>MOL</th>
+<th>SSS</th>
+<th>mass</th>
+</tr>)" << std::endl;
+    for ( const auto& prod: products ) {
+        html << std::make_tuple( std::to_string(id++)
+                                 , RDKit::MolToSmiles( *prod )
+                                 , drawer::toSvg( *prod )
+                                 , drawer::toSvg( *prod, *__sss )
+                                 , RDKit::Descriptors::calcExactMW( *prod )
+            );
+    }
+    html << "</table>";
+
 }

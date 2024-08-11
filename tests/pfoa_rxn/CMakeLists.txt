@@ -42,6 +42,7 @@ add_executable( ${PROJECT_NAME}
   allchem.cpp allchem.hpp
   printer.cpp printer.hpp
   drawer.cpp drawer.hpp
+  html.cpp html.hpp
 )
 
 add_executable( example17
