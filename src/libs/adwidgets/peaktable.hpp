@@ -80,9 +80,12 @@ namespace adwidgets {
         void valueChanged( int idx, int cid, const QModelIndex& );
         void currentChanged( int idx );
         void peaksAboutToBeRemoved( const std::vector< std::pair<int, int> >& rows );
+    protected:
+        void contextMenuEvent( QContextMenuEvent * event ) override;
 
     public slots:
 		void setData( const adcontrols::PeakResult& );
+        virtual void handleDeleteNoSelection();
 
     private slots:
         void setData( const adcontrols::Peaks&, bool isCounting );

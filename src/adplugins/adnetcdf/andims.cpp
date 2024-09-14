@@ -226,6 +226,7 @@ namespace adnetcdf {
                                  *ion_polarity_ == Positive_Polarity ? "pos" : "" : "");
                     chro->addDescription( { "Create"
                             , (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str()} );
+                    chro->set_display_name( (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str() );
                     chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
                     chro->set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );
                     chro->setIsCounting( isCounting_[ 1 ] );

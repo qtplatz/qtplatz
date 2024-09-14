@@ -218,7 +218,7 @@ namespace {
                                               , const double * values
                                               , size_t size
                                               , size_t begin = 0 ) const {
-            ADDEBUG() << "---------- find_first_cross_up ------------- ";
+            // ADDEBUG() << "---------- find_first_cross_up ------------- ";
             adportable::SGFilter filter( 5 );
             for ( size_t i = begin + 2; i < size - 2; ++i ) {
                 if ( filter( values + i ) < th && filter( values + i + 1 ) >= th ) {

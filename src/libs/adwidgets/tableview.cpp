@@ -265,3 +265,27 @@ TableView::contextMenuEvent( QContextMenuEvent * event )
     addActionsToContextMenu( menu, event->pos() );
     menu.exec( event->globalPos() );
 }
+
+void
+TableView::deleteRows( const std::set< int >& rows )
+{
+    if ( ! rows.empty() ) {
+        emit rowsAboutToBeRemoved( rows );
+
+        std::vector< std::pair< int, int > > ranges;
+
+        for ( auto it = rows.begin(); it != rows.end(); ++it ) {
+            std::pair< int, int > range{*it, *it};
+            while ( ++it != rows.end() && *it == std::get< 1 >( range ) + 1 )
+                std::get< 1 >( range ) = *it;
+            --it;
+            ranges.emplace_back( range );
+        }
+
+        // remove from botton to top
+        for ( auto range = ranges.rbegin(); range != ranges.rend(); ++range )
+            model()->removeRows( range->first, range->second - range->first + 1 );
+
+        emit rowsDeleted();
+    }
+}

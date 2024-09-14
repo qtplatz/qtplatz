@@ -163,7 +163,6 @@ namespace dataproc {
                 auto peaks = pkres->peaks();
                 if ( peaks.size() > pid ) {
                     auto it = peaks.begin() + pid;
-                    // ADDEBUG() << "peak name: " << it->name() << " --> " << name << "\t" << datum_.folium_.id() << ", " << datum_.folium_.uuid();
                     it->setName( name );
                     if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
                         dp->setPeakName( datum_.folium(), pid, name );

@@ -27,6 +27,8 @@
 #include "delegatehelper.hpp"
 #include <QStandardItemModel>
 #include <QItemDelegate>
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <adcontrols/metric/prefix.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/chemicalformula.hpp>
@@ -39,6 +41,7 @@
 #include <boost/json.hpp>
 #include <functional>
 #include <set>
+
 
 namespace {
     static QColor colors [] = {
@@ -310,3 +313,31 @@ PeakTable::currentChanged( const QModelIndex& curr, const QModelIndex& prev )
 // }
 
 // #include "mschromatogramtable.moc"
+
+void
+PeakTable::contextMenuEvent( QContextMenuEvent * event )
+{
+    QMenu menu;
+
+    menu.addAction( tr( "Delete except selected" ), this, SLOT( handleDeleteNoSelection() ) );
+    menu.addAction( tr( "Delete" ), this, SLOT( handleDeleteSelection() ) );
+    menu.addAction( tr( "Copy" ), this, SLOT( handleCopyToClipboard() ) );
+    menu.addAction( tr( "Paste" ), this, SLOT( handlePaste() ) );
+    menu.addAction( tr( "Insert row (Shift+Enter)" ), this, SLOT( handleInsertLine() ) );
+
+    menu.exec( event->globalPos() );
+}
+
+void
+PeakTable::handleDeleteNoSelection()
+{
+	std::set< int > sels, rows;
+	QModelIndexList indices = selectionModel()->selectedIndexes();
+
+    std::for_each( indices.begin(), indices.end(), [&](const auto& index){ sels.insert( index.row() ); } );
+    for ( int i = 0; i < model_->rowCount(); ++i ) {
+        if ( std::find( sels.begin(), sels.end(), i ) == sels.end() )
+            rows.emplace( i );
+    }
+    deleteRows( rows );
+}

@@ -50,7 +50,7 @@ main(int argc, char **argv)
     using namespace RDKit;
     auto __pfoa  = "FC(F)(C(F)(F)C(=O)O)C(F)(F)C(F)(F)C(F)(F)C(F)(F)C(F)(F)F"_smiles;
     auto __water = "O"_smiles;
-    auto __sss  = "C(F).C"_smiles;
+    auto __sss   = "C(F).C"_smiles;
 
     for ( const auto& mol: { __pfoa.get(), __water.get(), __sss.get() } )
         mol->updatePropertyCache();

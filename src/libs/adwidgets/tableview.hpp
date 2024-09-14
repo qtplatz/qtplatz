@@ -49,6 +49,7 @@ namespace adwidgets {
         void contextMenuEvent( QContextMenuEvent * ) override;
     protected:
         // virtual void rowsAboutToBeRemoved( const std::set< int >& rows ) {};
+        void deleteRows( const std::set< int >& );
 
     private:
         bool allowDelete_;
