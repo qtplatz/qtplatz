@@ -2075,6 +2075,23 @@ Dataprocessor::handleRemoveDuplicatedChromatograms( std::vector< portfolio::Foli
     }
 }
 
+void
+Dataprocessor::setSFEDelay( bool enable, double value )
+{
+    ADDEBUG() << std::make_tuple( this->filename(), enable, value );
+    auto folder = portfolio().findFolder( L"Chromatograms");
+    for ( auto a: folder.folio() ) {
+        ADDEBUG() << "\t" << a.name();
+        fetch( a );
+        if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
+            if ( chro->set_sfe_injection_delay( enable, value ) )
+                setModified( true );
+            if ( auto delay = chro->sfe_injection_delay() )
+                ADDEBUG() << "sfe delay: " << *delay;
+        }
+    }
+}
+
 
 namespace dataproc
 {

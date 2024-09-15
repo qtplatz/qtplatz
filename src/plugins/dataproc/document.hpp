@@ -119,7 +119,7 @@ namespace dataproc {
         void onProcessMethodChanged( const QString& );
         void scanLawChanged( double length, double accV, double tdelay );
         void onMergeSelection( std::vector< portfolio::Folium > );
-
+        void onSetDelayedInjectionDelay( std::set< Dataprocessor * > list );
     };
 
 }

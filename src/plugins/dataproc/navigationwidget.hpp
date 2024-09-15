@@ -26,6 +26,7 @@
 #pragma once
 
 #include <QWidget>
+#include <set>
 
 class QTreeView;
 class QStandardItemModel;

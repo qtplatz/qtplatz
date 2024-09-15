@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -91,6 +91,7 @@
 #include <adwidgets/mssimulatorwidget.hpp>
 #include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/peptidewidget.hpp>
+#include <adwidgets/sfedelaydialog.hpp>
 #include <adwidgets/targetingwidget.hpp>
 #include <qtwrapper/jsonhelper.hpp>
 #include <qtwrapper/plugin_manager.hpp>
@@ -149,6 +150,7 @@
 #include <boost/json.hpp>
 #include <functional>
 #include <fstream>
+#include <filesystem>
 
 namespace dataproc {
 
@@ -1218,6 +1220,7 @@ MainWindow::OnInitialUpdate()
     }
     connect( document::instance(), &document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
     connect( document::instance(), &document::onMergeSelection, this, &MainWindow::handleMergeSelection );
+    connect( document::instance(),  &document::onSetDelayedInjectionDelay, this, &MainWindow::handleSetDelayedInjectionDelay );
 
     adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
             getProcessMethod( pm );
@@ -1562,6 +1565,30 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
             }
         }
         document::instance()->handle_portfolio_created( QString::fromStdString( path.string() ) );
+    }
+}
+
+void
+MainWindow::handleSetDelayedInjectionDelay( std::set< Dataprocessor * > list )
+{
+    // todo : add dialog to set value
+    std::vector< std::string > namelist;
+    for ( auto& processor: list ) {
+        namelist.emplace_back( processor->filename<char>() );
+    }
+    adwidgets::SFEDelayDialog dlg;
+    dlg.setContents( namelist );
+
+    if ( !dlg.exec() ) {
+        return;
+    }
+
+    auto rlist = dlg.getContents();
+    for ( const auto& res: rlist ) {
+        auto it = std::find_if( list.begin(), list.end(), [&](auto p){ return p->template filename<char>() == std::get<0>(res); } );
+        if ( it != list.end() ) {
+            (*it)->setSFEDelay( std::get< 1 >( res ), std::get< 2 >( res ) );
+        }
     }
 }
 

@@ -157,6 +157,7 @@ namespace dataproc {
         void setPeakName( portfolio::Folium, int pid, const std::string& name );
         void removePeaks( portfolio::Folium, std::vector< int >&& );
         void createChromatograms( std::vector< adprocessor::generator_property > v );
+        void setSFEDelay( bool, double );
 
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >
                                        , const adcontrols::ProcessMethod&

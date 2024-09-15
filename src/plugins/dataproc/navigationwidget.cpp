@@ -1469,10 +1469,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( tr( "Create mass spectra from chromatographic peaks" )
                         , [=](){ gen_spectra_selected(); } );
 
-        // spectra_from_checked_chromatographic_peaks gen_spectra_checked( index );
-        // menu.addAction( tr( "Create mass spectra from checked chromatograms (JCB 2009)" )
-        //                 , [=](){ gen_spectra_checked(); } );
-
         if ( Dataprocessor * processor = StandardItemHelper::findDataprocessor( index ) ) {
             auto props = copy_chromatogram_generator::fromClipboard();
             menu.addAction( tr("Create %1 extracted ion chromatograms from copied properties")
@@ -1514,6 +1510,17 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
     }
 
+    if ( selRows.size() >= 1 || selFolders.contains("Chromatograms") ) {
+        std::set< Dataprocessor * > list;
+        for ( const auto& index: selRows ) {
+            if ( auto p = find_t< Dataprocessor * >()( index ) )
+                list.emplace( p );
+        }
+        menu.addAction( tr( "Set SFE->SFC injection delay..."), [list]{
+            emit document::instance()->onSetDelayedInjectionDelay( list );
+        })->setEnabled( list.size() );
+    }
+
     if ( selRows.size() == 1 ) {
         if ( auto processor = find_t< Dataprocessor * >()( index ) ) {
             menu.addAction( tr( "Export data tree to XML" ), [processor] () { processor->exportXML(); } );
@@ -1552,7 +1559,6 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
     menu.addSeparator();
 
-    //menu.addAction( tr( "Delete removed items"), [=]{  delete_removed{ index, impl_->pModel_ }(); } );
     menu.addAction( tr( "Delete removed items"), delete_removed{ index, impl_->pModel_ } );
     menu.addAction( tr( "Collapse all"), [&]{ impl_->treeView()->collapseAll(); } );
 

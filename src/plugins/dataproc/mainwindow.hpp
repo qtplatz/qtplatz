@@ -135,6 +135,7 @@ namespace dataproc {
         void aboutQtPlatz();
         void hideDock( bool );
         void handleMergeSelection( std::vector< portfolio::Folium > );
+        void handleSetDelayedInjectionDelay( std::set< Dataprocessor * > );
 
     private slots:
         void handleApplyMethod();

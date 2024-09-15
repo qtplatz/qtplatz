@@ -135,6 +135,8 @@ namespace adcontrols {
             std::string time_of_injection_; // iso8601 extended
             std::pair< plot::unit, size_t > yAxisUnit_;
             std::string display_name_;
+            //
+            int64_t sfe_injection_delay_; // ns
 
             friend class boost::serialization::access;
             template<class Archive> void serialize(Archive& ar, const unsigned int version) {
@@ -203,13 +205,16 @@ namespace adcontrols {
                     if ( version >= 10 ) {
                         ar & BOOST_SERIALIZATION_NVP( display_name_ );
                     }
+                    if ( version >= 11 ) {
+                        ar & BOOST_SERIALIZATION_NVP( sfe_injection_delay_ );
+                    }
                 }
             }
         };
     }
 }
 
-BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 10 )
+BOOST_CLASS_VERSION( adcontrols::internal::ChromatogramImpl, 11 )
 
 namespace {
 
@@ -866,6 +871,7 @@ ChromatogramImpl::ChromatogramImpl() : isConstantSampling_(true)
                                      , dataReaderUuid_( { {0} } )
                                      , dataGuid_( boost::uuids::random_generator()() ) // random generator
                                      , yAxisUnit_( { plot::Arbitrary, 0 } )
+                                     , sfe_injection_delay_( 0 ) // for SFC inject delay since SFE start
 {
 }
 
@@ -1032,6 +1038,24 @@ Chromatogram::dataGuid() const
 {
     return pImpl_->dataGuid_;
 }
+
+bool
+Chromatogram::set_sfe_injection_delay( bool enable, double s ) // seconds (intanally, ns with int64)
+{
+    int64_t prev = pImpl_->sfe_injection_delay_;
+    pImpl_->sfe_injection_delay_ = enable ? ( s * std::nano::den ) : 0;
+    ADDEBUG() << __FUNCTION__ << "\t" << pImpl_->sfe_injection_delay_;
+    return prev != pImpl_->sfe_injection_delay_;
+}
+
+std::optional< double >
+Chromatogram::sfe_injection_delay() const
+{
+    if ( pImpl_->sfe_injection_delay_ )
+        return double(pImpl_->sfe_injection_delay_) / std::nano::den;
+    return {};
+}
+
 
 bool
 Chromatogram::add_manual_peak( PeakResult& result, double t0, double t1, bool horizontalBaseline, double baseLevel ) const

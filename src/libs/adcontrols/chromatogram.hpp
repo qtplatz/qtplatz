@@ -160,16 +160,10 @@ namespace adcontrols {
 		seconds_t maximumTime() const;  //
         std::pair<seconds_t, seconds_t> timeRange() const;
 
-        // if time delay caused by tubing, compensate by this value
-        // semi-micro UV cell has about 2-3uL volume, assume 1.0m x 0.1mmID tubing were used
-        // for connecting MS, 7.85uL of volume := 4.7seconds under 100uL/min flow rate.
-        // When flowrate is 400uL still 1.2seconds delay, which is larger than peak width on
-        // peaks for k' < 4 if column plate number > 5000.
-        double tubingDelayTime() const; // min
         void minimumTimePoints( size_t );
         void minimumTime( const seconds_t& );
         void maximumTime( const seconds_t& );
-        void tubingDelayTime( const seconds_t& ); // min
+        // void tubingDelayTime( const seconds_t& ); // min
 
         void addDescription( const description& );
         void addDescription( description&& );
@@ -218,6 +212,10 @@ namespace adcontrols {
         void set_time_of_injection_iso8601( const std::string& );
         std::string time_of_injection_iso8601() const;
 
+        // adjusting actual injection delay time since SFE start, when SFE and SFC are both recorded on the dataset
+        bool set_sfe_injection_delay( bool, double s ); // seconds (intanally, ns with int64)
+        std::optional< double > sfe_injection_delay() const;
+
         template< typename T >
         void setIntensityArray( const std::vector< T >& data, double factor = 1.0 ) {
             resize( data.size() );
@@ -238,7 +236,7 @@ namespace adcontrols {
 
     typedef std::shared_ptr<Chromatogram> ChromatogramPtr;
 
-    class ADCONTROLSSHARED_EXPORT Chromatogram_iterator { // : public std::iterator< std::forward_iterator_tag, Chromatogram_iterator > {
+    class ADCONTROLSSHARED_EXPORT Chromatogram_iterator {
         const Chromatogram * chromatogram_;
         size_t idx_;
     public:
