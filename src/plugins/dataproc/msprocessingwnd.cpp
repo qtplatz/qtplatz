@@ -536,8 +536,8 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                 if ( folium.nil() ) {   // add TIC if not yet added
                     auto c = std::make_shared< adcontrols::Chromatogram >();
                     if ( dset->getTIC( static_cast<int>( fcn ), *c ) ) {
-                        if ( c->isConstantSampledData() )
-                            c->getTimeArray();
+                        // if ( c->isConstantSampledData() )
+                        //     c->getTimeArray();
                         c->addDescription( adcontrols::description( L"acquire.title", title ) );
                         adcontrols::ProcessMethod m;
                         MainWindow::instance()->getProcessMethod( m );

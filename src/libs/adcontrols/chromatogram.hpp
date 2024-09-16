@@ -52,9 +52,9 @@ class portable_binary_oarchive;
 class portable_binary_iarchive;
 
 namespace adcontrols {
-    namespace internal {
-        class ChromatogramImpl;
-    }
+    // namespace internal {
+    //     class ChromatogramImpl;
+    // }
 
     class description;
     class descriptions;
@@ -117,12 +117,15 @@ namespace adcontrols {
         double timeFromDataIndex( size_t sampleIndex ) const;
         size_t toSampleIndex( double time, bool closest = false ) const;
         size_t toDataIndex( double time, bool closest = false ) const;
-        std::pair< size_t,size_t> toIndexRange( double s, double e ) const;
+        std::pair< size_t,size_t> toIndexRange( const std::pair< double, double >& ) const;
 
         double getMinIntensity() const;
         double getMaxIntensity() const;
         size_t min_element( size_t beg = 0, size_t end = (-1) ) const;
         size_t max_element( size_t beg = 0, size_t end = (-1) ) const;
+
+        const std::vector< double >& timeArray() const;
+        std::vector< double >& timeArray();
 
         const double * getIntensityArray() const;
         const double * getTimeArray() const;
@@ -153,7 +156,7 @@ namespace adcontrols {
         void operator << ( std::tuple<double, double, double, double>&& ); // time,inens,tof,mass
 
         seconds_t sampInterval() const; // seconds
-        void sampInterval( const seconds_t&  );
+        void setSampInterval( const seconds_t&  );
 
         size_t minimumTimePoints() const;  // equivalent to minTime count as number of points under sampInterval
         seconds_t minimumTime() const;  // a.k.a. start delay time
@@ -161,8 +164,8 @@ namespace adcontrols {
         std::pair<seconds_t, seconds_t> timeRange() const;
 
         void minimumTimePoints( size_t );
-        void minimumTime( const seconds_t& );
-        void maximumTime( const seconds_t& );
+        void setMinimumTime( const seconds_t& );
+        void setMaximumTime( const seconds_t& );
         // void tubingDelayTime( const seconds_t& ); // min
 
         void addDescription( const description& );
@@ -222,12 +225,11 @@ namespace adcontrols {
             std::transform( data.begin(), data.end(), intensVector().begin(), [&](const auto& a){ return double(a * factor); });
         }
 
-
     private:
         friend class boost::serialization::access;
         template<class Archiver> void serialize(Archiver& ar, const unsigned int version);
-
-        internal::ChromatogramImpl * pImpl_;
+        class impl;
+        impl * impl_;
         std::vector< double >& intensVector();
     };
 

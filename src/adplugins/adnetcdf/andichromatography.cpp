@@ -187,11 +187,11 @@ namespace adnetcdf {
             } else if ( key == "detector_maximum_value" ) {
             } else if ( key == "detector_minimum_value" ) {
             } else if ( key == "actual_run_time_length" ) {
-                chro_->maximumTime( data.at( 0 ) );
+                chro_->setMaximumTime( data.at( 0 ) );
             } else if ( key == "actual_sampling_interval" ) {
-                chro_->sampInterval( data.at( 0 ) );
+                chro_->setSampInterval( data.at( 0 ) );
             } else if ( key == "actual_delay_time" ) {
-                chro_->minimumTime( data.at( 0 ) );
+                chro_->setMinimumTime( data.at( 0 ) );
             } else {
                 set_peak( key, data ) || set_baseline( key, data );
             }

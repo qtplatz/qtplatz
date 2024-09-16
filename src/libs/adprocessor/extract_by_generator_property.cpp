@@ -119,8 +119,8 @@ extract_by_generator_property::operator()( const adcontrols::ProcessMethod& pm
         std::for_each( vec_.begin(), vec_.end()
                        , [&]( auto t ){
                            auto chro = std::get< 2 >( t );
-                           chro->minimumTime( std::get< 0 >(time_range) );
-                           chro->maximumTime( std::get< 1 >(time_range) );
+                           chro->setMinimumTime( std::get< 0 >(time_range) );
+                           chro->setMaximumTime( std::get< 1 >(time_range) );
                            chro->setAxisLabel( adcontrols::plot::yAxis, isCounting ? "Counts" : "Intensity" );
                            chro->setAxisUnit( isCounting ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
                        });

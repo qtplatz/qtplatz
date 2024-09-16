@@ -215,10 +215,9 @@ namespace adnetcdf {
                     chro->resize( data_.size() );
                     for ( size_t i = 0; i < chro->size(); ++i ) {
                         chro->setDatum( i, { std::get< scan_acquisition_time >( data_[i] ), values[i] } );
-                        // ADDEBUG() << chro->datum( i );
                     }
-                    chro->minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
-                    chro->maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+                    chro->setMinimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
+                    chro->setMaximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
                     chro->setIsConstantSampledData( false );
 
                     auto pol = ( ion_polarity_ ?
@@ -254,8 +253,8 @@ namespace adnetcdf {
                 tic.setTime( i, std::get< scan_acquisition_time > ( data_[i] ) );
                 tic.setIntensity( i, std::get< total_intensity > ( data_[i] ) );
             }
-            tic.minimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
-            tic.maximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
+            tic.setMinimumTime( std::get< scan_acquisition_time > ( data_.front() ) );
+            tic.setMaximumTime( std::get< scan_acquisition_time > ( data_.back() ) );
             tic.addDescription( { "Create", (boost::format("TIC/TIC.%d") % 1 ).str()  } );
             tic.addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
             tic.setIsCounting( isCounting_[ 0 ] );

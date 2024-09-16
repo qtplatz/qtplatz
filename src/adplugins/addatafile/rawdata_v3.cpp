@@ -344,7 +344,7 @@ rawdata::find_scan( int idx, int fcn ) const
 
     // TIC based scan#, this will return not "replicates" aligned data pos
     if ( size_t(fcn) < tic_.size() ) {
-        double t = tic_[ fcn ]->getTimeArray()[ idx ];
+        double t = tic_[ fcn ]->time( idx ); // __getTimeArray()[ idx ];
         auto it = std::lower_bound( times_.begin(), times_.end(), t, [] ( const std::pair<double, int>& a, double t ){ return a.first < t; } );
         if ( it != times_.end() )
             return std::distance( times_.begin(), it );

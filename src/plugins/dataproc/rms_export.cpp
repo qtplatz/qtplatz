@@ -349,7 +349,7 @@ boost::optional<
             >
 rms_calculator::compute_rms( const adcontrols::Chromatogram& chro, const std::pair< double, double >& xrange )
 {
-    auto range = chro.toIndexRange( xrange.first, xrange.second );
+    auto range = chro.toIndexRange( xrange );
     const size_t N = range.second - range.first + 1;
 
     const double * const data = chro.getIntensityArray() + range.first;

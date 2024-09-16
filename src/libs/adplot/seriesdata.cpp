@@ -36,7 +36,7 @@ SeriesData::SeriesData() : start_pos_(0)
 }
 
 SeriesData::SeriesData( const SeriesData & t ) : start_pos_( t.start_pos_ )
-                                               , values_( t.values_ ) 
+                                               , values_( t.values_ )
 {
 }
 
@@ -90,11 +90,9 @@ SeriesData::setData( const adcontrols::Chromatogram& c )
     if ( x ) {
         for ( size_t i = 0; i < size; ++i )
             values_.emplace_back( x[i], y[i] );
-            //values_.emplace_back( adcontrols::Chromatogram::toMinutes( x[i] ), y[i] );
     } else {
         for ( size_t i = 0; i < size; ++i )
             values_.emplace_back( c.timeFromDataIndex( i ), y[i] );
-            //values_.emplace_back( adcontrols::Chromatogram::toMinutes( c.timeFromDataIndex( i ) ), y[i] );
     }
 
 }
@@ -106,4 +104,3 @@ SeriesData::setData( size_t size, const double * x, const double * y )
     for ( size_t i = 0; i < size; ++i )
         values_.emplace_back( x[i], y[i] );
 }
-

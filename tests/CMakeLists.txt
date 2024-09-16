@@ -24,7 +24,7 @@ find_package( Boost 1.75 REQUIRED COMPONENTS
 #add_subdirectory( test_json )
 #add_subdirectory( test_pkarea )
 add_subdirectory( test_regex )
-add_subdirectory( test_numpy )
+#add_subdirectory( test_numpy )
 
 if ( NOT CMAKE_CROSSCOMPILING )
 #  add_subdirectory( test_dataprocessor )

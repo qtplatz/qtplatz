@@ -160,8 +160,8 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                                 , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
             for ( auto& r : impl_->results_ ) {
-                r->pChr_->minimumTime( time_range.first );
-                r->pChr_->maximumTime( time_range.second );
+                r->pChr_->setMinimumTime( time_range.first );
+                r->pChr_->setMaximumTime( time_range.second );
                 vec.push_back( r->pChr_ );
             }
 
@@ -231,8 +231,8 @@ MSChromatogramExtractor::operator () ( std::vector< std::shared_ptr< adcontrols:
                             , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
         for ( auto& r : impl_->results_ ) {
-            r->pChr_->minimumTime( time_range.first );
-            r->pChr_->maximumTime( time_range.second );
+            r->pChr_->setMinimumTime( time_range.first );
+            r->pChr_->setMaximumTime( time_range.second );
             vec.push_back( r->pChr_ );
         }
         return true;

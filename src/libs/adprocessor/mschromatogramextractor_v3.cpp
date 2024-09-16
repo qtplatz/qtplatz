@@ -476,8 +476,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
 
             for ( auto& xc : temp ) {
                 xc.pChr->setIsCounting( isCounting );
-                xc.pChr->minimumTime( time_range.first );
-                xc.pChr->maximumTime( time_range.second );
+                xc.pChr->setMinimumTime( time_range.first );
+                xc.pChr->setMaximumTime( time_range.second );
                 // ADDEBUG() << "\tcreating chromatogram: " << (global_mslock ? "has lock" : "no lock");
                 if ( auto desc = impl_->desc_mslock() ) {
                     // ADDEBUG() << "\tdescreptor: " << desc->keyValue();
@@ -533,8 +533,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
 
         for ( auto& r : impl_->results_ ) {
             r->pChr_->setIsCounting( isCounting );
-            r->pChr_->minimumTime( time_range.first );
-            r->pChr_->maximumTime( time_range.second );
+            r->pChr_->setMinimumTime( time_range.first );
+            r->pChr_->setMaximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
             r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
             if ( auto desc = impl_->desc_mslock() ) {
@@ -588,8 +588,8 @@ MSChromatogramExtractor::extract_by_axis_range( std::vector< std::shared_ptr< ad
 
         for ( auto& r : impl_->results_ ) {
             r->pChr_->setIsCounting( isCounting );
-            r->pChr_->minimumTime( time_range.first );
-            r->pChr_->maximumTime( time_range.second );
+            r->pChr_->setMinimumTime( time_range.first );
+            r->pChr_->setMaximumTime( time_range.second );
             r->pChr_->setAxisLabel( adcontrols::plot::yAxis, r->isCounting_ ? "Counts" : "Intensity" );
             r->pChr_->setAxisUnit( r->isCounting_ ? adcontrols::plot::Counts : adcontrols::plot::Arbitrary );
             r->pChr_->setGeneratorProperty( boost::json::serialize( gen ) );
@@ -709,8 +709,8 @@ MSChromatogramExtractor::extract_by_json( std::vector< std::shared_ptr< adcontro
                             , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
         for ( auto& r : impl_->results_ ) {
-            r->pChr_->minimumTime( time_range.first );
-            r->pChr_->maximumTime( time_range.second );
+            r->pChr_->setMinimumTime( time_range.first );
+            r->pChr_->setMaximumTime( time_range.second );
             if ( r->isCounting_ ) {
                 r->pChr_->setAxisLabel( adcontrols::plot::yAxis, "Counts" );
                 r->pChr_->setAxisUnit( adcontrols::plot::Counts );
