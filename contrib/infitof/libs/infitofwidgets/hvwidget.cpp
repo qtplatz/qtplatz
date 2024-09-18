@@ -252,10 +252,10 @@ hvWidget::hvWidget( const QString& server
             spin->setKeyboardTracking( false );
 #if __cplusplus >= 202002L
             connect( spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
-                     , [=]( double value ){ handleValueChanged( spin, value ); } );
+                     , [=,this]( double value ){ handleValueChanged( spin, value ); } );
 #else
             connect( spin, QOverload<double>::of(&QDoubleSpinBox::valueChanged)
-                     , [=,this]( double value ){ handleValueChanged( spin, value ); } );
+                     , [=]( double value ){ handleValueChanged( spin, value ); } );
 #endif
         }
         if ( auto spin = findChild< QDoubleSpinBox * >( ( "act." + std::get< 0 >( item ) ).c_str() ) ) {

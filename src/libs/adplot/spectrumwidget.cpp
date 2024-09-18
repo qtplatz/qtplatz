@@ -86,54 +86,7 @@ namespace adplot {
         };
     }
 
-    class SpectrumWidget::impl {
-    public:
-        impl() : autoAnnotation_( true )
-               , isTimeAxis_( false )
-               , yAxisForAnnotation_( QwtPlot::yLeft )
-               , keepZoomed_( true )
-               , haxis_( HorizontalAxisMass )
-               , focusedFcn_( -1 ) // no focus
-               , scaleFcn_( -1 )
-               , yScale1_( {} )       // yLeft user specified
-               , normalizedY_{ false }
-            {}
-        bool autoAnnotation_;
-        bool isTimeAxis_;
-
-        std::weak_ptr< const adcontrols::MassSpectrum > msForAnnotation_;  // for annotation
-        QwtPlot::Axis yAxisForAnnotation_;
-
-        std::vector< Annotation > annotations_;
-        std::vector< std::unique_ptr< TraceData > > traces_;
-
-        std::atomic<bool> keepZoomed_;
-        std::atomic<HorizontalAxis> haxis_;
-        std::atomic<int> focusedFcn_;
-        int scaleFcn_;
-        std::mutex mutex_;
-        std::optional< std::pair< double, double > > yScale1_;
-        std::array< bool, QwtPlot::axisCnt > normalizedY_;
-
-        bool normalizedY( QwtPlot::Axis axis ) const { return normalizedY_.at( axis ); }
-
-        void clear();
-        void update_annotations( plot&, const QRectF&, QwtPlot::Axis );
-		void clear_annotations();
-
-        // void handleZoomRect( QRectF& );
-        QwtText tracker1( const QPointF& );
-        QwtText tracker2( const QPointF&, const QPointF& );
-
-        boost::optional< std::pair< double, double > > scaleY( const QRectF&, QwtPlot::Axis ) const;
-
-        std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
-        void baseScale( bool, QRectF& rc );
-
-    };
-
-    /////////////////////////////////////////////////////////////////////////////
-
+    ///////////////////////////////////
     class SpectrumWidget::xSeriesData : public QwtSeriesData<QPointF> {
         xSeriesData( const xSeriesData& ) = delete;
         xSeriesData& operator = ( const xSeriesData& ) = delete;
@@ -189,14 +142,7 @@ namespace adplot {
             return indices_.size();
         }
 
-        void handleZoomed( const QRectF& rc ) {
-            xrange_ = std::make_pair( rc.left(), rc.right() );
-            auto mm = ms_.minmax_element( xrange_, axisTime_ );
-            minmax_ = std::make_pair( ms_.intensity( mm.first ), ms_.intensity( mm.second ) );
-            if ( pThis_->impl_->normalizedY_[ QwtPlot::yLeft ] ) {
-                ADDEBUG() << "--- xSeriesData: " << xrange_ << ", mm=" << minmax_;
-            }
-        }
+        void handleZoomed( const QRectF& rc );
 
     private:
         SpectrumWidget * pThis_;
@@ -208,8 +154,7 @@ namespace adplot {
         bool axisTime_;
     };
 
-    ///////////////////////////////////////////////////////////////////////////
-
+    ///////////////////////////////////////////
     class SpectrumWidget::TraceData {
     public:
         TraceData( SpectrumWidget * pThis
@@ -281,8 +226,56 @@ namespace adplot {
         bool isTimeAxis_;
     };
 
-    ///////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////
+    class SpectrumWidget::impl {
+    public:
+        impl() : autoAnnotation_( true )
+               , isTimeAxis_( false )
+               , yAxisForAnnotation_( QwtPlot::yLeft )
+               , keepZoomed_( true )
+               , haxis_( HorizontalAxisMass )
+               , focusedFcn_( -1 ) // no focus
+               , scaleFcn_( -1 )
+               , yScale1_( {} )       // yLeft user specified
+               , normalizedY_{ false }
+            {}
+        bool autoAnnotation_;
+        bool isTimeAxis_;
+
+        std::weak_ptr< const adcontrols::MassSpectrum > msForAnnotation_;  // for annotation
+        QwtPlot::Axis yAxisForAnnotation_;
+
+        std::vector< Annotation > annotations_;
+        std::vector< std::unique_ptr< TraceData > > traces_;
+
+        std::atomic<bool> keepZoomed_;
+        std::atomic<HorizontalAxis> haxis_;
+        std::atomic<int> focusedFcn_;
+        int scaleFcn_;
+        std::mutex mutex_;
+        std::optional< std::pair< double, double > > yScale1_;
+        std::array< bool, QwtPlot::axisCnt > normalizedY_;
+
+        bool normalizedY( QwtPlot::Axis axis ) const { return normalizedY_.at( axis ); }
+
+        void clear();
+        void update_annotations( plot&, const QRectF&, QwtPlot::Axis );
+		void clear_annotations();
+
+        // void handleZoomRect( QRectF& );
+        QwtText tracker1( const QPointF& );
+        QwtText tracker2( const QPointF&, const QPointF& );
+
+        boost::optional< std::pair< double, double > > scaleY( const QRectF&, QwtPlot::Axis ) const;
+
+        std::pair<bool,bool> scaleY( const QRectF&, std::pair< double, double >& left, std::pair< double, double >& right );
+        void baseScale( bool, QRectF& rc );
+
+    };
+
+    /////////////////////////////////////////////////////////////////////////////
 } // namespace adplot
 
 namespace {
@@ -701,7 +694,7 @@ SpectrumWidget::setData( std::shared_ptr< const adcontrols::MassSpectrum > ptr, 
         impl_->traces_.resize( idx + 1 );
 
     if ( ! impl_->traces_[ idx ] )
-        impl_->traces_[ idx ] = std::make_unique< TraceData >( this, idx );
+        impl_->traces_[ idx ] = std::make_unique< SpectrumWidget::TraceData >( this, idx );
 
     auto& trace = impl_->traces_[ idx ];
 
@@ -1269,4 +1262,16 @@ uint32_t
 SpectrumWidget::viewId() const
 {
     return viewid_;
+}
+
+/////////////////////////
+void
+SpectrumWidget::xSeriesData::handleZoomed( const QRectF& rc )
+{
+    xrange_ = std::make_pair( rc.left(), rc.right() );
+    auto mm = ms_.minmax_element( xrange_, axisTime_ );
+    minmax_ = std::make_pair( ms_.intensity( mm.first ), ms_.intensity( mm.second ) );
+    if ( pThis_->impl_->normalizedY_[ QwtPlot::yLeft ] ) {
+        ADDEBUG() << "--- xSeriesData: " << xrange_ << ", mm=" << minmax_;
+    }
 }

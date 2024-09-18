@@ -28,6 +28,8 @@
 #include <boost/serialization/version.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <cstdint>
+#include <istream>
+#include <ostream>
 #include <memory>
 
 namespace boost { namespace serialization { class access; } }
@@ -64,7 +66,7 @@ namespace aqdrv4 {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
-    
+
     struct ACQRSCONTROLSSHARED_EXPORT horizontal_method {
         double sampInterval;
         double delayTime;    // digitizer mode can be negative
@@ -74,10 +76,10 @@ namespace aqdrv4 {
         uint32_t nbrAvgWaveforms;
 
         double width() const { return sampInterval * nbrSamples; }
-        
+
         horizontal_method() : sampInterval( 0.5e-9 )
                             , delayTime( 0.0 )
-                            , nbrSamples( 10000 ) // filled when apply to device                              
+                            , nbrSamples( 10000 ) // filled when apply to device
                             , mode( 0 )
                             , flags( 0 )
                             , nbrAvgWaveforms( 1 )
@@ -113,17 +115,17 @@ namespace aqdrv4 {
         friend class boost::serialization::access;
         template<class Archive> void serialize( Archive& ar, const unsigned int version );
     };
-    
+
 
     class ACQRSCONTROLSSHARED_EXPORT acqiris_method {
     public:
         acqiris_method();
         acqiris_method( const acqiris_method& t );
-        
+
         static const char * modelClass() { return "AqDrv4"; };
         static const char * itemLabel() { return "AqDrv4"; };
         static const boost::uuids::uuid& clsid();
-        
+
         enum class DigiMode : uint32_t { Digitizer = 0, Averager = 2 };
 
         std::shared_ptr< trigger_method > mutable_trig();
@@ -137,7 +139,7 @@ namespace aqdrv4 {
         std::shared_ptr< const vertical_method > ext() const;
         std::shared_ptr< const vertical_method > ch1() const;
         std::shared_ptr< const vertical_method > ch2() const;
-        
+
         boost::uuids::uuid clsid_;
         uint32_t methodNumber_;
         std::shared_ptr< trigger_method > trig_;

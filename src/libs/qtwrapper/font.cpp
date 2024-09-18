@@ -67,7 +67,7 @@ font::font()
 {
 }
 
-QFont&
+QFont
 font::operator () ( QFont&& font, fontSize size, fontFamily family )
 {
     if ( family >= 1 && family < font_family_list.size() )
@@ -78,7 +78,7 @@ font::operator () ( QFont&& font, fontSize size, fontFamily family )
     return font;
 }
 
-QFont&
+QFont
 font::operator () ( QFont&& font, double scale )
 {
     font.setPointSize( font.pointSize() * scale );
