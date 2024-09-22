@@ -41,12 +41,6 @@ PeakMarker::PeakMarker()
     markers_[ idPeakCenter ]->setLineStyle( QwtPlotMarker::VLine );
     markers_[ idPeakCenter ]->setLinePen( QColor( 0xff, 0, 0, 0x40 ), 0, Qt::DashDotLine );
 
-    markers_[ idPeakLeft ]->setLineStyle( QwtPlotMarker::VLine );
-    markers_[ idPeakLeft ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-
-    markers_[ idPeakRight ]->setLineStyle( QwtPlotMarker::VLine );
-    markers_[ idPeakRight ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
-
     markers_[ idPeakBase ]->setLineStyle( QwtPlotMarker::HLine );
     markers_[ idPeakBase ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
 
@@ -55,6 +49,13 @@ PeakMarker::PeakMarker()
 
     markers_[ idPeakTop ]->setLineStyle( QwtPlotMarker::HLine );
     markers_[ idPeakTop ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
+
+    for ( auto id: { idPeakLeft, idPeakRight, idWidthLeft, idWidthRight } ) {
+        markers_[ id ]->setLineStyle( QwtPlotMarker::VLine );
+        markers_[ id ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
+        // markers_[ idPeakRight ]->setLineStyle( QwtPlotMarker::VLine );
+        // markers_[ idPeakRight ]->setLinePen( Qt::darkGray, 0, Qt::DotLine );
+    }
 }
 
 QwtPlotMarker *
@@ -144,17 +145,25 @@ PeakMarker::visible( bool v )
 void
 PeakMarker::setPeak( const adcontrols::Peak& pk, adplot::constants::chromatogram_time_spec spec )
 {
+    auto const& tr = pk.retentionTime();
+
     if ( spec == constants::chromatogram_time_seconds ) {
         markers_[ idPeakCenter ]->setValue( pk.peakTime(), 0 );
         markers_[ idPeakLeft ]->setValue( pk.startTime(), 0 );
         markers_[ idPeakRight ]->setValue( pk.endTime(), 0 );
+        markers_[ idWidthLeft ]->setValue( tr.boundary().first, 0 );
+        markers_[ idWidthRight ]->setValue( tr.boundary().second, 0 );
     } else if ( spec == constants::chromatogram_time_minutes ) {
         markers_[ idPeakCenter ]->setValue( adcontrols::timeutil::toMinutes( pk.peakTime() ), 0 );
         markers_[ idPeakLeft ]->setValue( adcontrols::timeutil::toMinutes( pk.startTime() ), 0 );
         markers_[ idPeakRight ]->setValue( adcontrols::timeutil::toMinutes( pk.endTime() ), 0 );
     }
-    double hh = pk.topHeight() - pk.peakHeight() / 2;
-    markers_[ idPeakThreshold ]->setValue( 0, hh );
+
+    //double hh = pk.topHeight() - pk.peakHeight() / 2;
+    markers_[ idPeakThreshold ]->setValue( 0, tr.threshold().first );
     markers_[ idPeakBase ]->setValue( 0, std::min( pk.startHeight(), pk.endHeight() ) );
     markers_[ idPeakTop ]->setValue( 0, pk.topHeight() );
+
+    //------>
+
 }

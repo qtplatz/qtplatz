@@ -155,6 +155,29 @@ namespace {
             return std::get< RAW_INTENSITY >( t );
         }
     };
+
+    /////////////////
+
+    struct intersect {
+        std::function< double( int pos ) > fx_, fy_;
+        intersect( std::function< double( int pos ) > fx, std::function< double( int pos ) > fy ) : fx_(fx), fy_( fy ) {}
+
+        double left( uint32_t x, uint32_t llimit, double threshold ) const {
+            if ( x <= llimit )
+                return fx_( x ); // no more data on left
+            // interporation between x and x - 1
+            return fx_( x - 1 ) + ( fx_( x ) - fx_( x - 1 ) ) * ( threshold - fy_(x - 1) ) / ( fy_( x ) - fy_( x - 1 ) );
+        }
+
+        double right( uint32_t x, uint32_t rlimit, double threshold ) const {
+            if ( x >= rlimit )  // no more data on right
+                return fx_( x );
+            // interporation between x and x + 1
+            return fx_( x ) + ( fx_( x + 1 ) - fx_( x ) ) * ( fy_( x ) - threshold ) / ( fy_( x ) - fy_( x + 1 ) );
+        }
+
+    };
+
 }
 
 namespace chromatogr {
@@ -934,9 +957,10 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.5 );
     double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.5 );
 
-    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << std::make_pair( l_threshold, r_threshold )
-    //           << ", H=" << pk.topHeight();
+    ADDEBUG() << "## " << __FUNCTION__ << "\t" << std::make_pair( l_threshold, r_threshold )
+              << ", H=" << pk.topHeight();
 
+    std::pair< double, double > boundaries{0,0};
     // left boundary
     long left_bound = pk.topPos() - 1;
     while ( ( c.intensity( left_bound - 1 ) > l_threshold ) && ( ( left_bound - 1 ) > pk.startPos() ) ) {
@@ -948,6 +972,12 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
     while ( ( c.intensity( right_bound + 1 ) > r_threshold ) && ( ( right_bound + 1 ) < pk.endPos() ) ) {
         right_bound++;
     }
+
+    // --------->
+    intersect lr( [&](int pos){return c.time_at(pos);}, [&](int pos){return c.intensity(pos);} );
+    boundaries.first = lr.left( left_bound, pk.startPos(), l_threshold );
+    boundaries.second = lr.right( right_bound, pk.endPos(), r_threshold );
+    // <---------
 
 	if ( ( right_bound - left_bound + 1 ) < 5 ) {
 		left_bound--;
@@ -967,7 +997,7 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
         double c = r[2];
         double tR = (-b) / 2 / c;
 
-        // ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
+        ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
 
         if ( tR < X.front() || X.back() < tR ) {
             // apex is outside range -- no maximum found
@@ -981,7 +1011,7 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
         adcontrols::RetentionTime tr;
         tr.setAlgorithm( adcontrols::RetentionTime::ParaboraFitting );
         tr.setThreshold( l_threshold, r_threshold );
-        tr.setBoundary( X[ 0 ], X[ X.size() - 1 ] );
+        tr.setBoundary( boundaries.first, boundaries.second ); // <-- will be overwited by peak_wieth method
         tr.setEq( a, b, c );
         pk.setRetentionTime( tr );
 
@@ -1110,6 +1140,11 @@ helper::peak_width( const adcontrols::PeakMethod&, const signal_processor& c, ad
     double threshold = pk.topHeight() - pk.peakHeight() * 0.5;
     double width = moment.width( [&](int pos){ return c.intensity( pos ); }, threshold, pk.startPos(), pk.topPos(), pk.endPos() );
     pk.setPeakWidth( width );
+
+    auto tr = pk.retentionTime();
+    tr.setThreshold( threshold, threshold );
+    tr.setBoundary( moment.xLeft(), moment.xRight() );
+    pk.setRetentionTime( tr );
 
     return true;
 }

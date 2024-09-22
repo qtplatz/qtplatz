@@ -126,10 +126,6 @@ namespace adcontrols {
         inline size_t size() const { return dataArray_.size(); }
         inline const std::pair<double, double>& getAcquisitionTimeRange() const { return timeRange_; }
         inline double samplingInterval() const { return samplingInterval_; /* seconds */ }
-        void setSamplingInterval( double v ) { samplingInterval_ = v; }
-
-        bool isConstantSampledData() const { return isConstantSampling_; }
-        void setIsConstantSampledData( bool b ) { isConstantSampling_ = b; }
 
         void setTime( size_t idx, const double& t ) {
             timeArray_.resize( dataArray_.size() );
@@ -620,7 +616,9 @@ Chromatogram::getTimeArray() const
         impl_->timeArray().resize( impl_->dataArray().size() );
         auto [t0,t1] = impl_->getAcquisitionTimeRange();
         size_t n{0};
-        std::generate( impl_->timeArray().begin(), impl_->timeArray().end(), [&]{return t1 + impl_->samplingInterval() * n++; } );
+        std::generate( impl_->timeArray().begin()
+                       , impl_->timeArray().end()
+                       , [&]{return t0 + impl_->samplingInterval() * n++; } );
     }
     return impl_->timeArray().data();
 }
@@ -689,15 +687,15 @@ Chromatogram::setAxisUnit( plot::unit unit, size_t den )
 
 
 void
-Chromatogram::setMinimumTime( const seconds_t& min )
+Chromatogram::setMinimumTime( const seconds_t& t )
 {
-    impl_->minTime( min );
+    impl_->minTime( t );
 }
 
 void
-Chromatogram::setMaximumTime( const seconds_t& min )
+Chromatogram::setMaximumTime( const seconds_t& t )
 {
-    impl_->maxTime( min );
+    impl_->maxTime( t );
 }
 
 void
@@ -911,7 +909,6 @@ Chromatogram::impl::setDataArray( const double * p, size_t sz )
 void
 Chromatogram::impl::setTimeArray( const double * p, size_t sz ) // array of second
 {
-    ADDEBUG() << __FUNCTION__;
     if ( p && sz ) {
         if ( timeArray_.size() != size() )
             timeArray_.resize( size() );

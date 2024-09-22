@@ -43,14 +43,16 @@ namespace adplot {
 
     class ADPLOTSHARED_EXPORT PeakMarker : public std::enable_shared_from_this< PeakMarker > {
     public:
-        enum idAxis { idPeakLeft, idPeakCenter, idPeakRight, idPeakBase, idPeakThreshold, idPeakTop, numMarkers };
+        enum idAxis { idPeakLeft, idPeakCenter, idPeakRight, idPeakBase, idPeakThreshold, idPeakTop
+                      , idWidthLeft, idWidthRight
+                      , numMarkers };
 
         virtual ~PeakMarker();
         PeakMarker();
 
         void attach( QwtPlot * );
         void detach();
-        
+
         void setYAxis( int );
         void setValue( idAxis, double x, double y );
 

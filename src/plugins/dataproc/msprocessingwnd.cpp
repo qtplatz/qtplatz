@@ -1254,7 +1254,7 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
         QRectF rc = pImpl_->profileSpectrum_->zoomRect();
         menu.addAction( tr( "Make mass chromatograms (%1--%2)" )
                         .arg( QString::number(rc.left(),'g',5) ).arg( QString::number(rc.right(),'g',5) )
-                        , [=]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rc.left(), rc.right() ); } );
+                        , [=,this]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rc.left(), rc.right() ); } );
     }
 
     // [2]
