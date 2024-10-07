@@ -47,6 +47,7 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adfs/sqlite.hpp>
+#include <adportable/csv_reader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/textfile.hpp>
 #include <adportable/utf.hpp>
@@ -60,7 +61,7 @@
 #include <boost/any.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/tokenizer.hpp>
+//#include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <filesystem>
 
@@ -130,8 +131,6 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
-    ADDEBUG() << "============== datafile::open(" << filename << ") ===============";
-
     Dialog dlg;
 
     QStringList models;
@@ -154,7 +153,6 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         dlg.setDataType( Dialog::data_spectrum );
     }
 
-    ADDEBUG() << "============== datafile::open(" << filename << ") ifstream";
     std::ifstream in( path );
     if ( in.fail() ) {
         QMessageBox::information(0, "Text file provider"
@@ -162,17 +160,13 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         return false;
     }
 
-    typedef boost::char_separator<char> separator;
-    typedef boost::tokenizer< separator > tokenizer;
-    separator sep( ", \t", "", boost::drop_empty_tokens );
-    std::string line;
     size_t nlines = 50;
-    while ( nlines--  && adportable::textfile::getline( in, line ) && in.good() ) {
-        ADDEBUG() << line << "\teof=" << in.eof() << ", " << in.fail();
-        tokenizer tokens( line, sep );
+    adportable::csv::list_string_type alist;
+    adportable::csv::csv_reader reader;
+    while ( nlines--  && reader.read( in, alist ) && in.good() ) {
         QStringList list;
-        for ( tokenizer::iterator it = tokens.begin(); it != tokens.end(); ++it )
-            list << QString::fromStdString( *it );
+        for ( const auto& value: alist )
+            list << QString::fromStdString( std::get<1>(value) );
         dlg.appendLine( list );
     }
 

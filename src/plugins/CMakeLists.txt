@@ -19,11 +19,6 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
 endif()
 
 ##add_subdirectory( imageviewer )
-################### QtCreator4 #########################
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )  # 3.2.81
-  add_subdirectory( coreplugin )
-endif()
-################### END QtCreator4 #####################
 
 if ( QTPLATZ_CONFIG_Servant )
   print_message( "----- Servant -----" )
@@ -88,6 +83,10 @@ endif()
 if ( QTPLATZ_CONFIG_SDFViewer )
   print_message( "----- SDFViewer -----" )
   add_subdirectory( sdfviewer )
+endif()
+
+if ( QTPLATZ_CONFIG_REST )
+  add_subdirectory( rest )
 endif()
 
 print_message( "--------------- end plugins --------------------->" )

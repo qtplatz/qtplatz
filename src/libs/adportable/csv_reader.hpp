@@ -41,6 +41,7 @@ namespace adportable {
 
         typedef boost::variant< x3::unused_type, std::string, double, int > variant_type;
         typedef std::vector< variant_type > list_type;
+        typedef std::vector< std::pair< variant_type, std::string > > list_string_type;
 
         class ADPORTABLESHARED_EXPORT csv_reader;
 
@@ -57,6 +58,7 @@ namespace adportable {
             bool skip( std::istream&, size_t nlines );
             bool read( list_type& );
             bool read( std::istream&, list_type& );
+            bool read( std::istream&, list_string_type& );
         private:
             class impl;
             std::unique_ptr< impl > impl_;
@@ -71,10 +73,9 @@ namespace adportable {
             template< typename V > T operator()( const V& v ) const { return v; }
         };
         // std::string
-        template<> template<typename V> std::string to_value<std::string>::operator()(const V& v) const { return std::to_string( v ); }
-        // int|double
-        template<> template<> int to_value<int>::operator()(const std::string& v) const { try { return stoi(v); } catch ( ... ){}; return {}; }
-        template<> template<> double to_value<double>::operator()(const std::string& v) const { try { return stod(v); } catch ( ... ){}; return {}; }
+        template<> template<typename V> std::string to_value<std::string>::operator()(const V& v) const;
+        template<> template<> int to_value<int>::operator()(const std::string& v) const;
+        template<> template<> double to_value<double>::operator()(const std::string& v) const;
 
         // visitor
         template< typename T >

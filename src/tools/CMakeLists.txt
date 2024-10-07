@@ -1,6 +1,17 @@
 
-add_subdirectory (adurlx)
-add_subdirectory (eventbroker)
+if ( WIN32 )
+  set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
+  set ( OPENSSL_USE_STATIC_LIBS TRUE )
+endif()
+
+find_package( OpenSSL )
+
+if ( OPENSSL_FOUND )
+  add_subdirectory ( http )
+endif()
+
+add_subdirectory ( adurlx )
+add_subdirectory ( eventbroker )
 
 if ( NOT CMAKE_CROSSCOMPILING )
 

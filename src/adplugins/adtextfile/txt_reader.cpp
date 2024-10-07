@@ -66,8 +66,7 @@ txt_reader::load( std::ifstream& istrm
         if ( list[0].which() == 1 && boost::get< std::string >(list[0]).find("##") != std::string::npos )
             break;
 
-        ADDEBUG() << list[0] << "\t" << adportable::csv::to_tuple<double,double>( list );
-
+        // ADDEBUG() << list[0] << "\t" << adportable::csv::to_tuple<double,double,double,int>( list );
         for ( const auto& idx: ignColumns ) {
             list.erase( list.begin() + idx );
         }

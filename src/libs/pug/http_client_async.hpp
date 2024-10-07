@@ -54,7 +54,8 @@ public:
 
     // Start the asynchronous operation
     std::future< boost::beast::http::response< boost::beast::http::string_body > >
-    run( const std::string& host, const std::string& port, const std::string& target, int version );
+    run( const std::string& host, const std::string& port, const std::string& target, int version
+         , const std::string& accept = "application/json" );
     void on_resolve( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type results );
     void on_connect( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type::endpoint_type );
     void on_write( boost::beast::error_code ec, std::size_t bytes_transferred );

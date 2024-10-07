@@ -76,7 +76,6 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
     }
     ADDEBUG() << __FUNCTION__ << "\t" << name << ", " << std::make_pair(hasTime, hasMass);
 
-    // auto tp0 = std::chrono::steady_clock::now();
     // x3 parser load duration 20.5ms for 11478 lines on core i7 linux
     txt_reader::data_type tdata;
     auto flags = txt_reader().load( in
@@ -86,22 +85,9 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                     , hasTime
                                     , hasMass
                                     , isCentroid );
+
     auto data = txt_reader().make_legacy( tdata, flags );
     const size_t nSamples = tdata.size();
-#if 0
-    // tokenizer load duration 75.2ms for 11478 lines on core i7 linux
-    txt_tokenizer::data_type data;
-    auto flags = txt_tokenizer().load( in
-                                  , data
-                                  , dlg.skipLines()
-                                  , std::vector< size_t >()
-                                  , hasTime
-                                  , hasMass
-                                  , isCentroid );
-    const size_t nSamples = flags[ flag_time ] ? std::get< flag_time >( data ).size() : std::get< flag_mass >( data ).size();
-#endif
-    // auto dur = ( std::chrono::steady_clock::now() - tp0 );
-    // ADDEBUG() << double( std::chrono::duration_cast< std::chrono::microseconds >( dur ).count() ) / 1000.0 << "ms";
 
     if ( nSamples == 0 )
         return false;
@@ -114,7 +100,6 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                 compiled_ = ms;
             }
         }
-        // ADDEBUG() << "model: " << model << ", compiled: " << compiled_.get();
     }
 
     if ( compiled_ ) {

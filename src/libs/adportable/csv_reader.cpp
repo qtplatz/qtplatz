@@ -53,8 +53,10 @@ namespace adportable {
         /////////// input line to string array parser
         auto const quoted_string = x3::lexeme['"' >> +(x3::char_ - '"') >> '"'];
         auto const unquoted_string = *~x3::char_(",\n\t");
+
+        // following code does not conforming to RFC 4180, where it does not allows to ignore '\t' following to separator
         static inline auto csv_parser() {
-            auto delim = ( x3::char_(",\t ") >> *(x3::char_(" ")) );
+            auto delim = ( x3::char_(",\t ") >> *(x3::char_("\t ")) ); // ignore white-spaces follows to delimiter (,\t )
             return
                 ( quoted_string
                   | unquoted_string
@@ -63,6 +65,17 @@ namespace adportable {
                 >> (x3::eoi | x3::eol)
                 ;
         }
+
+        /////////////////
+        // std::string
+        template<> template<typename V> std::string to_value<std::string>::operator()(const V& v) const { return std::to_string( v ); }
+
+        // int
+        template<> template<> int to_value<int>::operator()(const std::string& v) const { try { return stoi(v); } catch ( ... ){}; return {}; }
+
+        // double
+        template<> template<> double to_value<double>::operator()(const std::string& v) const { try { return stod(v); } catch ( ... ){}; return {}; }
+
     } // csv
 
     struct integer {};
@@ -126,7 +139,7 @@ bool
 csv_reader::read( std::istream& istrm, list_type& list )
 {
     list = {};
-#if not defined _MSC_VER
+// #if not defined _MSC_VER
     std::string line;
     if ( std::getline( istrm, line ) ) {
         namespace x3 = boost::spirit::x3;
@@ -146,7 +159,39 @@ csv_reader::read( std::istream& istrm, list_type& list )
             }
         }
     }
-#endif
+// #endif
+    return false;
+}
+
+bool
+csv_reader::read( std::istream& istrm, list_string_type& alist )
+{
+    alist = {};
+    list_type list{};
+
+    std::string line;
+    if ( std::getline( istrm, line ) ) {
+
+        namespace x3 = boost::spirit::x3;
+        auto first( std::begin( line ) ), last( std::end( line ) );
+        if ( x3::parse( first, last, csv::csv_parser(), list ) ) {
+            if ( first == last ) {
+                for ( const auto& value: list ) {
+                    if ( value.type() == typeid( std::string ) ) {
+                        const auto& a = boost::get< std::string >( value );
+                        variant_type v;
+                        if ( type_parser_list< integer, real, null >()( a, v ) ) {
+                            alist.emplace_back( v, a );
+                        } else {
+                            alist.emplace_back( a, a );
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
