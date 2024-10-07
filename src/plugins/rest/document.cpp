@@ -194,7 +194,7 @@ document::JSTREST( const QByteArray& ba )
     auto rest= boost::json::value_to< adcontrols::JSTREST >(  adportable::json_helper::parse( ba.toStdString() ) );
 
     // auto url = rest.pug_url().empty() ? adcontrols::JSTREST::to_url( rest, true ) : rest.pug_url();
-    auto url = adcontrols::JSTREST::to_url( rest, true );
+    auto url = adcontrols::JSTREST::to_url( rest );
     ADDEBUG() << "url=" << url;
 
     auto urlx = adcontrols::PUGREST::parse_url( url );

@@ -29,6 +29,25 @@
 int
 main()
 {
+    std::string rex1 = R"((.*)://([^/]*)(/.*)$)";
+    std::vector< std::string > texts = {
+        "https://api.jstage.jst.go.jp/searchapi/do?service=3&material=Mass%20Spectrometry"
+    };
+    std::regex ex( rex1, std::regex::extended );
+
+    std::cout << "regex: " << rex1 << std::endl;
+    for ( const auto& key: texts ) {
+        std::match_results< typename std::basic_string< char >::const_iterator > match;
+        if ( std::regex_match( key, match, ex ) ) {
+            std::cout << "-- match -- " << key << std::endl;
+            for ( size_t i = 0; i < match.size(); ++i )
+                std::cout << "\tmatch." << i << "\t" << match[i].str() << std::endl;
+        } else {
+            std::cout << "-- not match -- " << key << std::endl;
+        }
+    }
+
+#if 0
     std::string rex1 = R"(^.*\(SPD-40_A.*$)";
     std::string rex2 = R"(^SFE([0-9]+).*SFC)";
     //std::regex ex( "(MSLock)" );
@@ -68,6 +87,5 @@ main()
             std::cout << "-- not match -- " << key << std::endl;
         }
     }
-
-
+#endif
 }

@@ -52,40 +52,27 @@ namespace adwidgets {
     public:
         ~impl() {}
         impl() {}
-        void autocomplete( bool checked ) {
-            d_.set_pug_autocomplete( checked );
+        void set_target( const QString& target ) {
+            d_.set_target( target.toStdString() );
             emit dataChanged();
         }
-        void set_identify( const QString& text ) {
-            d_.set_pug_identifier( text.toStdString() );
+        void set_port( const QString& port ) {
+            d_.set_port( port.toStdString() );
             emit dataChanged();
         }
-        void set_autocomplete( bool checked ) {
-            d_.set_pug_autocomplete( checked );
-            emit dataChanged();
-        }
-
-        void set_property( const QString& property, bool checked ) {
-            d_.set_pug_property( property.toStdString(), checked );
-            emit dataChanged();
-        }
-        void set_domain( const QString& domain, bool checked ) {
-            if ( checked )
-                d_.set_pug_domain( domain.toStdString() );
-            emit dataChanged();
-        }
-        void set_namespace( const QString& ns, bool checked ) {
-            if ( checked )
-                d_.set_pug_namespace( ns.toStdString() );
+        void set_host( const QString& host ) {
+            d_.set_host( host.toStdString() );
             emit dataChanged();
         }
 
         void set_url( const QString& url ) {
-            d_.set_pug_url( url.toStdString() );
+            d_.set_url( url.toStdString() );
+            emit urlChanged();
         }
 
     signals:
         void dataChanged();
+        void urlChanged();
 
     public:
         adcontrols::JSTREST d_;
@@ -103,79 +90,40 @@ JSTRestForm::~JSTRestForm()
 JSTRestForm::JSTRestForm( QWidget * parent ) : QFrame( parent )
                                              , impl_( new impl{} )
 {
+    using adcontrols::JSTREST;
+
     if ( auto vLayout = new QVBoxLayout( QVBoxLayout( this ) ) ) {
 
         if ( auto gridLayout = add_layout( vLayout, create_widget< QGridLayout >("layout_1") ) ) {
             std::tuple< size_t, size_t > xy{0,0};
-            add_widget( gridLayout, create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++ );
-            if ( auto edt
-                 = add_widget( gridLayout, create_widget< QLineEdit >( "url", "api.jstage.jst.go.jp" )
-                               , std::get<0>(xy), std::get<1>(xy)++) ) {
-                connect( edt, &QLineEdit::textEdited, impl_, &impl::set_url );
-            }
+            add_widget( gridLayout, create_widget< QLabel >( "port", "PORT:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto w
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "port", "https" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_port( text ); });
+
+            add_widget( gridLayout, create_widget< QLabel >( "host", "HOST:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto w
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "host", "www.example.com" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_host( text ); });
+        }
+
+        if ( auto gridLayout = add_layout( vLayout, create_widget< QGridLayout >("layout_2") ) ) {
+            std::tuple< size_t, size_t > xy{0,0};
+            add_widget( gridLayout, create_widget< QLabel >( "target", "QUERY:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto w
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "target", "target" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_target( text ); });
 
             ++xy;
-            add_widget( gridLayout, create_widget< QLabel >( "query", "Query:" ), std::get<0>(xy), std::get<1>(xy)++ );
-            if ( auto w
-                 = add_widget( gridLayout, create_widget< QLineEdit >( "identifier", "apap" ), std::get<0>(xy), std::get<1>(xy)++ ) )
-                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_identify( text ); });
+            add_widget( gridLayout, create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto edt
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "url", JSTREST::to_url( impl_->d_ ).c_str() )
+                               , std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( edt, &QLineEdit::textChanged, impl_, &impl::set_url );
+            ++xy;
         }
 
-        if ( auto hLayout = add_layout( vLayout, create_widget< QHBoxLayout >("layout_2") ) ) {
-
-            if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("property", "property" ) ) )  {
-
-                if ( auto gLayout = new QGridLayout{ gbx } ) {
-                    gLayout->setContentsMargins( {} );
-
-                    std::tuple< size_t, size_t > lxy{0,0};
-                    for ( auto prop: { "CanonicalSMILES", "MolecularFormula", "MolecularWeight"
-                                       , "InChI", "InChIKey", "IUPACName"
-                                       , "Title", "XLogP", "ExactMass" } ) {
-                        if ( auto cbx
-                             = add_widget( gLayout, create_widget< QCheckBox >( prop, prop ), std::get<0>(lxy), std::get<1>(lxy)++ ) )
-                            connect( cbx, &QCheckBox::toggled, [cbx,this]( bool checked ){
-                                impl_->set_property( cbx->objectName(), checked ); });
-                        if ( std::get<1>(lxy) >= 3 )
-                            ++lxy;
-                    }
-                }
-            }
-
-            if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("domain", "domain" ) ) )  {
-                if ( auto gLayout = new QGridLayout{ gbx } ) {
-                    gLayout->setContentsMargins( {} );
-                    std::tuple< size_t, size_t > lxy{0,0};
-                    for( auto domain: { "compound", "substance", "protein", "taxonomy" } ) {
-                        if ( auto rbtn = add_widget( gLayout, create_widget< QRadioButton >(domain, domain, this )
-                                                     , std::get<0>(lxy), std::get<1>(lxy)++ ) ) {
-                            connect( rbtn, &QRadioButton::toggled, this, [rbtn,this]( bool checked ){
-                                impl_->set_domain( rbtn->objectName(), checked );    });
-                        }
-                        if ( std::get<1>(lxy) >= 2 )
-                            ++lxy;
-                    }
-                }
-            }
-
-            // ++xy;
-            if ( auto gbx = add_widget( hLayout, create_widget< QGroupBox >("namespace", "namespace" ) ) ) {
-                if ( auto gLayout = new QGridLayout{ gbx } ) {
-                    gLayout->setContentsMargins( {} );
-                    std::tuple< size_t, size_t > lxy{0,0};
-                    for( auto ns: { "name", "cid", "smiles", "inchi", "inchikey", "formula" } ) {
-                        if ( auto rbtn = add_widget( gLayout, create_widget< QRadioButton >( ns, ns, this )
-                                                     , std::get<0>(lxy), std::get<1>(lxy)++ ) ) {
-                            connect( rbtn, &QRadioButton::toggled, this, [rbtn, this]( bool checked ){
-                                impl_->set_namespace( rbtn->objectName(), checked );   });
-                        }
-                        if ( std::get<1>(lxy) >= 3 )
-                            ++lxy;
-                    }
-                }
-            }
-        }
-
+        ///////////////// button //////////////////
         if ( auto btn = add_widget( vLayout, create_widget< QDialogButtonBox >( "btnBox" ) ) ) {
             btn->setStandardButtons( QDialogButtonBox::Apply );
             connect( btn, &QDialogButtonBox::clicked, [this](){
@@ -189,8 +137,22 @@ JSTRestForm::JSTRestForm( QWidget * parent ) : QFrame( parent )
 
     connect( impl_, &impl::dataChanged, this, [&](){
         if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) ) {
-            url->setText( QString::fromStdString( adcontrols::JSTREST::to_url( impl_->d_, true ) ) );
-            impl_->set_url( url->text() );
+            url->setText( QString::fromStdString( adcontrols::JSTREST::to_url( impl_->d_ ) ) );
+        }
+    });
+
+    connect( impl_, &impl::urlChanged, this, [&](){
+        if ( auto host = accessor{this}.find< QLineEdit * >( "host" ) ) {
+            QSignalBlocker block( host );
+            host->setText( QString::fromStdString( impl_->d_.host().c_str() ) );
+        }
+        if ( auto port = accessor{this}.find< QLineEdit * >( "port" ) ) {
+            QSignalBlocker block( port );
+            port->setText( QString::fromStdString( impl_->d_.port().c_str() ) );
+        }
+        if ( auto target = accessor{this}.find< QLineEdit * >( "target" ) ) {
+            QSignalBlocker block( target );
+            target->setText( QString::fromStdString( impl_->d_.target().c_str() ) );
         }
     });
 }
@@ -204,35 +166,19 @@ JSTRestForm::data() const
 void
 JSTRestForm::setData( const adcontrols::JSTREST& t )
 {
+    QSignalBlocker block( this );
     impl_->d_ = t;
     if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) ) {
-        url->setText( QString::fromStdString( adcontrols::JSTREST::to_url( t, true ) ) );
+        url->setText( QString::fromStdString( adcontrols::JSTREST::to_url( t ) ) );
     }
-    // if ( auto gbx = accessor{this}.find< QGroupBox * >( "identifier" ) ) {
-    //     gbx->setChecked( t.pug_autocomplete() );
-    // }
-    if ( auto query = accessor{this}.find< QLineEdit * >( "query" ) ) {
-        query->setText( QString::fromStdString( t.pug_identifier() ) );
+    if ( auto host = accessor{this}.find< QLineEdit * >( "host" ) ) {
+        host->setText( QString::fromStdString( t.host() ) );
     }
-    if ( auto gbx = accessor{this}.find< QGroupBox * >( "property" ) ) {
-        QSignalBlocker block( gbx );
-        for ( const auto& cbx: gbx->findChildren< QCheckBox * >() ) {
-            bool checked = std::find( t.pug_properties().begin()
-                                      , t.pug_properties().end()
-                                      , cbx->objectName().toStdString() ) != t.pug_properties().end();
-            cbx->setChecked( checked );
-        }
+    if ( auto port = accessor{this}.find< QLineEdit * >( "port" ) ) {
+        port->setText( QString::fromStdString( t.port() ) );
     }
-    if ( auto gbx = accessor{this}.find< QGroupBox * >( "domain" ) ) {
-        if ( auto radio = accessor{ gbx }.find< QRadioButton * >( QString::fromStdString( t.pug_domain() ) ) ) {
-            radio->setChecked( true );
-        }
-    }
-
-    if ( auto gbx = accessor{this}.find< QGroupBox * >( "namespace" ) ) {
-        if ( auto radio = accessor{ gbx }.find< QRadioButton * >( QString::fromStdString( t.pug_namespace() ) ) ) {
-            radio->setChecked( true );
-        }
+    if ( auto target = accessor{this}.find< QLineEdit * >( "target" ) ) {
+        target->setText( QString::fromStdString( t.target() ) );
     }
 }
 

@@ -45,38 +45,28 @@ namespace adcontrols {
         JSTREST();
         JSTREST( const JSTREST& );
 
-        bool pug_autocomplete() const;
-        void set_pug_autocomplete( bool );
+        void set_url( const std::string& );
 
-        const std::vector< std::string >& pug_properties() const;
-        void set_pug_properties( std::vector< std::string >&& );
-        void set_pug_property( const std::string&, bool add );
+        std::string host() const;
+        void set_host( const std::string& );
 
-        std::string pug_domain() const;
-        void set_pug_domain( const std::string& );
+        std::string port() const;
+        void set_port( const std::string& );
 
-        std::string pug_namespace() const;
-        void set_pug_namespace( const std::string& );
+        std::string target() const;
+        void set_target( const std::string& );
 
-        std::string pug_identifier() const;
-        void set_pug_identifier( const std::string& );
+        static std::string to_url( const JSTREST& );
 
-        std::string pug_url() const;
-        void set_pug_url( const std::string& );
-
-        static std::string to_url( const JSTREST&, bool host = false );
         static std::tuple< std::string   // port 'https'
                            , std::string // host
-                           , std::string // rest
+                           , std::string // target
                            >  parse_url( const std::string& );
 
     private:
-        bool autocomplete_;
-        std::string identifier_;
-        std::vector< std::string > property_;  // CanonicalSMILES, ...
-        std::string namespace_; // name|cid|inchi, ...
-        std::string domain_;
-        std::string url_;
+        std::string port_;
+        std::string host_;
+        std::string target_;
 
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const JSTREST& );
         friend ADCONTROLSSHARED_EXPORT JSTREST tag_invoke( const boost::json::value_to_tag< JSTREST >&, const boost::json::value& );
