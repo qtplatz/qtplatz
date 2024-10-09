@@ -75,7 +75,7 @@ namespace adwidgets {
         void urlChanged();
 
     public:
-        adcontrols::FigshareREST d_;
+        adcontrols::figshareREST d_;
     };
 
 }
@@ -90,7 +90,7 @@ FigshareRestForm::~FigshareRestForm()
 FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
                                              , impl_( new impl{} )
 {
-    using adcontrols::FigshareREST;
+    using adcontrols::figshareREST;
 
     if ( auto vLayout = new QVBoxLayout( QVBoxLayout( this ) ) ) {
 
@@ -117,7 +117,7 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
             ++xy;
             add_widget( gridLayout, create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++ );
             if ( auto edt
-                 = add_widget( gridLayout, create_widget< QLineEdit >( "url", FigshareREST::to_url( impl_->d_ ).c_str() )
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "url", figshareREST::to_url( impl_->d_ ).c_str() )
                                , std::get<0>(xy), std::get<1>(xy)++ ) )
                 connect( edt, &QLineEdit::textChanged, impl_, &impl::set_url );
             ++xy;
@@ -133,11 +133,11 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
         }
     }
 
-    setData( adcontrols::FigshareREST{} );
+    setData( adcontrols::figshareREST{} );
 
     connect( impl_, &impl::dataChanged, this, [&](){
         if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) ) {
-            url->setText( QString::fromStdString( adcontrols::FigshareREST::to_url( impl_->d_ ) ) );
+            url->setText( QString::fromStdString( adcontrols::figshareREST::to_url( impl_->d_ ) ) );
         }
     });
 
@@ -157,19 +157,19 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
     });
 }
 
-adcontrols::FigshareREST
+adcontrols::figshareREST
 FigshareRestForm::data() const
 {
     return impl_->d_;
 }
 
 void
-FigshareRestForm::setData( const adcontrols::FigshareREST& t )
+FigshareRestForm::setData( const adcontrols::figshareREST& t )
 {
     QSignalBlocker block( this );
     impl_->d_ = t;
     if ( auto url = accessor{this}.find< QLineEdit * >( "url" ) ) {
-        url->setText( QString::fromStdString( adcontrols::FigshareREST::to_url( t ) ) );
+        url->setText( QString::fromStdString( adcontrols::figshareREST::to_url( t ) ) );
     }
     if ( auto host = accessor{this}.find< QLineEdit * >( "host" ) ) {
         host->setText( QString::fromStdString( t.host() ) );

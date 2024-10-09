@@ -31,6 +31,7 @@
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/pugrest.hpp>
 #include <adcontrols/jstrest.hpp>
+#include <adcontrols/figsharerest.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <adprot/aminoacid.hpp>
@@ -198,6 +199,38 @@ document::JSTREST( const QByteArray& ba )
     ADDEBUG() << "url=" << url;
 
     auto urlx = adcontrols::PUGREST::parse_url( url );
+    const int version = 11; // 1.0
+
+    // "pubchem.ncbi.nlm.nih.gov";
+    const auto& [port, host, body] = urlx;
+
+    boost::asio::io_context ioc;
+    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+    {
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+        ctx.set_default_verify_paths();
+        boost::certify::enable_native_https_server_verification(ctx);
+    }
+    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    ioc.run();
+
+    auto res = future.get();
+    emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
+    ADDEBUG() << url;
+#endif
+}
+
+void
+document::figshareREST( const QByteArray& ba )
+{
+# if OPENSSL_FOUND
+    auto rest= boost::json::value_to< adcontrols::figshareREST >(  adportable::json_helper::parse( ba.toStdString() ) );
+
+    // auto url = rest.pug_url().empty() ? adcontrols::JSTREST::to_url( rest, true ) : rest.pug_url();
+    auto url = adcontrols::figshareREST::to_url( rest );
+    ADDEBUG() << "url=" << url;
+
+    auto urlx = adcontrols::figshareREST::parse_url( url );
     const int version = 11; // 1.0
 
     // "pubchem.ncbi.nlm.nih.gov";

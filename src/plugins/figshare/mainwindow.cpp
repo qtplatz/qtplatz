@@ -129,8 +129,6 @@ MainWindow::setSimpleDockWidgetArrangement()
 QDockWidget *
 MainWindow::createDockWidget( QWidget * widget, const QString& title, const QString& objname )
 {
-    ADDEBUG() << __FUNCTION__;
-
     if ( widget->windowTitle().isEmpty() ) {
         widget->setWindowTitle( title );
     }
@@ -208,7 +206,7 @@ MainWindow::createTopStyledBar()
         toolBarLayout->setSpacing( 0 );
 
         if ( auto am = Core::ActionManager::instance() ) {
-            Core::Context context( ( Utils::Id( "REST.MainWindow" ) ) );
+            Core::Context context( ( Utils::Id( "figshare.MainWindow" ) ) );
 
             // if ( auto p = new QAction( tr("Mols"), this ) ) {
             //     connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 0 ); } );
@@ -261,8 +259,8 @@ MainWindow::createDockWidgets()
         connect( w, &adwidgets::JSTRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
     if ( auto w = new adwidgets::FigshareRestForm( this ) ) {
-        createDockWidget( w, "JST", "JST" );
-        connect( w, &adwidgets::FigshareRestForm::apply, document::instance(), &document::JSTREST );
+        createDockWidget( w, "figshare", "figshare" );
+        connect( w, &adwidgets::FigshareRestForm::apply, document::instance(), &document::figshareREST );
         connect( w, &adwidgets::FigshareRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
 }

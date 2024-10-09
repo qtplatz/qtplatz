@@ -75,6 +75,7 @@ namespace figshare {
     public slots:
         void PubChemREST( const QByteArray& );
         void JSTREST( const QByteArray& );
+        void figshareREST( const QByteArray& );
 
     };
 

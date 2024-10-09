@@ -35,70 +35,70 @@
 
 namespace adcontrols {
 
-    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const FigshareREST& );
-    FigshareREST tag_invoke( const boost::json::value_to_tag< FigshareREST >&, const boost::json::value& jv );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const figshareREST& );
+    figshareREST tag_invoke( const boost::json::value_to_tag< figshareREST >&, const boost::json::value& jv );
 
-    FigshareREST::~FigshareREST()
+    figshareREST::~figshareREST()
     {
     }
 
-    FigshareREST::FigshareREST() : port_( "https" )
+    figshareREST::figshareREST() : port_( "https" )
                                  , host_( "api.figshare.com" )
                                  , target_( "/v2/articles?page_size=10&order=published_date&order_direction=desc&doi=doi.org%2F10.50893%2Fdata.massspectrometry.24785367" )
     {
     }
 
-    FigshareREST::FigshareREST( const FigshareREST& t ) : port_( t.port_ )
+    figshareREST::figshareREST( const figshareREST& t ) : port_( t.port_ )
                                                         , host_( t.host_ )
                                                         , target_( t.target_ )
     {
     }
 
     void
-    FigshareREST::set_url( const std::string& url )
+    figshareREST::set_url( const std::string& url )
     {
         std::tie( port_, host_, target_ ) = parse_url( url );
     }
 
     std::string
-    FigshareREST::host() const
+    figshareREST::host() const
     {
         return host_;
     }
 
     void
-    FigshareREST::set_host( const std::string& t )
+    figshareREST::set_host( const std::string& t )
     {
         host_ = t;
     }
 
     std::string
-    FigshareREST::port() const
+    figshareREST::port() const
     {
         return port_;
     }
 
     void
-    FigshareREST::set_port( const std::string& t )
+    figshareREST::set_port( const std::string& t )
     {
         port_ = t;
     }
 
     std::string
-    FigshareREST::target() const
+    figshareREST::target() const
     {
         return target_;
     }
 
     void
-    FigshareREST::set_target( const std::string& t )
+    figshareREST::set_target( const std::string& t )
     {
         target_ = t;
     }
 
 
     std::string
-    FigshareREST::to_url( const FigshareREST& t )
+    figshareREST::to_url( const figshareREST& t )
     {
         std::ostringstream o;
         o << t.port() << "://" << t.host() << t.target();
@@ -106,7 +106,7 @@ namespace adcontrols {
     }
 
     std::tuple< std::string, std::string, std::string > // port, host, taarget
-    FigshareREST::parse_url( const std::string& url )
+    figshareREST::parse_url( const std::string& url )
     {
         std::regex re( R"((.*)://([^/]*)(/.*)$)", std::regex::extended );
         std::match_results< typename std::basic_string< char >::const_iterator > match;
@@ -129,7 +129,7 @@ namespace adcontrols {
     }
 
     void
-    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const FigshareREST& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const figshareREST& t )
     {
         jv = {
             { "port", t.port_ }
@@ -138,13 +138,13 @@ namespace adcontrols {
         };
     }
 
-    FigshareREST
-    tag_invoke( const boost::json::value_to_tag< FigshareREST >&, const boost::json::value& jv )
+    figshareREST
+    tag_invoke( const boost::json::value_to_tag< figshareREST >&, const boost::json::value& jv )
     {
         using namespace adportable::json;
 
         if ( jv.kind() == boost::json::kind::object ) {
-            FigshareREST t;
+            figshareREST t;
             auto obj = jv.as_object();
             extract( obj, t.port_, "port" );
             extract( obj, t.host_, "host" );

@@ -37,13 +37,13 @@
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT FigshareREST;
+    class ADCONTROLSSHARED_EXPORT figshareREST;
 
-    class FigshareREST {
+    class figshareREST {
     public:
-        ~FigshareREST();
-        FigshareREST();
-        FigshareREST( const FigshareREST& );
+        ~figshareREST();
+        figshareREST();
+        figshareREST( const figshareREST& );
 
         void set_url( const std::string& );
 
@@ -56,7 +56,7 @@ namespace adcontrols {
         std::string target() const;
         void set_target( const std::string& );
 
-        static std::string to_url( const FigshareREST& );
+        static std::string to_url( const figshareREST& );
 
         static std::tuple< std::string   // port 'https'
                            , std::string // host
@@ -68,7 +68,7 @@ namespace adcontrols {
         std::string host_;
         std::string target_;
 
-        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const FigshareREST& );
-        friend ADCONTROLSSHARED_EXPORT FigshareREST tag_invoke( const boost::json::value_to_tag< FigshareREST >&, const boost::json::value& );
+        friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const figshareREST& );
+        friend ADCONTROLSSHARED_EXPORT figshareREST tag_invoke( const boost::json::value_to_tag< figshareREST >&, const boost::json::value& );
     };
 }

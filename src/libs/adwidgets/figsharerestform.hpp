@@ -42,8 +42,8 @@ namespace adwidgets {
         explicit FigshareRestForm(QWidget *parent = 0);
         ~FigshareRestForm();
 
-        adcontrols::FigshareREST data() const;
-        void setData( const adcontrols::FigshareREST& );
+        adcontrols::figshareREST data() const;
+        void setData( const adcontrols::figshareREST& );
 
     public slots:
 
