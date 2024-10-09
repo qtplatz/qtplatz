@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0+ OR GPL-3.0 WITH Qt-GPL-exception-1.0
 
-#include "restplugin.hpp"
+#include "figshareplugin.hpp"
 #include "mainwindow.hpp"
 #include <adportable/debug.hpp>
 
@@ -18,7 +18,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-namespace rest {
+namespace figshare {
 
 /*!  A mode with a push button based on BaseMode.  */
 
@@ -27,16 +27,15 @@ namespace rest {
     public:
         Mode()
             {
-                setWidget(new QPushButton(tr("REST PushButton!")));
-                setContext(Core::Context("REST.MainView"));
-                setDisplayName(tr("REST"));
-                setIcon(QIcon());
+                setContext(Core::Context("figshare.MainView"));
+                setDisplayName(tr("figshare"));
+                setIcon(QIcon(":/figshare/image/figshare.png"));
                 setPriority(0);
-                setId("REST.RESTMode");
+                setId("figshare.figshareMode");
             }
     };
 
-    class RESTPlugin::impl {
+    class FigsharePlugin::impl {
     public:
         std::unique_ptr< Mode > mode_;
         std::unique_ptr< MainWindow > mainWindow_;
@@ -47,21 +46,21 @@ namespace rest {
 
 }
 
-using namespace rest;
+using namespace figshare;
 
-RESTPlugin::RESTPlugin() : impl_( new RESTPlugin::impl() )
+FigsharePlugin::FigsharePlugin() : impl_( new FigsharePlugin::impl() )
 {
-    ADDEBUG() << "============== RESTPlugin::RESTPlugin ================";
+    ADDEBUG() << "============== FigsharePlugin::FigsharePlugin ================";
 }
 
 
-RESTPlugin::~RESTPlugin()
+FigsharePlugin::~FigsharePlugin()
 {
     delete impl_;
 }
 
 bool
-RESTPlugin::initialize(const QStringList &arguments, QString *errorMessage)
+FigsharePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
     ADDEBUG() << __FUNCTION__;
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
@@ -78,20 +77,20 @@ RESTPlugin::initialize(const QStringList &arguments, QString *errorMessage)
     }
     // Create a unique context for our own view, that will be used for the
     // menu entry later.
-    Core::Context context("REST.MainView");
+    Core::Context context("figshare.MainView");
 
     // Create an action to be triggered by a menu entry
     auto action = new QAction(tr("Say \"&Hello World!\""), this);
-    connect(action, &QAction::triggered, this, &RESTPlugin::sayHello );
+    connect(action, &QAction::triggered, this, &FigsharePlugin::sayHello );
 
     // Register the action with the action manager
     Core::Command *command =
-        Core::ActionManager::registerAction( action, "REST.RESTAction", context);
+        Core::ActionManager::registerAction( action, "figshare.figshareAction", context);
 
     // Create our own menu to place in the Tools menu
-    Core::ActionContainer *restMenu =  Core::ActionManager::createMenu("REST.RESTMenu");
+    Core::ActionContainer *restMenu =  Core::ActionManager::createMenu("figshare.figshareMenu");
     QMenu *menu = restMenu->menu();
-    menu->setTitle(tr("&REST"));
+    menu->setTitle(tr("&figshare"));
     menu->setEnabled( true );
 
     // Add the Hello World action command to the menu
@@ -106,13 +105,13 @@ RESTPlugin::initialize(const QStringList &arguments, QString *errorMessage)
 }
 
 void
-RESTPlugin::extensionsInitialized()
+FigsharePlugin::extensionsInitialized()
 {
 	impl_->mainWindow_->OnInitialUpdate();
 }
 
 void
-RESTPlugin::sayHello()
+FigsharePlugin::sayHello()
 {
     // When passing nullptr for the parent, the message box becomes an
     // application-global modal dialog box

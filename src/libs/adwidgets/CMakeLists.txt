@@ -138,6 +138,7 @@ add_library( ${PROJECT_NAME} SHARED
   xchromatogramswidget.cpp      	xchromatogramswidget.hpp
   pugrestform.cpp                       pugrestform.hpp
   jstrestform.cpp                       jstrestform.hpp
+  figsharerestform.cpp                  figsharerestform.hpp
   sfedelayform.cpp      sfedelayform.hpp
   sfedelaydialog.cpp    sfedelaydialog.hpp
   ${_sources}

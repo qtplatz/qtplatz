@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/figshare">
+    <file>image/figshare.png</file>
+  </qresource>
+</RCC>

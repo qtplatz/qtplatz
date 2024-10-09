@@ -36,7 +36,7 @@ class QAction;
 class QLineEdit;
 class QProgressBar;
 
-namespace rest {
+namespace figshare {
 
     class MainWindow : public Utils::FancyMainWindow {
 

@@ -1,14 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2014-2024 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
-** Contact: toshi.hondo@qtplatz.com
+** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics LLC.
+** a written agreement between you and MS-Cheminformatics.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -23,22 +24,35 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
+#include "adwidgets_global.hpp"
+#include <adcontrols/figsharerest.hpp>
+#include <adplugin/lifecycle.hpp>
+#include <adwidgets/lifecycle.hpp>
+#include <memory>
 
-namespace rest {
+namespace adwidgets {
 
-    class RESTWnd : public QWidget {
+    class ADWIDGETSSHARED_EXPORT FigshareRestForm : public QFrame {
+
         Q_OBJECT
+
     public:
-        explicit RESTWnd(QWidget *parent = 0);
-        ~RESTWnd();
+
+        explicit FigshareRestForm(QWidget *parent = 0);
+        ~FigshareRestForm();
+
+        adcontrols::FigshareREST data() const;
+        void setData( const adcontrols::FigshareREST& );
 
     public slots:
-        void handleReply( const QByteArray&, const QString& url );
+
+    signals:
+        void dataChanged( const QString& );
+        void apply( const QByteArray& );
 
     private:
         class impl;
         impl * impl_;
     };
-
 }

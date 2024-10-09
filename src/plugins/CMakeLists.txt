@@ -85,8 +85,8 @@ if ( QTPLATZ_CONFIG_SDFViewer )
   add_subdirectory( sdfviewer )
 endif()
 
-if ( QTPLATZ_CONFIG_REST )
-  add_subdirectory( rest )
+if ( QTPLATZ_CONFIG_figshare )
+  add_subdirectory( figshare )
 endif()
 
 print_message( "--------------- end plugins --------------------->" )

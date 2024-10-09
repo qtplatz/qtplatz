@@ -61,7 +61,7 @@
 #include <map>
 #include <memory>
 
-namespace rest {
+namespace figshare {
 
     class RESTWnd::impl {
     public:
@@ -69,7 +69,7 @@ namespace rest {
     };
 }
 
-using namespace rest;
+using namespace figshare;
 
 RESTWnd::~RESTWnd()
 {
@@ -77,7 +77,7 @@ RESTWnd::~RESTWnd()
 }
 
 RESTWnd::RESTWnd( QWidget * parent ) : QWidget( parent )
-                                           , impl_( new impl{} )
+                                     , impl_( new impl{} )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
         if ( auto edit =

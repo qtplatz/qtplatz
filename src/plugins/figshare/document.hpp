@@ -35,7 +35,7 @@ class QSettings;
 class QSqlDatabase;
 class QTextEdit;
 
-namespace rest {
+namespace figshare {
 
     class ChemConnection;
     class ChemQuery;

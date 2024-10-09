@@ -159,16 +159,22 @@ namespace chemistry {
             , { "Reserpine" }}
         , { R"(CC[C@H](C)[C@@H]1[C@H](CC[C@@]2(O1)C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)C)", { "Ivermectin B1a" }}
         , { R"(C[C@H]1CC[C@]2(C[C@@H]3C[C@H](O2)C/C=C(/[C@H]([C@H](/C=C/C=C/4\CO[C@H]5[C@@]4([C@@H](C=C([C@H]5O)C)C(=O)O3)O)C)O[C@H]6C[C@@H]([C@H]([C@@H](O6)C)O[C@H]7C[C@@H]([C@H]([C@@H](O7)C)O)OC)OC)\C)O[C@@H]1C(C)C)", { "Ivermectin B1b" } }
+        , { R"(CCCCC[C@@H](/C=C/[C@H]1C=CC(=O)[C@@H]1C/C=C\CCCC(=O)O)O)", { "PGA2", "Prostaglandin A2" }}
+        , { R"(CCCCC[C@@H](/C=C/C1=C(C(=O)CC1)C/C=C\CCCC(=O)O)O)", { "PGB2", "Prostaglandin B2" }}
         , { R"([C@H]1(/C=C/[C@@H](O)CCCCC)C(=O)C[C@H](O)[C@@H]1C/C=C\CCCC(=O)O)", { "PGD2", "Prostaglandin D2" } }
         , { R"([C@H]1(/C=C/[C@@H](O)CCCCC)[C@H](O)CC(=O)[C@@H]1C/C=C\CCCC(=O)O)", { "PGE2", "Prostaglandin E2" } }
-        , { R"(O=C(O)CCC/C=C\C[C@H]1[C@@H](O)C[C@@H](O)[C@@H]1/C=C/[C@@H](O)CCCCC)", { "PGF2" } }
+        , { R"(O=C(O)CCC/C=C\C[C@H]1[C@@H](O)C[C@@H](O)[C@@H]1/C=C/[C@@H](O)CCCCC)", { "PGF2a" }}
+        , { R"(CCCCC[C@@H](/C=C/[C@H]1[C@H]2C[C@@H]([C@@H]1C/C=C\CCCC(=O)O)OO2)OO)", { "PGG2" } }
+        , { R"(O=C(O)CCC/C=C\C[C@H]2[C@H]1OO[C@H](C1)[C@@H]2/C=C/[C@@H](O)CCCCC)", { "PGH2" } }
+        , { R"(O[C@@H]1[C@H](CC(CCCCC(O)=O)=O)[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C1)", { "PGF1a", "6-keto Prostaglandin F1α" } }
+        , { R"(OC(=O)CCC\C=C1\C[C@@H]2[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C[C@@H]2O1)", { "PGI2", "Prostacyclin" } }
+        , { R"(CCCCC[C@@H](/C=C/[C@@H]1[C@H](C=CC1=O)C/C=C\CCCC(=O)O)O)", { "PGJ2" }}
+        , { R"(CCCCC/C=C/C=C/1\[C@H](C=CC1=O)C/C=C\CCCC(=O)O)", { "15-deoxy-delta-12,14-prostaglandin J2" }}
         , { R"(O=C(O)CCCC(OO)/C=C/C=C\C\C=C/C\C=C/CCCCC)", { "5-HPETE", "5-hydroperoxyeicosatetraenoic acid" } }
         , { R"(CCCCC/C=C\C/C=C\C=C\C=C\[C@H]1[C@@H](O1)CCCC(=O)O)", { "LTA4", "Leukotriene A4" } }
         , { R"(CCCCC/C=C\C/C=C\C=C\C=C\[C@H]([C@H](CCCC(=O)O)O)SC[C@@H](/C(=N/CC(=O)O)/O)/N=C(\CC[C@@H](C(=O)O)N)/O)", { "LTC4", "Leukotriene C4" } }
         , { R"(CCCCC\C=C/C\C=C/C=C/C=C/[C@@H](SC[C@H](N)C(=O)NCC(=O)O)[C@@H](O)CCCC(=O)O)", { "LTD4", "Leukotriene D4" } }
         , { R"(CCCCC/C=C\C/C=C\C=C\C=C\[C@H]([C@H](CCCC(=O)O)O)SCC(C(=O)O)N)", { "LTE4", "Leukotriene E4" } }
-        , { R"(O[C@@H]1[C@H](CC(CCCCC(O)=O)=O)[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C1)", { "PGF1a", "6-keto Prostaglandin F1α" } }
-        , { R"(OC(=O)CCC\C=C1\C[C@@H]2[C@@H](/C=C/[C@@H](O)CCCCC)[C@H](O)C[C@@H]2O1)", { "PGI2", "Prostacyclin" } }
         , { R"(CCCCC[C@@H](/C=C/[C@@H]1[C@H]([C@@H]2C[C@@H](O2)O1)C/C=C\CCCC(=O)O)O)", { "Thromboxane A2", "TXA2" } }
         , { R"(CCCCC[C@H](O)\C=C\[C@H]1OC(O)C[C@H](O)[C@@H]1C\C=C/CCCC(O)=O)", { "Thrombxane B2", "TXB2" } }
         , { R"(CCOC(=O)c1ccccc1C(=O)OCC)",                    { "DEP" } } // 222.089
@@ -279,6 +285,9 @@ namespace chemistry {
             , { "Chlorophyll a" }}
         , { R"(CCC1=C(C2=NC1=CC3=C(C4=C([C@@H](C(=C4[N-]3)C5=NC(=CC6=NC(=C2)C(=C6C)C=C)[C@H]([C@@H]5CCC(=O)OC/C=C(\C)/CCC[C@H](C)CCC[C@H](C)CCCC(C)C)C)C(=O)OC)[O-])C)C=O.[Mg+2])"
             , { "Chlorophyll b"}}
+        , { R"(OCC(N)(CO)CO)", { "Tris", "tris(hydroxymethyl)aminomethane" }}
+        , { R"(OC(=O)CCC=5C1=C\C6=N\C(=C/c3n2[Fe](Cl)N1C(=C\C4=N\C(=C/c2c(C=C)c3C)C(/C)=C4/C=C)/C=5C)C(\C)=C6\CCC(O)=O)", { "Hemin" }}
+        , { R"(Oc1ccccc1)", { "Phenol" } }
     };
 
 

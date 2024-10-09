@@ -5,19 +5,19 @@
 
 #include <extensionsystem/iplugin.h>
 
-namespace rest {
+namespace figshare {
 
     class Mode;
 
-    class RESTPlugin
+    class FigsharePlugin
         : public ExtensionSystem::IPlugin
     {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "REST.json")
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "figshare.json")
 
         public:
-        RESTPlugin();
-        ~RESTPlugin() override;
+        FigsharePlugin();
+        ~FigsharePlugin() override;
 
         bool initialize(const QStringList &arguments, QString *errorMessage) override;
 

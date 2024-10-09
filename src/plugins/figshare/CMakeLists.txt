@@ -1,20 +1,21 @@
 cmake_policy( SET CMP0020 NEW )
 cmake_policy( SET CMP0028 NEW )
 
-project( REST )
+project( figshare )
 
 set( PROVIDER MS-Cheminformatics )
 
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 set( CMAKE_AUTOMOC ON )
-set( CMAKE_AUTORCC ON )
 set( CMAKE_AUTOUIC ON )
+set( CMAKE_AUTORCC ON )
+
 file( GLOB UIs *.ui )
 file( GLOB Resources *.qrc )
 
 set( COMPAT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-set( DESCRIPTION "REST QtCreator plugin" )
+set( DESCRIPTION "figshare QtCreator plugin" )
 
 qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
 qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
@@ -55,10 +56,11 @@ include_directories(
 )
 
 add_library( ${PROJECT_NAME} MODULE
-  restplugin.cpp restplugin.hpp
+  figshareplugin.cpp figshareplugin.hpp
   mainwindow.cpp mainwindow.hpp
   restwnd.cpp restwnd.hpp
   document.cpp document.hpp
+  ${Resources}
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
@@ -73,12 +75,12 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adwidgets
   adprot
   qtwrapper
+  pug
   Core
   Qt::Core
   Qt::Svg
   ${RDKit_LIBRARIES}
   ${Boost_LIBRARIES}
-  pug
 )
 
 if ( APPLE )

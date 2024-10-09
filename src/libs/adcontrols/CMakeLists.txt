@@ -234,6 +234,7 @@ add_library( adcontrols SHARED
   jcb2009_peakresult.cpp jcb2009_peakresult.hpp
   pugrest.cpp pugrest.hpp
   jstrest.cpp jstrest.hpp
+  figsharerest.cpp figsharerest.hpp
   )
 
 target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

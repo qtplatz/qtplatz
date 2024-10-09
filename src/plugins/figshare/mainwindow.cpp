@@ -8,6 +8,7 @@
 #include <adwidgets/create_widget.hpp>
 #include <adwidgets/pugrestform.hpp>
 #include <adwidgets/jstrestform.hpp>
+#include <adwidgets/figsharerestform.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <utils/styledbar.h>
 #include <coreplugin/minisplitter.h>
@@ -30,7 +31,7 @@
 #include <QStackedWidget>
 #include <QDockWidget>
 
-namespace rest {
+namespace figshare {
 
     class MainWindow::impl {
     public:
@@ -53,7 +54,7 @@ namespace rest {
 
 }
 
-using namespace rest;
+using namespace figshare;
 
 MainWindow::MainWindow(QWidget *parent) : Utils::FancyMainWindow(parent)
                                         , impl_( new impl( this ) )
@@ -258,5 +259,10 @@ MainWindow::createDockWidgets()
         createDockWidget( w, "JST", "JST" );
         connect( w, &adwidgets::JSTRestForm::apply, document::instance(), &document::JSTREST );
         connect( w, &adwidgets::JSTRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
+    }
+    if ( auto w = new adwidgets::FigshareRestForm( this ) ) {
+        createDockWidget( w, "JST", "JST" );
+        connect( w, &adwidgets::FigshareRestForm::apply, document::instance(), &document::JSTREST );
+        connect( w, &adwidgets::FigshareRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
 }

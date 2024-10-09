@@ -73,7 +73,7 @@
 # include <pug/root_certificates.hpp>
 #endif
 
-namespace rest {
+namespace figshare {
 
     struct user_preference {
         static std::filesystem::path path( QSettings * settings ) {
@@ -104,7 +104,7 @@ namespace rest {
 }
 
 
-using namespace rest;
+using namespace figshare;
 
 std::mutex document::mutex_;
 
