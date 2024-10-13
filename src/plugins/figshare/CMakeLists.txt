@@ -59,6 +59,8 @@ add_library( ${PROJECT_NAME} MODULE
   figshareplugin.cpp figshareplugin.hpp
   mainwindow.cpp mainwindow.hpp
   restwnd.cpp restwnd.hpp
+  csvwnd.cpp csvwnd.hpp
+  csvtable.cpp csvtable.hpp
   document.cpp document.hpp
   ${Resources}
 )

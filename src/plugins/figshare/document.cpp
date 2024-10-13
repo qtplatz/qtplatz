@@ -44,7 +44,9 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <boost/json.hpp>
+#include <boost/format.hpp>
 #include <future>
+#include <sstream>
 
 #if defined _MSC_VER
 # pragma warning(disable:4267) // size_t to unsigned int possible loss of data (x64 int on MSC is 32bit)
@@ -191,10 +193,8 @@ document::PubChemREST( const QByteArray& ba )
 void
 document::JSTREST( const QByteArray& ba )
 {
-# if OPENSSL_FOUND
     auto rest= boost::json::value_to< adcontrols::JSTREST >(  adportable::json_helper::parse( ba.toStdString() ) );
 
-    // auto url = rest.pug_url().empty() ? adcontrols::JSTREST::to_url( rest, true ) : rest.pug_url();
     auto url = adcontrols::JSTREST::to_url( rest );
     ADDEBUG() << "url=" << url;
 
@@ -217,24 +217,20 @@ document::JSTREST( const QByteArray& ba )
     auto res = future.get();
     emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
     ADDEBUG() << url;
-#endif
 }
 
 void
 document::figshareREST( const QByteArray& ba )
 {
-# if OPENSSL_FOUND
     auto rest= boost::json::value_to< adcontrols::figshareREST >(  adportable::json_helper::parse( ba.toStdString() ) );
+    ADDEBUG() << boost::json::value_from( rest );
 
-    // auto url = rest.pug_url().empty() ? adcontrols::JSTREST::to_url( rest, true ) : rest.pug_url();
-    auto url = adcontrols::figshareREST::to_url( rest );
-    ADDEBUG() << "url=" << url;
+    rest.set_target( rest.articles_search() );
+    ADDEBUG() << "######: " << rest.urlx();
 
-    auto urlx = adcontrols::figshareREST::parse_url( url );
     const int version = 11; // 1.0
 
-    // "pubchem.ncbi.nlm.nih.gov";
-    const auto& [port, host, body] = urlx;
+    const auto& [port, host, body] = rest.urlx();
 
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
@@ -245,9 +241,151 @@ document::figshareREST( const QByteArray& ba )
     }
     auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
+    auto res = future.get();
+    emit figshareReply( QByteArray( res.body().data() ), QString::fromStdString( rest.url() ) );
+
+    // find doi from resource_doi
+    {
+        std::vector< std::pair< std::string, int64_t > > idv;
+        boost::system::error_code ec;
+        auto value = boost::json::parse( res.body().data() );
+        if ( value.is_array() ) {
+            auto ja = value.as_array();
+            for ( size_t i = 0; i < ja.size(); ++i ) {
+                if ( auto doi = ja[i].as_object().if_contains( "doi" ) ) {
+                    if ( auto id = ja[i].as_object().if_contains( "id" ) ) {
+                        idv.emplace_back( doi->as_string(), id->as_int64() );
+                    }
+                }
+            }
+        }
+
+        for ( auto& id: idv ) {
+            auto target = rest.list_article_files( std::get<1>( id ) );
+            figshare_rest( rest, target );
+        }
+    }
+
+}
+
+void
+document::figshare_rest( const adcontrols::figshareREST& rest, const std::string& target )
+{
+    const int version = 11; // 1.1
+
+    boost::asio::io_context ioc;
+    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+    {
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+        ctx.set_default_verify_paths();
+        boost::certify::enable_native_https_server_verification(ctx);
+    }
+
+    const auto& [port, host, body] = rest.urlx();
+
+    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, target, version );
+    ioc.run();
 
     auto res = future.get();
-    emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
-    ADDEBUG() << url;
-#endif
+    emit figshareReply( QByteArray( res.body().data() ), QString::fromStdString( target ) );
+
+    //-------->
+    boost::system::error_code ec;
+    auto value = boost::json::parse( res.body().data() );
+    if ( value.is_array() ) {
+        auto ja = value.as_array();
+        for ( size_t i = 0; i < ja.size(); ++i ) {
+            if ( auto download_url = ja[i].as_object().if_contains( "download_url" ) ) {
+                figshare_download( rest, ja[i], download_url->as_string().c_str() );
+            }
+        }
+    }
+}
+
+void
+document::figshare_download( const adcontrols::figshareREST& rest, const boost::json::value& value, const std::string& download_url )
+{
+    const int version = 11; // 1.1
+
+    boost::asio::io_context ioc;
+    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+    {
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+        ctx.set_default_verify_paths();
+        boost::certify::enable_native_https_server_verification(ctx);
+    }
+
+    ADDEBUG() << "download: " << adcontrols::figshareREST::parse_url( download_url );
+
+    const auto& [port, host, body] = adcontrols::figshareREST::parse_url( download_url );
+
+    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    ioc.run();
+
+    auto res = future.get();
+
+    std::ostringstream o;
+
+    if ( res.result_int() == 302 ) {
+
+        for ( auto name: { boost::beast::http::field::location
+                           , boost::beast::http::field::set_cookie
+                           , boost::beast::http::field::content_type} ) {
+            auto it = res.find( name );
+            if ( it != res.end() ) {
+                o << "name: " << it->name() << "\t" << it->value() << std::endl;
+            }
+        }
+        o << "===================================" << std::endl;
+
+        emit downloadReply( QByteArray( o.str().data() ), QString::fromStdString( download_url ) );
+
+        figshare_download( res );
+    }
+}
+
+
+void
+document::figshare_download( const boost::beast::http::response< boost::beast::http::string_body >& resp )
+{
+    const int version = 11; // 1.1
+
+    auto itCookie = resp.find( boost::beast::http::field::set_cookie );
+    if ( itCookie != resp.end() ) {
+        auto it = resp.find( boost::beast::http::field::location );
+        const auto& [port, host, target] = adcontrols::figshareREST::parse_url( it->value() );
+
+        boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
+        {
+            ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
+            ctx.set_default_verify_paths();
+            boost::certify::enable_native_https_server_verification(ctx);
+        }
+
+        boost::beast::http::request< boost::beast::http::empty_body > req;
+        req.version(  version  );
+        req.method(  boost::beast::http::verb::get );
+        req.target(  target  );
+        req.set(  boost::beast::http::field::host, host );
+        req.set(  boost::beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING );
+        req.set( boost::beast::http::field::cookie, itCookie->value() );
+
+        boost::asio::io_context ioc;
+        auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, req );
+        ioc.run();
+
+        auto res = future.get();
+
+        {
+            auto it = res.find( boost::beast::http::field::content_type );
+            if ( it->value() == "text/plain" || it->value() == "text/csv" ) {
+                ADDEBUG() << res;
+                auto server = res.find( boost::beast::http::field::server );
+                if ( server != res.end() ) {
+                    emit downloadReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ) );
+                    emit csvReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ) );
+                }
+            }
+        }
+    }
 }

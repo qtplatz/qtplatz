@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <QtCore/qbytearray.h>
 #include <utils/fancymainwindow.h>
 namespace Core { class IMode; }
 namespace Utils { class StyledBar; }
@@ -58,6 +59,9 @@ namespace figshare {
 
         Utils::StyledBar * createTopStyledBar();
         Utils::StyledBar * createMidStyledBar();
+
+    public slots:
+        void handleCSVReply( const QByteArray& ba, const QString& );
 
     private:
         class impl;

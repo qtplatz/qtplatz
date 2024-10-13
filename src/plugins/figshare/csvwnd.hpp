@@ -1,15 +1,14 @@
 /**************************************************************************
-** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2024 MS-Cheminformatics LLC
+** Copyright (C) 2014-2024 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -24,35 +23,26 @@
 
 #pragma once
 
-#include <QFrame>
-#include "adwidgets_global.hpp"
-#include <adcontrols/figsharerest.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adwidgets/lifecycle.hpp>
-#include <memory>
+#include <QWidget>
 
-namespace adwidgets {
+namespace figshare {
 
-    class ADWIDGETSSHARED_EXPORT FigshareRESTForm : public QFrame {
-
+    class CSVWnd : public QWidget {
         Q_OBJECT
-
     public:
+        explicit CSVWnd(QWidget *parent = 0);
+        ~CSVWnd();
 
-        explicit FigshareRESTForm(QWidget *parent = 0);
-        ~FigshareRESTForm();
-
-        adcontrols::figshareREST data() const;
-        void setData( const adcontrols::figshareREST& );
+        void setData( const QByteArray& ba );
 
     public slots:
-
-    signals:
-        void dataChanged( const QString& );
-        void apply( const QByteArray& );
+        void handleReply( const QByteArray&, const QString& url );
+        void handleFigshareReply( const QByteArray&, const QString& url );
+        void handleDownloadReply( const QByteArray&, const QString& url );
 
     private:
         class impl;
         impl * impl_;
     };
+
 }

@@ -21,11 +21,12 @@
 **
 **************************************************************************/
 
-#include "restwnd.hpp"
+#include "csvwnd.hpp"
 #include <QtCore/qjsondocument.h>
 #include <QtGui/qtextdocument.h>
 #include <adchem/drawing.hpp>
 #include <adcontrols/chemicalformula.hpp>
+#include <adportable/csv_reader.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
@@ -63,7 +64,7 @@
 
 namespace figshare {
 
-    class RESTWnd::impl {
+    class CSVWnd::impl {
     public:
         std::unique_ptr< QTextDocument > textDocument_;
     };
@@ -71,13 +72,13 @@ namespace figshare {
 
 using namespace figshare;
 
-RESTWnd::~RESTWnd()
+CSVWnd::~CSVWnd()
 {
     delete impl_;
 }
 
-RESTWnd::RESTWnd( QWidget * parent ) : QWidget( parent )
-                                     , impl_( new impl{} )
+CSVWnd::CSVWnd( QWidget * parent ) : QWidget( parent )
+                                   , impl_( new impl{} )
 {
     if ( auto layout = new QVBoxLayout( this ) ) {
         if ( auto edit =
@@ -97,7 +98,7 @@ RESTWnd::RESTWnd( QWidget * parent ) : QWidget( parent )
 }
 
 void
-RESTWnd::handleReply( const QByteArray& ba, const QString& url )
+CSVWnd::handleReply( const QByteArray& ba, const QString& url )
 {
     if ( auto edit = findChild< QTextEdit * >() ) {
 
@@ -145,7 +146,7 @@ RESTWnd::handleReply( const QByteArray& ba, const QString& url )
 }
 
 void
-RESTWnd::handleFigshareReply( const QByteArray& ba, const QString& url )
+CSVWnd::handleFigshareReply( const QByteArray& ba, const QString& url )
 {
     if ( auto edit = findChild< QTextEdit * >() ) {
 
@@ -169,7 +170,7 @@ RESTWnd::handleFigshareReply( const QByteArray& ba, const QString& url )
 }
 
 void
-RESTWnd::handleDownloadReply( const QByteArray& ba, const QString& url )
+CSVWnd::handleDownloadReply( const QByteArray& ba, const QString& url )
 {
     if ( auto edit = findChild< QTextEdit * >() ) {
 
@@ -179,7 +180,7 @@ RESTWnd::handleDownloadReply( const QByteArray& ba, const QString& url )
 
         auto cursor = edit->textCursor();
         cursor.insertBlock( QTextBlockFormat{} );
-        cursor.insertText( QString("download <url>%1</url>\n").arg( url ) );
+        cursor.insertText( QString("<url>%1</url>\n").arg( url ) );
 
         if ( auto table = cursor.insertTable( 1, 2 ) ) {
             auto cell = table->cellAt( 0, 0 );
@@ -190,4 +191,20 @@ RESTWnd::handleDownloadReply( const QByteArray& ba, const QString& url )
         cursor.movePosition( QTextCursor::Down );
         cursor.insertText( "\n----- END download REST -----\n" );
     }
+}
+
+void
+CSVWnd::setData( const QByteArray& ba )
+{
+    std::istringstream in(ba.toStdString() );
+
+    adportable::csv::list_string_type alist; // pair<variant,string>
+    adportable::csv::csv_reader reader;
+    while ( reader.read( in, alist ) && in.good() ) {
+        QStringList list;
+        for ( const auto& value: alist )
+            list << QString::fromStdString( std::get<1>(value) );
+        qDebug() << list;
+    }
+
 }

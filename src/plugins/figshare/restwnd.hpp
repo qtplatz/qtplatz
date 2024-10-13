@@ -35,6 +35,8 @@ namespace figshare {
 
     public slots:
         void handleReply( const QByteArray&, const QString& url );
+        void handleFigshareReply( const QByteArray&, const QString& url );
+        void handleDownloadReply( const QByteArray&, const QString& url );
 
     private:
         class impl;

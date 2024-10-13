@@ -27,11 +27,10 @@
 #include <adportable/debug.hpp>
 #include <adportable/json/extract.hpp>
 #include <boost/json.hpp>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <regex>
-
-
 
 namespace adcontrols {
 
@@ -44,7 +43,8 @@ namespace adcontrols {
 
     figshareREST::figshareREST() : port_( "https" )
                                  , host_( "api.figshare.com" )
-                                 , target_( "/v2/articles?page_size=10&order=published_date&order_direction=desc&doi=doi.org%2F10.50893%2Fdata.massspectrometry.24785367" )
+                                 , target_( {} )
+                                 , resource_doi_( "10.5702/massspectrometry.A0153" ) // "10.5702/massspectrometry.A0141" )
     {
     }
 
@@ -96,6 +96,54 @@ namespace adcontrols {
         target_ = t;
     }
 
+    void
+    figshareREST::set_resource_doi( const std::string& resource_doi )
+    {
+        resource_doi_ = resource_doi;
+        ADDEBUG() << "--------------> set_resource_doi: " << resource_doi_;
+    }
+
+    std::string
+    figshareREST::resource_doi() const
+    {
+        return resource_doi_;
+    }
+
+    std::string
+    figshareREST::articles_search( const std::string& resource_doi ) const
+    {
+        if ( ! resource_doi.empty() )
+            resource_doi_ = resource_doi;
+
+        std::ostringstream o;
+        o << "/v2/articles?page_size=10&order=published_date&order_direction=desc&resource_doi=" << resource_doi_;
+
+        ADDEBUG() << "--------------> resource_doi: " << resource_doi_ << "\n"
+                  << o.str() << std::endl
+                  << "/v2/articles?page_size=10&order=published_date&order_direction=desc&resource_doi=10.5702/massspectrometry.A0141";
+
+        return o.str();
+    }
+
+    std::string
+    figshareREST::list_article_files( int64_t id ) const
+    {
+        std::ostringstream o;
+        o << "/v2/articles/" << id << "/files";
+        return o.str();
+    }
+
+    std::tuple< std::string, std::string, std::string > // port, host, taarget
+    figshareREST::urlx() const
+    {
+        return { port_, host_, target_ };
+    }
+
+    std::string
+    figshareREST::url() const
+    {
+        return to_url( *this );
+    }
 
     std::string
     figshareREST::to_url( const figshareREST& t )
@@ -135,6 +183,7 @@ namespace adcontrols {
             { "port", t.port_ }
             , { "host", t.host_ }
             , { "target", t.target_ }
+            , { "resource_doi", t.resource_doi_ }
         };
     }
 
@@ -149,6 +198,7 @@ namespace adcontrols {
             extract( obj, t.port_, "port" );
             extract( obj, t.host_, "host" );
             extract( obj, t.target_, "target" );
+            extract( obj, t.resource_doi_, "resource_doi" );
             return t;
         }
         return {};

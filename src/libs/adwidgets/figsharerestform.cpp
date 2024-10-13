@@ -47,11 +47,17 @@
 
 namespace adwidgets {
 
-    class FigshareRestForm::impl : public QObject {
+    class FigshareRESTForm::impl : public QObject {
         Q_OBJECT
     public:
         ~impl() {}
         impl() {}
+
+        void set_resource_doi( const QString& target ) {
+            d_.set_resource_doi( target.toStdString() );
+            emit dataChanged();
+        }
+
         void set_target( const QString& target ) {
             d_.set_target( target.toStdString() );
             emit dataChanged();
@@ -67,12 +73,10 @@ namespace adwidgets {
 
         void set_url( const QString& url ) {
             d_.set_url( url.toStdString() );
-            emit urlChanged();
         }
 
     signals:
         void dataChanged();
-        void urlChanged();
 
     public:
         adcontrols::figshareREST d_;
@@ -82,13 +86,13 @@ namespace adwidgets {
 
 using namespace adwidgets;
 
-FigshareRestForm::~FigshareRestForm()
+FigshareRESTForm::~FigshareRESTForm()
 {
     delete impl_;
 }
 
-FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
-                                             , impl_( new impl{} )
+FigshareRESTForm::FigshareRESTForm( QWidget * parent ) : QFrame( parent )
+                                                       , impl_( new impl{} )
 {
     using adcontrols::figshareREST;
 
@@ -96,6 +100,12 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
 
         if ( auto gridLayout = add_layout( vLayout, create_widget< QGridLayout >("layout_1") ) ) {
             std::tuple< size_t, size_t > xy{0,0};
+            add_widget( gridLayout, create_widget< QLabel >( "rdoi", "resource_doi:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            if ( auto w
+                 = add_widget( gridLayout, create_widget< QLineEdit >( "resource_doi", "10.6084/m9.figshare.1407024" )
+                               , std::get<0>(xy), std::get<1>(xy)++ ) )
+                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_resource_doi( text ); });
+
             add_widget( gridLayout, create_widget< QLabel >( "port", "PORT:" ), std::get<0>(xy), std::get<1>(xy)++ );
             if ( auto w
                  = add_widget( gridLayout, create_widget< QLineEdit >( "port", "https" ), std::get<0>(xy), std::get<1>(xy)++ ) )
@@ -109,11 +119,10 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
 
         if ( auto gridLayout = add_layout( vLayout, create_widget< QGridLayout >("layout_2") ) ) {
             std::tuple< size_t, size_t > xy{0,0};
-            add_widget( gridLayout, create_widget< QLabel >( "target", "QUERY:" ), std::get<0>(xy), std::get<1>(xy)++ );
-            if ( auto w
-                 = add_widget( gridLayout, create_widget< QLineEdit >( "target", "target" ), std::get<0>(xy), std::get<1>(xy)++ ) )
-                connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_target( text ); });
-
+            // add_widget( gridLayout, create_widget< QLabel >( "target", "QUERY:" ), std::get<0>(xy), std::get<1>(xy)++ );
+            // if ( auto w
+            //      = add_widget( gridLayout, create_widget< QLineEdit >( "target", "target" ), std::get<0>(xy), std::get<1>(xy)++ ) )
+            //     connect( w, &QLineEdit::textChanged, [&](const QString text ){ impl_->set_target( text ); });
             ++xy;
             add_widget( gridLayout, create_widget< QLabel >( "URL", "URL" ), std::get<0>(xy), std::get<1>(xy)++ );
             if ( auto edt
@@ -140,31 +149,16 @@ FigshareRestForm::FigshareRestForm( QWidget * parent ) : QFrame( parent )
             url->setText( QString::fromStdString( adcontrols::figshareREST::to_url( impl_->d_ ) ) );
         }
     });
-
-    connect( impl_, &impl::urlChanged, this, [&](){
-        if ( auto host = accessor{this}.find< QLineEdit * >( "host" ) ) {
-            QSignalBlocker block( host );
-            host->setText( QString::fromStdString( impl_->d_.host().c_str() ) );
-        }
-        if ( auto port = accessor{this}.find< QLineEdit * >( "port" ) ) {
-            QSignalBlocker block( port );
-            port->setText( QString::fromStdString( impl_->d_.port().c_str() ) );
-        }
-        if ( auto target = accessor{this}.find< QLineEdit * >( "target" ) ) {
-            QSignalBlocker block( target );
-            target->setText( QString::fromStdString( impl_->d_.target().c_str() ) );
-        }
-    });
 }
 
 adcontrols::figshareREST
-FigshareRestForm::data() const
+FigshareRESTForm::data() const
 {
     return impl_->d_;
 }
 
 void
-FigshareRestForm::setData( const adcontrols::figshareREST& t )
+FigshareRESTForm::setData( const adcontrols::figshareREST& t )
 {
     QSignalBlocker block( this );
     impl_->d_ = t;
@@ -179,6 +173,9 @@ FigshareRestForm::setData( const adcontrols::figshareREST& t )
     }
     if ( auto target = accessor{this}.find< QLineEdit * >( "target" ) ) {
         target->setText( QString::fromStdString( t.target() ) );
+    }
+    if ( auto resource_doi = accessor{this}.find< QLineEdit * >( "resource_doi" ) ) {
+        resource_doi->setText( QString::fromStdString( t.resource_doi() ) );
     }
 }
 

@@ -4,9 +4,10 @@
 #include "mainwindow.hpp"
 #include "restwnd.hpp"
 #include "document.hpp"
+#include "csvwnd.hpp"
 #include <adportable/debug.hpp>
 #include <adwidgets/create_widget.hpp>
-#include <adwidgets/pugrestform.hpp>
+//#include <adwidgets/pugrestform.hpp>
 #include <adwidgets/jstrestform.hpp>
 #include <adwidgets/figsharerestform.hpp>
 #include <qtwrapper/trackingenabled.hpp>
@@ -171,9 +172,14 @@ MainWindow::createContents()
 
     impl_->stackedWidget_ = new QStackedWidget;
 
-    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< RESTWnd >( "REST" ) ) ) {
+    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< RESTWnd >( "PUG" ) ) ) {
         connect( document::instance(), &document::pugReply, wnd, &RESTWnd::handleReply );
     }
+    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< RESTWnd >( "REST" ) ) ) {
+        connect( document::instance(), &document::figshareReply, wnd, &RESTWnd::handleFigshareReply );
+        connect( document::instance(), &document::downloadReply, wnd, &RESTWnd::handleDownloadReply );
+    }
+    connect( document::instance(), &document::csvReply, this, &MainWindow::handleCSVReply );
 
     if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {
         splitter->addWidget( impl_->stackedWidget_ );
@@ -248,19 +254,31 @@ MainWindow::createMidStyledBar()
 void
 MainWindow::createDockWidgets()
 {
+#if 0
     if ( auto w = new adwidgets::PUGRestForm( this ) ) {
         createDockWidget( w, "PubChem", "PubChem" );
         connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChemREST );
         connect( w, &adwidgets::PUGRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
+#endif
     if ( auto w = new adwidgets::JSTRestForm( this ) ) {
         createDockWidget( w, "JST", "JST" );
         connect( w, &adwidgets::JSTRestForm::apply, document::instance(), &document::JSTREST );
         connect( w, &adwidgets::JSTRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
     }
-    if ( auto w = new adwidgets::FigshareRestForm( this ) ) {
+    if ( auto w = new adwidgets::FigshareRESTForm( this ) ) {
         createDockWidget( w, "figshare", "figshare" );
-        connect( w, &adwidgets::FigshareRestForm::apply, document::instance(), &document::figshareREST );
-        connect( w, &adwidgets::FigshareRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
+        connect( w, &adwidgets::FigshareRESTForm::apply, document::instance(), &document::figshareREST );
+        connect( w, &adwidgets::FigshareRESTForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
+    }
+}
+
+void
+MainWindow::handleCSVReply( const QByteArray& ba, const QString& )
+{
+    qDebug() << ba;
+
+    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< CSVWnd >( "CSV" ) ) ) {
+        wnd->setData( ba );
     }
 }

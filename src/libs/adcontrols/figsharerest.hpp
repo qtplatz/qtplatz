@@ -56,6 +56,17 @@ namespace adcontrols {
         std::string target() const;
         void set_target( const std::string& );
 
+        void set_resource_doi( const std::string& resource_doi );
+        std::string resource_doi() const;
+
+        std::string articles_search( const std::string& resource_doi = std::string{} ) const;
+        std::string list_article_files( int64_t ) const;
+
+        std::tuple< std::string
+                    , std::string
+                    , std::string > urlx() const;
+        std::string url() const;
+
         static std::string to_url( const figshareREST& );
 
         static std::tuple< std::string   // port 'https'
@@ -67,6 +78,8 @@ namespace adcontrols {
         std::string port_;
         std::string host_;
         std::string target_;
+        std::string doi_;
+        mutable std::string resource_doi_;
 
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const figshareREST& );
         friend ADCONTROLSSHARED_EXPORT figshareREST tag_invoke( const boost::json::value_to_tag< figshareREST >&, const boost::json::value& );

@@ -1,15 +1,15 @@
 /**************************************************************************
-** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2024 MS-Cheminformatics LLC
+** Copyright (C) 2010-2017 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2017 MS-Cheminformatics LLC, Toin, Mie Japan
 *
-** Contact: toshi.hondo@qtplatz.com or info@ms-cheminfo.com
+** Contact: toshi.hondo@qtplatz.com
 **
 ** Commercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and MS-Cheminformatics.
+** a written agreement between you and MS-Cheminformatics LLC.
 **
 ** GNU Lesser General Public License Usage
 **
@@ -22,37 +22,25 @@
 **
 **************************************************************************/
 
-#pragma once
+#include "csvtable.hpp"
 
-#include <QFrame>
-#include "adwidgets_global.hpp"
-#include <adcontrols/figsharerest.hpp>
-#include <adplugin/lifecycle.hpp>
-#include <adwidgets/lifecycle.hpp>
-#include <memory>
+namespace figshare {
 
-namespace adwidgets {
-
-    class ADWIDGETSSHARED_EXPORT FigshareRESTForm : public QFrame {
-
-        Q_OBJECT
-
+    class CSVTable::impl {
     public:
 
-        explicit FigshareRESTForm(QWidget *parent = 0);
-        ~FigshareRESTForm();
-
-        adcontrols::figshareREST data() const;
-        void setData( const adcontrols::figshareREST& );
-
-    public slots:
-
-    signals:
-        void dataChanged( const QString& );
-        void apply( const QByteArray& );
-
-    private:
-        class impl;
-        impl * impl_;
     };
+
+}
+
+using namespace figshare;
+
+CSVTable::CSVTable( QWidget *parent ) : TableView( parent )
+                                      , impl_( new impl{} )
+{
+}
+
+CSVTable::~CSVTable()
+{
+    delete impl_;
 }

@@ -14,6 +14,7 @@
 //------------------------------------------------------------------------------
 
 #include "http_client_async.hpp"
+#include <adportable/debug.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -69,6 +70,25 @@ session::run(  const std::string& host, const std::string& port
     req_.set(  http::field::host, host );
     req_.set(  http::field::user_agent, BOOST_BEAST_VERSION_STRING );
     req_.set(  http::field::accept, accept ); //"chemical/x-mdl-sdfile" );
+
+    // Look up the domain name
+    resolver_.async_resolve( host, port
+                             , beast::bind_front_handler(  &session::on_resolve
+                                                           , shared_from_this() ) );
+    return promise_.get_future();
+}
+
+// Start the asynchronous operation
+std::future< boost::beast::http::response< boost::beast::http::string_body > >
+session::run( const std::string& host, const std::string& port, const boost::beast::http::request< boost::beast::http::empty_body >& req )
+{
+    // Set SNI Hostname ( many hosts need this to handshake successfully )
+    if ( ! SSL_set_tlsext_host_name( stream_.native_handle(), host.c_str() )  )    {
+        beast::error_code ec{static_cast<int>( ::ERR_get_error() ), net::error::get_ssl_category()};
+        std::cerr << ec.message() << "\n";
+        return {};
+    }
+    req_ = req;
 
     // Look up the domain name
     resolver_.async_resolve( host, port
@@ -143,7 +163,7 @@ session::on_read(  beast::error_code ec, std::size_t bytes_transferred )
     if (  ec  )
         return fail( ec, "read" );
 
-    // Write the message to standard out
+    // set the message to promise
     promise_.set_value( res_ );
 
     // Set a timeout on the operation

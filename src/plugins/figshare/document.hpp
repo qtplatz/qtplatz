@@ -30,10 +30,16 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <boost/beast.hpp>
+#include <boost/json.hpp>
 
 class QSettings;
 class QSqlDatabase;
 class QTextEdit;
+
+namespace adcontrols {
+    class figshareREST;
+}
 
 namespace figshare {
 
@@ -71,12 +77,19 @@ namespace figshare {
         void onConnectionChanged();
         void databaseModified();
         void pugReply( const QByteArray&, const QString& );
+        void figshareReply( const QByteArray&, const QString& );
+        void downloadReply( const QByteArray&, const QString& );
+        void csvReply( const QByteArray&, const QString& );
 
     public slots:
         void PubChemREST( const QByteArray& );
         void JSTREST( const QByteArray& );
         void figshareREST( const QByteArray& );
 
+    private:
+        void figshare_rest( const adcontrols::figshareREST&, const std::string& target );
+        void figshare_download( const adcontrols::figshareREST&, const boost::json::value&, const std::string& url );
+        void figshare_download( const boost::beast::http::response< boost::beast::http::string_body >& resp );
     };
 
 }
