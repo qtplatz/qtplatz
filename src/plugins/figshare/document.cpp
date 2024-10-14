@@ -40,6 +40,7 @@
 #include <pug/http_client_async.hpp>
 #include <app/app_version.h>
 #include <qtwrapper/settings.hpp>
+#include <QApplication>
 #include <QTextEdit>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -90,14 +91,14 @@ namespace figshare {
         impl() : settings_( std::make_unique< QSettings >(
                                 QSettings::IniFormat, QSettings::UserScope
                                 , QLatin1String( Core::Constants::IDE_SETTINGSVARIANT_STR )
-                                , QLatin1String( "REST" ) ) ) {
+                                , QLatin1String( "REST" ) ) )
+               , downloadCount_( 0 ) {
         }
 
         std::unique_ptr< QSettings > settings_;
-        QSqlDatabase db_;
+        size_t downloadCount_;
 
         static QSettings * settings() { return impl::instance().settings_.get(); }
-        static QSqlDatabase sqlDatabase() { return impl::instance().db_; }
 
         static impl& instance() {
             static impl __impl;
@@ -155,42 +156,6 @@ document::settings()
 }
 
 void
-document::PubChemREST( const QByteArray& ba )
-{
-    ADDEBUG() << __FUNCTION__;
-#if PUBCHEM_REST
-    auto rest= boost::json::value_to< adcontrols::PUGREST >(  adportable::json_helper::parse( ba.toStdString() ) );
-
-    auto url = rest.pug_url().empty() ? adcontrols::PUGREST::to_url( rest, true ) : rest.pug_url();
-
-    auto urlx = adcontrols::PUGREST::parse_url( url );
-    ADDEBUG() << "url=" << urlx;
-    const int version = 10; // 1.0
-
-    // "pubchem.ncbi.nlm.nih.gov";
-    const auto& [port, host, body] = urlx;
-
-    boost::asio::io_context ioc;
-    boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
-# if OPENSSL_FOUND
-    // verify SSL context
-    {
-        ctx.set_verify_mode(boost::asio::ssl::verify_peer | boost::asio::ssl::context::verify_fail_if_no_peer_cert);
-        ctx.set_default_verify_paths();
-        boost::certify::enable_native_https_server_verification(ctx);
-    }
-# else
-    load_root_certificates(ctx);
-# endif
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
-    ioc.run();
-
-    auto res = future.get();
-    emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
-#endif
-}
-
-void
 document::JSTREST( const QByteArray& ba )
 {
     auto rest= boost::json::value_to< adcontrols::JSTREST >(  adportable::json_helper::parse( ba.toStdString() ) );
@@ -215,7 +180,7 @@ document::JSTREST( const QByteArray& ba )
     ioc.run();
 
     auto res = future.get();
-    emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
+    // emit pugReply( QByteArray( res.body().data() ), QString::fromStdString( url ) );
     ADDEBUG() << url;
 }
 
@@ -227,6 +192,9 @@ document::figshareREST( const QByteArray& ba )
 
     rest.set_target( rest.articles_search() );
     ADDEBUG() << "######: " << rest.urlx();
+
+    ///////////// conter clear //////////////
+    impl::instance().downloadCount_ = 0;
 
     const int version = 11; // 1.0
 
@@ -289,6 +257,8 @@ document::figshare_rest( const adcontrols::figshareREST& rest, const std::string
     auto res = future.get();
     emit figshareReply( QByteArray( res.body().data() ), QString::fromStdString( target ) );
 
+    qApp->processEvents();
+
     //-------->
     boost::system::error_code ec;
     auto value = boost::json::parse( res.body().data() );
@@ -306,6 +276,8 @@ void
 document::figshare_download( const adcontrols::figshareREST& rest, const boost::json::value& value, const std::string& download_url )
 {
     const int version = 11; // 1.1
+
+    emit onDownloading();
 
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
@@ -339,6 +311,7 @@ document::figshare_download( const adcontrols::figshareREST& rest, const boost::
         o << "===================================" << std::endl;
 
         emit downloadReply( QByteArray( o.str().data() ), QString::fromStdString( download_url ) );
+        qApp->processEvents();
 
         figshare_download( res );
     }
@@ -382,8 +355,8 @@ document::figshare_download( const boost::beast::http::response< boost::beast::h
                 ADDEBUG() << res;
                 auto server = res.find( boost::beast::http::field::server );
                 if ( server != res.end() ) {
-                    emit downloadReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ) );
-                    emit csvReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ) );
+                    emit csvReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ), impl::instance().downloadCount_++ );
+                    qApp->processEvents();
                 }
             }
         }

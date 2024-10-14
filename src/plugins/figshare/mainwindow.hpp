@@ -61,7 +61,6 @@ namespace figshare {
         Utils::StyledBar * createMidStyledBar();
 
     public slots:
-        void handleCSVReply( const QByteArray& ba, const QString& );
 
     private:
         class impl;

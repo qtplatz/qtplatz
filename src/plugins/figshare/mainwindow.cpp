@@ -5,32 +5,50 @@
 #include "restwnd.hpp"
 #include "document.hpp"
 #include "csvwnd.hpp"
+#include <QtWidgets/qlayoutitem.h>
 #include <adportable/debug.hpp>
 #include <adwidgets/create_widget.hpp>
 //#include <adwidgets/pugrestform.hpp>
 #include <adwidgets/jstrestform.hpp>
 #include <adwidgets/figsharerestform.hpp>
 #include <qtwrapper/trackingenabled.hpp>
-#include <utils/styledbar.h>
-#include <coreplugin/minisplitter.h>
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
-#include <coreplugin/imode.h>
+#include <coreplugin/coreconstants.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/findplaceholder.h>
-#include <coreplugin/rightpane.h>
-#include <coreplugin/minisplitter.h>
-#include <coreplugin/outputpane.h>
-#include <coreplugin/navigationwidget.h>
-#include <coreplugin/coreconstants.h>
 #include <coreplugin/icore.h>
+#include <coreplugin/imode.h>
+#include <coreplugin/minisplitter.h>
+#include <coreplugin/minisplitter.h>
+#include <coreplugin/navigationwidget.h>
+#include <coreplugin/outputpane.h>
+#include <coreplugin/rightpane.h>
 #include <utils/styledbar.h>
 
+#include <QToolButton>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QDockWidget>
+#include <format>
+
+namespace {
+    struct ToolButton {
+        QToolButton * operator()( QAction * action, const QString& objectName = {})  {
+            if ( QToolButton * button = new QToolButton() ) {
+                button->setDefaultAction( action );
+                if ( !objectName.isEmpty() ) {
+                    button->setObjectName( objectName );
+                    button->setCheckable( true );
+                }
+                return button;
+            }
+            return nullptr;
+        }
+    };
+}
 
 namespace figshare {
 
@@ -172,14 +190,14 @@ MainWindow::createContents()
 
     impl_->stackedWidget_ = new QStackedWidget;
 
-    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< RESTWnd >( "PUG" ) ) ) {
-        connect( document::instance(), &document::pugReply, wnd, &RESTWnd::handleReply );
-    }
     if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< RESTWnd >( "REST" ) ) ) {
         connect( document::instance(), &document::figshareReply, wnd, &RESTWnd::handleFigshareReply );
         connect( document::instance(), &document::downloadReply, wnd, &RESTWnd::handleDownloadReply );
     }
-    connect( document::instance(), &document::csvReply, this, &MainWindow::handleCSVReply );
+
+    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< CSVWnd >( "CSVWnd" ) ) ) {
+        connect( document::instance(), &document::csvReply, wnd, &CSVWnd::handleCSVReply );
+    }
 
     if ( Core::MiniSplitter * splitter = new Core::MiniSplitter ) {
         splitter->addWidget( impl_->stackedWidget_ );
@@ -191,7 +209,7 @@ MainWindow::createContents()
             centralLayout->setSpacing( 0 );
 
             centralLayout->addWidget( toolBar1 );
-            centralLayout->addWidget( splitter ); // <-- mol table
+            centralLayout->addWidget( splitter );
             centralLayout->addWidget( toolBar2 );
         }
     }
@@ -207,6 +225,7 @@ MainWindow::createTopStyledBar()
 {
     if ( auto toolBar = new Utils::StyledBar ) {
         toolBar->setProperty( "topBorder", true );
+        toolBar->setObjectName( "toolBar1" );
         QHBoxLayout * toolBarLayout = new QHBoxLayout( toolBar );
         toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
@@ -214,20 +233,19 @@ MainWindow::createTopStyledBar()
         if ( auto am = Core::ActionManager::instance() ) {
             Core::Context context( ( Utils::Id( "figshare.MainWindow" ) ) );
 
-            // if ( auto p = new QAction( tr("Mols"), this ) ) {
-            //     connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 0 ); } );
-            //     am->registerAction( p, "Chemistry.selMols", context );
-            //     toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 0 ) ) );
-            // }
-
-            // if ( auto p = new QAction( tr("PubChem"), this ) ) {
-            //     connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 1 ); } );
-            //     am->registerAction( p, "Chemistry.selPubChem", context );
-            //     toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 1 ) ) );
-            // }
-
+            if ( auto p = new QAction( tr("REST"), this ) ) {
+                connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 0 ); } );
+                am->registerAction( p, "figshare.REST", context );
+                toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 0 ) ) );
+            }
+            if ( auto p = new QAction( tr("DATA"), this ) ) {
+                connect( p, &QAction::triggered, [this](){ impl_->stackedWidget_->setCurrentIndex( 1 ); } );
+                am->registerAction( p, "figshare.CSV", context );
+                toolBarLayout->addWidget( ToolButton()( p, QString( "wnd.%1" ).arg( 1 ) ) );
+            }
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
+            toolBarLayout->addItem( new QSpacerItem( 40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum ) );
         }
 
         return toolBar;
@@ -254,31 +272,14 @@ MainWindow::createMidStyledBar()
 void
 MainWindow::createDockWidgets()
 {
-#if 0
-    if ( auto w = new adwidgets::PUGRestForm( this ) ) {
-        createDockWidget( w, "PubChem", "PubChem" );
-        connect( w, &adwidgets::PUGRestForm::apply, document::instance(), &document::PubChemREST );
-        connect( w, &adwidgets::PUGRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
-    }
-#endif
     if ( auto w = new adwidgets::JSTRestForm( this ) ) {
         createDockWidget( w, "JST", "JST" );
         connect( w, &adwidgets::JSTRestForm::apply, document::instance(), &document::JSTREST );
-        connect( w, &adwidgets::JSTRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
+        connect( w, &adwidgets::JSTRestForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(0); } );
     }
     if ( auto w = new adwidgets::FigshareRESTForm( this ) ) {
         createDockWidget( w, "figshare", "figshare" );
         connect( w, &adwidgets::FigshareRESTForm::apply, document::instance(), &document::figshareREST );
-        connect( w, &adwidgets::FigshareRESTForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(1); } );
-    }
-}
-
-void
-MainWindow::handleCSVReply( const QByteArray& ba, const QString& )
-{
-    qDebug() << ba;
-
-    if ( auto wnd = adwidgets::add_widget( impl_->stackedWidget_, adwidgets::create_widget< CSVWnd >( "CSV" ) ) ) {
-        wnd->setData( ba );
+        connect( w, &adwidgets::FigshareRESTForm::apply, [&](const QByteArray& ){ impl_->stackedWidget_->setCurrentIndex(0); } );
     }
 }

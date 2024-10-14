@@ -23,23 +23,23 @@
 
 #pragma once
 
-#include <QWidget>
+#include <QTabWidget>
+#include <adportable/csv_reader.hpp>
 
 namespace figshare {
 
-    class CSVWnd : public QWidget {
+    class CSVWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit CSVWnd(QWidget *parent = 0);
-        ~CSVWnd();
+        explicit CSVWidget(QWidget *parent = 0);
+        ~CSVWidget();
 
-        void setData( const QByteArray& ba );
+        void setData( const std::vector< adportable::csv::list_string_type >& );
 
     public slots:
         void handleReply( const QByteArray&, const QString& url );
         void handleFigshareReply( const QByteArray&, const QString& url );
         void handleDownloadReply( const QByteArray&, const QString& url );
-        void handleCSVReply( const QByteArray&, const QString&, size_t );
 
     private:
         class impl;

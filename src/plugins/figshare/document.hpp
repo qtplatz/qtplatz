@@ -74,15 +74,12 @@ namespace figshare {
         struct impl;
 
     signals:
-        void onConnectionChanged();
-        void databaseModified();
-        void pugReply( const QByteArray&, const QString& );
+        void onDownloading();
         void figshareReply( const QByteArray&, const QString& );
         void downloadReply( const QByteArray&, const QString& );
-        void csvReply( const QByteArray&, const QString& );
+        void csvReply( const QByteArray&, const QString&, size_t ident );
 
     public slots:
-        void PubChemREST( const QByteArray& );
         void JSTREST( const QByteArray& );
         void figshareREST( const QByteArray& );
 

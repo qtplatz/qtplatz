@@ -25,6 +25,7 @@
 #pragma once
 
 #include <adwidgets/tableview.hpp>
+#include <adportable/csv_reader.hpp>
 
 namespace figshare {
 
@@ -33,6 +34,8 @@ namespace figshare {
     public:
         ~CSVTable();
         explicit CSVTable(QWidget *parent = 0);
+
+        void setData( const std::vector< adportable::csv::list_string_type >& alist );
 
     private:
         class impl;

@@ -60,6 +60,7 @@ add_library( ${PROJECT_NAME} MODULE
   mainwindow.cpp mainwindow.hpp
   restwnd.cpp restwnd.hpp
   csvwnd.cpp csvwnd.hpp
+  csvwidget.cpp csvwidget.hpp
   csvtable.cpp csvtable.hpp
   document.cpp document.hpp
   ${Resources}

@@ -23,12 +23,14 @@
 **************************************************************************/
 
 #include "csvtable.hpp"
+#include <QtCore/qnamespace.h>
+#include <QtGui/qstandarditemmodel.h>
 
 namespace figshare {
 
     class CSVTable::impl {
     public:
-
+        std::vector< adportable::csv::list_string_type > vlist_;
     };
 
 }
@@ -38,9 +40,37 @@ using namespace figshare;
 CSVTable::CSVTable( QWidget *parent ) : TableView( parent )
                                       , impl_( new impl{} )
 {
+    auto model = new QStandardItemModel{};
+    model->setColumnCount( 2 );
+    model->setRowCount( 1 );
+    this->setModel( model );
 }
 
 CSVTable::~CSVTable()
 {
     delete impl_;
+}
+
+void
+CSVTable::setData( const std::vector< adportable::csv::list_string_type >& vlist )
+{
+    impl_->vlist_ = vlist;
+
+    if ( not vlist.empty() ) {
+        auto model = qobject_cast< QStandardItemModel * >( this->model() );
+        model->setColumnCount( vlist.at(0).size() );
+        model->setRowCount( vlist.size() );
+
+        size_t row{0};
+        for ( const auto& alist: vlist ) {
+            size_t col{0};
+            for ( const auto& value: alist ) {
+                model->setData( model->index(row, col), QString::fromStdString( std::get<1>(value) ), Qt::EditRole );
+                ++col;
+            }
+            ++row;
+        }
+    }
+
+    this->resizeColumnsToContents();
 }
