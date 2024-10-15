@@ -62,7 +62,10 @@ add_library( ${PROJECT_NAME} MODULE
   csvwnd.cpp csvwnd.hpp
   csvwidget.cpp csvwidget.hpp
   csvtable.cpp csvtable.hpp
+  csvplot.cpp csvplot.hpp
   document.cpp document.hpp
+  csvtodata.cpp csvtodata.hpp
+  csvform.cpp csvform.hpp
   ${Resources}
 )
 
@@ -71,6 +74,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adurl
   adutils
   adportable
+  adplot
   adlog
   adchem
   adcontrols

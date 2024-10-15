@@ -22,7 +22,9 @@
 **************************************************************************/
 
 #include "csvwnd.hpp"
+#include "csvplot.hpp"
 #include "csvwidget.hpp"
+#include "csvtodata.hpp"
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qnamespace.h>
 #include <QtGui/qtextdocument.h>
@@ -64,6 +66,18 @@
 #include <boost/json.hpp>
 #include <map>
 #include <memory>
+
+// ---------------------- overloads -------------------->
+namespace {
+    // helper type for the visitor #4
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+
+    // explicit deduction guide (not needed as of C++20)
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+}
+//<---------------------- overloads --------------------
 
 namespace {
 
@@ -115,9 +129,7 @@ CSVWnd::CSVWnd( QWidget * parent ) : QWidget( parent )
                         tw->addTab( widget, "CSV.1" );
                 }
             }
-
-            if ( auto form2 = adwidgets::add_widget( hsplitter, adwidgets::create_widget< QTextEdit >( "TextEdit" ) ) ) {
-                form2->setText( "To be replaced with plot view" );
+            if ( auto form2 = adwidgets::add_widget( hsplitter, adwidgets::create_widget< CSVPlot >( "csvPlot" ) ) ) {
             }
         }
     }
@@ -141,7 +153,7 @@ CSVWnd::handleDownloadReply( const QByteArray& ba, const QString& url )
 void
 CSVWnd::handleCSVReply( const QByteArray& ba, const QString& url, size_t id )
 {
-    ADDEBUG() << "#####################" << __FUNCTION__ << "id=" << id << "\t" << std::format( "CSVWidget.{}", id);
+    auto vlist = csv_parser()( ba );
 
     if ( auto tw = findChild< QTabWidget * >( "tabWidget" ) ) {
         if ( id == 0 )
@@ -149,9 +161,21 @@ CSVWnd::handleCSVReply( const QByteArray& ba, const QString& url, size_t id )
 
         if ( auto widget = adwidgets::create_widget< CSVWidget >( std::format( "CSVWidget.{}", id).c_str() ) ) {
             tw->addTab( widget, QString( "CSV.%1" ).arg( id + 1 ) );
-            auto vlist = csv_parser()( ba );
             widget->setData( vlist );
         }
+    }
+
+    if ( auto plot = findChild< CSVPlot * >( "csvPlot" ) ) {
+
+        if ( id == 0 )
+            plot->clear();
+
+        auto datum = csv::toData()( vlist );
+        std::visit( overloaded{
+                [&]( std::shared_ptr< adcontrols::MassSpectrum > t ) { plot->setData( t, id );  }
+                    , [&]( std::shared_ptr< adcontrols::Chromatogram > t ) { }
+                    , [&]( std::shared_ptr< QwtSeriesData< QPointF> > t ) {  }
+                    }, datum );
     }
 }
 
@@ -162,11 +186,10 @@ CSVWnd::setData( const QByteArray& ba )
 
     adportable::csv::list_string_type alist; // pair<variant,string>
     adportable::csv::csv_reader reader;
-    while ( reader.read( in, alist ) && in.good() ) {
-        QStringList list;
-        for ( const auto& value: alist )
-            list << QString::fromStdString( std::get<1>(value) );
-        qDebug() << list;
-    }
-
+     while ( reader.read( in, alist ) && in.good() ) {
+         QStringList list;
+         for ( const auto& value: alist )
+             list << QString::fromStdString( std::get<1>(value) );
+         qDebug() << list;
+     }
 }

@@ -400,6 +400,33 @@ MassSpectrum::operator << ( const std::pair< double, double >& d )
 }
 
 void
+MassSpectrum::setValue( size_t idx
+                        , std::tuple< double, double >&& t )      // tof,mass,intensity
+{
+    setMass( idx, std::get<0>(t) );
+    setIntensity( idx, std::get<1>(t) );
+}
+
+void
+MassSpectrum::setValue( size_t idx
+                        , std::tuple< double, double, double >&& t )      // tof,mass,intensity
+{
+    setTime( idx, std::get<0>(t) );
+    setMass( idx, std::get<1>(t) );
+    setIntensity( idx, std::get<2>(t) );
+}
+
+void
+MassSpectrum::setValue( size_t idx
+                        , std::tuple< double, double, double, int >&& t ) // tof,mass,intensity,color
+{
+    setTime( idx, std::get<0>(t) );
+    setMass( idx, std::get<1>(t) );
+    setIntensity( idx, std::get<2>(t) );
+    setColor( idx, std::get<3>(t) );
+}
+
+void
 MassSpectrum::setMass( size_t idx, double mass )
 {
     if ( idx < impl_->size() ) {

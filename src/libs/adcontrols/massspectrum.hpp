@@ -111,6 +111,9 @@ namespace adcontrols {
         const std::vector< uint8_t >& colorArray() const;
 
         size_t operator << ( const std::pair< double, double >& ); // add (mass,intensity), return index
+        void setValue( size_t idx, std::tuple< double, double >&& );      // tof,mass,intensity
+        void setValue( size_t idx, std::tuple< double, double, double >&& );      // tof,mass,intensity
+        void setValue( size_t idx, std::tuple< double, double, double, int >&& ); // tof,mass,intensity,color
 
         void setMass( size_t idx, double mass );
         void setIntensity( size_t idx, double intensity );

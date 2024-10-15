@@ -52,11 +52,11 @@ namespace adportable {
 
         /////////// input line to string array parser
         auto const quoted_string = x3::lexeme['"' >> +(x3::char_ - '"') >> '"'];
-        auto const unquoted_string = *~x3::char_(",\n\t");
+        auto const unquoted_string = *~x3::char_(",\r\n\t");
 
         // following code does not conforming to RFC 4180, where it does not allows to ignore '\t' following to separator
         static inline auto csv_parser() {
-            auto delim = ( x3::char_(",\t ") >> *(x3::char_("\t ")) ); // ignore white-spaces follows to delimiter (,\t )
+            auto delim = ( x3::char_(",\t") >> *(x3::char_("\t ")) ); // ignore white-spaces follows to delimiter (,\t )
             return
                 ( quoted_string
                   | unquoted_string
@@ -150,7 +150,7 @@ csv_reader::read( std::istream& istrm, list_type& list )
                     if ( value.type() == typeid( std::string ) ) {
                         const auto& a = boost::get< std::string >( value );
                         variant_type t;
-                        if ( type_parser_list< integer, real, null >()( a, t ) ) {
+                        if ( type_parser_list< real, integer, null >()( a, t ) ) {
                             value = std::move( t );
                         }
                     }
@@ -180,11 +180,14 @@ csv_reader::read( std::istream& istrm, list_string_type& alist )
                     if ( value.type() == typeid( std::string ) ) {
                         const auto& a = boost::get< std::string >( value );
                         variant_type v;
-                        if ( type_parser_list< integer, real, null >()( a, v ) ) {
+                        if ( type_parser_list< real, integer, null >()( a, v ) ) {
                             alist.emplace_back( v, a );
                         } else {
                             alist.emplace_back( a, a );
+                            ADDEBUG() << "\t======= csv_reader::read-else : " << a;
                         }
+                    } else {
+                        ADDEBUG() << "\t>>>>> csv_reader::read non-string value <<<<<<<<<<";
                     }
                 }
                 return true;

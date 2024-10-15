@@ -23,6 +23,7 @@
 
 #include "csvwidget.hpp"
 #include "csvtable.hpp"
+#include "csvform.hpp"
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qnamespace.h>
 #include <QtGui/qtextdocument.h>
@@ -33,15 +34,6 @@
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
 #include <adwidgets/create_widget.hpp>
-#if HAVE_RDKit
-# include <GraphMol/SmilesParse/SmilesParse.h>
-# include <GraphMol/RDKitBase.h>
-# include <GraphMol/SmilesParse/SmilesParse.h>
-# include <GraphMol/SmilesParse/SmilesWrite.h>
-# include <GraphMol/Descriptors/MolDescriptors.h>
-# include <GraphMol/FileParsers/MolSupplier.h>
-# include <GraphMol/inchi.h>
-#endif
 
 #include <QBoxLayout>
 #include <QImage>
@@ -91,8 +83,7 @@ CSVWidget::CSVWidget( QWidget * parent ) : QWidget( parent )
 
             auto table = adwidgets::add_widget( vsplitter, adwidgets::create_widget< CSVTable >( "CSVTable" ) );
             //
-            auto form = adwidgets::add_widget( vsplitter, adwidgets::create_widget< QTextEdit >( "CSVForm" ) );
-            form->setText( "CSVForm" );
+            auto form = adwidgets::add_widget( vsplitter, adwidgets::create_widget< CSVForm >( "CSVForm" ) );
 
             vsplitter->setStretchFactor( 0, 3 );
             vsplitter->setStretchFactor( 1, 1 );

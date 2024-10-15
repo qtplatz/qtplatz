@@ -352,7 +352,7 @@ document::figshare_download( const boost::beast::http::response< boost::beast::h
         {
             auto it = res.find( boost::beast::http::field::content_type );
             if ( it->value() == "text/plain" || it->value() == "text/csv" ) {
-                ADDEBUG() << res;
+                // ADDEBUG() << res;
                 auto server = res.find( boost::beast::http::field::server );
                 if ( server != res.end() ) {
                     emit csvReply( QByteArray( res.body().data() ), QString::fromStdString( server->value() ), impl::instance().downloadCount_++ );
