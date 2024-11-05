@@ -150,7 +150,7 @@ namespace dataproc {
         void clusterContour();
         void findPeptide( const adprot::digestedPeptides& );
         void findSinglePeak( portfolio::Folium, std::pair< double, double > trange = { -1, 3600.0 } );
-        void baselineCollection( portfolio::Folium );
+        void baselineCorrection( portfolio::Folium );
         void setAttribute( portfolio::Folium, std::pair< std::string, std::string >&& );
         void deleteRemovedItems();
         void dftFilter( portfolio::Folium, std::shared_ptr< adcontrols::ProcessMethod > ); // filter for chromatogram

@@ -1318,7 +1318,7 @@ Dataprocessor::removePeaks( portfolio::Folium folium, std::vector< int >&& ids )
 }
 
 void
-Dataprocessor::baselineCollection( portfolio::Folium folium )
+Dataprocessor::baselineCorrection( portfolio::Folium folium )
 {
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
                                   , std::shared_ptr< adcontrols::Chromatogram >

@@ -957,8 +957,8 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 	double l_threshold = pk.topHeight() - ( (pk.topHeight() - pk.startHeight()) * 0.5 );
     double r_threshold = pk.topHeight() - ( (pk.topHeight() - pk.endHeight()) * 0.5 );
 
-    ADDEBUG() << "## " << __FUNCTION__ << "\t" << std::make_pair( l_threshold, r_threshold )
-              << ", H=" << pk.topHeight();
+    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << std::make_pair( l_threshold, r_threshold )
+    //          << ", H=" << pk.topHeight();
 
     std::pair< double, double > boundaries{0,0};
     // left boundary
@@ -997,7 +997,7 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
         double c = r[2];
         double tR = (-b) / 2 / c;
 
-        ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
+        // ADDEBUG() << std::make_tuple( X.front(), X.back() ) << ", tR: " << tR;
 
         if ( tR < X.front() || X.back() < tR ) {
             // apex is outside range -- no maximum found

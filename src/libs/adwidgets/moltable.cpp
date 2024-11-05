@@ -355,8 +355,8 @@ MolTable::handleContextMenu( const QPoint& pt )
     typedef std::pair< QAction *, std::function< void() > > action_type;
 
     menu.addAction( tr("Set adducts if empty" ), this, SLOT( handleSetAdducts() ) );
-    menu.addAction( tr( "Enable all" ), [=](){ enable_all( true ); } );
-    menu.addAction( tr( "Disable all" ), [=](){ enable_all( false ); } );
+    menu.addAction( tr( "Enable all" ), [=,this](){ enable_all( true ); } );
+    menu.addAction( tr( "Disable all" ), [=,this](){ enable_all( false ); } );
 
     TableView::addActionsToContextMenu( menu, pt );
     menu.exec( mapToGlobal( pt ) );

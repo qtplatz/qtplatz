@@ -23,6 +23,7 @@ if ( NOT CMAKE_CROSSCOMPILING )
   add_subdirectory ( scanlaw )
   if ( rdkit_FOUND )
     add_subdirectory ( molcat )
+    add_subdirectory ( xyz )
   endif()
 
   if ( QT_FOUND AND rdkit_FOUND )

@@ -1076,17 +1076,17 @@ namespace { // anonymous
 }
 
 namespace {
-    // if selected for multiple 'Chromatograms' folders
-    struct collect_baselines_for_selected_folders {
+
+    struct correct_baselines_for_selected_folders {
         const QModelIndexList& indices_;
-        collect_baselines_for_selected_folders( const QModelIndexList& indices ) : indices_( indices ) {};
+        correct_baselines_for_selected_folders( const QModelIndexList& indices ) : indices_( indices ) {};
         void operator()() const {
             for ( auto& index: indices_ ) {
                 auto [ processor, folder ] = find_processor_t< portfolio::Folder >()( index );
                 if ( processor && folder && ( folder.name() == L"Chromatograms" ) ) {
                     for ( auto folium: folder.folio() ) {
                         processor->fetch( folium );
-                        processor->baselineCollection( folium );
+                        processor->baselineCorrection( folium );
                     }
                 }
             }
@@ -1095,15 +1095,15 @@ namespace {
 
 
     // collect baseline for selected folia
-    struct collect_baseline_for_selected_folia {
+    struct correct_baseline_for_selected_folia {
         const QModelIndexList& indices_;
-        collect_baseline_for_selected_folia( const QModelIndexList& indices ) : indices_( indices ) {};
+        correct_baseline_for_selected_folia( const QModelIndexList& indices ) : indices_( indices ) {};
         void operator()() const {
             for ( auto& index: indices_ ) {
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 if ( processor && folium && folium.parentFolder().name() == L"Chromatograms" ) {
                     processor->fetch( folium );
-                    processor->baselineCollection( folium );
+                    processor->baselineCorrection( folium );
                 }
             }
         }
@@ -1395,8 +1395,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         // enable only Chromatograms was selected
         enable = selFolders.contains( "Chromatograms" ) && selFolders.folders().size() == 1;
 
-        menu.addAction( QString( tr("Collect all baseline for %1") ).arg( name )
-                        , collect_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
+        menu.addAction( QString( tr("Correct all baseline for %1") ).arg( name )
+                        , correct_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 
         make_spectrum_from_checked_chromatograms spectrum_from_chromatogram( *impl_->pModel_, index );
         enable = spectrum_from_chromatogram.enable();
@@ -1477,8 +1477,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->createChromatograms( props ); })->setEnabled( !props.empty() );
 
             if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
-                menu.addAction( tr( "Baseline collection" )
-                                , [=] () { processor->baselineCollection( folium ); } )->setEnabled( selRows.size() == 1 );
+                menu.addAction( tr( "Baseline correction" )
+                                , [=] () { processor->baselineCorrection( folium ); } )->setEnabled( selRows.size() == 1 );
                 menu.addAction( tr( "Create Contour" )
                                 , [processor] () { processor->createContour(); } )->setEnabled( selRows.size() == 1 );
                 menu.addAction( tr( "Save Chromatogram as...")
