@@ -14,6 +14,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/adplugins
   ${QWT_INCLUDE_DIR}
   ${QtWidgets_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
   )
 
 add_definitions( -DADPROCESSOR_LIBRARY )
@@ -45,6 +46,7 @@ add_library( ${PROJECT_NAME} SHARED
   jcb2009_summarizer.cpp jcb2009_summarizer.hpp
   generator_property.cpp generator_property.hpp
   extract_by_generator_property.cpp  extract_by_generator_property.hpp
+  peakd.cpp peakd.hpp
   )
 
 target_link_libraries( adprocessor LINK_PUBLIC

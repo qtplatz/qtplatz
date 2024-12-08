@@ -1088,6 +1088,12 @@ namespace {
                         processor->fetch( folium );
                         processor->baselineCorrection( folium );
                     }
+                } else {
+                    auto [ processor, folium ] = find_processor_t< portfolio::Folium >()( index );
+                    if ( processor && folium ) {
+                        processor->fetch( folium );
+                        processor->baselineCorrection( folium );
+                    }
                 }
             }
         }
@@ -1393,9 +1399,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
 
         // enable only Chromatograms was selected
-        enable = selFolders.contains( "Chromatograms" ) && selFolders.folders().size() == 1;
-
-        menu.addAction( QString( tr("Correct all baseline for %1") ).arg( name )
+        enable = selFolders.contains( "Chromatograms" );
+        menu.addAction( QString( tr("Correct baselines") )
                         , correct_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 
         make_spectrum_from_checked_chromatograms spectrum_from_chromatogram( *impl_->pModel_, index );
@@ -1477,8 +1482,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                                 processor->createChromatograms( props ); })->setEnabled( !props.empty() );
 
             if ( auto folium = find_t< portfolio::Folium >()( index ) ) {
-                menu.addAction( tr( "Baseline correction" )
-                                , [=] () { processor->baselineCorrection( folium ); } )->setEnabled( selRows.size() == 1 );
+                // menu.addAction( tr( "Baseline correction" )
+                //                 , [=] () { processor->baselineCorrection( folium ); } )->setEnabled( selRows.size() == 1 );
                 menu.addAction( tr( "Create Contour" )
                                 , [processor] () { processor->createContour(); } )->setEnabled( selRows.size() == 1 );
                 menu.addAction( tr( "Save Chromatogram as...")
@@ -1518,6 +1523,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         }
         menu.addAction( tr( "Set SFE->SFC injection delay..."), [list]{
             emit document::instance()->onSetDelayedInjectionDelay( list );
+        })->setEnabled( list.size() );
+
+        menu.addAction( tr( "PGE2/PGD2 peak deconvolution"), [list]{
+            emit document::instance()->onPeakDeconvolution( list );
         })->setEnabled( list.size() );
     }
 

@@ -1221,6 +1221,7 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::onProcessMethodChanged, this, &MainWindow::handleProcessMethodChanged );
     connect( document::instance(), &document::onMergeSelection, this, &MainWindow::handleMergeSelection );
     connect( document::instance(),  &document::onSetDelayedInjectionDelay, this, &MainWindow::handleSetDelayedInjectionDelay );
+    connect( document::instance(),  &document::onPeakDeconvolution, this, &MainWindow::handlePeakDeconvolution );
 
     adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
             getProcessMethod( pm );
@@ -1589,6 +1590,15 @@ MainWindow::handleSetDelayedInjectionDelay( std::set< Dataprocessor * > list )
         if ( it != list.end() ) {
             (*it)->setSFEDelay( std::get< 1 >( res ), std::get< 2 >( res ) );
         }
+    }
+}
+
+void
+MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list )
+{
+    for ( auto processor: list ) {
+        ADDEBUG() << processor->filename();
+        processor->srmDeconvolution();
     }
 }
 

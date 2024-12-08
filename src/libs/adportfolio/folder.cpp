@@ -100,6 +100,17 @@ Folder::findFoliumByName( const std::wstring& name )
 }
 
 Folium
+Folder::findFoliumByName( const std::string& name )
+{
+	std::string query = "./folium[@name=\"" + name + "\"]";
+    pugi::xpath_node node = node_.select_node( query.c_str() );
+    if ( node.node().empty() ) {
+        return Folium{};
+    }
+	return Folium( node.node(), impl_ );
+}
+
+Folium
 Folder::findFoliumByRegex( const std::string& query )
 {
     //std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";

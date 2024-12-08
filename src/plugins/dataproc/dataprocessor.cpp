@@ -94,6 +94,7 @@
 #include <adprocessor/jcb2009_processor.hpp>
 #include <adprocessor/generator_property.hpp>
 #include <adprocessor/noise_filter.hpp>
+#include <adprocessor/peakd.hpp>
 #include <adportable/xml_serializer.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -133,6 +134,8 @@
 #include <regex>
 #include <stack>
 #include <type_traits>
+
+extern std::vector< std::tuple< double, double, double, double, double > > __data;
 
 using namespace dataproc;
 
@@ -2092,6 +2095,84 @@ Dataprocessor::setSFEDelay( bool enable, double value )
     }
 }
 
+void
+Dataprocessor::srmDeconvolution()
+{
+    constexpr int ndim = 4;
+    constexpr int nprod = 2;
+
+    Eigen::Matrix<double, ndim, nprod> A;
+    A <<                  /* PGE2 */   /* PGD2 */
+        /*233.2 */        0.1215,       0.4336
+        /*271.2 */        , 1.0000,     1.0000
+        /*315.2 */        , 0.9099,     0.8303
+        /*333.2 */        , 0.7210,     0.2837
+        ;
+    std::cout << "A=" << A << std::endl;
+
+    auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
+
+    // for ( const auto& data: __data ) {
+    //     auto [b,v] = peakd( std::get<1>( data ), std::get<2>( data ), std::get<3>( data ), std::get<4>( data )  );
+    //     std::cout << "Time=" << std::get< 0 >(data) << std::endl
+    //               << "b=" << b << std::endl << "---------------------" << std::endl
+    //               << "v=" << v(0) << ", " << v(1) << std::endl << "---------------------" << std::endl;
+    // }
+    // return;
+
+    static std::vector< std::string > cnames = {
+        "0, m/z 233.20 neg",
+        "1, m/z 271.20 neg",
+        "2, m/z 315.20 neg",
+        "3, m/z 333.20 neg"
+    };
+
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > cv;
+
+    auto folder = portfolio().findFolder( L"Chromatograms");
+    for ( const auto& cname: cnames ) {
+        if ( auto a = folder.findFoliumByName( cname ) ) {
+            fetch( a );
+            if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
+                cv.emplace_back( chro );
+            }
+        } else {
+            ADDEBUG() << "not find " << cname;
+        }
+    }
+    if ( cv.size() != ndim )
+        return;
+
+    std::vector< std::tuple< double, double, double, double, double > > data;
+
+    for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
+        if ( cv.at(0)->time( i ) > 0 ) { //&& cv.at(0)->time( i ) < 75 ) {
+            data.emplace_back( cv.at(0)->time(i)
+                               , cv.at(0)->intensity(i)
+                               , cv.at(1)->intensity(i)
+                               , cv.at(2)->intensity(i)
+                               , cv.at(3)->intensity(i) );
+        }
+    }
+
+    auto path = std::filesystem::path( getenv("HOME") ) / "data";
+    if ( std::filesystem::exists( path ) ) {
+        auto o = std::ofstream(path / "pge2-pgd2.csv");
+
+        for ( const auto& d: data ) {
+            auto [b,v] = peakd( std::get<1>( d ), std::get<2>( d ), std::get<3>( d ), std::get<4>( d )  );
+
+            o << std::get<0>(d)
+              << "\t" << b(0) << "\t" << b(1) << "\t" << b(2) << "\t" << b(3)
+              << "\t" << v(0) << "\t" << v(1) << std::endl;
+
+            std::cout << std::get<0>(d)
+                      << "\t" << b(0) << "\t" << b(1) << "\t" << b(2) << "\t" << b(3)
+                      << "\t" << v(0) << "\t" << v(1) << std::endl;
+        }
+    }
+}
+
 
 namespace dataproc
 {
@@ -2103,3 +2184,46 @@ namespace dataproc
     }
 #endif
 }
+
+std::vector< std::tuple< double, double, double, double, double > > __data = {
+    {60.288,	133,	472,	217,	-89},
+    {60.656,	117,	483,	272,	67},
+    {61.024,	67,	550,	389,	367},
+    {61.392,	122,	817,	656,	672},
+    {61.76,	394,	2428,	1911,	1706},
+    {62.128,	1006,	6764,	5713,	4702},
+    {62.496,	1789,	14653,	12601,	10850},
+    {62.864,	2711,	25509,	22366,	19374},
+    {63.232,	3756,	36475,	31911,	27704},
+    {63.6,	4740,	44878,	39700,	33205},
+    {63.968,	5524,	48094,	43194,	35091},
+    {64.336,	5768,	47482,	43205,	34234},
+    {64.704,	5723,	44208,	40083,	31642},
+    {65.072,	5240,	40551,	35592,	28209},
+    {65.44,	4556,	36632,	31146,	24465},
+    {65.808,	4062,	33966,	28498,	21684},
+    {66.176,	5312,	33048,	28414,	19888},
+    {66.544,	9092,	36205,	32053,	19799},
+    {66.912,	15558,	44268,	39151,	20700},
+    {67.28,	22676,	56365,	49050,	22441},
+    {67.648,	28865,	67829,	58054,	23325},
+    {68.016,	32370,	74832,	62894,	23169},
+    {68.384,	33187,	76537,	63551,	21712},
+    {68.752,	31869,	74218,	61044,	20138},
+    {69.12,	29482,	69330,	57272,	18431},
+    {69.488,	26817,	62789,	52098,	17214},
+    {69.856,	24248,	56554,	46363,	16007},
+    {70.224,	21762,	51474,	41330,	14723},
+    {70.592,	19448,	47354,	36622,	13066},
+    {70.96,	16841,	43011,	32560,	11409},
+    {71.328,	14433,	38208,	28053,	10248},
+    {71.696,	12293,	33544,	24443,	9558},
+    {72.064,	11098,	29532,	21851,	9163},
+    {72.432,	10331,	26005,	20394,	8658},
+    {72.8,	9669,	23107,	19132,	8018},
+    {73.168,	8758,	20616,	17486,	7196},
+    {73.536,	7780,	19020,	15868,	6551},
+    {73.904,	6868,	18025,	14444,	6162},
+    {74.272,	6140,	17391,	13488,	5846},
+    {74.64,	5784,	16701,	12660,	5368}
+};
