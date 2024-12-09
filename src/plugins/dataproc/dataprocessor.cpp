@@ -128,6 +128,7 @@
 #include <QFontMetrics>
 #include <QMessageBox>
 #include <QJsonDocument>
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -1288,7 +1289,7 @@ Dataprocessor::setPeakName( portfolio::Folium folium, int pid, const std::string
                 if ( auto res = boost::get< std::shared_ptr< adcontrols::PeakResult > >( *var ) ) {
                     if ( res->peaks().size() > pid ) {
                         auto it = res->peaks().begin() + pid;
-                        ADDEBUG() << "replace peak name from: " << it->name() << " to " << name;
+                        // ADDEBUG() << "replace peak name from: " << it->name() << " to " << name;
                         it->setName( name );
                         chro->setPeaks( res->peaks() );
                         setModified( true );
@@ -2112,14 +2113,6 @@ Dataprocessor::srmDeconvolution()
 
     auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
 
-    // for ( const auto& data: __data ) {
-    //     auto [b,v] = peakd( std::get<1>( data ), std::get<2>( data ), std::get<3>( data ), std::get<4>( data )  );
-    //     std::cout << "Time=" << std::get< 0 >(data) << std::endl
-    //               << "b=" << b << std::endl << "---------------------" << std::endl
-    //               << "v=" << v(0) << ", " << v(1) << std::endl << "---------------------" << std::endl;
-    // }
-    // return;
-
     static std::vector< std::string > cnames = {
         "0, m/z 233.20 neg",
         "1, m/z 271.20 neg",
@@ -2146,31 +2139,63 @@ Dataprocessor::srmDeconvolution()
     std::vector< std::tuple< double, double, double, double, double > > data;
 
     for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
-        if ( cv.at(0)->time( i ) > 0 ) { //&& cv.at(0)->time( i ) < 75 ) {
-            data.emplace_back( cv.at(0)->time(i)
-                               , cv.at(0)->intensity(i)
-                               , cv.at(1)->intensity(i)
-                               , cv.at(2)->intensity(i)
-                               , cv.at(3)->intensity(i) );
-        }
+        data.emplace_back( cv.at(0)->time(i)
+                           , cv.at(0)->intensity(i) - cv.at(0)->intensity(0)
+                           , cv.at(1)->intensity(i) - cv.at(1)->intensity(0)
+                           , cv.at(2)->intensity(i) - cv.at(2)->intensity(0)
+                           , cv.at(3)->intensity(i) - cv.at(3)->intensity(0)
+            );
     }
 
-    auto path = std::filesystem::path( getenv("HOME") ) / "data";
-    if ( std::filesystem::exists( path ) ) {
-        auto o = std::ofstream(path / "pge2-pgd2.csv");
+    std::tuple< std::shared_ptr< adcontrols::Chromatogram >
+                , std::shared_ptr< adcontrols::Chromatogram >
+                , std::shared_ptr< adcontrols::Chromatogram > > a;
 
-        for ( const auto& d: data ) {
-            auto [b,v] = peakd( std::get<1>( d ), std::get<2>( d ), std::get<3>( d ), std::get<4>( d )  );
+    std::get<0>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+    std::get<0>(a)->resize(data.size());
+    std::get<0>(a)->set_display_name( "PGE2" );
 
-            o << std::get<0>(d)
-              << "\t" << b(0) << "\t" << b(1) << "\t" << b(2) << "\t" << b(3)
-              << "\t" << v(0) << "\t" << v(1) << std::endl;
+    std::get<1>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+    std::get<1>(a)->resize(data.size());
+    std::get<1>(a)->set_display_name( "PGD2" );
 
-            std::cout << std::get<0>(d)
-                      << "\t" << b(0) << "\t" << b(1) << "\t" << b(2) << "\t" << b(3)
-                      << "\t" << v(0) << "\t" << v(1) << std::endl;
-        }
+    std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+    std::get<2>(a)->resize(data.size());
+    std::get<2>(a)->set_display_name( "PGE2+PGD2" );
+
+    size_t idx{0};
+    for ( const auto& d: data ) {
+        auto [b,v] = peakd( std::get<1>( d ), std::get<2>( d ), std::get<3>( d ), std::get<4>( d )  );
+        std::get<0>(a)->setDatum( idx, { std::get<0>(d), v(0) } );
+        std::get<1>(a)->setDatum( idx, { std::get<0>(d), v(1) } );
+        std::get<2>(a)->setDatum( idx, { std::get<0>(d), v(0) + v(1) } );
+        idx++;
     }
+
+    size_t cnt{0};
+    try {
+        auto folio = folder.find<portfolio::Folium>( R"(./folium[contains(@name,'PGE')])" );
+        cnt = folio.size();
+        for ( auto folium: folio ) {
+            auto pos = folium.name().find_last_of( '~' );
+            if ( pos != std::string::npos ) {
+                int num = std::stoi( folium.name().substr( pos + 1 ) );
+                cnt = std::max( cnt, size_t(num + 1) );
+            }
+        }
+    } catch ( pugi::xpath_exception& ex ) {
+        ADDEBUG() << ex.what();
+    }
+
+    auto dst0 = folder.addFolium( std::format("PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
+    auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
+    auto dst2 = folder.addFolium( std::format( "SUM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
+
+    SessionManager::instance()->updateDataprocessor( this, dst0 );
+    SessionManager::instance()->updateDataprocessor( this, dst1 );
+    SessionManager::instance()->updateDataprocessor( this, dst2 );
+
+    setModified( true );
 }
 
 

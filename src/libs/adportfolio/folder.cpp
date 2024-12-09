@@ -121,6 +121,17 @@ Folder::findFoliumByRegex( const std::string& query )
 	return Folium( node.node(), impl_ );
 }
 
+template<> std::vector< Folium >
+Folder::find( const std::string& xpath ) const
+{
+    std::vector< Folium > r;
+    auto nodes = node_.select_nodes( xpath.c_str() );
+    for ( const auto& node: nodes ) {
+        r.emplace_back( node.node(), impl_ );
+    }
+    return r;
+}
+
 Folium
 Folder::findFoliumById( const std::wstring& id )
 {

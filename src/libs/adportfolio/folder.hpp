@@ -59,6 +59,7 @@ namespace portfolio {
         Folium findFoliumByName( const std::string& name );
         Folium findFoliumByRegex( const std::string& name );
         Folium findFoliumById( const std::wstring& id );
+        template< typename T = Folium > std::vector< T > find( const std::string& xpath ) const;
 
         // --- add/modify
         Folium addFolium( const std::wstring& name );
@@ -67,4 +68,5 @@ namespace portfolio {
         bool erase( Folium, std::function< void( std::tuple< std::wstring, std::wstring > ) > );
     };
 
+    template<> std::vector< Folium > Folder::find( const std::string& xpath ) const;
 }
