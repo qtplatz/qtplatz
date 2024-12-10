@@ -40,7 +40,6 @@ namespace adprocessor {
     public:
         PeakDecomposition() : A_( Eigen::Matrix< T, Ndim, Ncomp >::Zero() ) {}
         PeakDecomposition( const Eigen::Matrix< T, Ndim, Ncomp >& a ) : A_( a ) {}
-        // Eigen::Vector< T, Ncomp > operator ()( const Eigen::Vector< T, Ndim >& b ) { return A_.colPivHouseHolderQr().solve( b ); }
 
         template<typename... Args>
         std::pair< Eigen::Vector< T, Ndim >, Eigen::Vector< T, Ncomp > > operator()( Args... args ) {

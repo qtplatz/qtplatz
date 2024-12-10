@@ -2109,7 +2109,8 @@ Dataprocessor::srmDeconvolution()
         /*315.2 */        , 0.9099,     0.8303
         /*333.2 */        , 0.7210,     0.2837
         ;
-    std::cout << "A=" << A << std::endl;
+
+    ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
 
     auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
 
@@ -2161,14 +2162,14 @@ Dataprocessor::srmDeconvolution()
 
     std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
     std::get<2>(a)->resize(data.size());
-    std::get<2>(a)->set_display_name( "PGE2+PGD2" );
+    std::get<2>(a)->set_display_name( "||A*b-x||" );
 
     size_t idx{0};
     for ( const auto& d: data ) {
         auto [b,v] = peakd( std::get<1>( d ), std::get<2>( d ), std::get<3>( d ), std::get<4>( d )  );
         std::get<0>(a)->setDatum( idx, { std::get<0>(d), v(0) } );
         std::get<1>(a)->setDatum( idx, { std::get<0>(d), v(1) } );
-        std::get<2>(a)->setDatum( idx, { std::get<0>(d), v(0) + v(1) } );
+        std::get<2>(a)->setDatum( idx, { std::get<0>(d), (A*v - b).norm() } );
         idx++;
     }
 
@@ -2189,7 +2190,7 @@ Dataprocessor::srmDeconvolution()
 
     auto dst0 = folder.addFolium( std::format("PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
     auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
-    auto dst2 = folder.addFolium( std::format( "SUM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
+    auto dst2 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
 
     SessionManager::instance()->updateDataprocessor( this, dst0 );
     SessionManager::instance()->updateDataprocessor( this, dst1 );
