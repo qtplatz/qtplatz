@@ -83,6 +83,7 @@ namespace adcontrols {
             , ePeakEvent_Drift
             , ePeakEvent_Elimination
             , ePeakEvent_Manual
+            , ePeakEvent_LAST = ePeakEvent_Manual
         };
 
         enum eNoiseFilterMethod {

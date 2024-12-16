@@ -132,6 +132,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <regex>
 #include <stack>
 #include <type_traits>
@@ -2104,13 +2105,36 @@ Dataprocessor::srmDeconvolution()
 
     Eigen::Matrix<double, ndim, nprod> A;
     A <<                  /* PGE2 */   /* PGD2 */
-        /*233.2 */        0.1215,       0.4336
-        /*271.2 */        , 1.0000,     1.0000
-        /*315.2 */        , 0.9099,     0.8303
-        /*333.2 */        , 0.7210,     0.2837
-        ;
+        /*233.2 */        0.1215    ,     0.4336
+        /*271.2 */        , 1.0000  ,     1.0000
+        /*315.2 */        , 0.9099  ,     0.8303
+        /*333.2 */        , 0.7210  ,     0.2837   ;
+    // A <<                  /* PGE2 */   /* PGD2 */
+    //     /*233.2 */        0.112027   ,     0.479485
+    //     /*271.2 */        , 1.0000   ,     1.0
+    //     /*315.2 */        , 0.900478 ,     0.825113
+    //     /*333.2 */        , 0.771230 ,     0.266219
+    //     ;
+    // A <<                  /* PGE2 */   /* PGD2 */
+    //     /*233.2 */      0.107402,  0.415356
+    //     /*271.2 */    , 1.000000,  1.000000
+    //     /*315.2 */    , 0.855173,  0.775290
+    //     /*333.2 */    , 0.709611,  0.273387
+    //     ;
+    // A << 0.102028,     0.403817
+    //     , 1.000000, 1.000000
+    //     , 0.762054, 0.749773
+    //     , 0.723439, 0.287837;
+    // A << 0.112309,     0.403817
+    //     , 1.000000, 1.000000
+    //     , 0.920067, 0.749773
+    //     , 0.690671, 0.287837;
+    // A << 0.109708,     0.403817
+    //     , 1.000000, 1.000000
+    //     , 0.913071, 0.749773
+    //     , 0.699434, 0.287837;
 
-    ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
+        ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
 
     auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
 
@@ -2139,6 +2163,10 @@ Dataprocessor::srmDeconvolution()
 
     std::vector< std::tuple< double, double, double, double, double > > data;
 
+    auto txtfile = std::filesystem::path( this->filename() ).parent_path() / "data.txt";
+    std::ofstream of( txtfile );
+    of << "# filename: " << txtfile;
+
     for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
         data.emplace_back( cv.at(0)->time(i)
                            , cv.at(0)->intensity(i) - cv.at(0)->intensity(0)
@@ -2146,6 +2174,14 @@ Dataprocessor::srmDeconvolution()
                            , cv.at(2)->intensity(i) - cv.at(2)->intensity(0)
                            , cv.at(3)->intensity(i) - cv.at(3)->intensity(0)
             );
+
+        const auto d = data.back();
+        of << std::format( "{}\t{}\t{}\t{}\t{}"
+                           , std::get<0>(d)
+                           , std::get<1>(d)
+                           , std::get<2>(d)
+                           , std::get<3>(d)
+                           , std::get<4>(d) ) << std::endl;
     }
 
     std::tuple< std::shared_ptr< adcontrols::Chromatogram >

@@ -438,30 +438,32 @@ PeakMethodForm::getContents( adcontrols::PeakMethod& method ) const
     // ADDEBUG() << "## getContents:\n" << boost::json::value_from( method );
 }
 
-namespace adwidgets { namespace internal {
+namespace { // adwidgets { namespace internal {
 
-        static const char * functions [] = {
-            "Off"
-            // , "Forced base"
-            // , "Shift base"
-            // , "V-to-V"
-            // , "Tailing"
-            // , "Leading"
-            // , "Shoulder"
-            // , "Negative peak"
-            // , "Negative lock"
-            // , "Horizontal base"
-            // , "Post horizontal base"
-            // , "Forced peak"
-            // , "Slope"
-            // , "Minimum width"
-            // , "Minimum height"
-            // , "Minimum area"
-            // , "Drift"
-            // , "Elmination"
-            // , "Manual"
-        };
-    }
+    using namespace adcontrols::chromatography;
+    struct function { const char * display_name; ePeakEvent ev; };
+    static struct function const functions [] = {
+        { "Off", ePeakEvent_Off }
+        // , { "Forced base"                 , ePeakEvent_ForcedBase }
+        // , { "Shift base"                  , ePeakEvent_ShiftBase }
+        // , { "V-to-V"                      , ePeakEvent_VtoV }
+        // , { "Tailing"                     , ePeakEvent_Tailing }
+        // , { "Leading"                     , ePeakEvent_Leading }
+        // , { "Shoulder"                    , ePeakEvent_Shoulder }
+        // , { "Negative peak"               , ePeakEvent_NegativePeak }
+        , { "Negative lock"     , ePeakEvent_NegativeLock }
+        // , { "Horizontal base"             , ePeakEvent_HorizontalBase }
+        // , { "Post horizontal base"        , ePeakEvent_PostHorizontalBase }
+        // , { "Forced peak"                 , ePeakEvent_ForcedPeak }
+        // , { "Slope"                       , ePeakEvent_Slope }
+        // , { "Minimum width"               , ePeakEvent_MinWidth }
+        // , { "Minimum height"              , ePeakEvent_MinHeight }
+        // , { "Minimum area"                , ePeakEvent_MinArea }
+        // , { "Drift"                       , ePeakEvent_Drift }
+        // , { "Elmination"                  , ePeakEvent_Elimination }
+        // , { "Manual"                      , ePeakEvent_Manual }
+    };
+
 }
 
 #define countof(x) ( sizeof(x)/sizeof(x[0]) )
@@ -475,10 +477,8 @@ teDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, co
 {
     if ( index.column() == c_function ) {
         QComboBox * pCombo = new QComboBox( parent );
-        QStringList list;
-        for ( size_t i = 0; i < countof( internal::functions ); ++i )
-            list << internal::functions[ i ];
-        pCombo->addItems( list );
+        for ( auto function: functions )
+            pCombo->addItem( function.display_name, function.ev );
         return pCombo;
     } else {
         return QStyledItemDelegate::createEditor( parent, option, index );
@@ -489,11 +489,11 @@ void
 teDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if ( index.column() == c_function ) {
-        int idx = index.data().toInt() - 1;
-        if ( size_t( idx ) < countof( internal::functions ) )
-            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, internal::functions[ idx ] );
-        else
-            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, index.data().toString() );
+        int idx = index.data().toInt();
+        auto it = std::find_if( functions, &functions[countof(functions)], [&](auto a){return idx == a.ev;} );
+        if ( it != &functions[countof(functions)] ) {
+            painter->drawText( option.rect, Qt::AlignLeft | Qt::AlignVCenter, it->display_name );
+        }
 
     } else if ( index.column() == c_time ) {
 
@@ -517,18 +517,10 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
     if ( index.column() == c_function ) {
 
         QComboBox * p = dynamic_cast< QComboBox * >( editor );
-        adcontrols::chromatography::ePeakEvent func = static_cast< adcontrols::chromatography::ePeakEvent >( p->currentIndex() + 1 );
+        adcontrols::chromatography::ePeakEvent func = static_cast< adcontrols::chromatography::ePeakEvent >( p->currentData().toInt() );
 
         model->setData( index, func );
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-        if ( adcontrols::chromatography::TimedEvent::isBool( func ) ) {
-            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Bool )
-                model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
-        } else {
-            if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).type() != QVariant::Double )
-                model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
-        }
-#else
+
         if ( adcontrols::chromatography::TimedEvent::isBool( func ) ) {
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< bool >()  )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(false), Qt::EditRole );
@@ -536,7 +528,7 @@ teDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QMode
             if ( model->index( index.row(), c_event_value ).data( Qt::EditRole ).metaType() != QMetaType::fromType< double >() )
                 model->setData( model->index( index.row(), c_event_value ), QVariant(0.0), Qt::EditRole );
         }
-#endif
+
     } else {
 
         QStyledItemDelegate::setModelData( editor, model, index );

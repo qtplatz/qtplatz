@@ -199,6 +199,8 @@ Chromatography::impl::progress( double seconds, Integrator& integrator )
 
         if ( tp_->peakEvent() == adcontrols::chromatography::ePeakEvent_Off ) {
             integrator.offIntegration( tp_->boolValue() );
+        } else {
+            integrator.strobe( *tp_ );
         }
 
         ++tp_;

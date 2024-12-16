@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "peakmethod.hpp"
 #include <vector>
 #include <chromatogr/stack.hpp>
 #include <adcontrols/peaks.hpp>
@@ -103,6 +104,7 @@ namespace chromatogr {
            \brief
          */
         bool offIntegration() const;
+        bool strobe( const adcontrols::chromatography::TimedEvent& );
     };
 
 }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2024 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -233,11 +233,10 @@ namespace chromatogr {
                                 , minw_( 0.5 /* second */)
                                 , slope_( 0.1 /* uV/s */ )
                                 , drift_( 0.0 /* uV/min */ )
-                                , detectSholder_(false)
-                                , detectNegative_(false)
                                 , offIntegration_(false)
                                 , timeOffset_(0)
-                                , isCounting_( isCounting )  {
+                                , isCounting_( isCounting )
+                                , active_events_( {} ) {
 #if defined _DEBUG
             std::string file = adportable::profile::user_data_dir<char>() + "/data/integrator.txt";
             outf_.open( file );
@@ -274,14 +273,18 @@ namespace chromatogr {
         double minw_;
         double slope_;
         double drift_;
-        bool detectSholder_;
-        bool detectNegative_;
         bool offIntegration_;
         double timeOffset_;
         bool isCounting_;
 #if defined _DEBUG
         std::ofstream outf_;
 #endif
+        std::bitset< adcontrols::chromatography::ePeakEvent_LAST + 1 > active_events_;
+
+        bool detectSholder() const { return active_events_[ adcontrols::chromatography::ePeakEvent_Shoulder ]; }
+        bool detectNegative() const { return active_events_[ adcontrols::chromatography::ePeakEvent_NegativePeak ]; }
+        bool isNegativeLock() const { return active_events_[ adcontrols::chromatography::ePeakEvent_NegativeLock ]; }
+
         int pos_g() { return signal_processor_->pos_g(); }
         int pos_c() { return signal_processor_->pos_c(); }
         //
@@ -437,6 +440,18 @@ Integrator::offIntegration( bool flag )
             }
         }
     }
+}
+
+bool
+Integrator::strobe( const adcontrols::chromatography::TimedEvent& tev )
+{
+    if ( tev.isBool() )
+        impl_->active_events_[ tev.peakEvent() ] = tev.boolValue();
+
+    // ADDEBUG() << boost::json::value_from( tev )
+    //           << "\t" << impl_->active_events_.to_string();
+
+    return false;
 }
 
 void
@@ -628,11 +643,14 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
 
-#if ! defined NDEBUG && 0
+#if 1 // ! defined NDEBUG //&& 0
     std::string s;
-    for ( int i = stack_.size() - 1; i >= 0; --i )
+    std::ostringstream o;
+    for ( int i = stack_.size() - 1; i >= 0; --i ) {
         s += toChar( stack_[i].stat() );
-    ADDEBUG() << "reduce: stack [" << s << "]";
+        o << std::format("{:.2f}, ", signal_processor_->time_at( stack_[i].pos() ) );
+    }
+    ADDEBUG() << "reduce: stack [" << s << "]" << "\t" << o.str();
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
