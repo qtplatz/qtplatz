@@ -50,6 +50,7 @@ namespace chromatogr {
     private:
         class impl;
         impl * impl_;
+        friend struct print_stack;
 
     public:
         /**

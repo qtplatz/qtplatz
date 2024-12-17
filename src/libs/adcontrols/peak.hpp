@@ -68,8 +68,8 @@ namespace adcontrols {
         const char * formula() const;
         void  setFormula(const char * );
 
-        std::int32_t  appliedFunctions() const;
-        void  setAppliedFunctions( std::int32_t );
+        std::uint32_t  appliedFunctions() const;
+        void  setAppliedFunctions( std::uint32_t );
 
         std::int32_t  startPos() const;
         std::int32_t  topPos() const;

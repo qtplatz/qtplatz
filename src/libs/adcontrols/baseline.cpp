@@ -25,6 +25,9 @@
 
 #include "baseline.hpp"
 #include <adportable/debug.hpp>
+#include <boost/json.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 
 using namespace adcontrols;
 
@@ -164,4 +167,46 @@ Baseline::yMove( double y0 )
     // ADDEBUG() << "yMove(" << y0 << ") " << std::make_pair( startHeight_, stopHeight_ );
     startHeight_ -= y0;
     stopHeight_ -= y0;
+}
+
+namespace adcontrols {
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const Baseline& bs )
+    {
+        jv = {
+            { "startPos", bs.startPos_ }
+            , { "stopPos", bs.stopPos_ }
+            , { "startTime", double(bs.startTime_) }
+            , { "stopTime", double(bs.stopTime_) }
+            , { "startHeight", bs.startHeight_ }
+            , { "stopHeight", bs.stopHeight_ }
+            , { "manuallyModified", bs.manuallyModified_ }
+            , { "baseId", bs.baseId_ }
+        };
+    }
+
+    Baseline
+    tag_invoke( const boost::json::value_to_tag< Baseline >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+
+        if ( jv.kind() == boost::json::kind::object ) {
+            Baseline t;
+            auto obj = jv.as_object();
+            double startTime, stopTime;
+            extract( obj, t.startPos_         , "startPos"           );
+            extract( obj, t.stopPos_          , "stopPos"            );
+            extract( obj, startTime           , "startTime"          );
+            extract( obj, stopTime            , "stopTime"           );
+            extract( obj, t.startHeight_      , "startHeight"        );
+            extract( obj, t.stopHeight_       , "stopHeight"         );
+            extract( obj, t.manuallyModified_ , "manuallyModified"   );
+            extract( obj, t.baseId_           , "baseId"             );
+            t.startTime_ = startTime;
+            t.stopTime_ = stopTime;
+            return t;
+        }
+        return {};
+    }
 }

@@ -182,14 +182,14 @@ Peak::userData() const
     return userData_;
 }
 
-int32_t
+uint32_t
 Peak::appliedFunctions() const
 {
     return appliedFunctions_;
 }
 
 void
-Peak::setAppliedFunctions( int32_t value )
+Peak::setAppliedFunctions( uint32_t value )
 {
     appliedFunctions_ = value;
 }

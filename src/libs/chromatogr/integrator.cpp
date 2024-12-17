@@ -37,6 +37,7 @@
 
 #include "integrator.hpp"
 #include "averager.hpp"
+#include "baselines.hpp"
 #include <adcontrols/peakmethod.hpp>
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/peak.hpp>
@@ -300,15 +301,38 @@ namespace chromatogr {
         void pkcorrect(PEAKSTACK & sp, int f);
         bool intercept(const class adcontrols::Baseline& bs, long pos, double height);
         void assignBaseline();
-        void reduceBaselines();
-        void fixPenetration( adcontrols::Baseline&, const adcontrols::Peak& );
+        // void reduceBaselines();
+        // bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
+        // void fixPenetration( adcontrols::Baseline&, const adcontrols::Peak& );
         // void fixupPenetration( adcontrols::Baseline& );
-        bool fixBaseline( adcontrols::Baseline&, adcontrols::Baselines& );
         void updatePeakAreaHeight( const adcontrols::PeakMethod& );
-        void rejectPeaks( const adcontrols::PeakMethod& );
+        // void rejectPeaks( const adcontrols::PeakMethod& );
         void updatePeakParameters( const adcontrols::PeakMethod& );
         bool fixDrift( adcontrols::Peaks&, adcontrols::Baselines&, double drift );
         void remove( adcontrols::Baselines&, const adcontrols::Peaks& );
+    };
+
+    struct print_stack {
+        std::ostringstream o_;
+        const Integrator::impl& impl_;
+        void print() {
+            std::ostringstream o;
+            std::string s;
+            for ( int i = impl_.stack_.size() - 1; i >= 0; --i ) {
+                s += toChar( impl_.stack_[i].stat() );
+                o << std::format("{:.2f}, ", impl_.signal_processor_->time_at( impl_.stack_[i].pos() ) );
+            }
+            o_ << std::format( "[{}]\t{}", s, o.str() );
+        }
+        print_stack( const Integrator::impl& impl, const char * heading ) : impl_( impl ) {
+            o_ << heading;
+            print();
+        }
+        ~print_stack() {
+            o_ << " --> ";
+            print();
+            ADDEBUG() << o_.str();
+        }
     };
 }
 
@@ -318,18 +342,167 @@ namespace {
 
     class helper {
     public:
-        static adcontrols::Peak peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags );
-        static adcontrols::Peak peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e );
+        static adcontrols::Peak peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags, uint32_t events );
+        static adcontrols::Peak peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e, uint32_t events );
         static adcontrols::Baseline baseline( const signal_processor& c, int, int );
 
         static void updateAreaHeight( const signal_processor& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
         static bool tRetention_lsq( const signal_processor& c, adcontrols::Peak& pk );
         static bool tRetention_moment( const signal_processor& c, adcontrols::Peak& pk );
-        static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
+        // static bool cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss );
         static bool peak_width( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
         static bool asymmetry( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
         static bool theoreticalplate( const adcontrols::PeakMethod&, const signal_processor& c, adcontrols::Peak& pk );
     };
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    template< typename T = const std::vector< adcontrols::Peak > >
+    class subPeaks {
+        T::const_iterator begin_;
+        T::const_iterator end_;
+    public:
+        subPeaks( T& pks, const adcontrols::Baseline& bs ) {
+            begin_ = std::find_if( pks.begin(), pks.end()
+                                   , [&](auto& a){
+                                       return a.peakTime() > bs.startTime() && a.peakTime() < bs.stopTime(); });
+            if ( begin_ != pks.end() ) {
+                auto it = std::find_if( pks.rbegin(), pks.rend()
+                                        , [&](auto& a){
+                                            return a.peakTime() > bs.startTime() && a.peakTime() < bs.stopTime(); });
+                end_ = (it == pks.rbegin() ? (it+1).base() : it.base()) + 1;
+            } else {
+                end_ = pks.end();
+            }
+        }
+
+        T::const_iterator begin() const {
+            return begin_;
+        }
+
+        T::const_iterator end() const {
+            return end_;
+        }
+        size_t size() const {
+            return std::distance( begin_, end_ );
+        }
+        bool empty() const {
+            return begin_ == end_;
+        }
+        T::const_iterator lowest_vallay() const {
+            return std::min_element( begin_, end_, [&](const auto& a, const auto& b){ return a.endHeight() < b.endHeight(); });
+        }
+        T::const_iterator lowest_vallay( const adcontrols::Baseline& bs ) const {
+            return std::min_element( begin_, end_, [&](const auto& a, const auto& b){
+                return (a.endHeight() - bs.height( a.endPos())) < (b.endHeight() - bs.height( b.endPos() )); });
+        }
+    };
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class pkFlags {
+    public:
+        static std::string toChar( uint32_t flags ) {
+            static const char __state_char [] = { 'x', 'T', 'V', 'S', 'B' };
+            return std::format("[{}{}{}]"
+                               , __state_char[(flags >> 8) & 0x0f]
+                               , __state_char[(flags >> 4) & 0x0f]
+                               , __state_char[(flags >> 0) & 0x0f] );
+        }
+    };
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class bsSplitter {
+    public:
+        std::pair< adcontrols::Baseline, adcontrols::Baseline >
+        operator()(const adcontrols::Baseline& ibs, const adcontrols::Peak& pk ) const {
+            adcontrols::Baseline bs1(ibs), bs2(ibs);
+            bs1.setStopPos( pk.endPos() );
+            bs1.setStopTime( pk.endTime() );
+            bs1.setStopHeight( pk.endHeight() );
+            //--
+            bs2.setStartPos( bs1.stopPos() );
+            bs2.setStartTime( bs1.stopTime() );
+            bs2.setStartHeight( bs1.stopHeight() );
+            return { bs1, bs2 };
+        }
+
+    };
+
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class refineBaseline {
+
+        std::optional< std::pair< adcontrols::Baseline, adcontrols::Baseline > >
+        __split_on_vallay_0( const adcontrols::Baseline& bs, const std::vector< adcontrols::Peak >& pks ) const {
+            auto it = subPeaks<>( pks, bs ).lowest_vallay( bs );
+            if ( it != pks.end() ) {
+                if ( it->endHeight() < bs.height( it->endPos() ) ) {
+                    return bsSplitter()( bs, *it );
+                }
+            }
+            return {};
+        }
+
+        std::vector< adcontrols::Baseline >
+        __split_on_vallay( const adcontrols::Baseline& bs
+                           , const std::vector< adcontrols::Peak >& pks ) const {
+            if ( auto pair = __split_on_vallay_0( bs, pks ) ) {
+                std::vector< adcontrols::Baseline > temp;
+                for ( const auto& _bs: { pair->first, pair->second } ) {
+                    auto t = __split_on_vallay( _bs, pks );
+                    temp.insert(temp.end(),std::make_move_iterator(t.begin()), std::make_move_iterator(t.end()));
+                }
+                return temp;
+            }
+            return std::vector<  adcontrols::Baseline >( { bs } );
+        }
+
+    public:
+        refineBaseline() {}
+
+        std::vector< adcontrols::Baseline >
+        operator()( const adcontrols::Baseline& bs
+                    , const std::vector< adcontrols::Peak >& pks ) const {
+            return __split_on_vallay( bs, pks );
+        }
+
+    };
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class cleanBaseline {
+    public:
+        void operator()( std::vector< adcontrols::Baseline >& bss
+                         , const std::vector< adcontrols::Peak >& pks ) {
+            bss.erase(
+                std::remove_if( bss.begin()
+                                , bss.end()
+                                , [&](auto& a){ return subPeaks<>(pks, a).empty(); } )
+                , bss.end() );
+        }
+    };
+
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class peakRejector {
+    public:
+        void operator()( std::vector< adcontrols::Peak >& pks
+                         , const adcontrols::PeakMethod & mth ) {
+
+            pks.erase( std::remove_if( pks.begin()
+                                       , pks.end()
+                                       , [&] ( const auto& a ) {
+                                           return a.peakArea() <= mth.minimumArea()
+                                               || a.peakHeight() <= mth.minimumHeight();
+                                       } )
+                       , pks.end() );
+        }
+    };
+
+
 }
 
 using namespace chromatogr;
@@ -391,25 +564,40 @@ Integrator::operator << ( std::pair<double, double>&& data )
 void
 Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks, adcontrols::Baselines& baselines )
 {
-	if ( !impl_->stack_.empty() ) {
+	if ( not impl_->stack_.empty() ) {
 		if ( (impl_->stack_[0] == PKTOP) || (impl_->stack_[0] == PKVAL) ) {
 			impl_->stack_.push( PEAKSTACK(PKBAS, long(impl_->signal_processor_->d().size() - 1), 0) );
 			impl_->pkreduce();
 		}
 	}
 
+    for ( const auto& bs: impl_->baselines_ ) {
+        ADDEBUG() << "### close baseline.id = " << bs.baseId();
+    }
+
     impl_->assignBaseline();
     // impl_->reduceBaselines();
     // helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+    peaks = {};
+    baselines = {}; // impl_->baselines_; // for debugging
 
+    using baselines_t = adcontrols::Baselines::vector_type;
+
+    for ( const auto bs: impl_->baselines_ ) {
+        for ( auto& sbs: refineBaseline()( bs, impl_->peaks_ ) ) {
+            static_cast<baselines_t&>( baselines ).emplace_back( sbs );
+        }
+    }
+
+#if 0
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
         helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
         // impl_->reduceBaselines();
 	}
-
+#endif
     impl_->updatePeakAreaHeight( mth );
-    impl_->rejectPeaks( mth );
-    helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
+    peakRejector()( impl_->peaks_, mth );
+    cleanBaseline()( baselines, impl_->peaks_ );
 
 #if ! defined NDEBUG && 0
     ADDEBUG() << "integrator::close (final) -- found " << impl_->peaks_.size() << " peaks";
@@ -426,7 +614,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
     impl_->updatePeakParameters( mth );
 
     peaks = impl_->peaks_;
-	baselines = impl_->baselines_;
+	// baselines = impl_->baselines_;
 }
 
 void
@@ -470,16 +658,16 @@ Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 	}
 }
 
-void
-Integrator::impl::rejectPeaks(const adcontrols::PeakMethod & mth)
-{
-    auto pos = std::remove_if( peaks_.begin(), peaks_.end(), [mth] ( const adcontrols::Peak& a ) {
-            return a.peakArea() <= mth.minimumArea() || a.peakHeight() <= mth.minimumHeight();
-        } );
+// void
+// Integrator::impl::rejectPeaks(const adcontrols::PeakMethod & mth)
+// {
+//     auto pos = std::remove_if( peaks_.begin(), peaks_.end(), [mth] ( const adcontrols::Peak& a ) {
+//             return a.peakArea() <= mth.minimumArea() || a.peakHeight() <= mth.minimumHeight();
+//         } );
 
-    if ( pos != peaks_.end() )
-        peaks_.erase( pos, peaks_.end() );
-}
+//     if ( pos != peaks_.end() )
+//         peaks_.erase( pos, peaks_.end() );
+// }
 
 
 void
@@ -643,14 +831,8 @@ Integrator::impl::pkreduce()
 {
     PEAKSTACK sp0 = stack_.top();
 
-#if 1 // ! defined NDEBUG //&& 0
-    std::string s;
-    std::ostringstream o;
-    for ( int i = stack_.size() - 1; i >= 0; --i ) {
-        s += toChar( stack_[i].stat() );
-        o << std::format("{:.2f}, ", signal_processor_->time_at( stack_[i].pos() ) );
-    }
-    ADDEBUG() << "reduce: stack [" << s << "]" << "\t" << o.str();
+#if not defined NDEBUG //&& 0
+    print_stack printer( *this, "reduce:\t" );
 #endif
 
 	if (stack_.size() <= 1)	 {		/* stack empty */
@@ -661,10 +843,11 @@ Integrator::impl::pkreduce()
 	} else if (stack_.size() == 2)	 {
 
 		if ((sp0 == PKVAL) && (stack_[1] == PKSTA))	 { 	 /* SV */
-			stack_.pop();
-			stack_.pop();
-			sp0 = PKSTA;
-			stack_.push(sp0);
+			// stack_.pop();
+			// stack_.pop();
+			// sp0 = PKSTA;
+			// stack_.push(sp0);
+            // --- stack_.pop(); // reject 'V'
 			return;
 		} else if ((stack_[0] == PKBAS) && (stack_[1] == PKSTA)) { /* SB */
 			stack_.pop();
@@ -687,8 +870,8 @@ Integrator::impl::pkreduce()
 			} else	{
 				return;
 			}
-		} else {
-            peaks_.emplace_back( helper::peak( *signal_processor_, sp2, sp1, sp0 ) );
+		} else {                                    /* STB */
+            peaks_.emplace_back( helper::peak( *signal_processor_, sp2, sp1, sp0, active_events_.to_ulong() ) );
 		}
 
 		stack_.pop();	// remove sp1, PKTOP
@@ -799,7 +982,7 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
                 g[ e ].set_properties( *pIt );
             }
         }
-
+#if 0 // force v-to-v
         bool fixing( false );
         baseline_levels level( *it );
         BOOST_FOREACH( auto v, boost::vertices( g ) ) {
@@ -813,6 +996,7 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
                 }
             }
         }
+#endif
 	}
 
 	if ( bss.size() != fixed.size() ) {
@@ -822,6 +1006,7 @@ Integrator::impl::fixDrift( adcontrols::Peaks& pks, adcontrols::Baselines & bss,
     return false;
 }
 
+#if 0
 bool
 Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& fixed )
 {
@@ -886,6 +1071,7 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 	}
 	return res;
 }
+#endif
 
 void
 Integrator::impl::assignBaseline()
@@ -909,6 +1095,7 @@ Integrator::impl::assignBaseline()
 	}
 }
 
+#if 0
 void
 Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::Peak& pk )
 {
@@ -946,7 +1133,9 @@ Integrator::impl::fixPenetration( adcontrols::Baseline & bs, const adcontrols::P
         bs.setStopHeight( signal_processor_->intensity( offlimits.second ) );
     }
 }
+#endif
 
+#if 0
 void
 Integrator::impl::reduceBaselines()
 {
@@ -966,6 +1155,7 @@ Integrator::impl::reduceBaselines()
     if ( bFixed )
 		baselines_ = fixed;
 }
+#endif
 
 ///////////////////////////////
 // static
@@ -1060,21 +1250,6 @@ helper::tRetention_moment(  const signal_processor& c, adcontrols::Peak& pk )
     return true;
 }
 
-bool
-helper::cleanup_baselines( const adcontrols::Peaks& pks, adcontrols::Baselines& bss )
-{
-	std::set<int> idList;
-
-	for ( adcontrols::Peaks::vector_type::const_iterator it = pks.begin(); it != pks.end(); ++it )
-		idList.insert( it->baseId() );
-
-    adcontrols::Baselines::vector_type::iterator pos
-        = std::remove_if( bss.begin(), bss.end(), [&](const auto& a){ return idList.find( a.baseId() ) == idList.end(); } );
-    if ( pos != bss.end() )
-		bss.erase( pos, bss.end() );
-
-	return true;
-}
 
 // static
 void
@@ -1098,13 +1273,14 @@ helper::updateAreaHeight( const signal_processor& c, const adcontrols::Baseline&
 }
 
 adcontrols::Peak
-helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e )
+helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e, uint32_t events )
 {
     adcontrols::Peak pk;
 
     pk.setStartPos( s.pos(), c.intensity( s.pos() ) );
     pk.setTopPos( t.pos(),   c.intensity( t.pos() ) );
     pk.setEndPos( e.pos(),   c.intensity( e.pos() ) );
+    pk.setAppliedFunctions( events );
 
     // workaround for a data: peakwidth < sampInterval
     auto maxpos = c.max_element( { s.pos(), e.pos() } );
@@ -1113,9 +1289,9 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
     }
 
     const uint32_t flags{ uint32_t((s.stat() & 0x0f) << 8) | uint32_t((t.stat() & 0x0f) << 4) | uint32_t(e.stat() & 0x0f) };
-    std::string sflags;
-    for ( auto f: { s, t, e } )
-        sflags += toChar( f.stat() );
+    // std::string sflags;
+    // for ( auto f: { s, t, e } )
+    //     sflags += toChar( f.stat() );
 
     pk.setPeakFlags( flags );
     // ADDEBUG() << "peak flag: " << sflags;
@@ -1134,7 +1310,7 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
 }
 
 adcontrols::Peak
-helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags )
+helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags, uint32_t events )
 {
     adcontrols::Peak pk;
 
@@ -1142,6 +1318,7 @@ helper::peak( const signal_processor& c, int spos, int tpos, int epos, unsigned 
     pk.setTopPos( tpos, c.intensity( tpos ) );
     pk.setEndPos( epos, c.intensity( epos ) );
     pk.setPeakFlags( flags );
+    pk.setAppliedFunctions( events );
 
     pk.setStartTime( c.time_at( spos ) );
     pk.setPeakTime( c.time_at( tpos ) );
@@ -1216,6 +1393,7 @@ helper::baseline( const signal_processor& c, int spos, int epos )
     bs.setStopTime( c.time_at( epos ) );
     bs.setStartHeight( c.intensity( spos ) );
     bs.setStopHeight( c.intensity( epos ) ) ;
+    ADDEBUG() << "add baseline: " << std::make_pair(bs.startTime(), bs.stopTime());
 
     return bs;
 }

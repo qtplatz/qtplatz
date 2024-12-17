@@ -30,6 +30,7 @@
 #include "timeutil.hpp"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/json/fwd.hpp>
 
 namespace adcontrols {
 
@@ -86,7 +87,11 @@ namespace adcontrols {
             ar & BOOST_SERIALIZATION_NVP( startTime_ );
             ar & BOOST_SERIALIZATION_NVP( stopTime_ );
         }
-
+        friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Baseline& );
+        friend Baseline tag_invoke( const boost::json::value_to_tag< Baseline >&, const boost::json::value& jv );
     };
+
+    ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Baseline& );
+    ADCONTROLSSHARED_EXPORT Baseline tag_invoke( const boost::json::value_to_tag< Baseline >&, const boost::json::value& jv );
 
 }
