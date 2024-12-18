@@ -117,6 +117,27 @@ namespace {
         }
     };
 
+    struct baseline_finder {
+        const adcontrols::Baselines& bss_;
+        baseline_finder( const adcontrols::Baselines& bss ) : bss_( bss ) {}
+        adcontrols::Baseline operator()( const adcontrols::Peak& pk ) const {
+            auto it = std::find_if( bss_.begin(), bss_.end(), [&](const auto& bs){ return bs.baseId() == pk.baseId(); });
+            if ( it != bss_.end() ) {
+                return *it;
+            } else {
+                adcontrols::Baseline bs;
+                bs.setBaseId( -1 );
+                bs.setStartPos( pk.startPos() );
+                bs.setStopPos( pk.endPos() );
+                bs.setStartTime( pk.startTime() );
+                bs.setStartHeight( pk.startHeight() );
+                bs.setStopTime( pk.endTime() );
+                bs.setStopHeight( pk.endHeight() );
+                return bs;
+            }
+        }
+    };
+
 }
 
 namespace {
@@ -424,7 +445,7 @@ namespace adplot {
             }
             return rect;
         }
-        void setPeak( adplot::plot&, const adcontrols::Peak& peak );
+        void setPeak( adplot::plot&, const adcontrols::Peak& peak, const adcontrols::Baseline& baseline );
         void setAnnotation( adplot::plot&, const std::vector< adcontrols::annotation >& vec );
         void setAnnotation( adplot::plot&, std::vector< adcontrols::annotation >&& );
     };
@@ -699,9 +720,10 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, Qwt
 
     impl_->peak_annotations_.clear();
 
+    baseline_finder bsfinder{ r.baselines() };
     for ( const auto& pk:  r.peaks() ) {
         // peak marker
-		impl_->setPeak( *this, pk );
+        impl_->setPeak( *this, pk, bsfinder( pk ) );
 
         // annotation
 		impl_->peak_annotations_.emplace_back( pk.name().empty() ? (boost::format( "%.2f" ) % pk.peakTime()).str() : pk.name()
@@ -717,10 +739,11 @@ ChromatogramWidget::setPeakResult( const adcontrols::PeakResult& r, int idx, Qwt
 }
 
 void
-ChromatogramWidget::impl::setPeak( adplot::plot& plot, const adcontrols::Peak& peak )
+ChromatogramWidget::impl::setPeak( adplot::plot& plot
+                                   , const adcontrols::Peak& peak
+                                   , const adcontrols::Baseline& bs )
 {
-    double tR = peak.peakTime();
-    plot_peaks_.emplace_back( plot, peak );
+    plot_peaks_.emplace_back( plot, peak, bs );
 }
 
 void

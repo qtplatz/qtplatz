@@ -27,6 +27,7 @@
 #include "plot.hpp"
 #include <qwt_plot_curve.h>
 #include <adcontrols/peak.hpp>
+#include <adcontrols/baseline.hpp>
 #include <QPen>
 
 using namespace adplot;
@@ -35,8 +36,10 @@ Peak::Peak( Peak&& t ) : plot_( t.plot_ ), curve_( std::move( t.curve_ ) )
 {
 }
 
-Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
-                                                       , curve_( std::make_unique< QwtPlotCurve >() )
+Peak::Peak( plot& plot
+            , const adcontrols::Peak& peak
+            , const adcontrols::Baseline& bs ) : plot_( &plot )
+                                               , curve_( std::make_unique< QwtPlotCurve >() )
 {
     QColor color( 0x7f, 0, 0, 0x60 );
     curve_->setPen( QPen( color ) );
@@ -45,12 +48,16 @@ Peak::Peak( plot& plot, const adcontrols::Peak& peak ) : plot_( &plot )
     curve_->attach( plot_ );
 
     double x[2], y[2];
-    x [ 0 ] = peak.startTime();
+
+    //x [ 0 ] = peak.startTime();
+    x [ 0 ] = peak.endTime();
     x [ 1 ] = peak.endTime();
-    //y [ 0 ] = peak.startHeight();
-    //y [ 1 ] = peak.endHeight();
+
+    y [ 0 ] = bs.height( peak.endPos() );
+    y [ 1 ] = peak.endHeight();
+
     // force horizontal
-    y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ); // - ( rc.height() / 20 ); // <-- 5% offsset
+    // y [ 0 ] = y [ 1 ] = std::min( peak.startHeight(), peak.endHeight() ); // - ( rc.height() / 20 ); // <-- 5% offsset
 
     curve_->setSamples(  x, y, 2 );
 }

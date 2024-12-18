@@ -38,8 +38,8 @@ Baseline::Baseline( Baseline&& t ) : plot_( t.plot_ ), curve_( std::move( t.curv
 Baseline::Baseline( plot& plot, const adcontrols::Baseline& bs ) : plot_( &plot )
                                                                  , curve_( std::make_unique< QwtPlotCurve >() )
 {
-    //QColor color( 0xcf, 0x00, 0, 0x60 );
-    QColor color( 0x00, 0xcf, 0, 0x60 );
+    QColor color( 0xcf, 0x00, 0, 0x60 );
+    // QColor color( 0x00, 0xcf, 0, 0x60 );
 	curve_->setPen( QPen( color ) );
     curve_->setItemAttribute( QwtPlotItem::Legend, false );
     curve_->setStyle( QwtPlotCurve::Lines ); // continuum (or Stics)

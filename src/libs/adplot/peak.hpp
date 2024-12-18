@@ -28,7 +28,7 @@
 #include <memory>
 class QwtPlotCurve;
 
-namespace adcontrols { class Peak; }
+namespace adcontrols { class Peak; class Baseline; }
 
 namespace adplot {
 
@@ -38,7 +38,7 @@ namespace adplot {
         Peak();
         Peak( const Peak& ) = delete;
     public:
-        Peak( plot& plot, const adcontrols::Peak& );
+        Peak( plot& plot, const adcontrols::Peak&, const adcontrols::Baseline& );
         Peak( Peak&& t );
     private:
         plot * plot_;

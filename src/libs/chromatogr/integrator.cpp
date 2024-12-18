@@ -357,22 +357,36 @@ namespace {
 
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
-    template< typename T = const std::vector< adcontrols::Peak > >
+    template< typename T = const std::vector< adcontrols::Peak >
+              , typename Iter = T::const_iterator >
     class subPeaks {
-        T::const_iterator begin_;
-        T::const_iterator end_;
+        Iter begin_;
+        Iter end_;
+        T& pks_;
     public:
-        subPeaks( T& pks, const adcontrols::Baseline& bs ) {
+        subPeaks( T& pks, const adcontrols::Baseline& bs ) : pks_( pks ) {
             begin_ = std::find_if( pks.begin(), pks.end()
                                    , [&](auto& a){
-                                       return a.peakTime() > bs.startTime() && a.peakTime() < bs.stopTime(); });
+                                       return bs.startPos() < a.topPos() && a.topPos() < bs.stopPos(); });
             if ( begin_ != pks.end() ) {
                 auto it = std::find_if( pks.rbegin(), pks.rend()
                                         , [&](auto& a){
-                                            return a.peakTime() > bs.startTime() && a.peakTime() < bs.stopTime(); });
-                end_ = (it == pks.rbegin() ? (it+1).base() : it.base()) + 1;
+                                            return bs.startPos() < a.topPos() && a.topPos() < bs.stopPos(); });
+                end_ = (it+1).base() + 1;
+                if ( it->topPos() > bs.stopPos() ) {
+                    ADDEBUG() << "########## found end iterator beyond the range ###########";
+                }
+                if ( (end_ - 1)->topPos() > bs.stopPos() ) {
+                    ADDEBUG() << "########## found end iterator beyond the range (on forward iterator) ###########";
+                }
+
+                ADDEBUG() << "subPeaks: " << std::make_pair(
+                    std::make_tuple( begin_->startPos(), begin_->topPos(), begin_->endPos() )
+                    , std::make_tuple( (end_-1)->startPos(), (end_-1)->topPos(), (end_-1)->endPos() ))
+                          << "<-- bs: " << std::make_pair( bs.startPos(), bs.stopPos() );
+
             } else {
-                end_ = pks.end();
+                end_ = begin_; // := pks.end();
             }
         }
 
@@ -383,6 +397,7 @@ namespace {
         T::const_iterator end() const {
             return end_;
         }
+
         size_t size() const {
             return std::distance( begin_, end_ );
         }
@@ -393,8 +408,10 @@ namespace {
             return std::min_element( begin_, end_, [&](const auto& a, const auto& b){ return a.endHeight() < b.endHeight(); });
         }
         T::const_iterator lowest_vallay( const adcontrols::Baseline& bs ) const {
-            return std::min_element( begin_, end_, [&](const auto& a, const auto& b){
-                return (a.endHeight() - bs.height( a.endPos())) < (b.endHeight() - bs.height( b.endPos() )); });
+            auto it = std::min_element( begin_, end_, [&](const auto& a, const auto& b){
+                return (a.endHeight() - bs.height( a.endPos()))
+                    < (b.endHeight() - bs.height( b.endPos() )); });
+            return it;
         }
     };
 
@@ -434,13 +451,36 @@ namespace {
     //---------------------------------------------------------------------
     //---------------------------------------------------------------------
     class refineBaseline {
+        mutable size_t recursion_cnt_;
 
         std::optional< std::pair< adcontrols::Baseline, adcontrols::Baseline > >
         __split_on_vallay_0( const adcontrols::Baseline& bs, const std::vector< adcontrols::Peak >& pks ) const {
-            auto it = subPeaks<>( pks, bs ).lowest_vallay( bs );
-            if ( it != pks.end() ) {
-                if ( it->endHeight() < bs.height( it->endPos() ) ) {
-                    return bsSplitter()( bs, *it );
+
+
+            if ( recursion_cnt_++ > 20 ) {
+                ADDEBUG() << "------------- recursion limit exceeded ------------- ";
+                return {};
+            }
+            ADDEBUG() << "before split: " << std::make_pair( bs.startPos(), bs.stopPos() );
+            const auto& spks = subPeaks<>( pks, bs );
+
+            if ( spks.size() > 2 ) {
+                auto it = spks.lowest_vallay( bs );
+
+                // ADDEBUG() << "it=" << std::make_tuple(it->peakId(), it->startPos(), it->topPos(), it->endPos())
+                //           << ", last=" << std::make_tuple(spks.last()->peakId(), spks.last()->startPos(), spks.last()->topPos(), spks.last()->endPos())
+                //           << "; " << (it == (spks.end() - 1));
+
+                if ( it != spks.end() && it != (spks.end() - 1) ) {
+                    if ( it->endHeight() < bs.height( it->endPos() ) ) {
+                        ADDEBUG() << std::format( "__split_on_vallay_0: it={}, pkrange = {}, {} pos={}"
+                                                  , it->peakId(), spks.begin()->peakId(), (spks.end() - 1)->peakId(), it->endPos() );
+                        auto sbs = bsSplitter()( bs, *it );
+                        ADDEBUG() << "splitted: " << std::make_pair( sbs.first.startPos(), sbs.first.stopPos() )
+                                  << std::make_pair( sbs.second.startPos(), sbs.second.stopPos() )
+                                  << ", counts=" << std::make_pair( subPeaks<>( pks, sbs.first ).size(), subPeaks<>( pks, sbs.second ).size() );
+                        return sbs;
+                    }
                 }
             }
             return {};
@@ -452,8 +492,13 @@ namespace {
             if ( auto pair = __split_on_vallay_0( bs, pks ) ) {
                 std::vector< adcontrols::Baseline > temp;
                 for ( const auto& _bs: { pair->first, pair->second } ) {
-                    auto t = __split_on_vallay( _bs, pks );
-                    temp.insert(temp.end(),std::make_move_iterator(t.begin()), std::make_move_iterator(t.end()));
+                    auto count = subPeaks<>( pks, _bs ).size();
+                    if ( count > 2 ) {
+                        auto t = __split_on_vallay( _bs, pks );
+                        temp.insert(temp.end(),std::make_move_iterator(t.begin()), std::make_move_iterator(t.end()));
+                    } else if ( count == 1 ) {
+                        temp.emplace_back( _bs );
+                    }
                 }
                 return temp;
             }
@@ -461,7 +506,7 @@ namespace {
         }
 
     public:
-        refineBaseline() {}
+        refineBaseline() : recursion_cnt_(0) {}
 
         std::vector< adcontrols::Baseline >
         operator()( const adcontrols::Baseline& bs
@@ -502,6 +547,50 @@ namespace {
         }
     };
 
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class Assignor {
+    public:
+        adcontrols::Peaks
+        operator()( const std::vector< adcontrols::Peak >& pks, const std::vector< adcontrols::Baseline >& bss ) const {
+            adcontrols::Peaks res;
+            for ( const auto& bs: bss ) {
+                for ( auto& pk: subPeaks<>( pks, bs ) ) {
+                    auto t( pk );
+                    t.setBaseId( bs.baseId() );
+                    static_cast< adcontrols::Peaks::vector_type& >(res).emplace_back( std::move( t ) );
+                }
+            }
+            return res;
+        }
+
+        static void
+        assignBaseline( adcontrols::Baselines& baselines
+                        , adcontrols::Peaks& peaks
+                        , const signal_processor& c ) {
+            int32_t pid(1);
+            for ( auto& pk: peaks ) {
+                pk.setPeakId( pid++ );
+                auto bIt = std::find_if( baselines.begin(), baselines.end()
+                                         , [&](const auto& b){ return b.startPos() < pk.topPos() && pk.topPos() < b.stopPos(); });
+                if ( bIt != baselines.end() ) {
+                    pk.setBaseId( bIt->baseId() );
+                } else {
+                    auto& baseline = baselines.emplace_back( helper::baseline( c, pk.startPos(), pk.endPos()) );
+                    pk.setBaseId( baseline.baseId() );
+                    ADDEBUG() << "#### baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+                }
+            }
+        }
+
+        static void
+        renumber( std::vector< adcontrols::Baseline >& bss ) {
+            int32_t id{1};
+            for ( auto& bs: bss )
+                bs.setBaseId( id++ );
+        }
+
+    };
 
 }
 
@@ -570,12 +659,10 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 			impl_->pkreduce();
 		}
 	}
-
-    for ( const auto& bs: impl_->baselines_ ) {
-        ADDEBUG() << "### close baseline.id = " << bs.baseId();
-    }
-
-    impl_->assignBaseline();
+    // ADDEBUG() << "--------------- close::assignBaseline ------------------";
+    Assignor::assignBaseline( impl_->baselines_, impl_->peaks_, *impl_->signal_processor_ );
+    // Assignor::renumber( impl_->peaks_ );
+    // impl_->assignBaseline();
     // impl_->reduceBaselines();
     // helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
     peaks = {};
@@ -588,6 +675,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
             static_cast<baselines_t&>( baselines ).emplace_back( sbs );
         }
     }
+    Assignor::renumber( baselines );
 
 #if 0
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
@@ -596,7 +684,9 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 	}
 #endif
     impl_->updatePeakAreaHeight( mth );
+
     peakRejector()( impl_->peaks_, mth );
+
     cleanBaseline()( baselines, impl_->peaks_ );
 
 #if ! defined NDEBUG && 0
@@ -613,7 +703,18 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 
     impl_->updatePeakParameters( mth );
 
-    peaks = impl_->peaks_;
+    peaks = Assignor()( impl_->peaks_, baselines );
+    // peaks = impl_->peaks_;
+
+    // int32_t id(1);
+    // for ( auto& bs: baselines ) {
+    //     bs.setBaseId( id++ );
+    //     for ( auto& pk: subPeaks< std::vector< adcontrols::Peak >
+    //               , std::vector< adcontrols::Peak >::iterator >( peaks, bs ) ) {
+    //         const_cast< adcontrols::Peak& >(pk).setBaseId( bs.baseId() );
+    //     }
+    // }
+
 	// baselines = impl_->baselines_;
 }
 
@@ -1073,6 +1174,8 @@ Integrator::impl::fixBaseline( adcontrols::Baseline& bs, adcontrols::Baselines& 
 }
 #endif
 
+#if 0
+// move this method into Assignor class
 void
 Integrator::impl::assignBaseline()
 {
@@ -1081,19 +1184,23 @@ Integrator::impl::assignBaseline()
     using adcontrols::Peaks;
     using adcontrols::Peak;
 
-	for ( Peaks::vector_type::iterator it = peaks_.begin(); it != peaks_.end(); ++it ) {
+    int32_t pid(1);
+	for ( auto it = peaks_.begin(); it != peaks_.end(); ++it ) {
         Peak & pk = *it;
+        pk.setPeakId( pid++ );
         auto bIt = std::find_if( baselines_.begin(), baselines_.end()
                                  , [&](const auto& b){ return b.startPos() < pk.topPos() && pk.topPos() < b.stopPos(); });
         if ( bIt != baselines_.end() ) {
             pk.setBaseId( bIt->baseId() );
+            // ADDEBUG() << std::format("#### assignBaseline baseid={}/{}, peakid={}", bIt->baseId(), baselines_.size(), pk.peakId() );
         } else {
             auto& baseline = baselines_.emplace_back( helper::baseline( *signal_processor_, pk.startPos(), pk.endPos()) );
             pk.setBaseId( baseline.baseId() );
-            ADDEBUG() << "--- baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+            ADDEBUG() << "#### baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
         }
 	}
 }
+#endif
 
 #if 0
 void
