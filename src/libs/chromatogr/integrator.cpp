@@ -344,7 +344,7 @@ namespace {
     public:
         static adcontrols::Peak peak( const signal_processor& c, int spos, int tpos, int epos, unsigned long flags, uint32_t events );
         static adcontrols::Peak peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t, const PEAKSTACK& e, uint32_t events );
-        static adcontrols::Baseline baseline( const signal_processor& c, int, int );
+        static adcontrols::Baseline baseline( const signal_processor& c, int, int, long baseId = 0 );
 
         static void updateAreaHeight( const signal_processor& c, const adcontrols::Baseline& bs, adcontrols::Peak& pk );
         static bool tRetention_lsq( const signal_processor& c, adcontrols::Peak& pk );
@@ -379,11 +379,6 @@ namespace {
                 if ( (end_ - 1)->topPos() > bs.stopPos() ) {
                     ADDEBUG() << "########## found end iterator beyond the range (on forward iterator) ###########";
                 }
-
-                ADDEBUG() << "subPeaks: " << std::make_pair(
-                    std::make_tuple( begin_->startPos(), begin_->topPos(), begin_->endPos() )
-                    , std::make_tuple( (end_-1)->startPos(), (end_-1)->topPos(), (end_-1)->endPos() ))
-                          << "<-- bs: " << std::make_pair( bs.startPos(), bs.stopPos() );
 
             } else {
                 end_ = begin_; // := pks.end();
@@ -444,7 +439,6 @@ namespace {
             bs2.setStartHeight( bs1.stopHeight() );
             return { bs1, bs2 };
         }
-
     };
 
 
@@ -457,11 +451,11 @@ namespace {
         __split_on_vallay_0( const adcontrols::Baseline& bs, const std::vector< adcontrols::Peak >& pks ) const {
 
 
-            if ( recursion_cnt_++ > 20 ) {
-                ADDEBUG() << "------------- recursion limit exceeded ------------- ";
+            if ( recursion_cnt_++ > 100 ) {
+                ADDEBUG() << "## Error: recursion limit exceeded.";
                 return {};
             }
-            ADDEBUG() << "before split: " << std::make_pair( bs.startPos(), bs.stopPos() );
+            // ADDEBUG() << "before split: " << std::make_pair( bs.startPos(), bs.stopPos() );
             const auto& spks = subPeaks<>( pks, bs );
 
             if ( spks.size() > 2 ) {
@@ -473,13 +467,7 @@ namespace {
 
                 if ( it != spks.end() && it != (spks.end() - 1) ) {
                     if ( it->endHeight() < bs.height( it->endPos() ) ) {
-                        ADDEBUG() << std::format( "__split_on_vallay_0: it={}, pkrange = {}, {} pos={}"
-                                                  , it->peakId(), spks.begin()->peakId(), (spks.end() - 1)->peakId(), it->endPos() );
-                        auto sbs = bsSplitter()( bs, *it );
-                        ADDEBUG() << "splitted: " << std::make_pair( sbs.first.startPos(), sbs.first.stopPos() )
-                                  << std::make_pair( sbs.second.startPos(), sbs.second.stopPos() )
-                                  << ", counts=" << std::make_pair( subPeaks<>( pks, sbs.first ).size(), subPeaks<>( pks, sbs.second ).size() );
-                        return sbs;
+                        return bsSplitter()( bs, *it );
                     }
                 }
             }
@@ -591,6 +579,94 @@ namespace {
         }
 
     };
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class BaselineFinder {
+    public:
+        static adcontrols::Baselines::vector_type::iterator
+        find( adcontrols::Baselines& bss, const adcontrols::Peak& pk ) {
+            return find_if( bss.begin(), bss.end(), [&](const auto& bs){ return bs.baseId() == pk.baseId(); });
+        }
+    };
+    //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
+    class NegativeLock {
+        const signal_processor& c_;
+    public:
+        NegativeLock( const signal_processor& c ) : c_(c) {}
+    private:
+        void
+        split_baseline( adcontrols::Baselines& bss
+                        , const adcontrols::Peak& pk
+                        , const adcontrols::Peaks& pks ) const {
+            auto bsIt = std::find_if( bss.begin(), bss.end()
+                                      , [&](const auto& bs) { return bs.startPos() < pk.topPos() && pk.topPos() < bs.stopPos(); });
+            if ( bsIt != bss.end() ) {
+                auto spks = subPeaks<>( pks, *bsIt );
+                // ADDEBUG() << "--------- negative lock::split_baseline " << std::format( "subPeaks.size={}", spks.size() );
+                auto it = std::find_if( spks.begin(), spks.end(), [&](const auto& a){ return a.topPos() == pk.topPos(); });
+                if ( spks.size() == 1 ) {
+                    bsIt->setStartPos( pk.startPos() );
+                    bsIt->setStartTime( c_.time_at( pk.startPos() ) );
+                    bsIt->setStartHeight( c_.intensity( pk.startPos() ) );
+                    bsIt->setStopPos( pk.endPos() );
+                    bsIt->setStopTime( c_.time_at( pk.endPos() ) );
+                    bsIt->setStopHeight( c_.intensity( pk.endPos() ) );
+                    // auto pair = bsSplitter()( *bsIt, pk );
+                } else {
+                    auto pair = bsSplitter()( *bsIt, pk );
+                    bss.erase( bsIt );
+                    if ( subPeaks<>( pks, pair.first ).size() == 1 ) {
+                        pair.first.setStartPos( pk.startPos() );
+                        pair.first.setStartHeight( pk.startHeight() );
+                        pair.first.setStopHeight( pk.endHeight() );
+                    }
+                    auto it = std::lower_bound( bss.begin(), bss.end()
+                                                , pair.first
+                                                , [](const auto& a, const auto& b){
+                                                    return a.startPos() < b.startPos();
+                                                });
+                    static_cast< adcontrols::Baselines::vector_type& >(bss).insert( it, {pair.first, pair.second} );
+                }
+
+            }
+
+        }
+    public:
+        void operator()( adcontrols::Peaks& pks
+                         , adcontrols::Baselines& bss ) const {
+
+            using namespace adcontrols::chromatography;
+            for ( auto& pk: pks ) {
+
+                if ( std::bitset< ePeakEvent_LAST + 1 >(pk.appliedFunctions()).test( ePeakEvent_NegativeLock ) ) {
+
+                    if ( std::min( pk.startHeight(), pk.endHeight() ) < 0 ) {
+                        auto ulevel = std::max( pk.startHeight(), pk.endHeight() );
+
+                        if ( pk.startHeight() < pk.endHeight() ) {
+                            auto pos = pk.startPos();
+                            while ( pos < pk.topPos() && c_.intensity( pos ) < ulevel ) {
+                                ++pos;
+                            }
+                            pk.setStartPos( pos, ulevel );
+                            pk.setStartTime( c_.time_at( pos ) );
+                            // ADDEBUG() << "\t -- modify start: " << pk.startHeight() << ", " << pk.endHeight() << ", ulevel=" << ulevel;
+                        } else {
+                            auto pos = pk.endPos();
+                            while ( pos > pk.topPos() && c_.intensity( pos ) < ulevel ) {
+                                --pos;
+                            }
+                            pk.setEndPos( pos, ulevel );
+                            pk.setEndTime( c_.time_at( pos ) );
+                            // ADDEBUG() << "\t -- modify end: " << pk.startHeight() << ", " << pk.endHeight() << ", ulevel=" << ulevel;
+                        }
+                        split_baseline( bss, pk, pks );
+                    }
+                }
+            }
+        }
+    };
 
 }
 
@@ -659,14 +735,18 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
 			impl_->pkreduce();
 		}
 	}
+
     // ADDEBUG() << "--------------- close::assignBaseline ------------------";
     Assignor::assignBaseline( impl_->baselines_, impl_->peaks_, *impl_->signal_processor_ );
+
     // Assignor::renumber( impl_->peaks_ );
     // impl_->assignBaseline();
     // impl_->reduceBaselines();
     // helper::cleanup_baselines( impl_->peaks_, impl_->baselines_ );
     peaks = {};
     baselines = {}; // impl_->baselines_; // for debugging
+
+    NegativeLock( *impl_->signal_processor_ )( impl_->peaks_, impl_->baselines_ );
 
     using baselines_t = adcontrols::Baselines::vector_type;
 
@@ -676,6 +756,7 @@ Integrator::close( const adcontrols::PeakMethod& mth, adcontrols::Peaks & peaks,
         }
     }
     Assignor::renumber( baselines );
+
 
 #if 0
     if ( impl_->fixDrift( impl_->peaks_, impl_->baselines_, impl_->drift_ ) ) {
@@ -738,7 +819,8 @@ Integrator::strobe( const adcontrols::chromatography::TimedEvent& tev )
         impl_->active_events_[ tev.peakEvent() ] = tev.boolValue();
 
     // ADDEBUG() << boost::json::value_from( tev )
-    //           << "\t" << impl_->active_events_.to_string();
+    //           << "\t" << impl_->active_events_.to_string()
+    //           << "\t" << currentTime();
 
     return false;
 }
@@ -758,18 +840,6 @@ Integrator::impl::updatePeakAreaHeight( const adcontrols::PeakMethod& )
 		}
 	}
 }
-
-// void
-// Integrator::impl::rejectPeaks(const adcontrols::PeakMethod & mth)
-// {
-//     auto pos = std::remove_if( peaks_.begin(), peaks_.end(), [mth] ( const adcontrols::Peak& a ) {
-//             return a.peakArea() <= mth.minimumArea() || a.peakHeight() <= mth.minimumHeight();
-//         } );
-
-//     if ( pos != peaks_.end() )
-//         peaks_.erase( pos, peaks_.end() );
-// }
-
 
 void
 Integrator::impl::updatePeakParameters( const adcontrols::PeakMethod& method )
@@ -948,7 +1018,8 @@ Integrator::impl::pkreduce()
 			// stack_.pop();
 			// sp0 = PKSTA;
 			// stack_.push(sp0);
-            // --- stack_.pop(); // reject 'V'
+            // --
+            // stack_.pop(); // reject 'V'
 			return;
 		} else if ((stack_[0] == PKBAS) && (stack_[1] == PKSTA)) { /* SB */
 			stack_.pop();
@@ -1411,7 +1482,8 @@ helper::peak( const signal_processor& c, const PEAKSTACK& s, const PEAKSTACK& t,
               << std::make_tuple(
                   std::make_tuple( s.pos(), c.intensity( s.pos() ) )
                   , std::make_tuple( t.pos(), c.intensity( t.pos() ) )
-                  , std::make_tuple( e.pos(), c.intensity( t.pos() ) ) );
+                  , std::make_tuple( e.pos(), c.intensity( t.pos() ) ) )
+              << std::format( "{:.2f}, {:x}", double(pk.peakTime()), events );
 #endif
     return pk;
 }
@@ -1490,7 +1562,7 @@ helper::theoreticalplate( const adcontrols::PeakMethod&, const signal_processor&
 ///////////////
 
 adcontrols::Baseline
-helper::baseline( const signal_processor& c, int spos, int epos )
+helper::baseline( const signal_processor& c, int spos, int epos, long baseId )
 {
     adcontrols::Baseline bs;
 
@@ -1500,7 +1572,9 @@ helper::baseline( const signal_processor& c, int spos, int epos )
     bs.setStopTime( c.time_at( epos ) );
     bs.setStartHeight( c.intensity( spos ) );
     bs.setStopHeight( c.intensity( epos ) ) ;
-    ADDEBUG() << "add baseline: " << std::make_pair(bs.startTime(), bs.stopTime());
+    bs.setBaseId( baseId );
+
+    ADDEBUG() << "add baseline: " << std::make_pair(bs.startTime(), bs.stopTime()) << ", id=" << baseId;
 
     return bs;
 }
