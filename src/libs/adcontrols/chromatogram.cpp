@@ -440,6 +440,19 @@ Chromatogram::timeFromDataIndex( size_t index ) const
 size_t
 Chromatogram::toSampleIndex( double time, bool closest ) const
 {
+    if ( not impl_->timeArray_.empty() ) {
+        const auto& ta = impl_->timeArray();
+        auto it = std::lower_bound( ta.begin(), ta.end(), time );
+        if ( it != ta.end() ) {
+            auto pos = std::distance( ta.begin(), it );
+            if ( closest && it != (ta.end() - 1) ) {
+                if ( std::abs( time - *it ) > std::abs( time - *(it + 1 ) ) )
+                    return pos + 1;
+            }
+            return pos;
+        }
+        return Chromatogram::npos;
+    }
     size_t lower = unsigned( time / impl_->samplingInterval() );
     if ( ! closest )
         return lower;

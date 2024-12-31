@@ -4,7 +4,7 @@
 *
 ** Contact: info@ms-cheminfo.com
 **
-** Commercial Usage
+** Comrmdmercial Usage
 **
 ** Licensees holding valid MS-Cheminformatics commercial licenses may use this file in
 ** accordance with the MS-Cheminformatics Commercial License Agreement provided with the
@@ -89,6 +89,7 @@
 #include <adwidgets/mschromatogramwidget.hpp>
 #include <adwidgets/mspeakwidget.hpp>
 #include <adwidgets/mssimulatorwidget.hpp>
+#include <adwidgets/peakdwidget.hpp>
 #include <adwidgets/peakmethodform.hpp>
 #include <adwidgets/peptidewidget.hpp>
 #include <adwidgets/sfedelaydialog.hpp>
@@ -807,6 +808,7 @@ MainWindow::createDockWidgets()
         , { tr( "Peak Find" ),      "PeakFindMethod",    [] (){ return new adwidgets::PeakMethodForm; } }
         , { tr( "MS Calibration" ), "MSCalibrateWidget", [] (){ return new adwidgets::MSCalibrateWidget; } }
         , { tr( "Data property" ),  "DataProperty",      [] (){ return new dataproc::MSPropertyForm; } }
+        , { tr( "Peakd R.A." ),     "PeakdRA",           [] (){ return new adwidgets::PeakdWidget; } }
     };
 #if QTC_VERSION <= 0x03'02'81
     auto list = ExtensionSystem::PluginManager::instance()->getObjects< adextension::iDataproc >();
@@ -1594,11 +1596,11 @@ MainWindow::handleSetDelayedInjectionDelay( std::set< Dataprocessor * > list )
 }
 
 void
-MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list )
+MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list, int id )
 {
     for ( auto processor: list ) {
         ADDEBUG() << processor->filename();
-        processor->srmDeconvolution();
+        processor->srmDeconvolution( id );
     }
 }
 

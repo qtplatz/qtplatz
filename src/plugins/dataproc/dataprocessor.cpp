@@ -67,6 +67,7 @@
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
+#include <adcontrols/ra.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/spectrogram.hpp>
@@ -2097,144 +2098,208 @@ Dataprocessor::setSFEDelay( bool enable, double value )
     }
 }
 
+namespace {
+    void PGE2D2Deconvolution( Dataprocessor * dp,  const Eigen::Matrix<double, 4, 2 >& A ) {
+
+        auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
+
+        static std::vector< std::string > cnames = {
+            "0, m/z 233.20 neg",
+            "1, m/z 271.20 neg",
+            "2, m/z 315.20 neg",
+            "3, m/z 333.20 neg"
+        };
+
+        std::vector< std::shared_ptr< adcontrols::Chromatogram > > cv;
+
+        auto folder = dp->portfolio().findFolder( L"Chromatograms");
+        for ( const auto& cname: cnames ) {
+            if ( auto a = folder.findFoliumByName( cname ) ) {
+                dp->fetch( a );
+                if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
+                    cv.emplace_back( chro );
+                }
+            } else {
+                ADDEBUG() << "not find " << cname;
+            }
+        }
+        if ( cv.size() != 4 )
+            return;
+
+        std::vector< std::tuple< double, double, double, double, double > > data;
+
+        // auto txtfile = std::filesystem::path( dp->filename() ).parent_path() / "data.txt";
+        // std::ofstream of( txtfile );
+        // of << "# filename: " << txtfile;
+
+        for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
+            data.emplace_back( cv.at(0)->time(i)
+                               , cv.at(0)->intensity(i) - cv.at(0)->intensity(0)
+                               , cv.at(1)->intensity(i) - cv.at(1)->intensity(0)
+                               , cv.at(2)->intensity(i) - cv.at(2)->intensity(0)
+                               , cv.at(3)->intensity(i) - cv.at(3)->intensity(0)
+                );
+
+            // const auto d = data.back();
+            // of << std::format( "{}\t{}\t{}\t{}\t{}"
+            //                    , std::get<0>(d)
+            //                    , std::get<1>(d)
+            //                    , std::get<2>(d)
+            //                    , std::get<3>(d)
+            //                    , std::get<4>(d) ) << std::endl;
+        }
+
+        std::tuple< std::shared_ptr< adcontrols::Chromatogram >
+                    , std::shared_ptr< adcontrols::Chromatogram >
+                    , std::shared_ptr< adcontrols::Chromatogram > > a;
+
+        std::get<0>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+        std::get<0>(a)->resize(data.size());
+        std::get<0>(a)->set_display_name( "PGE2" );
+
+        std::get<1>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+        std::get<1>(a)->resize(data.size());
+        std::get<1>(a)->set_display_name( "PGD2" );
+
+        std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
+        std::get<2>(a)->resize(data.size());
+        std::get<2>(a)->set_display_name( "||A*b-x||" );
+
+        size_t idx{0};
+        for ( const auto& d: data ) {
+            auto [b,v] = peakd( std::get<1>( d )
+                                , std::get<2>( d )
+                                , std::get<3>( d )
+                                , std::get<4>( d )  );
+            std::get<0>(a)->setDatum( idx, { std::get<0>(d), v(0) } );
+            std::get<1>(a)->setDatum( idx, { std::get<0>(d), v(1) } );
+            std::get<2>(a)->setDatum( idx, { std::get<0>(d), (A*v - b).norm() } );
+            idx++;
+        }
+
+        size_t cnt{0};
+        try {
+            auto folio = folder.find<portfolio::Folium>( R"(./folium[contains(@name,'PGE')])" );
+            cnt = folio.size();
+            for ( auto folium: folio ) {
+                auto pos = folium.name().find_last_of( '~' );
+                if ( pos != std::string::npos ) {
+                    int num = std::stoi( folium.name().substr( pos + 1 ) );
+                    cnt = std::max( cnt, size_t(num + 1) );
+                }
+            }
+        } catch ( pugi::xpath_exception& ex ) {
+            ADDEBUG() << ex.what();
+            return;
+        }
+
+        auto dst0 = folder.addFolium( std::format("PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
+        auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
+        auto dst2 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
+
+        SessionManager::instance()->updateDataprocessor( dp, dst0 );
+        SessionManager::instance()->updateDataprocessor( dp, dst1 );
+        SessionManager::instance()->updateDataprocessor( dp, dst2 );
+
+        dp->setModified( true );
+    }
+}
+
 void
-Dataprocessor::srmDeconvolution()
+Dataprocessor::srmDeconvolution( int id )
 {
     constexpr int ndim = 4;
     constexpr int nprod = 2;
 
     Eigen::Matrix<double, ndim, nprod> A;
-    A <<                  /* PGE2 */   /* PGD2 */
-        /*233.2 */        0.1215    ,     0.4336
-        /*271.2 */        , 1.0000  ,     1.0000
-        /*315.2 */        , 0.9099  ,     0.8303
-        /*333.2 */        , 0.7210  ,     0.2837   ;
-    // A <<                  /* PGE2 */   /* PGD2 */
-    //     /*233.2 */        0.112027   ,     0.479485
-    //     /*271.2 */        , 1.0000   ,     1.0
-    //     /*315.2 */        , 0.900478 ,     0.825113
-    //     /*333.2 */        , 0.771230 ,     0.266219
-    //     ;
-    // A <<                  /* PGE2 */   /* PGD2 */
-    //     /*233.2 */      0.107402,  0.415356
-    //     /*271.2 */    , 1.000000,  1.000000
-    //     /*315.2 */    , 0.855173,  0.775290
-    //     /*333.2 */    , 0.709611,  0.273387
-    //     ;
-    // A << 0.102028,     0.403817
-    //     , 1.000000, 1.000000
-    //     , 0.762054, 0.749773
-    //     , 0.723439, 0.287837;
-    // A << 0.112309,     0.403817
-    //     , 1.000000, 1.000000
-    //     , 0.920067, 0.749773
-    //     , 0.690671, 0.287837;
-    // A << 0.109708,     0.403817
-    //     , 1.000000, 1.000000
-    //     , 0.913071, 0.749773
-    //     , 0.699434, 0.287837;
-
-        ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
-
-    auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
-
-    static std::vector< std::string > cnames = {
-        "0, m/z 233.20 neg",
-        "1, m/z 271.20 neg",
-        "2, m/z 315.20 neg",
-        "3, m/z 333.20 neg"
-    };
-
-    std::vector< std::shared_ptr< adcontrols::Chromatogram > > cv;
-
-    auto folder = portfolio().findFolder( L"Chromatograms");
-    for ( const auto& cname: cnames ) {
-        if ( auto a = folder.findFoliumByName( cname ) ) {
-            fetch( a );
-            if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
-                cv.emplace_back( chro );
-            }
-        } else {
-            ADDEBUG() << "not find " << cname;
-        }
+    switch ( id ) {
+    default:
+    case 0:
+        A <<                  /* PGE2 */   /* PGD2 */
+            /*233.2 */        0.1215   ,    0.4336
+            /*271.2 */        , 1.0000 ,    1.0000
+            /*315.2 */        , 0.9099 ,    0.8303
+            /*333.2 */        , 0.7210 ,    0.2837   ;
+        break;
+    case 1:
+        // BEH LC-ESI
+        A <<                   /* PGE2 */   /* PGD2 */
+            /*233.2 */           0.089,     0.448
+            /*271.2 */         , 1.000,     1.000
+            /*315.2 */         , 0.791,     0.762
+            /*333.2 */         , 0.614,     0.174    ;
+        break;
     }
-    if ( cv.size() != ndim )
-        return;
-
-    std::vector< std::tuple< double, double, double, double, double > > data;
-
-    auto txtfile = std::filesystem::path( this->filename() ).parent_path() / "data.txt";
-    std::ofstream of( txtfile );
-    of << "# filename: " << txtfile;
-
-    for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
-        data.emplace_back( cv.at(0)->time(i)
-                           , cv.at(0)->intensity(i) - cv.at(0)->intensity(0)
-                           , cv.at(1)->intensity(i) - cv.at(1)->intensity(0)
-                           , cv.at(2)->intensity(i) - cv.at(2)->intensity(0)
-                           , cv.at(3)->intensity(i) - cv.at(3)->intensity(0)
-            );
-
-        const auto d = data.back();
-        of << std::format( "{}\t{}\t{}\t{}\t{}"
-                           , std::get<0>(d)
-                           , std::get<1>(d)
-                           , std::get<2>(d)
-                           , std::get<3>(d)
-                           , std::get<4>(d) ) << std::endl;
-    }
-
-    std::tuple< std::shared_ptr< adcontrols::Chromatogram >
-                , std::shared_ptr< adcontrols::Chromatogram >
-                , std::shared_ptr< adcontrols::Chromatogram > > a;
-
-    std::get<0>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
-    std::get<0>(a)->resize(data.size());
-    std::get<0>(a)->set_display_name( "PGE2" );
-
-    std::get<1>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
-    std::get<1>(a)->resize(data.size());
-    std::get<1>(a)->set_display_name( "PGD2" );
-
-    std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] );
-    std::get<2>(a)->resize(data.size());
-    std::get<2>(a)->set_display_name( "||A*b-x||" );
-
-    size_t idx{0};
-    for ( const auto& d: data ) {
-        auto [b,v] = peakd( std::get<1>( d ), std::get<2>( d ), std::get<3>( d ), std::get<4>( d )  );
-        std::get<0>(a)->setDatum( idx, { std::get<0>(d), v(0) } );
-        std::get<1>(a)->setDatum( idx, { std::get<0>(d), v(1) } );
-        std::get<2>(a)->setDatum( idx, { std::get<0>(d), (A*v - b).norm() } );
-        idx++;
-    }
-
-    size_t cnt{0};
-    try {
-        auto folio = folder.find<portfolio::Folium>( R"(./folium[contains(@name,'PGE')])" );
-        cnt = folio.size();
-        for ( auto folium: folio ) {
-            auto pos = folium.name().find_last_of( '~' );
-            if ( pos != std::string::npos ) {
-                int num = std::stoi( folium.name().substr( pos + 1 ) );
-                cnt = std::max( cnt, size_t(num + 1) );
-            }
-        }
-    } catch ( pugi::xpath_exception& ex ) {
-        ADDEBUG() << ex.what();
-    }
-
-    auto dst0 = folder.addFolium( std::format("PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
-    auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
-    auto dst2 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
-
-    SessionManager::instance()->updateDataprocessor( this, dst0 );
-    SessionManager::instance()->updateDataprocessor( this, dst1 );
-    SessionManager::instance()->updateDataprocessor( this, dst2 );
-
-    setModified( true );
+    ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
+    PGE2D2Deconvolution( this, A );
 }
 
+namespace {
+
+    class srm_folium_name {
+    public:
+        std::optional< std::tuple< int, double, std::string > > parse( const std::string& name ) const {
+            std::regex re( R"(^([0-9]+), m/z ([0-9]+\.[0-9]+) (neg|pos))" );
+            std::match_results< typename std::basic_string< char >::const_iterator > match;
+            if ( std::regex_search( name, match, re ) ) {
+                if ( match.size() == 4 ) {
+                    return std::make_tuple( std::stol( match[1] ), std::stod( match[2] ), match[3].str() );
+                }
+            }
+            return {};
+        }
+        std::optional< std::tuple< int, double, std::string > > parse( adcontrols::Chromatogram& c, const std::string& name ) const {
+            if ( auto desc = c.getDescriptions().hasKey("__data_attribute") ) {
+                auto jv = adportable::json_helper::parse( *desc );
+                if ( auto ch = adportable::json_helper::value_to< int >( jv, "channel" ) ) {
+                    if ( auto mass = adportable::json_helper::value_to< double >( jv, "mass" ) ) {
+                        if ( auto pol = adportable::json_helper::value_to< std::string >( jv, "ion_polarity" ) ) {
+                            return std::make_tuple( *ch, *mass, *pol );
+                        }
+                    }
+                }
+            }
+            return parse( name );
+        }
+
+    };
+
+}
+
+void
+Dataprocessor::relativeAbundances( portfolio::Folium folium, double t )
+{
+    std::vector< adcontrols::peakd::RA::value_type > values;
+    // std::vector< std::tuple< double, std::string, std::tuple<int,double,std::string > > > values;
+    auto folder = folium.parentFolder(); // should be "Chromatograms"
+    for ( auto folium: folder.folio() ) {
+        this->fetch( folium );
+        if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+            if ( auto a = srm_folium_name{}.parse( *chro, folium.name<char>() ) ) {
+                auto pos = chro->toDataIndex( t, false );
+                if ( pos != adcontrols::Chromatogram::npos ) {
+                    values.emplace_back( std::make_tuple( 0, double(chro->intensity( pos )), folium.name<char>(), *a ) );
+                }
+            }
+        }
+    }
+    auto it = std::max_element( values.begin(), values.end()
+                                , [](const auto& a, const auto& b){ return std::get<0>(a) < std::get<0>(b); });
+    adcontrols::peakd::RA ra;
+    ra.setDataSource( t, this->filename<char>() );
+    for ( auto& value: values ) {
+        std::get<0>(value) = std::get<1>(value) / std::get<1>(*it);
+        ra.values().emplace_back( value );
+        ADDEBUG() << std::format("{:.7f}", std::get<0>(value)) << value;
+    }
+    auto jv = boost::json::value_from( ra );
+    ADDEBUG() << std::endl << jv;
+
+    auto ra2 = boost::json::value_to< adcontrols::peakd::RA >( jv );
+    ADDEBUG() << "ra2 -- dataSource: " << ra2.dataSource();
+    for ( const auto& value: ra2.values() )
+        ADDEBUG() << value;
+}
 
 namespace dataproc
 {
@@ -2246,46 +2311,3 @@ namespace dataproc
     }
 #endif
 }
-
-std::vector< std::tuple< double, double, double, double, double > > __data = {
-    {60.288,	133,	472,	217,	-89},
-    {60.656,	117,	483,	272,	67},
-    {61.024,	67,	550,	389,	367},
-    {61.392,	122,	817,	656,	672},
-    {61.76,	394,	2428,	1911,	1706},
-    {62.128,	1006,	6764,	5713,	4702},
-    {62.496,	1789,	14653,	12601,	10850},
-    {62.864,	2711,	25509,	22366,	19374},
-    {63.232,	3756,	36475,	31911,	27704},
-    {63.6,	4740,	44878,	39700,	33205},
-    {63.968,	5524,	48094,	43194,	35091},
-    {64.336,	5768,	47482,	43205,	34234},
-    {64.704,	5723,	44208,	40083,	31642},
-    {65.072,	5240,	40551,	35592,	28209},
-    {65.44,	4556,	36632,	31146,	24465},
-    {65.808,	4062,	33966,	28498,	21684},
-    {66.176,	5312,	33048,	28414,	19888},
-    {66.544,	9092,	36205,	32053,	19799},
-    {66.912,	15558,	44268,	39151,	20700},
-    {67.28,	22676,	56365,	49050,	22441},
-    {67.648,	28865,	67829,	58054,	23325},
-    {68.016,	32370,	74832,	62894,	23169},
-    {68.384,	33187,	76537,	63551,	21712},
-    {68.752,	31869,	74218,	61044,	20138},
-    {69.12,	29482,	69330,	57272,	18431},
-    {69.488,	26817,	62789,	52098,	17214},
-    {69.856,	24248,	56554,	46363,	16007},
-    {70.224,	21762,	51474,	41330,	14723},
-    {70.592,	19448,	47354,	36622,	13066},
-    {70.96,	16841,	43011,	32560,	11409},
-    {71.328,	14433,	38208,	28053,	10248},
-    {71.696,	12293,	33544,	24443,	9558},
-    {72.064,	11098,	29532,	21851,	9163},
-    {72.432,	10331,	26005,	20394,	8658},
-    {72.8,	9669,	23107,	19132,	8018},
-    {73.168,	8758,	20616,	17486,	7196},
-    {73.536,	7780,	19020,	15868,	6551},
-    {73.904,	6868,	18025,	14444,	6162},
-    {74.272,	6140,	17391,	13488,	5846},
-    {74.64,	5784,	16701,	12660,	5368}
-};

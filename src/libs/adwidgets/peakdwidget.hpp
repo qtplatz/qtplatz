@@ -35,14 +35,14 @@ class QModelIndex;
 
 namespace adwidgets {
 
-	class ADWIDGETSSHARED_EXPORT PeakDWidget : public QWidget
+	class ADWIDGETSSHARED_EXPORT PeakdWidget : public QWidget
                                              , public adplugin::LifeCycle {
 		Q_OBJECT
         Q_INTERFACES( adplugin::LifeCycle )
 
 	public:
-		explicit PeakDWidget(QWidget *parent = 0);
-		~PeakDWidget();
+		explicit PeakdWidget(QWidget *parent = 0);
+		~PeakdWidget();
 
         void hideApplyButton( bool );
 
@@ -55,10 +55,10 @@ namespace adwidgets {
 
         //<--
 	public slots:
-        void getContents( adcontrols::ProcessMethod& ) const;
+        // void getContents( adcontrols::ProcessMethod& ) const;
 
     signals:
-		void apply( adcontrols::ProcessMethod& );
+		// void apply( adcontrols::ProcessMethod& );
         void valueChanged();
         void triggerProcess( const QString& );
 
@@ -69,8 +69,8 @@ namespace adwidgets {
         class impl;
         std::unique_ptr< impl > impl_;
 
-        void setContents( const adcontrols::PeakMethod& );
-        void getContents( adcontrols::PeakMethod& ) const;
+        // void setContents( const adcontrols::PeakMethod& );
+        // void getContents( adcontrols::PeakMethod& ) const;
 	};
 
 }

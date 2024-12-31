@@ -226,7 +226,10 @@ namespace adnetcdf {
                     chro->addDescription( { "Create"
                             , (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str()} );
                     chro->set_display_name( (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str() );
+                    auto data_attribute =
+                        boost::json::value{{ "data_attribute", { "ion_polarity", pol }, { "mass", mass }, { "channel", ch }}};
                     chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
+                    chro->addDescription( { "__data_attribute", boost::json::serialize( data_attribute ) } );
                     chro->set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );
                     chro->setIsCounting( isCounting_[ 1 ] );
                     if ( isCounting_[1] )
@@ -418,28 +421,28 @@ AndiMS::transformed() const
 size_t
 AndiMS::getFunctionCount() const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return 1;
 }
 
 size_t
 AndiMS::getSpectrumCount( int fcn ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ================== fcn: " << fcn;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ================== fcn: " << fcn;
     return impl_->data_.size();
 }
 
 size_t
 AndiMS::getChromatogramCount() const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return 0;
 }
 
 bool
 AndiMS::getTIC( int fcn, adcontrols::Chromatogram& tic ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     impl_->getTIC( tic );
     return true;
 }
@@ -447,21 +450,21 @@ AndiMS::getTIC( int fcn, adcontrols::Chromatogram& tic ) const
 bool
 AndiMS::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ================== objid: " << objid;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ================== objid: " << objid;
     return false;
 }
 
 size_t
 AndiMS::posFromTime( double arg ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << arg;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << arg;
     return 0;
 }
 
 double
 AndiMS::timeFromPos( size_t arg ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ================== " << arg;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ================== " << arg;
     return 0;
 }
 
@@ -472,21 +475,21 @@ AndiMS::getChromatograms( const std::vector< std::tuple<int, double, double> >&
                        , int /* begPos */
                        , int /* endPos */ ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return false;
 }
 
 size_t
 AndiMS::dataReaderCount() const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================";
     return 1;
 }
 
 const adcontrols::DataReader *
 AndiMS::dataReader( size_t idx ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << idx;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << idx;
     if ( idx == 0 )
         return impl_->dataReader( this ).get();
     return nullptr;
@@ -495,7 +498,7 @@ AndiMS::dataReader( size_t idx ) const
 const adcontrols::DataReader *
 AndiMS::dataReader( const boost::uuids::uuid& uuid ) const
 {
-    ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << uuid;
+    // ADDEBUG() << "================ " << __FUNCTION__ << " ==================: " << uuid;
     return impl_->dataReader( this ).get();
 }
 

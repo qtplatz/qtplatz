@@ -110,6 +110,7 @@ add_library( ${PROJECT_NAME} SHARED
   mstoleranceform.cpp           	mstoleranceform.hpp
   outputwidget.cpp              	outputwidget.hpp
   peakmethodform.cpp            	peakmethodform.hpp
+  peakdwidget.cpp                       peakdwidget.hpp
   peaktable.cpp                 	peaktable.hpp
   peptidetable.cpp              	peptidetable.hpp
   peptidewidget.cpp             	peptidewidget.hpp

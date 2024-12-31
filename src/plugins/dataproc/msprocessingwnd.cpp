@@ -1038,7 +1038,12 @@ MSProcessingWnd::selectedOnChromatogram( const QRectF& rect )
                                               , "QtPlatz 6.0 and later versions do not support v2 format data file.  Use QtPlatz 5.4" );
                 }
             }
+            auto folium = dp->getPortfolio().findFolium( pImpl_->idChromatogramFolium_ );
+            menu.addAction( tr( "Relative Abundances" ), [dp,folium,rect]{
+                dp->relativeAbundances( folium, rect.left() );
+            } );
         }
+
 
         menu.addAction( tr("Copy image to clipboard"), [&] () { adplot::plot::copyToClipboard( pImpl_->ticPlot_ ); } );
         menu.addAction( tr( "Save as SVG File..." ), [&] () {
