@@ -67,7 +67,7 @@
 #include <adcontrols/peaks.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/processmethod.hpp>
-#include <adcontrols/ra.hpp>
+#include <adcontrols/peakd/ra.hpp>
 #include <adcontrols/samplinginfo.hpp>
 #include <adcontrols/segment_wrapper.hpp>
 #include <adcontrols/spectrogram.hpp>

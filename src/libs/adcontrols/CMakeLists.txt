@@ -170,7 +170,7 @@ add_library( adcontrols SHARED
   quanreport.hpp
   quanresponse.cpp
   quanresponse.hpp
-  ra.cpp ra.hpp
+  peakd/ra.cpp peakd/ra.hpp
   reportmethod.cpp
   reportmethod.hpp
   retentiontime.cpp
