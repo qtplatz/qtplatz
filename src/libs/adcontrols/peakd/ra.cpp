@@ -27,6 +27,7 @@
 #include <adportable/json/extract.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/debug.hpp>
+#include <numeric>
 
 namespace adcontrols {
     namespace peakd {
@@ -77,6 +78,22 @@ namespace adcontrols {
         RA::values() const
         {
             return impl_->values_;
+        }
+
+        std::string
+        RA::ident( const RA& ra )
+        {
+            RA tmp( ra );
+            std::sort( tmp.values().begin(), tmp.values().end()
+                       , [](const auto& a, const auto& b){ return std::get<2>(a) < std::get<2>(b); });
+            return std::accumulate( tmp.values().begin(), tmp.values().end(), std::string()
+                                    , [](const auto& a, const auto& b){ return a + std::get<2>(b); });
+        }
+
+        std::string
+        RA::ident() const
+        {
+            return ident( *this );
         }
 
         void

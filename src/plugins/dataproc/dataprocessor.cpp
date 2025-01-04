@@ -30,6 +30,7 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
+#include <QtCore/qbytearray.h>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/baseline.hpp>
@@ -106,6 +107,7 @@
 #include <adutils/processeddata_t.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
 #include <adwidgets/progressinterface.hpp>
+#include <boost/json/serialize.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
@@ -2224,12 +2226,13 @@ Dataprocessor::srmDeconvolution( int id )
     case 1:
         // BEH LC-ESI
         A <<                   /* PGE2 */   /* PGD2 */
-            /*233.2 */           0.089,     0.448
-            /*271.2 */         , 1.000,     1.000
-            /*315.2 */         , 0.791,     0.762
-            /*333.2 */         , 0.614,     0.174    ;
+            /*233.2 */    0.0930874,         0.4728320
+            /*271.2 */  , 1        ,         1
+            /*315.2 */  , 0.7534287,         0.6922137
+            /*333.2 */  , 0.6044412,         0.1799155 ;
         break;
     }
+
     ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
     PGE2D2Deconvolution( this, A );
 }
@@ -2273,32 +2276,29 @@ Dataprocessor::relativeAbundances( portfolio::Folium folium, double t )
     // std::vector< std::tuple< double, std::string, std::tuple<int,double,std::string > > > values;
     auto folder = folium.parentFolder(); // should be "Chromatograms"
     for ( auto folium: folder.folio() ) {
-        this->fetch( folium );
-        if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
-            if ( auto a = srm_folium_name{}.parse( *chro, folium.name<char>() ) ) {
-                auto pos = chro->toDataIndex( t, false );
-                if ( pos != adcontrols::Chromatogram::npos ) {
-                    values.emplace_back( std::make_tuple( 0, double(chro->intensity( pos )), folium.name<char>(), *a ) );
+        if ( folium.attribute( "isChecked" ) == "true" ) {
+            this->fetch( folium );
+            if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+                if ( auto a = srm_folium_name{}.parse( *chro, folium.name<char>() ) ) {
+                    auto pos = chro->toDataIndex( t, false );
+                    if ( pos != adcontrols::Chromatogram::npos ) {
+                        values.emplace_back( std::make_tuple( 0, double(chro->intensity( pos )), folium.name<char>(), *a ) );
+                    }
                 }
             }
         }
     }
     auto it = std::max_element( values.begin(), values.end()
-                                , [](const auto& a, const auto& b){ return std::get<0>(a) < std::get<0>(b); });
+                                , [](const auto& a, const auto& b){ return std::get<1>(a) < std::get<1>(b); });
     adcontrols::peakd::RA ra;
     ra.setDataSource( t, this->filename<char>() );
     for ( auto& value: values ) {
         std::get<0>(value) = std::get<1>(value) / std::get<1>(*it);
         ra.values().emplace_back( value );
-        ADDEBUG() << std::format("{:.7f}", std::get<0>(value)) << value;
     }
     auto jv = boost::json::value_from( ra );
-    ADDEBUG() << std::endl << jv;
-
-    auto ra2 = boost::json::value_to< adcontrols::peakd::RA >( jv );
-    ADDEBUG() << "ra2 -- dataSource: " << ra2.dataSource();
-    for ( const auto& value: ra2.values() )
-        ADDEBUG() << value;
+    auto json = boost::json::serialize( jv );
+    emit document::instance()->onNotifyRelativeAbundance( QByteArray( json.data() ) );
 }
 
 namespace dataproc

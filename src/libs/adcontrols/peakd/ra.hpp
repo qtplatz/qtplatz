@@ -53,6 +53,9 @@ namespace adcontrols {
             std::vector< value_type >& values();
             const std::vector< value_type >& values() const;
 
+            std::string ident() const;
+            static std::string ident( const RA& ra );
+
         private:
             class impl;
             impl * impl_;

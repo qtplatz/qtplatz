@@ -25,10 +25,17 @@
 #include "peakdwidget.hpp"
 #include "tableview.hpp"
 #include "create_widget.hpp"
+#include <QtCore/qnamespace.h>
+#include <adcontrols/peakd/ra.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/json_helper.hpp>
 #include <QBoxLayout>
+#include <QHeaderView>
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QtCore/qtmetamacros.h>
+#include <boost/json.hpp>
+#include <numeric>
 
 class QStandardItemModel;
 class QStandardItem;
@@ -55,6 +62,9 @@ namespace adwidgets {
     class PeakdWidget::impl {
     public:
         adwidgets::TableView * tv_;
+        QStandardItemModel * model_;
+        std::map< std::string, std::vector< adcontrols::peakd::RA > > raList_;
+        std::map< std::string, std::pair< double, std::vector< adcontrols::peakd::RA >::const_iterator > > map_;
         impl() : tv_( nullptr ) {}
     };
 
@@ -74,10 +84,10 @@ PeakdWidget::PeakdWidget( QWidget * parent ) : QWidget( parent )
             if ( auto form = add_widget( splitter, create_widget< peakd::PeakdForm >( "peakdForm" ) ) ) {
             }
             if ( auto tv = add_widget( splitter, create_widget< adwidgets::TableView >( "Abudances" ) ) ) {
-                auto model = new QStandardItemModel();
-                model->setRowCount( 1 );
-                model->setColumnCount( 1 );
-                tv->setModel( model );
+                impl_->model_ = new QStandardItemModel();
+                impl_->model_->setRowCount( 1 );
+                impl_->model_->setColumnCount( 1 );
+                tv->setModel( impl_->model_ );
                 impl_->tv_ = tv;
             }
             splitter->setStretchFactor( 0, 0 );
@@ -120,6 +130,47 @@ bool
 PeakdWidget::setContents( boost::any&& )
 {
     return {};
+}
+
+void
+PeakdWidget::handleOnNotifyRelativeAbundance( const QByteArray& json )
+{
+    auto ra = boost::json::value_to< adcontrols::peakd::RA >( adportable::json_helper::parse( json.toStdString() ) );
+
+    impl_->raList_[ ra.ident() ].emplace_back( ra );
+
+    auto it = std::max_element( impl_->raList_.begin(), impl_->raList_.end(), [](const auto& a, const auto& b){ return a.second.size() < b.second.size(); });
+    auto nCols = it->second.size();
+
+    auto nRows = std::accumulate( impl_->raList_.begin(), impl_->raList_.end(), 0
+                                  , []( size_t a, const auto& b ){ return a + b.second.at(0).values().size(); });
+
+    impl_->model_->setColumnCount( nCols + 1 );
+    impl_->model_->setRowCount( nRows );
+
+    // ADDEBUG() << boost::json::value_from( ra );
+    // ADDEBUG() << "ra2 -- dataSource: " << ra.dataSource();
+    auto model = impl_->tv_->model();
+    int row_i{ 0 };
+    for ( const auto& list: impl_->raList_ ) {
+        int col{1};
+        int row;
+        for ( const auto& ra: list.second ) {
+            row = row_i;
+            for ( const auto& value: ra.values() ) {
+                auto [relA,srcA,name,id] = value;
+                model->setHeaderData( row, Qt::Vertical, QString::fromStdString( name ) );
+                model->setData( model->index(row, 0), QString::fromStdString( name ) );
+                model->setData( model->index(row, col), relA );
+                ADDEBUG() << "row,col=" << std::make_pair( row, col ) << ", value: " << value;
+                ++row;
+            }
+            col++;
+        }
+        row_i = row;
+    }
+    impl_->tv_->horizontalHeader()->resizeSections( QHeaderView::ResizeToContents );
+
 }
 
 #include "peakdwidget.moc"

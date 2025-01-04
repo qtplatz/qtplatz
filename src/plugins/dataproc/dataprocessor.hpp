@@ -26,6 +26,7 @@
 #ifndef DATAPROCESSOR_H
 #define DATAPROCESSOR_H
 
+#include <QtCore/qbytearray.h>
 #include <coreplugin/idocument.h>
 #include <adcontrols/datasubscriber.hpp>
 #include <adprocessor/dataprocessor.hpp>

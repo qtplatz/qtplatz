@@ -874,6 +874,11 @@ MainWindow::createDockWidgets()
                 connect( p, &adwidgets::PeptideWidget::triggerFind, this, &MainWindow::handlePeptideTarget );
             }
 
+            if ( auto p = qobject_cast< adwidgets::PeakdWidget * >( pWidget ) ) {
+                connect( document::instance(), &document::onNotifyRelativeAbundance
+                         , p, &adwidgets::PeakdWidget::handleOnNotifyRelativeAbundance );
+            }
+
             createDockWidget( pWidget, widget.title, widget.pageName );
         } else {
             QMessageBox::critical(0, QLatin1String("dataprocmanager"), widget.pageName );

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "adwidgets_global.hpp"
+#include <QtCore/qbytearray.h>
 #include <adwidgets/lifecycle.hpp>
 #include <QWidget>
 #include <memory>
@@ -56,6 +57,7 @@ namespace adwidgets {
         //<--
 	public slots:
         // void getContents( adcontrols::ProcessMethod& ) const;
+        void handleOnNotifyRelativeAbundance( const QByteArray& );
 
     signals:
 		// void apply( adcontrols::ProcessMethod& );

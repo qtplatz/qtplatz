@@ -121,6 +121,7 @@ namespace dataproc {
         void onMergeSelection( std::vector< portfolio::Folium > );
         void onSetDelayedInjectionDelay( std::set< Dataprocessor * > list );
         void onPeakDeconvolution( std::set< Dataprocessor * > list, int id );
+        void onNotifyRelativeAbundance( const QByteArray& );
     };
 
 }
