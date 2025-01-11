@@ -226,8 +226,9 @@ namespace adnetcdf {
                     chro->addDescription( { "Create"
                             , (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str()} );
                     chro->set_display_name( (boost::format("%d, m/z %.2f %s") % ch % mass % pol).str() );
-                    auto data_attribute =
-                        boost::json::value{{ "data_attribute", { "ion_polarity", pol }, { "mass", mass }, { "channel", ch }}};
+                    boost::json::value data_attribute = {
+                        { { "ion_polarity", pol }, { "mass", mass }, { "channel", ch } } };
+                    // ADDEBUG() << "data_attribute: \n" << data_attribute << std::endl;
                     chro->addDescription( { "__global_attributes", boost::json::serialize( jobj_[ "global_attributes"] ) } );
                     chro->addDescription( { "__data_attribute", boost::json::serialize( data_attribute ) } );
                     chro->set_time_of_injection_iso8601( iso8601{}( tp_inject_ ) );

@@ -1531,6 +1531,9 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( tr( "PGE2/PGD2 deconvolution (1)"), [list]{
             emit document::instance()->onPeakDeconvolution( list, 1 );
         })->setEnabled( list.size() );
+        menu.addAction( tr( "PGE2/PGD2 deconvolution (2)"), [list]{
+            emit document::instance()->onPeakDeconvolution( list, 2 );
+        })->setEnabled( list.size() );
     }
 
     if ( selRows.size() == 1 ) {

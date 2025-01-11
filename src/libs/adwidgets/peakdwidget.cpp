@@ -162,7 +162,7 @@ PeakdWidget::handleOnNotifyRelativeAbundance( const QByteArray& json )
                 model->setHeaderData( row, Qt::Vertical, QString::fromStdString( name ) );
                 model->setData( model->index(row, 0), QString::fromStdString( name ) );
                 model->setData( model->index(row, col), relA );
-                ADDEBUG() << "row,col=" << std::make_pair( row, col ) << ", value: " << value;
+                // ADDEBUG() << "row,col=" << std::make_pair( row, col ) << ", value: " << value;
                 ++row;
             }
             col++;

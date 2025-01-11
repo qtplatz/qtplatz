@@ -107,6 +107,7 @@
 #include <adutils/processeddata_t.hpp>
 #include <adwidgets/datareaderchoicedialog.hpp>
 #include <adwidgets/progressinterface.hpp>
+#include <boost/json/object.hpp>
 #include <boost/json/serialize.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
 #include <qtwrapper/debug.hpp>
@@ -2216,20 +2217,26 @@ Dataprocessor::srmDeconvolution( int id )
     Eigen::Matrix<double, ndim, nprod> A;
     switch ( id ) {
     default:
-    case 0:
+    case 0: // SFC-MVCI (MeOH/FA)
         A <<                  /* PGE2 */   /* PGD2 */
-            /*233.2 */        0.1215   ,    0.4336
-            /*271.2 */        , 1.0000 ,    1.0000
-            /*315.2 */        , 0.9099 ,    0.8303
-            /*333.2 */        , 0.7210 ,    0.2837   ;
+            /*233.2 */        0.1215   ,     0.4336
+            /*271.2 */        , 1.0000 ,     1.0000
+            /*315.2 */        , 0.9099 ,     0.8303
+            /*333.2 */        , 0.7210 ,     0.2837   ;
         break;
-    case 1:
-        // BEH LC-ESI
+    case 1:  // LC-ESI (CH3CN/FA) (BEH)
         A <<                   /* PGE2 */   /* PGD2 */
-            /*233.2 */    0.0930874,         0.4728320
-            /*271.2 */  , 1        ,         1
-            /*315.2 */  , 0.7534287,         0.6922137
-            /*333.2 */  , 0.6044412,         0.1799155 ;
+            /*233.2 */        0.0930874,     0.4728320
+            /*271.2 */      , 1        ,     1
+            /*315.2 */      , 0.7534287,     0.6922137
+            /*333.2 */      , 0.6044412,     0.1799155 ;
+        break;
+    case 2:  // SFC (MeOH/FA) (SS-BP)
+        A <<                   /* PGE2 */   /* PGD2 */
+            /*233.2 */       0.10301934,     0.4173761
+            /*271.2 */     , 1         ,     1
+            /*315.2 */     , 0.79690150,     0.8825739
+            /*333.2 */     , 0.69162049,     0.3065431 ;
         break;
     }
 
@@ -2254,10 +2261,37 @@ namespace {
         std::optional< std::tuple< int, double, std::string > > parse( adcontrols::Chromatogram& c, const std::string& name ) const {
             if ( auto desc = c.getDescriptions().hasKey("__data_attribute") ) {
                 auto jv = adportable::json_helper::parse( *desc );
-                if ( auto ch = adportable::json_helper::value_to< int >( jv, "channel" ) ) {
-                    if ( auto mass = adportable::json_helper::value_to< double >( jv, "mass" ) ) {
-                        if ( auto pol = adportable::json_helper::value_to< std::string >( jv, "ion_polarity" ) ) {
-                            return std::make_tuple( *ch, *mass, *pol );
+                if ( jv.kind() == boost::json::kind::object ) { // if jv.kind() == array, it was created bad code in andims.cpp
+                    if ( auto ch = adportable::json_helper::value_to< int >( jv, "channel" ) ) {
+                        if ( auto mass = adportable::json_helper::value_to< double >( jv, "mass" ) ) {
+                            if ( auto pol = adportable::json_helper::value_to< std::string >( jv, "ion_polarity" ) ) {
+                                return std::make_tuple( *ch, *mass, *pol );
+                            }
+                        }
+                    }
+                } else if ( jv.kind() == boost::json::kind::array ) {
+                    // workaround for baddly created data file
+                    // ["data_attribute",["ion_polarity","neg"],["mass",2.332E2],["channel",0]]
+                    boost::system::error_code ec;
+                    if ( auto jv2 = jv.find_pointer( "/0", ec ) ) {
+                        std::tuple< int, double, std::string > value;
+                        if ( *jv2 == "data_attribute" ) {
+                            for ( auto kv: { std::pair{ "/1/0", "/1/1" }, std::pair{"/2/0", "/2/1"}, std::pair{"/3/0", "/3/1"}} ) {
+                                if ( auto k = jv.find_pointer( kv.first, ec ) ) {
+                                    if ( auto v = jv.find_pointer( kv.second, ec ) ) {
+                                        if ( *k == "channel" )
+                                            std::get<0>(value) = v->as_int64();
+                                        if ( *k == "mass" )
+                                            std::get<1>(value) = v->as_double();
+                                        if ( *k == "ion_polarity" )
+                                            std::get<2>(value) = v->as_string();
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( not ec )
+                                return value;
                         }
                     }
                 }
@@ -2275,6 +2309,7 @@ Dataprocessor::relativeAbundances( portfolio::Folium folium, double t )
     std::vector< adcontrols::peakd::RA::value_type > values;
     // std::vector< std::tuple< double, std::string, std::tuple<int,double,std::string > > > values;
     auto folder = folium.parentFolder(); // should be "Chromatograms"
+
     for ( auto folium: folder.folio() ) {
         if ( folium.attribute( "isChecked" ) == "true" ) {
             this->fetch( folium );
