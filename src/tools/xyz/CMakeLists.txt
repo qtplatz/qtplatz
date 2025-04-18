@@ -56,8 +56,53 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   RDKit::SubstructMatch
   )
 
+add_executable( molvolume
+  molvolume.cpp
+  )
+
+target_link_libraries( molvolume LINK_PUBLIC
+  adportable
+  adchem
+  ${Boost_LIBRARIES}
+  RDKit::Catalogs
+  RDKit::ChemReactions
+  RDKit::ChemTransforms
+  RDKit::DataStructs
+  RDKit::Depictor
+  RDKit::Descriptors
+  RDKit::DistGeomHelpers
+  RDKit::DistGeometry
+  RDKit::EigenSolvers
+  RDKit::FileParsers
+  RDKit::FilterCatalog
+  RDKit::Fingerprints
+  RDKit::ForceField
+  RDKit::ForceFieldHelpers
+  RDKit::GraphMol
+  RDKit::Inchi
+  RDKit::MolAlign
+  RDKit::MolDraw2D
+  RDKit::MolTransforms
+  RDKit::Optimizer
+  RDKit::PartialCharges
+  RDKit::RDGeneral
+  RDKit::RDGeometryLib
+  RDKit::RDInchiLib
+  RDKit::RDStreams
+  RDKit::SmilesParse
+  RDKit::Subgraphs
+  RDKit::SubstructMatch
+  RDKit::ShapeHelpers   # <---
+  )
+
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
   LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
-  )
+)
+
+install( TARGETS molvolume
+  RUNTIME DESTINATION bin COMPONENT applications
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
+  ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
+)

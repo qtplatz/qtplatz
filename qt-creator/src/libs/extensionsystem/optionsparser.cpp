@@ -99,6 +99,9 @@ bool OptionsParser::checkForEndOfOptions()
     return true;
 }
 
+#ifdef Q_CC_CLANG
+# undef Q_CC_CLANG
+#endif
 bool OptionsParser::checkForTestOptions()
 {
     if (m_currentArg == QLatin1String(TEST_OPTION)) {

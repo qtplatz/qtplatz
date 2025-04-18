@@ -256,6 +256,11 @@ template<template<typename> class C, // result container type
          typename Result = std::decay_t<std::invoke_result_t<F, Value&>>,
          typename ResultContainer = C<Result>>
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
+
+#ifdef Q_CC_CLANG
+# undef Q_CC_CLANG // 2025-04-13,
+#endif
+
 #ifdef Q_CC_CLANG
 // "Matching of template template-arguments excludes compatible templates"
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0522r0.html (P0522R0)

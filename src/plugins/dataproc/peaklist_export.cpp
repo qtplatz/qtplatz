@@ -287,22 +287,33 @@ namespace {
 
         void __write( const adcontrols::Peaks& peaks, int64_t chroid ) {
             adfs::stmt sql( *db_ );
-            sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height,width,ntp,Rs,k,Tf ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
-            for ( auto pk: peaks ){
-                sql.reset();
-                int id(1);
-                sql.bind(id++) = chroid;
-                sql.bind(id++) = std::string( pk.name() );
-                sql.bind(id++) = static_cast< double >( pk.peakTime() );
-                sql.bind(id++) = pk.peakArea();
-                sql.bind(id++) = pk.peakHeight();
-                sql.bind(id++) = pk.peakWidth();
-                sql.bind(id++) = pk.theoreticalPlate().ntp();
-                sql.bind(id++) = pk.resolution().resolution();
-                sql.bind(id++) = pk.capacityFactor();
-                sql.bind(id++) = pk.asymmetry().asymmetry();
+            if ( peaks.size() == 0 ) { // insert null peak
+                sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height) VALUES (?,?,?,?,?)" );
+                sql.bind(1) = chroid;
+                sql.bind(2) = std::string("n/a");
+                sql.bind(3) = -1.;
+                sql.bind(4) = 0.;
+                sql.bind(5) = 0.;
                 if ( sql.step() != adfs::sqlite_done )
                     ADDEBUG() << sql.errmsg();
+            } else {
+                sql.prepare( "INSERT INTO cpeak(chroid,name,tR,area,height,width,ntp,Rs,k,Tf ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
+                for ( auto pk: peaks ){
+                    sql.reset();
+                    int id(1);
+                    sql.bind(id++) = chroid;
+                    sql.bind(id++) = std::string( pk.name() );
+                    sql.bind(id++) = static_cast< double >( pk.peakTime() );
+                    sql.bind(id++) = pk.peakArea();
+                    sql.bind(id++) = pk.peakHeight();
+                    sql.bind(id++) = pk.peakWidth();
+                    sql.bind(id++) = pk.theoreticalPlate().ntp();
+                    sql.bind(id++) = pk.resolution().resolution();
+                    sql.bind(id++) = pk.capacityFactor();
+                    sql.bind(id++) = pk.asymmetry().asymmetry();
+                    if ( sql.step() != adfs::sqlite_done )
+                        ADDEBUG() << sql.errmsg();
+                }
             }
         }
 

@@ -17,3 +17,7 @@ message( STATUS "# lib dir               : ${CMAKE_CURRENT_SOURCE_DIR}/../../src
 add_executable( test_pge2
   pge2.cpp
 )
+
+add_executable( test_retention
+  retention.cpp
+)

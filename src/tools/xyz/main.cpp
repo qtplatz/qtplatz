@@ -42,6 +42,12 @@
 
 namespace po = boost::program_options;
 
+enum package {
+    MOPAC
+    , ORCA
+    , XYZ
+};
+
 namespace {
 
     struct print_xyz {
@@ -62,6 +68,69 @@ namespace {
             }
         }
     };
+
+    template< package >
+    struct printer {
+        void operator()( const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>&, std::ostream& os ) const {
+        }
+    };
+
+    template<> void
+    printer<XYZ>::operator()(const std::vector< std::string >&, const RDKit::ROMol& mol, const std::pair<int,int>&, std::ostream& os ) const {
+        for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
+            auto atom = mol.getAtomWithIdx( i );
+            auto pos = mol.getConformer().getAtomPos( i );
+            os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", atom->getSymbol(), pos.x, pos.y, pos.z ) << std::endl;
+        }
+    }
+
+    template<> void
+    printer<MOPAC>::operator()(const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>& c, std::ostream& os ) const {
+        for ( const auto& keyword: keywords )
+            os << keyword << "\t";
+        if ( std::get<0>(c) != 0 ) {
+            if ( std::find_if( keywords.begin(), keywords.end(), [](const auto& kw){
+                return kw.find( "CHARGE" ) != std::string::npos || kw.find("charge") != std::string::npos; }) == keywords.end() ) {
+                os << std::format( "CHARGE={}\t", std::get<0>(c) );
+            }
+            if ( std::get<1>(c) == 1 ) {
+                if ( std::find_if( keywords.begin(), keywords.end(), [](const auto& kw){
+                    return kw.find( "SINGLET" ) != std::string::npos || kw.find("singlet") != std::string::npos; }) == keywords.end() ) {
+                    os << "SINGLET\t";
+                }
+            } else if ( std::get<1>(c) == 2 ) {
+                if ( std::find_if( keywords.begin(), keywords.end(), [](const auto& kw){
+                    return kw.find( "DOUBLET" ) != std::string::npos || kw.find("doublet") != std::string::npos; }) == keywords.end() ) {
+                    os << "DOUBLET\t";
+                }
+            }
+        }
+        os << "\n\n\n";
+        printer<XYZ>{}( keywords, mol, c, os );
+    }
+
+    template<> void
+    printer<ORCA>::operator()(const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>& c, std::ostream& os ) const {
+        for ( const auto& keyword: keywords )
+            os << keyword << std::endl;
+        os << std::endl;
+        os << std::format( "*\txyz\t{}\t{}", std::get<0>(c), std::get<1>(c) ) << std::endl;
+        printer<XYZ>{}( keywords, mol, c, os );
+        os << "*" << std::endl;
+    }
+
+    ///
+    struct output_stream {
+        mutable std::unique_ptr< std::ofstream > _;
+        std::ostream& operator()( const std::string& name ) const {
+            if ( name == "-" )
+                return std::cout;
+            else {
+                _ = std::make_unique< std::ofstream >( name );
+                return *_;
+            }
+        }
+    };
 }
 
 int
@@ -75,11 +144,10 @@ main(int argc, char *argv[])
             ( "smiles",       po::value< std::vector< std::string > >(),  "smiles" )
             ( "output,o",     po::value< std::string >()->default_value("-"), "output file, '-' for stdout" )
             ( "keywords,k",   po::value< std::vector< std::string > >()->multitoken(), "keywords" )
+            ( "input,i",      po::value< std::string >()->default_value("mopac"), "input format, mopac|orca|xyz" )
+            ( "charge,c",     po::value< int >()->default_value( 0 ),   "charge" )
+            ( "multiplicity,m", po::value< int >()->default_value( 1 ), "multiplicity(2S+1)" )
             ;
-
-        // po::positional_options_description p;
-        // p.add( "args",  -1 );
-        //po::store( po::command_line_parser( argc, argv ).options( description ).positional(p).run(), vm );
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
     }
@@ -93,27 +161,27 @@ main(int argc, char *argv[])
 
     const auto& keywords = vm[ "keywords" ].as< std::vector< std::string > >();
 
-    // if ( vm.count( "keywords" ) ) {
-    //     for ( auto kw: vm[ "keywords" ].as< std::vector< std::string > >() ) {
-    //         std::cerr << "keyword: " << kw << std::endl;
-    //     }
-    //     std::cerr << std::endl;
-    // }
-
     if ( vm.count("smiles") ) {
 
         using _P = std::shared_ptr< RDKit::ROMol >;
+
+        output_stream out;
 
         for ( auto arg: vm[ "smiles" ].as< std::vector< std::string > >() ) {
             if ( auto mol = _P( RDKit::SmilesToMol( arg ) ) ) {
                 if ( auto mol_h = _P( RDKit::MolOps::addHs( *mol ) ) ) {
                     RDKit::DGeomHelpers::EmbedMolecule( *mol_h );
                     RDKit::UFF::UFFOptimizeMolecule( *mol_h );
-                    if ( vm[ "output" ].as< std::string >() == "-" )
-                        print_xyz()(keywords, *mol_h, std::cout );
-                    else {
-                        std::ofstream ofs( vm[ "output" ].as<std::string>() );
-                        print_xyz()(keywords, *mol_h, ofs );
+                    std::pair< int, int > charge{ vm[ "charge" ].as<int>(), vm[ "multiplicity" ].as<int>() };
+
+                    if ( vm[ "input" ].as<std::string>() == "xyz" ) {
+                        printer<XYZ>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
+                    } else if ( vm[ "input" ].as<std::string>() == "orca" ) {
+                        printer<ORCA>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
+                    } else if ( vm[ "input" ].as<std::string>() == "mopac" ) {
+                        printer<MOPAC>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
+                    } else { // mopac
+                        print_xyz{}(keywords, *mol_h, out( vm[ "output" ].as< std::string >() ) );
                     }
                 }
             }

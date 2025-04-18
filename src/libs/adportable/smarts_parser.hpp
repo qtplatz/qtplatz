@@ -26,6 +26,7 @@ SOFTWARE.
 #pragma once
 
 #include <string>
+#include <vector>
 #include <tuple>
 #include <optional>
 

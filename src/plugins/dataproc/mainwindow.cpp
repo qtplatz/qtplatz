@@ -1420,7 +1420,6 @@ MainWindow::handleExportRMSAllChecked()
 void
 MainWindow::handleExportAllChecked()
 {
-//     ADDEBUG() << "########################### TODO ###################################";
     QString dataPath;
     if ( auto dp = SessionManager::instance()->getActiveDataprocessor() )
         dataPath = QString::fromStdString( std::filesystem::path( dp->filename() ).parent_path().string() );
