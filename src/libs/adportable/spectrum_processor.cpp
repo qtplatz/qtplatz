@@ -503,6 +503,8 @@ spectrum_peakfinder::operator()( size_t nbrSamples, const double * pX, const dou
 
     uint32_t iw;
     std::tie( iw, std::ignore ) = width_calculator( nbrSamples / 20 ); // width at 5% from low mass limit
+    if ( iw < 4 )
+        iw = 4;
 
     double slope = double( rms ) / double( iw * 9 );
 
