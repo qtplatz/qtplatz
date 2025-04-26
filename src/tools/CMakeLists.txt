@@ -12,6 +12,7 @@ endif()
 
 add_subdirectory ( adurlx )
 add_subdirectory ( eventbroker )
+add_subdirectory ( genchromatogram )
 
 if ( NOT CMAKE_CROSSCOMPILING )
 
