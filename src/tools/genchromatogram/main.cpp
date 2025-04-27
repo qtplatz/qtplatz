@@ -22,23 +22,43 @@
 **
 **************************************************************************/
 
-#include <algorithm>
 #include <boost/program_options.hpp>
-#include <iostream>
-#include <vector>
+#include <algorithm>
 #include <cmath>
+#include <iostream>
+#include <random>
+#include <vector>
 
 namespace po = boost::program_options;
 
 using peak = std::tuple< double, double, double >;  // tR, intensity, sigma
 enum { tR = 0, intensity = 1, sigma = 2 };
 
+struct noise {
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_real_distribution<> dist;
+
+    noise( double min, double max ) : gen( rd() ), dist( min, max ) {}
+    double operator()() {  return dist( gen );  }
+};
+
+struct Resolution {
+    const size_t N_;
+    const double sqrN_;
+    Resolution( size_t N ) : N_( N ), sqrN_(std::sqrt(double(N))) {};
+    double retentionTime( double tR1, double Rs ) const {
+        return (sqrN_ + 2*Rs) * tR1 / (sqrN_ - 2 * Rs);
+    }
+};
+
 // y(t) = A * exp( -( (t - tR)^2)/2*sigma^2)
 
 class Chromatogram {
 public:
-    Chromatogram( size_t N, double sampIntval ) : N_( N )
-                                                , samplingInterval_( sampIntval ) {
+    Chromatogram( size_t N
+                  , double sampIntval ) : N_( N )
+                                        , samplingInterval_( sampIntval ) {
     }
 
     void addPeak( double tR, double h ) {
@@ -51,9 +71,6 @@ public:
     // operator
     std::vector< std::pair< double, double > >
     operator ()( double tstart = 0, double tstop = 0 ) const {
-
-        for ( const auto& pk: peaks_ )
-            std::cerr << std::format("{}\t{}\t{}", std::get<0>(pk), std::get<1>(pk), std::get<2>(pk)*4) << std::endl;
 
         if ( tstop == 0 )
             tstop = std::get<tR>(peaks_.back() ) +  5 * std::get<sigma>(peaks_.back() );
@@ -68,9 +85,10 @@ public:
         }
         return chro;
     }
+    const std::vector< peak > peaks() const { return peaks_; }
 
 private:
-    double at( double t, const peak& pk ) const {
+    constexpr double at( double t, const peak& pk ) const {
         double exponent = - std::pow(t - std::get<tR>(pk), 2) / (2 * std::pow( std::get<sigma>(pk), 2 ) );
         return std::get<intensity>(pk) * std::exp(exponent);
     }
@@ -83,17 +101,52 @@ private:
 int
 main(int argc, char *argv[])
 {
-    const int N = 8'000;
+    po::variables_map vm;
+    po::options_description description( argv[0] );
+    {
+        description.add_options()
+            ( "help,h",      "Display this help message" )
+            ( "ntp,N",   po::value< size_t >()->default_value( 8'000 ) )
+            ( "noise",   po::value< double >(), "noise amplitude." )
+            ( "drift",   po::value< double >(), "intensity per second, ex. 0.01" )
+            ( "resolution", po::value< double >() )  //  2.0*(tR2-tR1)/(W1+W2)
+            ;
+        po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
+        po::notify(vm);
+    }
+
+    if ( vm.count( "help" ) ) {
+        std::cerr << description << std::endl;
+        return 0;
+    }
+
+    const size_t N = vm["ntp"].as<size_t>(); // 8'000;
 
     Chromatogram chro{ N, 0.15 };
 
+    // generate t0 noise & peak
     chro.addPeak(  10.0  - 10.0 / (2*std::sqrt(10000)), -50 );
     chro.addPeak(  10.0, 50 );
 
+    // retention time should not match any of data sampling point
     chro.addPeak( 15.33, 1000 );
-    chro.addPeak( 20.78, 800 );
+
+    if ( vm.count( "resolution" ) ) {
+        chro.addPeak( Resolution(N).retentionTime( 15.33, vm["resolution"].as<double>() ), 800 );
+    } else {
+        chro.addPeak( 20.78, 800 );
+    }
 
     auto trace = chro(0,30);
+
+    for ( const auto [tR,H,sigma]: chro.peaks() )
+        std::cerr << std::format("{}\t{}\t{}", tR, H, sigma*4) << std::endl;
+
+    if ( vm.count( "noise" ) ) {
+        noise noise( -vm["noise"].as<double>()/2, vm["noise"].as<double>()/2 );
+        std::for_each( trace.begin(), trace.end(), [&](auto& d){ get<1>(d) += noise(); }) ;
+    }
+
     for ( const auto& data: trace )
         std::cout << std::format("{:.4}\t{}", std::get<0>(data), int(std::get<1>(data) + 50)) << std::endl;
 }
