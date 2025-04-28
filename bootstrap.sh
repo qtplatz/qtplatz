@@ -46,6 +46,9 @@ done
 echo -e "$0: platform=\t"$host_system
 echo -e "$0: config  =\t"$config
 
+cmake_args+=('--debug-find-pkg=Qt6PrintSupport')
+cmake_args+=('-DQT_DEBUG_FIND_PACKAGE=ON')
+
 if [ "$config" = "debug" ]; then
 	cmake_args+=('-DCMAKE_BUILD_TYPE=Debug')
 else

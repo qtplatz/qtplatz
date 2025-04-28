@@ -7,10 +7,11 @@ function find_qmake() {
 
     case "${__uname}" in
 		Linux*|MINGW64_NT*)
-			local hints=( "6.5.3" "5.15.2" )
+			local hints=( "6.7.3" "6.5.3" "5.15.2" )
 			;;
 		Darwin*)
 			local hints=(
+				"/Qt/6.7.3/macos"
 				"/Qt/6.7.2/macos"
 				"/Qt/6.7.0/macos"
 				"/Qt/6.5.3/macos"
