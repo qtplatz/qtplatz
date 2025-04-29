@@ -50,6 +50,7 @@
 #include <QWidget>
 
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
 #include <boost/json/kind.hpp>
 #include <boost/system.hpp>
 #include <boost/json.hpp>
@@ -99,7 +100,11 @@ void
 CSVPlot::setData( const std::vector< adportable::csv::list_string_type >& alist, size_t id )
 {
     if ( auto splitter = findChild< QSplitter * >( "splitter" ) ) {
+#if defined __GNUC__ && __GNUC__ <= 12
+        const auto tag = (boost::format( "CSV.%1%" ) % id ).str();
+#else
         const auto tag = std::format( "CSV.{}", id );
+#endif
         auto plot = adwidgets::add_widget( splitter, adwidgets::create_widget< adplot::plot >( tag.c_str() ) );
         impl_->plots_.emplace_back( plot );
         plot->setTitle( tag );
@@ -110,7 +115,11 @@ void
 CSVPlot::setData( const std::shared_ptr< adcontrols::MassSpectrum > ms, size_t id )
 {
     if ( auto splitter = findChild< QSplitter * >( "splitter" ) ) {
+#if defined __GNUC__ && __GNUC__ <= 12
+        const auto tag = ( boost::format("CSV.%d" ) % id ).str();
+#else
         const auto tag = std::format( "CSV.{}", id );
+#endif
         auto plot = adwidgets::add_widget( splitter, adwidgets::create_widget< adplot::SpectrumWidget >( tag.c_str() ) );
         impl_->plots_.emplace_back( plot );
         plot->setTitle( tag );

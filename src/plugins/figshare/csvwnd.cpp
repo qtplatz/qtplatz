@@ -61,6 +61,7 @@
 #include <QWidget>
 
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/format.hpp>
 #include <boost/json/kind.hpp>
 #include <boost/system.hpp>
 #include <boost/json.hpp>
@@ -158,8 +159,11 @@ CSVWnd::handleCSVReply( const QByteArray& ba, const QString& url, size_t id )
     if ( auto tw = findChild< QTabWidget * >( "tabWidget" ) ) {
         if ( id == 0 )
             tw->clear();
-
+#if __GNUC__ && __GNUC__ <= 12
+        if ( auto widget = adwidgets::create_widget< CSVWidget >( (boost::format( "CSVWidget.%1%1" ) % id ).str().c_str() ) ) {
+#else
         if ( auto widget = adwidgets::create_widget< CSVWidget >( std::format( "CSVWidget.{}", id).c_str() ) ) {
+#endif
             tw->addTab( widget, QString( "CSV.%1" ).arg( id + 1 ) );
             widget->setData( vlist );
         }

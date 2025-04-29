@@ -3,9 +3,6 @@ project( Quan )
 
 set( PROVIDER MS-Cheminformatics )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  set( COMPAT_VERSION 3.2.81 )
-endif()
 
 qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
 qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
@@ -28,18 +25,6 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB UIs *.ui)
 file(GLOB Resources *.qrc)
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/pluginspec.in"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
-execute_process( COMMAND ${XMLPATTERNS} -no-format
-  -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-  ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-  ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-endif()
 
 add_definitions(
   -DQUAN_LIBRARY

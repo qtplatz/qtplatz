@@ -57,6 +57,7 @@
 #include <boost/numeric/interval.hpp>
 
 #include <algorithm>
+#include <bitset>
 #include <cassert>
 #include <cmath>
 #include <deque>
@@ -320,9 +321,17 @@ namespace chromatogr {
             std::string s;
             for ( int i = impl_.stack_.size() - 1; i >= 0; --i ) {
                 s += toChar( impl_.stack_[i].stat() );
+#if defined __GNUC__ && __GNUC__ <= 12
+                o << boost::format("%.2f, ") << impl_.signal_processor_->time_at( impl_.stack_[i].pos() );
+#else
                 o << std::format("{:.2f}, ", impl_.signal_processor_->time_at( impl_.stack_[i].pos() ) );
+#endif
             }
+#if defined __GNUC__ && __GNUC__ <= 12
+            o_ << "[" << s << "]\t" << o.str();
+#else
             o_ << std::format( "[{}]\t{}", s, o.str() );
+#endif
         }
         print_stack( const Integrator::impl& impl, const char * heading ) : impl_( impl ) {
             o_ << heading;
@@ -416,10 +425,17 @@ namespace {
     public:
         static std::string toChar( uint32_t flags ) {
             static const char __state_char [] = { 'x', 'T', 'V', 'S', 'B' };
+#if defined __GNUC__ && __GNUC__ <= 12
+            return (boost::format("%1%%2%%3%")
+                    % __state_char[(flags >> 8) & 0x0f]
+                    % __state_char[(flags >> 4) & 0x0f]
+                    % __state_char[(flags >> 0) & 0x0f] ).str();
+#else
             return std::format("[{}{}{}]"
                                , __state_char[(flags >> 8) & 0x0f]
                                , __state_char[(flags >> 4) & 0x0f]
                                , __state_char[(flags >> 0) & 0x0f] );
+#endif
         }
     };
 

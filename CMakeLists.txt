@@ -338,6 +338,7 @@ endif()
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
+  "${CMAKE_BINARY_DIR}/qtplatz/src"
 )
 
 if ( WITH_QWT AND QT_FOUND )
@@ -707,6 +708,7 @@ if ( WITH_QT5 AND DEFINED $ENV{QT_PLUGIN_PATH} )
   message( STATUS "QT_PLUGIN_PATH has set to $ENV{QT_PLUGIN_PATH}" )
   message( STATUS "################## WARNING ###################" )
 endif()
+message( STATUS "# CMAKE_BINARY_DIR}     : ${CMAKE_BINARY_DIR}")
 message( STATUS "---------- END SUMMARY ------------" )
 
 if ( NOT Boost_LIBRARIES )

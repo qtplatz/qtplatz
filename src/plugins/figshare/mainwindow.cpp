@@ -29,6 +29,7 @@
 
 #include <QToolButton>
 #include <QTextEdit>
+#include <QTabBar>
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QDockWidget>

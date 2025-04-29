@@ -2195,11 +2195,15 @@ namespace {
             ADDEBUG() << ex.what();
             return;
         }
-
-        auto dst0 = folder.addFolium( std::format("PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
+#if defined __GNUC__ && __GNUC__ <= 12
+        auto dst0 = folder.addFolium( (boost::format("PGE2~%1%") % cnt).str() ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
+        auto dst1 = folder.addFolium( (boost::format("PGD2~%1%") % cnt).str() ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
+        auto dst2 = folder.addFolium( (boost::format("NORM~%1%") % cnt).str() ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
+#else
+        auto dst0 = folder.addFolium( std::format( "PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
         auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
         auto dst2 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
-
+#endif
         SessionManager::instance()->updateDataprocessor( dp, dst0 );
         SessionManager::instance()->updateDataprocessor( dp, dst1 );
         SessionManager::instance()->updateDataprocessor( dp, dst2 );

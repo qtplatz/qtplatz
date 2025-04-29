@@ -59,6 +59,7 @@
 #include <exception>
 #include <filesystem>
 #include <mutex>
+#include <ratio>
 #include <thread>
 
 namespace u5303a {
@@ -877,7 +878,8 @@ task::readDataPkdAvg( acqrscontrols::u5303a::waveform& pkd, acqrscontrols::u5303
     if ( simulated_ ) {
         simulator::instance()->readDataPkdAvg( pkd, avg );
         //  pkd.timeSinceEpoch_ =  std::chrono::system_clock::now().time_since_epoch().count(); // <-- should be recorded in nanoseconds, 2024/03/13
-        pkd.timeSinceEpoch_ = std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >::now().time_since_epock().count();
+        // pkd.timeSinceEpoch_ = std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >::now().time_since_epock().count();
+        pkd.timeSinceEpoch_ = std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::system_clock::now().time_since_epoch()).count();
         avg.timeSinceEpoch_ = pkd.timeSinceEpoch_;
         pkd.meta_.channelMode = acqrscontrols::u5303a::PKD;
         avg.meta_.channelMode = acqrscontrols::u5303a::AVG;
