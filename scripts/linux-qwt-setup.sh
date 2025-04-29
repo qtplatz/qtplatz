@@ -31,6 +31,12 @@ if ! find_qmake QMAKE; then
     exit
 fi
 
+if [ -d ${QWT_BUILD_DIR} ]; then
+	echo ${QWT_BUILD_DIR} " -- delete?"
+	prompt
+	rm -rf ${QWT_BUILD_DIR}
+fi
+
 echo "==========================="
 echo "Install qwt using $QMAKE"
 prompt

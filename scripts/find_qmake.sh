@@ -13,7 +13,6 @@ function find_qmake() {
 			local hints=(
 				"/Qt/6.7.3/macos"
 				"/Qt/6.7.2/macos"
-				"/Qt/6.7.0/macos"
 				"/Qt/6.5.3/macos"
 				"/Qt5/5.15.2" "/Qt/5.15.2/clang_64" )
 			;;
