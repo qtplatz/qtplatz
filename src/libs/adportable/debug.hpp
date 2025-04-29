@@ -28,6 +28,7 @@
 #include <sstream>
 #include <exception>
 #include <utility>
+#include <tuple>
 
 namespace adportable {
     class ADPORTABLESHARED_EXPORT debug;

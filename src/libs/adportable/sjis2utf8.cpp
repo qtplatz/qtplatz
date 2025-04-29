@@ -27,7 +27,7 @@
 
 #include "sjis2utf8.hpp"
 #include "shiftjis.h"
-#include <__utility/integer_sequence.h>
+// #include <__utility/integer_sequence.h>
 #include <string>
 #include <sstream>
 #include <utility>
