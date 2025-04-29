@@ -4,8 +4,8 @@ set(IDE_VERSION_DISPLAY "13.0.0")                     # The IDE display version.
 set(IDE_COPYRIGHT_YEAR "2024")                        # The IDE current copyright year.
 
 set(IDE_SETTINGSVARIANT "QtProject")                  # The IDE settings variation.
-set(IDE_DISPLAY_NAME "qtplatz")                    # The IDE display name.
-set(IDE_ID "qtplatzcreator")                               # The IDE id (no spaces, lowercase!)
+set(IDE_DISPLAY_NAME "qtplatz")                     # The IDE display name.
+set(IDE_ID "qtplatz")                               # The IDE id (no spaces, lowercase!)
 set(IDE_CASED_ID "QtPlatz")                         # The cased IDE id (no spaces!)
 set(IDE_BUNDLE_IDENTIFIER "com.ms-cheminfo.${IDE_ID}") # The macOS application bundle identifier.
 

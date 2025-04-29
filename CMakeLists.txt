@@ -98,19 +98,19 @@ if ( WITH_QT5 )
     if ( APPLE )
       ## macOS
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/bin" )
+      include_directories( BEFORE  "${CMAKE_BINARY_DIR}/bin/src" )   # app/app_version.h
     else()
       ## Linux & Windows
       set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../../lib:\${ORIGIN}/../.." )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
+      include_directories( BEFORE  "${CMAKE_BINARY_DIR}/qtplatz/src" ) # app/app_version.h
     endif()
     list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
     include_directories( BEFORE
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/libs"
       "${CMAKE_CURRENT_SOURCE_DIR}/qt-creator/src/plugins"
-      "${CMAKE_BINARY_DIR}/bin/src" # app/app_version.h
-      )
-
+    )
     find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Core PrintSupport Svg Sql Widgets Gui OpenGL Multimedia )
 
     find_package( QtCreator REQUIRED COMPONENTS Core )
@@ -338,7 +338,6 @@ endif()
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
-  "${CMAKE_BINARY_DIR}/qtplatz/src"
 )
 
 if ( WITH_QWT AND QT_FOUND )
