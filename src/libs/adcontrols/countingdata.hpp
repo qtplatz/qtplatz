@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <numeric>
 #include <string>
 #include <tuple>
@@ -38,7 +39,7 @@ namespace adcontrols {
 #if defined _MSC_VER
     struct CountingPeak;
     template class ADCONTROLSSHARED_EXPORT std::vector< adcontrols::CountingPeak >;
-#endif    
+#endif
 
     struct ADCONTROLSSHARED_EXPORT CountingPeak {
 
@@ -55,10 +56,10 @@ namespace adcontrols {
 
         std::pair< double, double > apex() const { return std::get< pk_apex >( d_ ); }
         std::pair< double, double >& apex()      { return std::get< pk_apex >( d_ ); }
-        
+
         std::pair< int, double > front() const   { return std::get< pk_front >( d_ ); }
         std::pair< int, double >& front()        { return std::get< pk_front >( d_ ); }
-        
+
         std::pair< int, double > back() const    { return std::get< pk_back >( d_ ); }
         std::pair< int, double >& back()         { return std::get< pk_back >( d_ ); }
 
@@ -153,7 +154,7 @@ namespace adcontrols {
 
                 double sd2 = std::accumulate( begin, end, 0.0, [&]( double b, const CountingPeak& a ){
                         return b + ( a.area() - mean ) * ( a.area() - mean ); }) / count;
-                
+
                 return Stat( mean, std::sqrt( sd2 ), range.first->area(), range.second->area(), count );
             }
         };
@@ -167,15 +168,14 @@ namespace adcontrols {
 
                 double mean = std::accumulate( begin, end, 0.0
                                                , []( double b, const CountingPeak& a ){ return a.height() + b; }) / count;
-                
+
                 double sd2 = std::accumulate( begin, end, 0.0, [&]( double b, const CountingPeak& a ){
                         return b + ( a.height() - mean ) * ( a.height() - mean ); }) / count;
-                
+
                 return Stat( mean, std::sqrt( sd2 ), range.first->height(), range.second->height(), count );
             }
         };
 
     }
-    
-}
 
+}

@@ -25,6 +25,7 @@
 
 #include "countingdata.hpp"
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 
 using namespace adcontrols;
