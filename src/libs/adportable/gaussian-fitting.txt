@@ -1,0 +1,68 @@
+// Given vectors x, y (y must be positive)
+std::vector<double> logy;
+for (auto val : y)
+    logy.push_back(std::log(val));
+
+// Fit quadratic: ln(y) = a*x^2 + b*x + c
+double a, b, c = fit_parabola(x, logy); // Implement your own or use Eigen
+
+double sigma = std::sqrt(-1.0 / (2 * a));
+double mu = b * sigma * sigma;
+double A = std::exp(c + mu * mu / (2 * sigma * sigma));
+
+---------
+The Gaussian curve is:
+
+y(x) = A exp( - \div{(x-μ)^2}{2σ^2})
+
+Take natural logarithm of bose sides:
+
+ln y(x) = ln A - (x-μ)^2 / 2σ^2
+
+This expands to a parabola in x:
+
+ln y(x) = ax^2 + bx + c
+
+From the parabola:
+
+a = -1/2σ^2
+
+b = μ/σ^2
+
+c = ln A - μ^2/2σ^2
+
+sigma = Sqrt[-1/2a]
+
+μ = bσ^2
+
+A = exp(c + μ^2/2σ^2)
+
+
+----------------
+Example code below, is parabora fitting using Eigen
+----------------
+#include <Eigen/Dense>
+#include <vector>
+
+bool polyfit_qr(const double* x, const double* y, size_t npts, int degree, std::vector<double>& coeffs) {
+    if (degree + 1 > npts)
+        return false;
+
+    Eigen::MatrixXd X(npts, degree + 1);
+    Eigen::VectorXd Y(npts);
+
+    for (size_t i = 0; i < npts; ++i) {
+        Y(i) = y[i];
+        double xi = 1.0;
+        for (int j = 0; j <= degree; ++j) {
+            X(i, j) = xi;
+            xi *= x[i];
+        }
+    }
+
+    // QR decomposition for least squares fit
+    Eigen::VectorXd result = X.colPivHouseholderQr().solve(Y);
+
+    coeffs.assign(result.data(), result.data() + result.size());
+    return true;
+}
