@@ -69,6 +69,8 @@ add_library( ${PROJECT_NAME} SHARED
   # fft4g_h.c
   sjis2utf8.cpp shiftjis.h
   smarts_parser.cpp smarts_parser.hpp
+  polfit_eigen.hpp
+  eigen.hpp
 )
 
 if ( MSVC )

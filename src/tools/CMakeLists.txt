@@ -14,6 +14,7 @@ add_subdirectory ( adurlx )
 add_subdirectory ( eventbroker )
 if ( APPLE )
   add_subdirectory ( genchromatogram )
+  add_subdirectory ( polfit )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING )
