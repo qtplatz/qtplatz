@@ -1,6 +1,7 @@
 ######
 ## boost install on Windows
 ##
+
 if ( NOT BOOST_VERSION )
   message( FATAL_ERROR "Empty BOOST_VERSION" )
 endif()
@@ -40,12 +41,12 @@ file ( TO_NATIVE_PATH ${ZLIB_SOURCE_DIR} ZLIB_SOURCE_PATH ) # use in boost-build
 file ( TO_NATIVE_PATH ${ZLIB_BINARY_DIR} ZLIB_BUILD_PATH ) # use in boost-build.bat.in
 
 set ( BOOST_TARBALL "boost_${BOOST_VERSION}.tar.bz2" )
-set ( BOOST_DOWNLOAD_URL "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_DOT_VERSION}/source/${BOOST_TARBALL}" )
+set ( BOOST_DOWNLOAD_URL "https://archives.boost.io/release/${BOOST_DOT_VERSION}/source/${BOOST_TARBALL}" )
 
 set ( BZIP2_TARBALL "bzip2-1.0.6.tar.gz" )
 set ( BZIP2_DOWNLOAD_URL "https://sourceforge.net/projects/bzip2/files/latest/download" )
 
-set ( ZLIB_TARBALL "zlib-1.3.tar.gz" )
+set ( ZLIB_TARBALL "zlib-1.3.1.tar.gz" )
 set ( ZLIB_DOWNLOAD_URL "https://zlib.net/${ZLIB_TARBALL}" )
 
 get_filename_component( __boost_parent ${BOOST_SOURCE_DIR} DIRECTORY )
@@ -69,8 +70,8 @@ if ( NOT EXISTS ${DOWNLOADS}/${ZLIB_TARBALL} )
 endif()
 
 if ( NOT TAR )
-  message( STATUS "================= No tar command specified --> " ${TAR})
-  set ( TAR tar )
+  # message( STATUS "================= No tar command specified --> " ${TAR})
+  set ( TAR "tar" )
 endif()
 
 message( STATUS "------------------> working directory for boost: " ${__boost_parent} )
@@ -92,14 +93,9 @@ if ( NOT EXISTS ${ZLIB_SOURCE_DIR} )
   execute_process( COMMAND ${CMAKE_COMMAND} -E ${TAR} xvf ${DOWNLOADS}/${ZLIB_TARBALL} WORKING_DIRECTORY ${__zlib_parent} )
 endif()
 
-file( WRITE "${BOOST_SOURCE_DIR}/user-config.jam"
-  "#using zlib :  : \n"
-  "#     <include>C:/opt/include\n"
-  "#     <search>C:/opt/lib\n"
-  "#     ;\n"
-  "#using bzip2 :  : \n"
-  "#     <source>${BZIP2_SOURCE_DIR}\n"
-  "#     ;\n"
+configure_file(
+  ${CURRENT_SOURCE_DIR}/user-config.jam.in
+  ${BOOST_SOURCE_DIR}/user-config.jam
 )
 
 configure_file(

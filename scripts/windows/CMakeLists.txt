@@ -14,8 +14,14 @@ set ( NUMBER_OF_PROCESSORS $ENV{NUMBER_OF_PROCESSORS} )
 
 find_program (TAR "tar" HINTS "C:/msys64/usr/bin/")
 
+if ( NOT QMAKE )
+  message( STATUS "==============================================" )
+  message( FATAL_ERROR "Empty QMAKE -- please check whether find_qmake.bat find qmake.exe" )
+endif()
+
 #----------------- eigen ---------------
-set ( EIGEN_SOURCE_DIR ${SRCDIR}/eigen )
+set ( EIGEN_VERSION "3.4.0" )
+set ( EIGEN_SOURCE_DIR "${SRCDIR}/eigen-${EIGEN_VERSION}" )
 set ( EIGEN_BINARY_DIR ${BUILD_ROOT}/eigen.build )
 set ( EIGEN_INSTALL_PREFIX "C:/opt/Eigen3" ) # -- default was $ENV{ProgramFiles(x86)}
 set ( EIGEN3_INCLUDE_DIR "${EIGEN_INSTALL_PREFIX}/include/eigen3" ) # reference in rdkit-bootstrap.bat
@@ -54,7 +60,7 @@ set ( OPENCV_INSTALL_PREFIX "C:/opt/OpenCV" )
 set ( BOOST_SOURCE_DIR "${BUILD_ROOT}/boost_${BOOST_VERSION}" )
 set ( BZIP2_SOURCE_DIR "${SRCDIR}/bzip2-1.0.6" )
 
-set ( ZLIB_SOURCE_DIR "${SRCDIR}/zlib-1.3" )
+set ( ZLIB_SOURCE_DIR "${SRCDIR}/zlib-1.3.1" )
 set ( ZLIB_BINARY_DIR "${BUILD_ROOT}/zlib.build" )
 set ( ZLIB_INSTALL_PREFIX "C:/opt/zlib" )
 
@@ -105,7 +111,6 @@ if ( Python3_FOUND )
       ${Python3_EXECUTABLE} -c "import numpy ; print( numpy.get_include() );"
       OUTPUT_VARIABLE PYTHON_NUMPY_INCLUDE_NATIVE_PATH
       OUTPUT_STRIP_TRAILING_WHITESPACE )
-
     file ( TO_CMAKE_PATH ${PYTHON_NUMPY_INCLUDE_NATIVE_PATH} PYTHON_NUMPY_INCLUDE_DIR )
 
     execute_process( COMMAND
@@ -119,11 +124,17 @@ if ( Python3_FOUND )
       OUTPUT_VARIABLE PYTHON_ROOT
       OUTPUT_STRIP_TRAILING_WHITESPACE  )
 
-
     execute_process( COMMAND
       ${Python3_EXECUTABLE} -c "import sys; print('{}.{}'.format(*sys.version_info))"
       OUTPUT_VARIABLE PYTHON_VERSION
       OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    execute_process( COMMAND
+      ${Python3_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))"
+      OUTPUT_VARIABLE PYTHON_LIB_NATIVE_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    file(TO_CMAKE_PATH ${PYTHON_LIB_NATIVE_PATH} PYTHON_LIB_PATH)
 
     if ( PYTHON_NUMPY_INCLUDE_DIR )
       set ( RDK_BUILD_PYTHON_WRAPPERS "ON" )
@@ -166,9 +177,22 @@ configure_file(
   )
 
 ###########################################################
+function(get_short_path input_path output_var)
+    execute_process(
+        COMMAND cmd /C for %I in ("${input_path}") do @echo %~sI
+        OUTPUT_VARIABLE short_path
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(${output_var} "${short_path}" PARENT_SCOPE)
+endfunction()
 
 #########################################################
 ######################## boost ##########################
+#set(PYTHON_PATH "C:/Program Files/Python313")
+get_short_path("${PYTHON3_EXECUTABLE}" SHORT_PYTHON3_EXECUTABLE)
+get_short_path("${PYTHON_INCLUDE_DIR}" SHORT_PYTHON_INCLUDE_DIR)
+get_short_path("${PYTHON_NUMPY_INCLUDE_DIR}" SHORT_PYTHON_NUMPY_INCLUDE_DIR)
+get_short_path("${PYTHON_LIB_PATH}" SHORT_PYTHON_LIB_PATH)
 
 add_custom_target( boost
   COMMAND ${CMAKE_COMMAND}
@@ -179,6 +203,11 @@ add_custom_target( boost
   -DZLIB_SOURCE_DIR="${ZLIB_SOURCE_DIR}"
   -DZLIB_BINARY_DIR="${ZLIB_BINARY_DIR}"
   -DZLIB_INSTALL_PREFIX="${ZLIB_INSTALL_PREFIX}"
+  -DPYTHON_VERSION="${PYTHON_VERSION}"
+  -DPYTHON3_EXECUTABLE="${SHORT_PYTHON3_EXECUTABLE}"
+  -DPYTHON_INCLUDE_DIR="${SHORT_PYTHON_INCLUDE_DIR}"
+  -DPYTHON_LIB_PATH="${SHORT_PYTHON_LIB_PATH}"
+  -DPYTHON_NUMPY_INCLUDE_DIR="${SHORT_PYTHON_NUMPY_INCLUDE_DIR}"
   -DDOWNLOADS="${DOWNLOADS}"
   -P "${CMAKE_CURRENT_SOURCE_DIR}/boost.cmake"
   COMMAND cmd /c "cd ${BOOST_SOURCE_DIR} && bootstrap.bat"
@@ -191,15 +220,20 @@ add_custom_target( boost
   COMMAND cmd /c "echo ==== mkdir build; cmake .."
   COMMAND cmd /c "echo ==== copy zconf."
   COMMAND cmd /c "echo ####################################################################################"
-  COMMAND cmd /c "echo boost-build.bat static dynamic"
+  COMMAND cmd /c "echo cd ${BOOST_SOURCE_DIR}; ./boost-build.bat static dynamic"
   )
 
 ###################### eigen #########################
 add_custom_target( eigen.download
   COMMAND ${CMAKE_COMMAND}
-  -DGIT_CLONE_DIR="${EIGEN_SOURCE_DIR}"
-  -DGIT_CLONE_URL="https://github.com/eigenteam/eigen-git-mirror"
-  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
+  -DDOWNLOAD_URL="https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.bz2"
+  -DDOWNLOAD_FILE="eigen-${EIGEN_VERSION}.tar.bz2"
+  -DDOWNLOAD_SOURCE_DIR="${EIGEN_SOURCE_DIR}"
+  -DDOWNLOAD_FORMAT="tar"
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/download.cmake"
+#  -DGIT_CLONE_DIR="${EIGEN_SOURCE_DIR}"
+#  -DGIT_CLONE_URL="https://gitlab.com/libeigen/eigen.git
+#  -P "${CMAKE_CURRENT_SOURCE_DIR}/git.cmake"
   )
 
 
@@ -326,6 +360,7 @@ message( STATUS "BOOST_ROOT          = " ${BOOST_ROOT} )
 message( STATUS "BOOST_SOURCE_DIR    = " ${BOOST_SOURCE_DIR} )
 message( STATUS "MAEPARSER_SUPPORT   = " ${RDK_BUILD_MAEPARSER_SUPPORT} )
 message( STATUS "MAEPARSER_DIRS      = " ${maeparser_dirs} )
+message( STATUS "QMAKE               = " ${QMAKE} )
 message( STATUS "QTDIR               = " ${QTDIR} )
 message( STATUS "QWT_SOURCE_DIR      = " ${QWT_SOURCE_DIR} )
 message( STATUS "GENERATOR           = " ${GENERATOR} )

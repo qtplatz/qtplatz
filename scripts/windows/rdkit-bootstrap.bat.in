@@ -17,7 +17,16 @@ echo "***************************************************"
 echo
 pause
 
+::-DBoost_NO_BOOST_CMAKE=ON ^
+::-DBOOST_ROOT=C:/Boost ^
+::-DBoost_INCLUDE_DIR=C:/Boost/include ^
+::-DBoost_LIBRARY_DIRS=C:/Boost/lib ^
+::-DBoost_PYTHON_LIBRARY_RELEASE=boost_python310-vc143-mt-x64-1_85.lib ^
+::-DBoost_NUMPY_LIBRARY_RELEASE=boost_numpy310-vc143-mt-x64-1_85.lib
+
 cmake -Wno-dev ^
+      -DCMAKE_PREFIX_PATH="${BOOST_LIBRARYDIR}/cmake" ^
+      -DBoost_NO_BOOST_CMAKE=ON ^
       -DBOOST_LIBRARYDIR="${BOOST_LIBRARYDIR}" ^
       -DBOOST_ROOT="${BOOST_ROOT}" ^
       -DBoost_USE_STATIC_LIBS=OFF ^

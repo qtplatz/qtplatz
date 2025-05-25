@@ -1,7 +1,8 @@
 ::
 @echo off
 
-set BOOST_VERSION=1_83_0
+set BOOST_VERSION=1_85_0
+::set BOOST_VERSION=1_83_0
 ::set BOOST_VERSION=1_79_0
 call find_qmake
 

@@ -2,8 +2,9 @@
 @echo off
 set "drv=C:"
 
-set "msvc=msvc2019_64"
-set hints=\Qt\6.5.3 ^
+set "msvc=msvc2022_64"
+set hints=\Qt\6.7.3 ^
+        \Qt\6.5.3 ^
         \Qt\5.15.2 ^
 
 setlocal enabledelayedexpansion

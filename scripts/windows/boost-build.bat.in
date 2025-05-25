@@ -39,9 +39,9 @@ if defined build_dynamic (
         address-model=64 ^
         architecture=x86 ^
         link=shared ^
-        --without-mpi ^
-	--without-graph_parallel ^
         -sZLIB_SOURCE="@ZLIB_SOURCE_PATH@" ^
         -sBZIP2_SOURCE="@BZIP2_SOURCE_PATH@" ^
+        --without-mpi ^
+	--without-graph_parallel ^
         --stagedir=stage\x64-shared stage install
 )
