@@ -21,7 +21,7 @@ set label 1 center at first 10.0, 200 '$t_0$' offset 0,1
 set arrow 1 from 10,200 to 10,100 lc "red" lw 2
 
 set label 2 center at first 15.33,1050 "Peak 1" offset 0,1
-set label 3 center at first 16.765,850  "Peak 2" offset 0,1
+set label 3 center at first 16.765,850 "Peak 2" offset 0,1
 
 set yrange [*:1100]
 

@@ -103,12 +103,8 @@ namespace adportable {
 
         static T standard_error( std::function< std::pair<T, T> ( int idx ) > xy_functor
                                  , size_t size
-                                 // const std::vector<T>& x,
-                                 // const std::vector<T>& y,
                                  , const std::vector<T>& coeffs) {
 
-            // if (x.size() != y.size() || x.empty())
-            //     return T(0);
             if ( size == 0 )
                 return T{0};
 
