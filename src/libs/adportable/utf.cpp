@@ -5,9 +5,10 @@
 
 #include "utf.hpp"
 #include "ConvertUTF.h"
-#include <exception>
 #include "debug.hpp"
+#include <array>
 #include <cassert>
+#include <exception>
 #include <iomanip>
 #include <boost/format.hpp>
 

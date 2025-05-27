@@ -160,7 +160,11 @@ namespace adplugin {
             if ( auto plugin = instance() ) {
                 plugin->setConfig( "", "", dll.location().string() );
                 plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( dll ) ) ); // reverse order
-                plugin->accept( *this, dll.location().c_str() );
+#if _MSC_VER
+                plugin->accept(*this, dll.location().string().c_str());
+#else
+                plugin->accept(*this, dll.location().c_str());
+#endif
                 return true;
             }
             return false;

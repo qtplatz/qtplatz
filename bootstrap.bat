@@ -2,16 +2,17 @@
 @echo off
 
 set "source_dir=%~dp0"
+
+call "%source_dir%scripts\find_qmake.bat" QMAKE
+for /f "tokens=*" %%a in ( '%QMAKE% -query QT_INSTALL_PREFIX' ) do ( set "QTDIR=%%a" )
+
 pushd "%~dp0.."
 set build_root=%CD%
 popd
 
-if not defined QTDIR (
-   set QMAKE=
-   call "%source_dir%scripts\find_qmake.bat" QMAKE
-   echo "======== QMAKE: " %QMAKE%
-   if not defined QMAKE ( echo "## No QMAKE found." & goto end )
-   for /f "tokens=*" %%a in ( '%QMAKE% -query QT_INSTALL_PREFIX' ) do ( set "QTDIR=%%a" )
+if not defined QMAKE (
+   echo "----------------- QMAKE NOT DEFINED ----------------"
+   echo "## No QMAKE found." & goto end
 )
 
 set build_arch=x86_64
@@ -51,6 +52,7 @@ for %%i in (%*) do (
 
 set "build_dir=%build_root%\build-%build_arch%\%build_target%"
 
+echo "<==============================="
 echo -- GENERATOR: %GENERATOR%
 echo -- BUILD DIR: %build_dir%
 echo -- PACKAGE  : %build_package%
@@ -58,6 +60,7 @@ echo -- CLEAN    : %build_clean%
 echo -- QMAKE    : %QMAKE%
 echo -- QTDIR    : %QTDIR%
 echo -- toolset  : %toolset%
+echo "<==============================="
 
 ::set /p Yes=Proceed (y/n)?
 ::if /i "%Yes%" neq "y" goto end
@@ -85,14 +88,19 @@ if not defined toolset goto MSVC
 
 :MSVC
   echo "================================================ MSVC ==============================================="
-  echo cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+  ::set "build_dir=%build_root%\build-%build_arch%\%build_target%"
+  echo -- build_dir    = %build_dir% --
+  echo -- build_root   = %build_root% --
+  echo -- build_arch   = %build_arch% --
+  echo -- build_target = %build_target% --
+  echo cmake -DCMAKE_PREFIX_PATH="%QTDIR%;C:/opt/netcdf-c" -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
   set /p Yes=Proceed (y/n)?
   if /i "%Yes%" neq "y" goto end
-  cmake -DCMAKE_PREFIX_PATH=%QTDIR% -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
+  cmake -DCMAKE_PREFIX_PATH="%QTDIR%;C:/opt/netcdf-c" -G %GENERATOR% -DCMAKE_BUILD_TYPE=Release -DDEBUG_SYMBOL:BOOL=%debug_symbol% %source_dir%
 
 :endconfig
 
-echo "============ endlocal ==============" %build_dir%
+::echo "============ endlocal ==============" %build_dir%
 
 endlocal && set build_dir=%build_dir%
 

@@ -68,5 +68,5 @@ namespace portfolio {
         bool erase( Folium, std::function< void( std::tuple< std::wstring, std::wstring > ) > );
     };
 
-    template<> std::vector< Folium > Folder::find( const std::string& xpath ) const;
+    template<> PORTFOLIOSHARED_EXPORT std::vector< Folium > Folder::find( const std::string& xpath ) const;
 }

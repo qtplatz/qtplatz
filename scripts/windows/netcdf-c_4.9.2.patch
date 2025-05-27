@@ -1,0 +1,14 @@
+diff --git a/libsrc/CMakeLists.txt b/libsrc/CMakeLists.txt
+index 7b9b2aad9..f5a79e23f 100644
+--- a/libsrc/CMakeLists.txt
++++ b/libsrc/CMakeLists.txt
+@@ -5,7 +5,8 @@ SET(libsrc_SOURCES v1hpg.c putget.c attr.c nc3dispatch.c
+   nc3internal.c var.c dim.c ncx.c lookup3.c ncio.c)
+ 
+ # Process these files with m4.
+-SET(m4_SOURCES attr ncx putget)
++#SET(m4_SOURCES attr ncx putget)
++LIST(APPEND libsrc_SOURCES attr.c ncx.c putget.c)
+ foreach (f ${m4_SOURCES})
+   GEN_m4(${f} dest)
+   LIST(APPEND libsrc_SOURCES ${dest})

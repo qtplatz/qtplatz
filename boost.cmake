@@ -30,6 +30,7 @@ if ( WIN32 )
 
   set( Boost_NO_SYSTEM_PATHS ON )
   set( Boost_USE_STATIC_LIBS OFF )
+  add_definitions( "-DBOOST_DLL_USE_STD_FS" )
   add_definitions( "-DBOOST_ALL_NO_LIB" ) # <-- disable boost auto linking
   # On windows, boost::archive templates are not possible to implment across shared object boundary
   # if ( Boost_USE_STATIC_LIBS )

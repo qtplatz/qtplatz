@@ -50,7 +50,7 @@ cmake_args+=( "-DBUILD_SHARED_LIBS=OFF" )
 cmake_args+=( "-DENABLE_NETCDF_4=OFF" )
 cmake_args+=( "-DENABLE_NETCDF4=OFF" )
 cmake_args+=( "-DENABLE_HDF4=OFF" )
-cmake_args+=( "-DNABLE_PNETCDF=OFF" )
+cmake_args+=( "-DENABLE_PNETCDF=OFF" )
 cmake_args+=( "-DENABLE_FILTER_BLOSC=OFF" )
 cmake_args+=( "-DENABLE_FILTER_ZSTD=OFF" )
 

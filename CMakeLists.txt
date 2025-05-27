@@ -627,6 +627,8 @@ else()
 endif()
 if ( netCDF_FOUND )
   message( STATUS "# netCDF                : ${netCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
+else()
+  message( STATUS "# netCDF                : NOT FOUND" )
 endif()
 
 if ( AqMD3_FOUND )

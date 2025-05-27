@@ -131,7 +131,7 @@ SFEDelayDialog::setContents( const std::vector< std::string >& files )
                 }
             }
             model->setData( model->index( row, 1 )
-                            , QString::fromStdString( std::filesystem::path( files.at( row ) ).filename().stem() ) );
+                            , QString::fromStdString( std::filesystem::path( files.at( row ) ).filename().stem().string() ) );
             model->setData( model->index( row, 1 )
                             , QByteArray( files.at( row ).data(), files.at( row ).size() ), Qt::UserRole );
         }

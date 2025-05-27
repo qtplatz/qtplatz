@@ -79,6 +79,16 @@ cmake `
   -DBUILD_SHARED_LIBS=OFF `
   ..\..\netcdf-c
 
+cmake `
+  -DCMAKE_INSTALL_PREFIX="C:/opt/netcdf-c" `
+  -DZLIB_ROOT="C:/opt/zlib" `
+  -DENABLE_TESTS=OFF `
+  -DENABLE_NETCDF_4=OFF `
+  -DENABLE_DAP=OFF `
+  -DBUILD_UTILITIES=OFF `
+  -DBUILD_SHARED_LIBS=OFF `
+  ..\..\netcdf-c
+
 cmake --build . --config Release --target INSTALL
 ```
 
@@ -110,5 +120,5 @@ This configuration has been verified to:
 - Build netcdf-c cleanly on Windows with MSVC and CMake
 - Support classic NetCDF-2 files such as Shimadzu AIA/AndiNetCDF exports
 
-Place this file in:  
+Place this file in:
 📁 `scripts/windows/netcdf-c_4.9.2_build.md`

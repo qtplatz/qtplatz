@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "codecvt.hpp"
-#include "../adportable/debug.hpp"
 #include "../adportable/ConvertUTF.h"
 #include <stdexcept>
 #include <cassert>
@@ -81,7 +80,8 @@ namespace adportable_serializer {
         UTF16 * targetEnd        = targetStart + utf8size;
         ConversionResult success = ConvertUTF8toUTF16( &sourceStart, sourceEnd, &targetStart, targetEnd, strictConversion );
         if ( success != conversionOK ) {
-            adportable::debug(__FILE__, __LINE__) << "ConvertUTF8toUTF16 failed. code=" << int(success);
+            // this line causing duplicate definition error
+            // adportable::debug(__FILE__, __LINE__) << "ConvertUTF8toUTF16 failed. code=" << int(success);
             throw std::runtime_error( "ConvertUTF16toUTF8 failed" );
         }
         *targetStart = 0;
