@@ -17,11 +17,6 @@ file(GLOB Resources *.qrc)
 if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
-  if ( HDF5_FOUND )
-    include_directories( ${HDF5_INCLUDE_DIRS} )
-  else()
-    set( HDF5_LIBRARIES )
-  endif()
 endif()
 
 include_directories( ${QTPLATZ_INCLUDE_DIRS} ${QWT_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/src )
@@ -48,7 +43,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adwidgets
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${HDF5_LIBRARIES}
   ${Resources}
   Qt::Widgets
   Qt::Svg

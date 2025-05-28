@@ -76,12 +76,6 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION "lib/qtplatz" COMPONENT libraries
 )
 
-# dependents
-# netcdf.dll
-#     hdf5_hl.dll <-- hdf5.dll
-#     libcurl.dll <-- zlib1.dll
-#     hdf5.dll -- jpg.dll, zlib1.dll
-
 ########
 if( NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   add_executable( adncdump

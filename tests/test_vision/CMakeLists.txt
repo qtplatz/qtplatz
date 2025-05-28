@@ -11,7 +11,7 @@ find_package( Qt5 REQUIRED Core Widgets )
 if ( OpenCV_FOUND )
   find_package( OpenCV 3 REQUIRED core imgproc video highgui features2d )
   add_definitions( "-DOPENCV=1" )
-  include_directories( ${OpenCV_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} )
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
 endif()
 
 if ( CUDA_FOUND )
@@ -46,8 +46,8 @@ target_link_libraries( test_vision ${CUDA_LINK_LIBRARIES_KEYWORD}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${ArrayFire_LIBRARIES}
-  ${ArrayFire_CUDA_LIBRARIES}  
+  ${ArrayFire_CUDA_LIBRARIES}
   ${CUDA_LIBRARIES}
   Qt5::Core
-  Qt5::Widgets  
+  Qt5::Widgets
   )

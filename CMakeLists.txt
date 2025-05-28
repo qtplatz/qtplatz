@@ -375,11 +375,6 @@ if ( WITH_OPENCV )
     endif()
   endif()
 
-  find_package( HDF5 QUIET HINTS "/usr/local/hdf5" )
-  if ( HDF5_FOUND )
-    add_definitions( -DHAVE_HDF5=1 )
-  endif()
-
 endif()
 
 if ( WITH_AqDrv4 )
@@ -620,11 +615,6 @@ if ( OpenCV_FOUND )
   message( STATUS "\t# INCLUDE          : ${OpenCV_INCLUDE_DIRS}" )
 endif()
 
-if ( HDF5_FOUND )
-  message( STATUS "# HDF5                  :  ${HDF5_VERSION}  in (${HDF5_INCLUDE_DIRS})" )
-else()
-  message( STATUS "# HDF5                  :  NOT FOUND" )
-endif()
 if ( netCDF_FOUND )
   message( STATUS "# netCDF                : ${netCDFVersion}  ${netCDF_INCLUDE_DIR};${netCDF_LIBRARIES}" )
 else()

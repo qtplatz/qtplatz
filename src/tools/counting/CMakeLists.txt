@@ -16,10 +16,6 @@ if ( OpenCV_FOUND )
   add_definitions( "-DOPENCV=1" )
   include_directories( ${OpenCV_INCLUDE_DIRS} )
   set( opencv_libraries ${OpenCV_LIBRARIES} )
-  if ( HDF5_FOUND )
-    include_directories( ${HDF5_INCLUDE_DIRS} )
-    list( APPEND opencv_libraries ${HDF5_LIBRARIES} )
-  endif()
 endif()
 
 include_directories(
@@ -52,6 +48,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
 
 install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin COMPONENT applications
-  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries 
+  LIBRARY DESTINATION lib/qtplatz COMPONENT libraries
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries
   )

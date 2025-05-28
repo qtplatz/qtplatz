@@ -173,7 +173,11 @@ endif()
 
 #add_subdirectory(doc)
 
-setup_dependencies_component()
+if (WIN32)
+  message( STATUS "skip setup_dependencies_component" )
+else()
+  setup_dependencies_component()
+endif()
 
 feature_summary(INCLUDE_QUIET_PACKAGES WHAT
   PACKAGES_FOUND PACKAGES_NOT_FOUND

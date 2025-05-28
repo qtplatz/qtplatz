@@ -6,7 +6,7 @@ endif()
 message( STATUS "########################################################" )
 message( STATUS "############ netCDF CPACK -- netCDF ${netCDFVersion} ############" )
 
-set( dependent_dlls "hdf5_hl.dll" "hdf5.dll" "libcurl.dll" "zlib1.dll" "jpeg.dll" "zlib1.dll" )
+#set( dependent_dlls "zlib1.dll" "zlib1.dll" )
 
 get_target_property( __dll netCDF::netcdf IMPORTED_LOCATION_RELEASE )
 message( STATUS "output --> ${dll}" )
