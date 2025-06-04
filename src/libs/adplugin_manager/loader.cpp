@@ -93,8 +93,8 @@ loader::populate( const std::filesystem::path& appdir )
     std::filesystem::path modules(    appdir / pluginDirectory ); // apple: Contents/PlugIns
     std::filesystem::path sharedlibs( appdir / sharedDirectory ); // apple: Contents/Frameworks
 #else
-    // search all files under ./lib/ directory
-    std::filesystem::path modules(    appdir / "lib" ); // /qtplatz/plugins" );
+    // search all files under ./lib/qtplatz directory
+    std::filesystem::path modules(    appdir / "lib/qtplatz" ); // /qtplatz/plugins" );
 #endif
     ADDEBUG() << "populating: " << appdir;
 
@@ -120,6 +120,8 @@ loader::populate( const std::filesystem::path& appdir )
                 }
                 ++it;
             }
+        } else {
+            ADDEBUG() << "std::filesystem::recursive_directory_iterator failed: " << ec.message();
         }
     } else {
         ADDEBUG() << boost::format( "## Error: loader %1% is not a directory" ) % modules.generic_string();
