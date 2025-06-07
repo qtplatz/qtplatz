@@ -33,6 +33,7 @@
 #include <GraphMol/SmilesParse/SmilesWrite.h>
 #include <GraphMol/ForceFieldHelpers/UFF/UFF.h>
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -64,7 +65,11 @@ namespace {
             for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
                 auto atom = mol.getAtomWithIdx( i );
                 auto pos = mol.getConformer().getAtomPos( i );
+#if __GNUC__
+                os << boost::format( "%1%\t%2%\t%3%\t%4%" ) % atom->getSymbol() % pos.x % pos.y % pos.z << std::endl;
+#else
                 os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", atom->getSymbol(), pos.x, pos.y, pos.z ) << std::endl;
+#endif
             }
         }
     };
@@ -80,7 +85,11 @@ namespace {
         for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
             auto atom = mol.getAtomWithIdx( i );
             auto pos = mol.getConformer().getAtomPos( i );
+#if __GNUC__
+            os << boost::format( "%1%\t%2%\t%3%\t%4%" ) % atom->getSymbol() % pos.x % pos.y % pos.z << std::endl;
+#else
             os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", atom->getSymbol(), pos.x, pos.y, pos.z ) << std::endl;
+#endif
         }
     }
 
@@ -91,7 +100,11 @@ namespace {
         if ( std::get<0>(c) != 0 ) {
             if ( std::find_if( keywords.begin(), keywords.end(), [](const auto& kw){
                 return kw.find( "CHARGE" ) != std::string::npos || kw.find("charge") != std::string::npos; }) == keywords.end() ) {
+#if __GNUC__
+                os << boost::format( "CHARGE=%1%\t" ) % std::get<0>(c);
+#else
                 os << std::format( "CHARGE={}\t", std::get<0>(c) );
+#endif
             }
             if ( std::get<1>(c) == 1 ) {
                 if ( std::find_if( keywords.begin(), keywords.end(), [](const auto& kw){
@@ -114,7 +127,11 @@ namespace {
         for ( const auto& keyword: keywords )
             os << keyword << std::endl;
         os << std::endl;
+#if __GNUC__
+        os << boost::format( "*\txyz\t%1%\t%2%" ) % std::get<0>(c) % std::get<1>(c) << std::endl;
+#else
         os << std::format( "*\txyz\t{}\t{}", std::get<0>(c), std::get<1>(c) ) << std::endl;
+#endif
         printer<XYZ>{}( keywords, mol, c, os );
         os << "*" << std::endl;
     }
