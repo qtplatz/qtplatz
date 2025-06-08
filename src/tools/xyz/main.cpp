@@ -51,37 +51,96 @@ enum package {
 
 namespace {
 
-    struct print_xyz {
-        print_xyz() {}
-        void operator()( const std::vector< std::string >& keywords, const RDKit::ROMol& mol, std::ostream& os ) const {
-            if ( keywords.empty() ) {
-                os << "PM7 XYZ BONDS STATIC\n\n\n";
-            } else {
-                os << "PM7\t";
-                for ( const auto& keyword: keywords )
-                    os << keyword << "\t";
-                os << "\n\n\n";
+    class adduct {
+        std::string adduct_;
+        std::string nearby_;
+        double bond_length_;
+        RDGeom::Point3D pos_;
+    public:
+        adduct( const std::string& a, const std::string& nearby, double distance )
+            : adduct_( a ), nearby_( nearby ), bond_length_( distance ) {
+        }
+        adduct( const adduct& t ) : adduct_( t.adduct_), nearby_( t.nearby_ ), bond_length_( t.bond_length_ ) {}
+
+        std::string symbol() const { return adduct_; }
+        std::string nearby() const { return nearby_; }
+        RDGeom::Point3D pos( const RDKit::ROMol& mol ) const {
+            return place( mol, nearby_, bond_length_ );
+        }
+
+    private:
+        RDGeom::Point3D place( const RDKit::ROMol& mol, const std::string& nearby, double bond_length = 2.3) const {
+            for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
+                auto atom = mol.getAtomWithIdx( i );
+                if ( atom->getSymbol() == nearby ) {
+                    auto com = compute_com( mol );
+                    auto pos = mol.getConformer().getAtomPos( i );
+                    double dx = com.x - pos.x;
+                    double dy = com.y - pos.y;
+                    double dz = com.z - pos.z;
+                    double norm = std::sqrt(dx*dx + dy*dy + dz*dz);
+                    dx /= norm; dy /= norm; dz /= norm;
+                    return {pos.x + dx * bond_length, pos.y + dy * bond_length, pos.z + dz * bond_length};
+                }
             }
+            return {};
+        }
+
+        RDGeom::Point3D compute_com( const RDKit::ROMol& mol ) const {
+            RDGeom::Point3D com;
             for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
                 auto atom = mol.getAtomWithIdx( i );
                 auto pos = mol.getConformer().getAtomPos( i );
-#if __GNUC__
-                os << boost::format( "%1%\t%2%\t%3%\t%4%" ) % atom->getSymbol() % pos.x % pos.y % pos.z << std::endl;
-#else
-                os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", atom->getSymbol(), pos.x, pos.y, pos.z ) << std::endl;
-#endif
+                com += pos;
             }
+            double n = mol.getNumAtoms();
+            com /= n;
+            return com;
         }
     };
 
+    struct electronCount {
+        size_t total_electrons;
+        size_t net_electrons;
+        electronCount() : total_electrons( 0 ), net_electrons( 0 ) {}
+
+        size_t count( const RDKit::ROMol& mol, const std::optional< adduct >& a ) const {
+            size_t count = 0;
+            for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
+                auto atom = mol.getAtomWithIdx( i );
+                count += atom->getAtomicNum();
+            }
+            if ( a ) {
+                auto atom = RDKit::Atom( a->symbol() );
+                count += atom.getAtomicNum() - 1; // since adduct specified as neutral
+            }
+            return count;
+        }
+
+        bool validate( const RDKit::ROMol& mol, const std::optional< adduct >& a, int charge, int multiplicity ) {
+            total_electrons = count( mol, a );
+            net_electrons = count( mol, a ) - charge;
+            return ((total_electrons + multiplicity) % 2 == 1);
+        }
+    };
+
+
+    //////////////////////////
     template< package >
     struct printer {
-        void operator()( const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>&, std::ostream& os ) const {
-        }
+        void operator()( const std::vector< std::string >& keywords
+                         , const RDKit::ROMol& mol
+                         , const std::pair<int,int>&
+                         , std::optional< adduct > a
+                         , std::ostream& os ) const {   }
     };
 
     template<> void
-    printer<XYZ>::operator()(const std::vector< std::string >&, const RDKit::ROMol& mol, const std::pair<int,int>&, std::ostream& os ) const {
+    printer<XYZ>::operator()(const std::vector< std::string >&
+                             , const RDKit::ROMol& mol
+                             , const std::pair<int,int>&
+                             , std::optional< adduct > a
+                             , std::ostream& os ) const {
         for ( size_t i = 0; i < mol.getNumAtoms(); ++i ) {
             auto atom = mol.getAtomWithIdx( i );
             auto pos = mol.getConformer().getAtomPos( i );
@@ -91,10 +150,20 @@ namespace {
             os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", atom->getSymbol(), pos.x, pos.y, pos.z ) << std::endl;
 #endif
         }
+        if ( a ) {
+            auto pos = a->pos( mol );
+#if __GNUC__
+            os << boost::format( "%1%\t%2%\t%3%\t%4%" ) % a->symbol() % pos.x % pos.y % pos.z << std::endl;
+#else
+            os << std::format( "{}\t{:.7}\t{:.7}\t{:.7}", a->symbol(), pos.x, pos.y, pos.z ) << std::endl;
+#endif
+        }
     }
 
     template<> void
-    printer<MOPAC>::operator()(const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>& c, std::ostream& os ) const {
+    printer<MOPAC>::operator()(const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>& c
+                               , std::optional< adduct > add
+                               , std::ostream& os ) const {
         for ( const auto& keyword: keywords )
             os << keyword << "\t";
         if ( std::get<0>(c) != 0 ) {
@@ -119,11 +188,15 @@ namespace {
             }
         }
         os << "\n\n\n";
-        printer<XYZ>{}( keywords, mol, c, os );
+        printer<XYZ>{}( keywords, mol, c, add, os );
     }
 
     template<> void
-    printer<ORCA>::operator()(const std::vector< std::string >& keywords, const RDKit::ROMol& mol, const std::pair<int,int>& c, std::ostream& os ) const {
+    printer<ORCA>::operator()(const std::vector< std::string >& keywords
+                              , const RDKit::ROMol& mol
+                              , const std::pair<int,int>& c
+                              , std::optional< adduct > a
+                              , std::ostream& os ) const {
         for ( const auto& keyword: keywords )
             os << keyword << std::endl;
         os << std::endl;
@@ -132,7 +205,7 @@ namespace {
 #else
         os << std::format( "*\txyz\t{}\t{}", std::get<0>(c), std::get<1>(c) ) << std::endl;
 #endif
-        printer<XYZ>{}( keywords, mol, c, os );
+        printer<XYZ>{}( keywords, mol, c, a, os );
         os << "*" << std::endl;
     }
 
@@ -148,6 +221,7 @@ namespace {
             }
         }
     };
+
 }
 
 int
@@ -164,6 +238,9 @@ main(int argc, char *argv[])
             ( "input,i",      po::value< std::string >()->default_value("mopac"), "input format, mopac|orca|xyz" )
             ( "charge,c",     po::value< int >()->default_value( 0 ),   "charge" )
             ( "multiplicity,m", po::value< int >()->default_value( 1 ), "multiplicity(2S+1)" )
+            ( "adduct,a", po::value< std::string >(), "adduct such as H, Na, K" )
+            ( "nearby,n", po::value< std::string >()->default_value( "O" ), "where to place adduct" )
+            ( "distance,d", po::value< double >()->default_value( 2.3 ), "Bond distance in angstrome" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -191,14 +268,29 @@ main(int argc, char *argv[])
                     RDKit::UFF::UFFOptimizeMolecule( *mol_h );
                     std::pair< int, int > charge{ vm[ "charge" ].as<int>(), vm[ "multiplicity" ].as<int>() };
 
+                    std::optional< adduct > a;
+                    if ( vm.count( "adduct" ) ) {
+                        a = adduct{ vm["adduct"].as<std::string>(), vm["nearby"].as<std::string>(), vm["distance"].as<double>() };
+                    }
+
                     if ( vm[ "input" ].as<std::string>() == "xyz" ) {
-                        printer<XYZ>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
+                        printer<XYZ>{}(keywords, *mol_h, charge, a, out( vm[ "output" ].as< std::string >() ) );
                     } else if ( vm[ "input" ].as<std::string>() == "orca" ) {
-                        printer<ORCA>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
+                        printer<ORCA>{}(keywords, *mol_h, charge, a, out( vm[ "output" ].as< std::string >() ) );
                     } else if ( vm[ "input" ].as<std::string>() == "mopac" ) {
-                        printer<MOPAC>{}(keywords, *mol_h, charge, out( vm[ "output" ].as< std::string >() ) );
-                    } else { // mopac
-                        print_xyz{}(keywords, *mol_h, out( vm[ "output" ].as< std::string >() ) );
+                        printer<MOPAC>{}(keywords, *mol_h, charge, a, out( vm[ "output" ].as< std::string >() ) );
+                    } else {
+                        printer<XYZ>{}(keywords, *mol_h, charge, a, out( vm[ "output" ].as< std::string >() ) );
+                    }
+
+                    electronCount ec;
+                    if ( not ec.validate( *mol, a, std::get<0>(charge), std::get<1>(charge) ) ) {
+                        int multiplicity = std::get<1>(charge);
+                        std::cerr << "output: " << vm["output"].as< std::string >();
+                        std::cerr << "\tCheck electron/spin multiplicity configuration: total_eectrons " << ec.total_electrons
+                                  << ", multiplicity = " << multiplicity
+                                  << ", (ec.total_electrons - multiplicity) = " << (ec.total_electrons - multiplicity)
+                                  << std::endl;
                     }
                 }
             }
