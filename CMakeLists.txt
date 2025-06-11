@@ -337,7 +337,7 @@ endif()
 
 include_directories(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/libs"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.11/src"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/xmlparser/pugixml-1.15/src"
 )
 
 if ( WITH_QWT AND QT_FOUND )

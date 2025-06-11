@@ -12,6 +12,7 @@ endif()
 
 add_subdirectory ( adurlx )
 add_subdirectory ( eventbroker )
+add_subdirectory ( mzml )
 if ( APPLE )
   add_subdirectory ( genchromatogram )
   add_subdirectory ( polfit )
