@@ -241,17 +241,19 @@ namespace mzml {
             return {};
         }
 
+        //--------------------->
+
         size_t selectedIonCount() const {
-            return 0; // node_.select_node( "precursorList/precursor/selectedIonList@count" ).attribute().as_uint();
+            return node_.select_node( "precursorList/precursor/selectedIonList/@count" ).attribute().as_uint();
         }
 
         std::optional< std::pair<double, double> > selectedIon() const {
-            // if ( auto intens = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000042']" ) ) {
-            //     if ( auto mz = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
-            //         return {{ mz.node().attribute( "value" ).as_double()
-            //                       , intens.node().attribute( "value" ).as_double()   }};
-            //     }
-            // }
+            if ( auto intens = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000042']" ) ) {
+                if ( auto mz = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
+                    return {{ mz.node().attribute( "value" ).as_double()
+                                  , intens.node().attribute( "value" ).as_double()   }};
+                }
+            }
             return {};
         }
 
@@ -267,6 +269,17 @@ namespace mzml {
         }
         bool is_linear() const {
             return node_.select_node( "cvParam[@accession='MS:1000095]" );
+        }
+
+        std::pair< double, double >
+        basePeak() const {
+            if ( auto intens = node_.select_node( "//cvParam[accession='MS:1000505']" ) ) {
+                if ( auto mz = node_.select_node( "//cvParam[accession='MS:1000504']" ) ) {
+                    return { mz.node().attribute( "value" ).as_double()
+                             , intens.node().attribute( "value" ).as_double()   };
+                }
+            }
+            return { 0, 0 };
         }
     };
 
@@ -477,7 +490,7 @@ struct mzMLWalker {
                     if ( auto value = sp->collision_energy() )
                         o << std::format( ", CE: {}", *value );
 
-                    ADDEBUG() << o.str();
+                    ADDEBUG() << o.str() << " BP:" << sp->basePeak();
                 }
                 for ( const auto cp: chromatograms_ ) {
                     ADDEBUG() << std::format( "{}, {}, {}", cp->id(), cp->index(), cp->length() ) << cp->ac().toString();
