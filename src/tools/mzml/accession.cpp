@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <adportable/debug.hpp>
 #include "accession.hpp"
 #include <algorithm>
 #include <array>
@@ -89,8 +90,28 @@ namespace mzml {
     {
     }
 
-    accession::accession( const accession& t ) : names_( t.names_ )
+    accession::accession( const accession& t ) : accession_( t.accession_ )
     {
+    }
+
+    accession::accession( const pugi::xml_node& parent_node ) {
+        for ( const auto param: parent_node.select_nodes( "cvParam" ) ) {
+            auto accession = param.node().attribute( "accession" ).value(); // MS:XXXX
+            for ( auto attr: param.node().select_nodes( "@*[local-name()!='accession']" ) )
+                (accession_[ accession ])[ attr.attribute().name() ] = attr.attribute().value();
+        }
+#if 0
+        for ( const auto& acc: accession_ ) {
+            ADDEBUG() << acc.first;
+            for ( const auto& attr: acc.second )
+                ADDEBUG() << "\t" << std::pair( attr.first, attr.second );
+        }
+#endif
+    }
+
+    accession::operator bool () const
+    {
+        return not accession_.empty();
     }
 
     std::optional< Accession >
@@ -99,70 +120,101 @@ namespace mzml {
         auto it = std::find_if(mzml::accession_list.begin()
                                , mzml::accession_list.end(), [&](auto item){ return std::get<0>(item) == a; } );
         if ( it != mzml::accession_list.end() ) {
-            names_[ std::get<1>(*it) ] = name;
+            accession_[ std::get<0>( *it ) ][ "name" ] = name;
             return std::get<1>(*it);
         }
         return {};
     }
 
     std::optional< std::string >
+    accession::name( const attribute_t& attrs ) const
+    {
+        auto it = attrs.find( "name" );
+        if ( it != attrs.end() )
+            return it->second;
+        return {};
+    }
+
+    std::optional< std::string >
+    accession::name( const std::string& accession ) const
+    {
+        auto it = accession_.find( accession );
+        if ( it != accession_.end() )
+            return name( it->second );
+        return {};
+    }
+
+    std::optional< std::string >
     accession::name( Accession a ) const
     {
-        auto it = names_.find( a );
-        if ( it != names_.end() )
-            return it->second;
+        auto it = std::find_if(mzml::accession_list.begin()
+                               , mzml::accession_list.end(), [&](auto item){ return std::get<1>(item) == a; } );
+        if ( it != mzml::accession_list.end() )
+            return name( std::get< 0 >( *it ) );
         return {};
     }
 
     std::string
     accession::toString() const
     {
-        return std::accumulate( names_.begin()
-                                , names_.end()
+        return std::accumulate( accession_.begin()
+                                , accession_.end()
                                 , std::string{},
-                                [](const auto& a, const auto& b){
-                                    return a.empty() ? b.second : a + "," + b.second; } );
+                                [&](const auto& a, const auto& b){
+                                    if ( auto name = this->name( b.second ) ) {
+                                        return a.empty() ? *name : a + "," + *name;
+                                    } else {
+                                        return a;
+                                    }
+                                } );
     }
 
     bool
     accession::is_mz() const
     {
-        return names_.find( mzml::MS_1000514 ) != names_.end();
+        return accession_.find ( "MS:1000514" ) != accession_.end();
+        // return names_.find( mzml::MS_1000514 ) != names_.end();
     }
 
     bool
     accession::is_intensity() const
     {
-        return names_.find( mzml::MS_1000515 ) != names_.end();
+        return accession_.find ( "MS:1000515" ) != accession_.end();
+        // return names_.find( mzml::MS_1000515 ) != names_.end();
     }
 
     bool
     accession::is_base64() const
     {
-        return names_.find( mzml::MS_1000576 ) != names_.end();
+        return accession_.find ( "MS:1000576" ) != accession_.end();
+        // return names_.find( mzml::MS_1000576 ) != names_.end();
     }
 
     bool
     accession::is_compressed() const
     {
-        return names_.find( mzml::MS_1000574 ) != names_.end();
+        return accession_.find ( "MS:1000574" ) != accession_.end();
+        // return names_.find( mzml::MS_1000574 ) != names_.end();
     }
 
     bool
     accession::is_64bit() const
     {
-        return names_.find( mzml::MS_1000523 ) != names_.end();
+        return accession_.find ( "MS:1000523" ) != accession_.end();
+        // return names_.find( mzml::MS_1000523 ) != names_.end();
     }
 
     bool
     accession::is_32bit() const
     {
-        return names_.find( mzml::MS_1000521 ) != names_.end();
+        return accession_.find ( "MS:1000521" ) != accession_.end();
+        // return names_.find( mzml::MS_1000521 ) != names_.end();
     }
 
     bool
     accession::empty() const
     {
-        return names_.empty();
+        return accession_.empty();
     }
+
 }

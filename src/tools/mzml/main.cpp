@@ -42,15 +42,13 @@
 #include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <ratio>
+#include <memory>
 #include <numeric>
+#include <sstream>
+#include <type_traits>
+#include <variant>
 #include <QApplication>
-#include <QMessageBox>
-#include <QString>
-#include <QStringList>
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -101,58 +99,23 @@ struct cvParamList {
     }
 };
 
-struct cvList {
-    std::string tab_;
-    cvList( const std::string& tab ) : tab_( tab ) {}
-    void operator()( const pugi::xml_node& node ) const {
-        std::cout << tab_ << node.name() << std::endl;
+std::string get_full_xpath(pugi::xml_node node) {
+    std::string path;
+    while (node && node.type() == pugi::node_element) {
+        std::string name = node.name();
+        // Optional: include index if parent has multiple with same name
+        int index = 1;
+        pugi::xml_node sibling = node.previous_sibling(name.c_str());
+        while (sibling) {
+            ++index;
+            sibling = sibling.previous_sibling(name.c_str());
+        }
+        path = "/" + name + "[" + std::to_string(index) + "]" + path;
+        node = node.parent();
     }
-};
+    return path.empty() ? "/" : path;
+}
 
-struct sourceFileList {
-    std::string tab_;
-    sourceFileList( const std::string& tab ) : tab_( tab ) {}
-    void operator()( const pugi::xml_node& node ) const {
-        for ( auto file: node.select_nodes( "sourceFile" ) ) {
-            std::string id = file.node().attribute("id").value();
-            std::string location = file.node().attribute("location").value();
-            std::string name = file.node().attribute("name").value();
-            mzml::accession ac;
-            for ( auto param: file.node().select_nodes( "cvParam" ) ) {
-                ac.assign( param.node().attribute("accession").value(), param.node().attribute("name").value() );
-            }
-            std::cout << tab_ << node.name()
-                      << std::format( "\t{}: \'{}/{}\' {}", id, location, name, ac.toString() )
-                      << std::endl;
-            for ( const auto node1: node.select_nodes(
-                      "*[not(self::cvParam)]"
-                      "[not(self::offset)]"
-                      "[not(self::fileContent)]"
-                      "[not(self::sourceFile)]" ) ) {
-                ADDEBUG() << tab_ << node1.node().name();
-            }
-        }
-    }
-};
-
-struct fileDescription {
-    std::string tab_;
-    fileDescription( const std::string&  tab ) : tab_( tab ) {}
-    void operator()( const pugi::xml_node& node ) const {
-        mzml::accession ac;
-        if ( auto content = node.select_node( "fileContent" ) ) {
-            for (auto param : content.node().select_nodes("./cvParam")) {
-                ac.assign( param.node().attribute("accession").value(), param.node().attribute("name").value() );
-            }
-        }
-        std::cout << tab_ << node.name() << "\tContent: [" << ac.toString() << "]" << std::endl;
-        for ( const auto node1: node.select_nodes( "*[not(self::cvParam)][not(self::offset)][not(self::fileContent)]" ) ) {
-            if ( node1.node().name() == std::string( "sourceFileList" ) ) {
-                sourceFileList{ tab_ + "\t" }( node1.node() );
-            }
-        }
-    }
-};
 
 namespace mzml {
 
@@ -167,12 +130,12 @@ namespace mzml {
 
     class binaryDataArray {
         size_t encodedLength_;
-        accession ac_;
         std::string decoded_;
+        accession ac_;
     public:
         binaryDataArray( size_t length = 0
-                         , const mzml::accession& ac = {}
-                         , const std::string& decoded = {} ) : encodedLength_( length )
+                         , mzml::accession&& ac = {}
+                         , std::string&& decoded = {} ) : encodedLength_( length )
                                                              , ac_( ac )
                                                              , decoded_( decoded ) {
         }
@@ -210,65 +173,164 @@ namespace mzml {
 
             std::string decoded;
             if ( auto binary = node.select_node( "binary" ) ) {
-                std::string encoded = binary.node().child_value();
+                std::string_view encoded = binary.node().child_value();
                 if ( encoded.size() == length )
                     decoded  = base64_decode( encoded );
             }
-            return { length, ac, decoded };
+            return { length, std::move( ac ), std::move( decoded ) };
         }
+    };
+
+    struct mzMLDatumBase {
+        accession ac_;
+        pugi::xml_node node_;
+        mzMLDatumBase() {}
+        mzMLDatumBase( const mzMLDatumBase& t ) : ac_(t.ac_), node_( t.node_ ) {}
+        mzMLDatumBase( pugi::xml_node node ) : ac_( node )
+                                             , node_( node ) {
+        }
+        std::string_view id() const {
+            return node_.attribute( "id" ).value();
+        }
+        size_t index() const {
+            return node_.attribute( "index" ).as_uint();
+        }
+        const mzml::accession& ac() const { return ac_; }
+
+        bool is_negative_scan() const {
+            return node_.select_node( "cvParam[@accession='MS:1000129']" );
+        }
+
+        bool is_positive_scan() const {
+            return node_.select_node( "cvParam[@accession='MS:1000130']" );
+        }
+
+        std::optional< int > ms_level() const {
+            if ( auto ms_level = node_.select_node( "cvParam[@accession='MS:1000511']" ) )
+                ms_level.attribute().as_int();
+            return {};
+        }
+
+        std::optional< double > total_ion_current() const {
+            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000285']" ) )
+                return attr.attribute().as_double();
+            return {};
+        }
+
+        std::optional< double > base_peak_mz() const {
+            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000504']" ) )
+                return attr.attribute().as_double();
+            return {};
+        }
+        std::optional< double > base_peak_intensity() const {
+            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000505']" ) )
+                return attr.attribute().as_double();
+            return {};
+        }
+        std::optional< double > scan_start_time() const {
+            if ( auto scan = node_.select_node( "scanList/scan/cvParam[@accession='MS:1000016']" ) ) {
+                return scan.node().attribute( "value" ).as_double();
+            }
+            return {};
+        }
+
+        std::optional< double > precursor() const {
+            if ( auto param = node_.select_node( "precursorList/precursor/isolationWindow/cvParam[@accession='MS:1000827']" ) ) {
+                return param.node().attribute( "value" ).as_double();
+            }
+            return {};
+        }
+
+        size_t selectedIonCount() const {
+            return 0; // node_.select_node( "precursorList/precursor/selectedIonList@count" ).attribute().as_uint();
+        }
+
+        std::optional< std::pair<double, double> > selectedIon() const {
+            // if ( auto intens = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000042']" ) ) {
+            //     if ( auto mz = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
+            //         return {{ mz.node().attribute( "value" ).as_double()
+            //                       , intens.node().attribute( "value" ).as_double()   }};
+            //     }
+            // }
+            return {};
+        }
+
+        std::optional< double > collision_energy() const {
+            if ( auto ce = node_.select_node( "activation/cvParam[@accession='MS:1000045']" ) ) {
+                return ce.node().attribute( "value" ).as_double();
+            }
+            return {};
+        }
+
+        bool is_increasing_mz_scan() const {
+            return node_.select_node( "cvParam[@accession='MS:1000093]" );
+        }
+        bool is_linear() const {
+            return node_.select_node( "cvParam[@accession='MS:1000095]" );
+        }
+    };
+
+    class mzMLSpectrum : public mzMLDatumBase {
+        binaryDataArray mzArray_;
+        binaryDataArray intensityArray_;
+    public:
+        mzMLSpectrum() {}
+        mzMLSpectrum( binaryDataArray prime
+                      , binaryDataArray secondi
+                      , pugi::xml_node node ) : mzMLDatumBase( node )
+                                              , mzArray_( prime )
+                                              , intensityArray_( secondi ) {
+        }
+        size_t length() const { return mzArray_.size(); }
+
+    };
+
+    class mzMLChromatogram : public mzMLDatumBase {
+        binaryDataArray timeArray_;
+        binaryDataArray intensityArray_;
+        accession ac_;
+        pugi::xml_node node_;
+    public:
+        mzMLChromatogram() {}
+        mzMLChromatogram(   binaryDataArray prime
+                          , binaryDataArray secondi
+                            , pugi::xml_node node ) : mzMLDatumBase( node )
+                                                    , timeArray_( prime )
+                                                    , intensityArray_( secondi ) {
+        }
+        size_t length() const { return timeArray_.size(); }
+
     };
 
     enum dataType { dataTypeSpectrum, dataTypeChromatogram };
 
+    using datum_variant_t = std::variant< std::shared_ptr< mzMLSpectrum >
+                                          , std::shared_ptr< mzMLChromatogram > >;
+
+
     template< dataType T >
     struct mzMLdatum {
-        std::string tab_;
-        mzMLdatum( const std::string&  tab ) : tab_( tab ) {}
+        using mzMLDatumType = std::conditional< T == dataTypeSpectrum, mzMLSpectrum, mzMLChromatogram >::type;
+
+        mzMLdatum() {}
 
         std::pair< const pugi::xml_node, const pugi::xml_node > getArrayNodes( const pugi::xml_node ) const;
 
-        void operator()( const pugi::xml_node& node ) const {
-            auto defaultArrayLength = node.attribute("defaultArrayLength").as_uint();
-            auto id = node.attribute( "id" ).value();
-            auto index = node.attribute( "index" ).value();
-            mzml::accession ac;
-            for ( const auto param: node.select_nodes( "cvParam" ) )
-                ac.assign( param.node().attribute("accession").value(), param.node().attribute("name").value() );
-
-            ADDEBUG() << std::format( "length={}, id={}, index={}", defaultArrayLength, id, index );
-            size_t count{0};
-            if ( auto vecCount = node.select_node( "binaryDataArrayList/@count" ) ) {
-                count = vecCount.attribute().as_uint();
-            }
-            std::pair< binaryDataArray, binaryDataArray > sp;
+        datum_variant_t
+        operator()( const pugi::xml_node& node ) const {
+            // ADDEBUG() << std::format( "length={}, id={}, index={}", defaultArrayLength, id, index );
+            size_t count = node.select_node( "binaryDataArrayList/@count" ).attribute().as_uint();
             if ( count == 2 ) {
                 auto nodes = getArrayNodes( node );
-                sp = { binaryDataArray::make_instance( std::get<0>( nodes ) )
-                       , binaryDataArray::make_instance( std::get<1>( nodes ) ) };
-            }
 
-            if ( std::get<0>(sp).accession().is_32bit() ) {
-                if ( std::get<1>(sp).accession().is_32bit() ) {
-                    auto ptr1 = std::get< const float *>(std::get<0>(sp).data());
-                    auto ptr2 = std::get< const float *>(std::get<1>(sp).data());
-                    for ( size_t i = 0; i < std::get<0>(sp).length(); ++i ) {
-                        ADDEBUG() << std::make_pair( *ptr1++, *ptr2++ );
-                    }
+                auto prime = binaryDataArray::make_instance( std::get<0>( nodes ) );
+                auto secondi = binaryDataArray::make_instance( std::get<1>( nodes ) );
+
+                if ( prime.length() == secondi.length()) {
+                    return std::make_shared< mzMLDatumType >( prime, secondi, node );
                 }
             }
-
-            for ( const auto node1: node.select_nodes( "*[not(self::cvParam)]" ) ) {
-                if ( node1.node().name() == std::string( "scanList" ) ) {
-                    size_t count = node1.node().attribute( "count" ).as_uint();
-                    // ADDEBUG() << "\t" << node1.node().name() << "\tcount=" << count;
-                } else if ( node1.node().name() == std::string( "precursorList" ) ) {
-                    size_t count = node1.node().attribute( "count" ).as_uint();
-                    // ADDEBUG() << "\t" << node1.node().name() << "\tcount=" << count;
-                } else if ( node1.node().name() == std::string( "productList" ) ) {
-                    size_t count = node1.node().attribute( "count" ).as_uint();
-                    // ADDEBUG() << "\t" << node1.node().name() << "\tcount=" << count;
-                }
-            }
+            return {};
         }
     };
 
@@ -298,76 +360,132 @@ namespace mzml {
 
 
 struct spectrumList {
-    std::string tab_;
-    spectrumList( const std::string&  tab ) : tab_( tab ) {}
-    void operator()( const pugi::xml_node& node ) const {
+    spectrumList() {}
+
+    std::vector< std::shared_ptr< mzml::mzMLSpectrum > >
+    operator()( const pugi::xml_node& node ) const {
+        std::vector< std::shared_ptr< mzml::mzMLSpectrum > > vec;
         size_t count = node.attribute( "count" ).as_uint();
-        ADDEBUG() << node.name() << " count=" << count;
 
         for ( const auto node1: node.select_nodes( "spectrum" ) ) {
-            mzml::mzMLdatum< mzml::dataTypeSpectrum >{ tab_ + "\t" }( node1.node() );
+            auto v = mzml::mzMLdatum< mzml::dataTypeSpectrum >{}( node1.node() );
+            std::visit( mzml::overloaded{
+                    [](auto arg) { std::cout << arg << ' '; }
+                        , [&](std::shared_ptr< mzml::mzMLSpectrum > arg) {vec.emplace_back( arg ); }
+                        }, v);
         }
+        ADDEBUG() << node.name() << " count=" << count << ", vec.size=" << vec.size();
+        return vec;
     }
 };
 
 struct chromatogramList {
-    std::string tab_;
-    chromatogramList( const std::string&  tab ) : tab_( tab ) {}
-    void operator()( const pugi::xml_node& node ) const {
-        size_t count = node.attribute( "count" ).as_uint();
-        // ADDEBUG() << node.name() << " count=" << count;
+    chromatogramList() {}
 
-        for ( const auto node1: node.select_nodes( "*[not(self::cvParam)]"
-                                                   "[not(self::offset)]"  ) ) {
-            if ( node1.node().name() == std::string( "chromatogram" ) ) {
-                handle_chromatogram( node1.node() );
-            } else {
-                mzml::xmlWalker{ tab_ + "<cL>\t" }( node1.node() );
-            }
+    std::vector< std::shared_ptr< mzml::mzMLChromatogram > >
+    operator()( const pugi::xml_node& node ) const {
+        std::vector< std::shared_ptr< mzml::mzMLChromatogram > > vec;
+
+        size_t count = node.attribute( "count" ).as_uint();
+
+        for ( const auto node1: node.select_nodes( "chromatogram" ) ) {
+            auto v = mzml::mzMLdatum< mzml::dataTypeSpectrum >{}( node1.node() );
+            std::visit( mzml::overloaded{
+                    [](auto arg) { std::cout << arg << ' '; }
+                        , [&](std::shared_ptr< mzml::mzMLChromatogram > arg) {vec.emplace_back( arg ); }
+                        }, v);
         }
-    }
-    void handle_chromatogram( const pugi::xml_node& node ) const {
-        mzml::mzMLdatum< mzml::dataTypeChromatogram >{ tab_ + "\t" }( node );
+        ADDEBUG() << node.name() << " count=" << count << ", vec.size=" << vec.size();
+        return vec;
     }
 };
 
 
 struct mzMLWalker {
-    std::string tab_;
+    std::vector< std::shared_ptr< mzml::mzMLChromatogram > > chromatograms_;
+    std::vector< std::shared_ptr< mzml::mzMLSpectrum > > spectra_;
 
-    mzMLWalker( std::string tab ) : tab_( tab ) {}
+    mzMLWalker() {}
 
-    void operator()( const pugi::xml_node& node ) const {
-        for ( auto node1: node.select_nodes( "./*[not(self::cvParam)][not(self::offset)]" ) ) {
-            if ( node1.node().name() == std::string( "cvList" )) {
-                cvList{ tab_ + "\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "softwareList" )) {
-                mzml::xmlWalker{tab_ + "<softwareList>\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "instrumentConfigurationList" )) {
-                mzml::xmlWalker{tab_ + "<instrumentConfigurationList>\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "dataProcessingList" )) {
-                mzml::xmlWalker{tab_ + "<dataProcessingList>\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "fileDescription" )) {
-                fileDescription{tab_ + "\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "spectrumList" )) {
-                spectrumList{tab_ + "\t"}( node1.node() );
-            } else if ( node1.node().name() == std::string( "chromatogramList" )) {
-                chromatogramList{tab_ + "\t"}( node1.node() );
-            } else {
-                mzml::accession ac;
-                for (auto param : node.select_nodes("./cvParam")) {
-                    std::string accession = param.node().attribute("accession").value();
-                    std::string name = param.node().attribute("name").value();
-                    ac.assign( accession, name );
+    void operator()( const pugi::xml_node& indexedmzMLNode ) {
+        ADDEBUG() << "=========================================>";
+        if ( auto mzML = indexedmzMLNode.select_node( "mzML" ) ) {
+            auto node = mzML.node();
+
+            auto cvList = node.select_node( "cvList" );
+            mzml::accession fileDescription( node.select_node( "fileDescription/fileContent" ).node() );
+            ADDEBUG() << "fileDescription: " << fileDescription.toString();
+
+            auto sourceFileListCount = node.select_node( "sourceFileList/@count" ).attribute().as_uint();
+            for ( size_t i = 0; i < sourceFileListCount; ++i ) {
+                for ( auto sourceFile : node.select_nodes( "sourceFileList/sourceFile" ) ) {
+                    ADDEBUG() << mzml::accession(sourceFile.node()).toString();
                 }
-                if ( ac.empty() )
-                    std::cout << tab_ << node1.node().name() << std::endl;
-                else
-                    std::cout << tab_ << node1.node().name() << "\t[" << ac.toString() << "]" << std::endl;
-                mzMLWalker{ tab_ + "<>\t" }( node1.node() );
             }
+
+            auto softwareListCount = node.select_node( "softwareList/@count" ).attribute().as_uint();
+            for ( auto node1 : node.select_nodes( "softwareList/software" ) ) {
+                ADDEBUG() << "software: " << node1.node().attribute("id").value() << ", " << node1.node().attribute("version").value();
+                ADDEBUG() << mzml::accession(node1.node()).toString();
+            }
+
+            auto instrumentConfigurationListCount = node.select_node( "instrumentConfigurationList/@count" ).attribute().as_uint();
+            for ( auto node1 : node.select_nodes( "instrumentConfigurationList/instrumentConfiguration" ) ) {
+                ADDEBUG() << "instrumentConfiguration: " << node1.node().attribute( "id" ).value();
+                ADDEBUG() << mzml::accession(node1.node()).toString();
+            }
+
+            auto componentListCount = node.select_node( "componentList/@count" ).attribute().as_uint();
+            for ( auto node1 : node.select_nodes( "componentList/*" ) ) {
+                ADDEBUG() << "component: " << node1.node().name() << ", order=" << node1.node().attribute( "order" ).value();
+                ADDEBUG() << "\t" << mzml::accession( node1.node() ).toString();
+            }
+
+            auto dataProcessingListCount = node.select_node( "dataProcessingList/@count" ).attribute().as_uint();
+            for ( auto node1 : node.select_nodes( "dataProcessingList/dataProcessing" ) ) {
+                ADDEBUG() << "dataProcessing: " << node1.node().attribute("id").value();
+                ADDEBUG() << "\t: " << node1.node().select_node( "processingMethod/@softwareRef").attribute().value();
+                ADDEBUG() << "\t: " << mzml::accession( node1.node().select_node( "processingMethod").node() ).toString();
+            }
+
+            if (  auto run = node.select_node( "run" ) ) {
+                ADDEBUG() << "run defaultInstrumentConfigurationRef=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
+                ADDEBUG() << "\t=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
+                ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
+                ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
+
+                if ( auto spNode = run.node().select_node( "spectrumList"  ) ) {
+                    auto vec = spectrumList{}( spNode.node() );
+                    spectra_.insert(std::end(spectra_), std::begin(vec), std::end(vec));
+                }
+                if ( auto chroNode = run.node().select_node( "chromatogramList"  ) ) {
+                    auto vec = chromatogramList{}( chroNode.node() );
+                    chromatograms_.insert(std::end(chromatograms_), std::begin(vec), std::end(vec));
+                }
+
+                ADDEBUG() << "total " << std::make_pair( spectra_.size(), chromatograms_.size() ) << " spectra & chroamtograms";
+                for ( const auto sp: spectra_ ) {
+                    std::ostringstream o;
+                    o << boost::format( "{}, {}, {}" ) << sp->id(), sp->index(), sp->length();
+                    if ( auto value = sp->scan_start_time() )
+                        o << std::format( ", scan start time: {}", *value );
+                    if ( auto value = sp->precursor() )
+                        o << std::format( ", precursor: {}", *value );
+                    o << std::format( ", srmCount: {}", sp->selectedIonCount() );
+                    if ( auto value = sp->selectedIon() )
+                        o << std::format( ", selected ion: {},{}", value->first, value->second );
+                    if ( auto value = sp->collision_energy() )
+                        o << std::format( ", CE: {}", *value );
+
+                    ADDEBUG() << o.str();
+                }
+                for ( const auto cp: chromatograms_ ) {
+                    ADDEBUG() << std::format( "{}, {}, {}", cp->id(), cp->index(), cp->length() ) << cp->ac().toString();
+                }
+            }
+            ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
         }
-    };
+    }
 };
 
 
@@ -413,18 +531,9 @@ main(int argc, char *argv[])
         pugi::xml_document doc;
         if ( auto result = doc.load_file( file.c_str() ) ) {
 
-            for ( auto node: doc.select_nodes( "/indexedmzML/*" ) ) {
-                mzMLWalker{"\t"}( node.node() );
-            }
-
-            ADDEBUG() << "########################### end spectrumList ####################";
+            if ( auto node = doc.select_node( "/indexedmzML" ) )
+                mzMLWalker{}( node.node() );
         }
-        // auto top = doc.select_node( "/indexedmzML" ).node();
-
-        // pugi::xpath_query query("//ns:spectrum", pugi::xpath_variable_set().add("ns", "http://psi.hupo.org/ms/mzml"));
-        // for (auto node : query.evaluate_node_set(doc)) {
-        // }
-
     }
 
     return 0;

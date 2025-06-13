@@ -25,6 +25,7 @@
 #include <string>
 #include <map>
 #include <optional>
+#include <pugixml.hpp>
 
 namespace mzml {
 	enum Accession {
@@ -84,12 +85,20 @@ namespace mzml {
 	};
 
     class accession {
-        std::map< Accession, std::string > names_;
+        using attribute_t = std::map< std::string, std::string >;
+
+        std::map< std::string, attribute_t > accession_;
+        std::optional< std::string > name( const attribute_t& ) const;
     public:
         accession();
         accession( const accession& );
+        accession( const pugi::xml_node& parent_node );
+
+        operator bool () const;
+        bool empty() const;
         std::optional< Accession > assign( const std::string& a, const std::string& name );
         std::optional< std::string > name( Accession ) const;
+        std::optional< std::string > name( const std::string& ) const;
         std::string toString() const;
         bool is_mz() const;
         bool is_intensity() const;
@@ -97,7 +106,6 @@ namespace mzml {
         bool is_compressed() const;
         bool is_64bit() const;
         bool is_32bit() const;
-        bool empty() const;
     };
 
 } // namespace
