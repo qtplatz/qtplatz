@@ -28,6 +28,7 @@
 #include <array>
 #include <numeric>
 #include <tuple>
+#include <boost/format.hpp>
 
 namespace mzml {
 
@@ -90,57 +91,31 @@ namespace mzml {
     {
     }
 
-    accession::accession( const accession& t ) : accession_( t.accession_ )
+    accession::accession( const accession& t ) : parent_node_( t.parent_node_ )
     {
     }
 
-    accession::accession( const pugi::xml_node& parent_node ) {
-        for ( const auto param: parent_node.select_nodes( "cvParam" ) ) {
-            auto accession = param.node().attribute( "accession" ).value(); // MS:XXXX
-            for ( auto attr: param.node().select_nodes( "@*[local-name()!='accession']" ) )
-                (accession_[ accession ])[ attr.attribute().name() ] = attr.attribute().value();
-        }
-#if 0
-        for ( const auto& acc: accession_ ) {
-            ADDEBUG() << acc.first;
-            for ( const auto& attr: acc.second )
-                ADDEBUG() << "\t" << std::pair( attr.first, attr.second );
-        }
-#endif
+    accession::accession( const pugi::xml_node& parent_node ) : parent_node_( parent_node ) {
     }
 
     accession::operator bool () const
     {
-        return not accession_.empty();
+        return parent_node_;
     }
 
-    std::optional< Accession >
-    accession::assign( const std::string& a, const std::string& name )
+    bool
+    accession::empty() const
     {
-        auto it = std::find_if(mzml::accession_list.begin()
-                               , mzml::accession_list.end(), [&](auto item){ return std::get<0>(item) == a; } );
-        if ( it != mzml::accession_list.end() ) {
-            accession_[ std::get<0>( *it ) ][ "name" ] = name;
-            return std::get<1>(*it);
-        }
-        return {};
-    }
-
-    std::optional< std::string >
-    accession::name( const attribute_t& attrs ) const
-    {
-        auto it = attrs.find( "name" );
-        if ( it != attrs.end() )
-            return it->second;
-        return {};
+        return parent_node_.select_node( "cvParam" );
     }
 
     std::optional< std::string >
     accession::name( const std::string& accession ) const
     {
-        auto it = accession_.find( accession );
-        if ( it != accession_.end() )
-            return name( it->second );
+        std::string query = ( boost::format("cvParam[@accession='%s']") % accession ).str();
+        if ( auto node1 = parent_node_.select_node( query.c_str() ) ) {
+            return node1.node().attribute( "name" ).value();
+        }
         return {};
     }
 
@@ -157,64 +132,101 @@ namespace mzml {
     std::string
     accession::toString() const
     {
-        return std::accumulate( accession_.begin()
-                                , accession_.end()
-                                , std::string{},
-                                [&](const auto& a, const auto& b){
-                                    if ( auto name = this->name( b.second ) ) {
-                                        return a.empty() ? *name : a + "," + *name;
-                                    } else {
-                                        return a;
-                                    }
-                                } );
+        std::string a;
+        for ( auto param: parent_node_.select_nodes( "cvParam" ) ) {
+            if ( a.empty() )
+                a = param.node().attribute("name").value();
+            else
+                a += "," + std::string( param.node().attribute("name").value() );
+        }
+        return a;
     }
 
     bool
     accession::is_mz() const
     {
-        return accession_.find ( "MS:1000514" ) != accession_.end();
-        // return names_.find( mzml::MS_1000514 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000514']" );
     }
 
     bool
     accession::is_intensity() const
     {
-        return accession_.find ( "MS:1000515" ) != accession_.end();
-        // return names_.find( mzml::MS_1000515 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000515']" );
     }
 
     bool
     accession::is_base64() const
     {
-        return accession_.find ( "MS:1000576" ) != accession_.end();
-        // return names_.find( mzml::MS_1000576 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000576']" );
     }
 
     bool
     accession::is_compressed() const
     {
-        return accession_.find ( "MS:1000574" ) != accession_.end();
-        // return names_.find( mzml::MS_1000574 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000574']" );
     }
 
     bool
     accession::is_64bit() const
     {
-        return accession_.find ( "MS:1000523" ) != accession_.end();
-        // return names_.find( mzml::MS_1000523 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000523']" );
     }
 
     bool
     accession::is_32bit() const
     {
-        return accession_.find ( "MS:1000521" ) != accession_.end();
-        // return names_.find( mzml::MS_1000521 ) != names_.end();
+        return parent_node_.select_node( "cvParam[@accession='MS:1000521']" );
+    }
+
+
+    bool
+    accession::is_negative_scan() const {
+        return parent_node_.select_node( "cvParam[@accession='MS:1000129']" );
     }
 
     bool
-    accession::empty() const
-    {
-        return accession_.empty();
+    accession::is_positive_scan() const {
+        return parent_node_.select_node( "cvParam[@accession='MS:1000130']" );
+    }
+
+    std::optional< int >
+    accession::ms_level() const {
+        if ( auto ms_level = parent_node_.select_node( "cvParam[@accession='MS:1000511']" ) )
+            ms_level.attribute().as_int();
+        return {};
+    }
+
+    std::optional< double >
+    accession::total_ion_current() const {
+        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000285']" ) )
+            return attr.attribute().as_double();
+        return {};
+    }
+
+    std::optional< double >
+    accession::base_peak_mz() const {
+        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000504']" ) )
+            return attr.attribute().as_double();
+        return {};
+    }
+
+    std::optional< double >
+    accession::base_peak_intensity() const {
+        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000505']" ) )
+            return attr.attribute().as_double();
+        return {};
+    }
+
+    // <cvParam accession="MS:1000579" cvRef="MS" name="MS1 spectrum"/>
+    // <cvParam accession="MS:1000583" cvRef="MS" name="SRM spectrum"/>
+    bool
+    accession::is_MS1_spectrum() const {
+        return parent_node_.select_node( "cvParam[@accession='MS:1000579']" );
+    }
+
+    bool
+    accession::is_SRM_spectrum() const {
+        return parent_node_.select_node( "cvParam[@accession='MS:1000583']" );
     }
 
 }

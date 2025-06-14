@@ -42,12 +42,7 @@ namespace mzml {
             std::map< std::string, std::string > attrs;
             for ( auto attr: node1.node().select_nodes( "@*" ) )
                 attrs[ attr.attribute().name() ] = attr.attribute().value();
-            mzml::accession ac;
-            for (auto param : node.select_nodes("./cvParam")) {
-                std::string accession = param.node().attribute("accession").value();
-                std::string name = param.node().attribute("name").value();
-                ac.assign( accession, name );
-            }
+            mzml::accession ac( node );
             out_ << tab_ << node1.node().name();
             if ( not attrs.empty() ) {
                 for ( const auto& attr: attrs )

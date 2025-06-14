@@ -85,10 +85,7 @@ namespace mzml {
 	};
 
     class accession {
-        using attribute_t = std::map< std::string, std::string >;
-
-        std::map< std::string, attribute_t > accession_;
-        std::optional< std::string > name( const attribute_t& ) const;
+        mutable pugi::xml_node parent_node_;
     public:
         accession();
         accession( const accession& );
@@ -96,7 +93,7 @@ namespace mzml {
 
         operator bool () const;
         bool empty() const;
-        std::optional< Accession > assign( const std::string& a, const std::string& name );
+
         std::optional< std::string > name( Accession ) const;
         std::optional< std::string > name( const std::string& ) const;
         std::string toString() const;
@@ -106,6 +103,19 @@ namespace mzml {
         bool is_compressed() const;
         bool is_64bit() const;
         bool is_32bit() const;
+        //
+        bool is_negative_scan() const;
+        bool is_positive_scan() const;
+        bool is_profile_spectrum() const;
+
+        bool is_MS1_spectrum() const;
+        bool is_SRM_spectrum() const;
+
+        std::optional< int > ms_level() const;
+        std::optional< double > total_ion_current() const;
+        std::optional< double > base_peak_mz() const;
+        std::optional< double > base_peak_intensity() const;
+
     };
 
 } // namespace

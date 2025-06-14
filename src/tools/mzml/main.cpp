@@ -49,11 +49,14 @@
 #include <type_traits>
 #include <variant>
 #include <QApplication>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include "accession.hpp"
 #include "xmlwalker.hpp"
+#include <boost/json.hpp>
 
 namespace po = boost::program_options;
 
@@ -167,9 +170,7 @@ namespace mzml {
 
         static binaryDataArray make_instance( const pugi::xml_node& node ) {
             size_t length = node.attribute( "encodedLength" ).as_uint();
-            mzml::accession ac;
-            for ( const auto param: node.select_nodes( "cvParam" ) )
-                ac.assign( param.node().attribute("accession").value(), param.node().attribute("name").value() );
+            mzml::accession ac(node);
 
             std::string decoded;
             if ( auto binary = node.select_node( "binary" ) ) {
@@ -181,11 +182,127 @@ namespace mzml {
         }
     };
 
+    struct isolationWindow {
+        double target_mz_;
+        double lower_offset_;
+        double upper_offset_;
+        isolationWindow() : target_mz_(0), lower_offset_(0), upper_offset_(0) {};
+    };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const isolationWindow& t )
+    {
+        jv = boost::json::value{ {  "target_mz", t.target_mz_ }
+                                 , { "lower_offset", t.lower_offset_ }
+                                 , { "upper_offset", t.upper_offset_ } };
+    }
+
+    struct selectedIon {
+        double mz;
+        double intensity;
+        selectedIon( double _m = 0, double _i = 0) : mz( _m ), intensity( _i ) {}
+    };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const selectedIon& t )
+    {
+        jv = boost::json::value{ { "mz", t.mz }, { "intensity", t.intensity } };
+    }
+
+    // inside of precursor
+    struct activation {
+        double collision_energy;
+        std::string accession;
+        std::string name;
+        activation( double _1 = 0, std::string _2 = {}, std::string _3 = {} ) : collision_energy( _1 )
+                                                                              , accession( _2 )
+                                                                              , name( _3 ) {}
+    };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const activation& t )
+    {
+        jv = boost::json::value{ { "collision_energy", t.collision_energy }
+                                 , { "accession", t.accession }
+                                 , { "name", t.name } };
+    }
+
+    class precursor {
+        pugi::xml_node node_;
+    public:
+        operator bool () const { return node_ && node_.name() == std::string("precursor"); }
+        precursor() {}
+        precursor( pugi::xml_node node ) : node_( node ) {}
+
+        isolationWindow isolationWindow() const {
+            struct isolationWindow w;
+            if ( auto node = node_.select_node( "isolationWindow" ) ) {
+                if ( auto node1 = node.node().select_node( "cvParam[@accession='MS:1000827']" ) ) {
+                    w.target_mz_ = node1.node().attribute( "value" ).as_double();
+                }
+                if ( auto node1 = node.node().select_node( "cvParam[@accession='MS:1000828']" ) ) {
+                    w.lower_offset_ = node1.node().attribute( "value" ).as_double();
+                }
+                if ( auto node1 = node.node().select_node( "cvParam[@accession='MS:1000829']" ) ) {
+                    w.upper_offset_ = node1.node().attribute( "value" ).as_double();
+                }
+            }
+            return w;
+        }
+
+        size_t selectedIonListCount() const {
+            if ( auto node = node_.select_node( "selectedIonList/@count" ) )
+                return node.attribute().as_uint();
+            return 0;
+        }
+
+        std::vector< selectedIon >
+        selectedIon() const {
+            std::vector< mzml::selectedIon > v;
+            for ( auto node: node_.select_nodes( "selectedIonList/selectedIon" ) ) {
+                node.node().print( std::cout );
+
+                if ( auto node1 = node.node().select_node( "cvParam[@accession='MS:1000744']" ) ) { // m/z
+                    if ( auto node2 = node.node().select_node( "cvParam[@accession='MS:1000042']" ) ) { // intensity
+                        v.emplace_back( node1.node().attribute( "value" ).as_double()
+                                        , node2.node().attribute( "value" ).as_double() );
+                    }
+                }
+            }
+            if ( not v.empty() )
+                return v;
+            return {};
+        }
+
+        mzml::activation activation() const {
+            mzml::activation a;
+            if ( auto node = node_.select_node( "activation/cvParam[@accession='MS:1000045']" ) )  {
+                a.collision_energy = node.node().attribute( "value" ).as_double();
+            }
+            if ( auto node = node_.select_node( "activation/cvParam[@accession!='MS:1000045']" ) )  {
+                a.name = node.node().attribute( "name" ).value();
+                a.accession = node.node().attribute( "accession" ).value();
+            }
+            return a;
+        }
+    };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const precursor& t )
+    {
+        jv = boost::json::value{
+            { "isolationWindow", boost::json::value_from ( t.isolationWindow() ) }
+            , { "selectedIon", boost::json::value_from ( t.selectedIon() ) }
+            , { "activation", boost::json::value_from( t.activation() ) } };
+    }
+
+
     struct mzMLDatumBase {
         accession ac_;
         pugi::xml_node node_;
         mzMLDatumBase() {}
-        mzMLDatumBase( const mzMLDatumBase& t ) : ac_(t.ac_), node_( t.node_ ) {}
+        mzMLDatumBase( const mzMLDatumBase& t ) : ac_(t.ac_)
+                                                , node_( t.node_ ) {}
         mzMLDatumBase( pugi::xml_node node ) : ac_( node )
                                              , node_( node ) {
         }
@@ -197,84 +314,24 @@ namespace mzml {
         }
         const mzml::accession& ac() const { return ac_; }
 
-        bool is_negative_scan() const {
-            return node_.select_node( "cvParam[@accession='MS:1000129']" );
-        }
-
-        bool is_positive_scan() const {
-            return node_.select_node( "cvParam[@accession='MS:1000130']" );
-        }
-
-        std::optional< int > ms_level() const {
-            if ( auto ms_level = node_.select_node( "cvParam[@accession='MS:1000511']" ) )
-                ms_level.attribute().as_int();
-            return {};
-        }
-
-        std::optional< double > total_ion_current() const {
-            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000285']" ) )
-                return attr.attribute().as_double();
-            return {};
-        }
-
-        std::optional< double > base_peak_mz() const {
-            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000504']" ) )
-                return attr.attribute().as_double();
-            return {};
-        }
-        std::optional< double > base_peak_intensity() const {
-            if ( auto attr = node_.select_node( "cvParam[@accession='MS:1000505']" ) )
-                return attr.attribute().as_double();
-            return {};
-        }
-        std::optional< double > scan_start_time() const {
-            if ( auto scan = node_.select_node( "scanList/scan/cvParam[@accession='MS:1000016']" ) ) {
-                return scan.node().attribute( "value" ).as_double();
-            }
-            return {};
-        }
-
-        std::optional< double > precursor() const {
-            if ( auto param = node_.select_node( "precursorList/precursor/isolationWindow/cvParam[@accession='MS:1000827']" ) ) {
-                return param.node().attribute( "value" ).as_double();
-            }
-            return {};
-        }
-
-        //--------------------->
-
-        size_t selectedIonCount() const {
-            return node_.select_node( "precursorList/precursor/selectedIonList/@count" ).attribute().as_uint();
-        }
-
-        std::optional< std::pair<double, double> > selectedIon() const {
-            if ( auto intens = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000042']" ) ) {
-                if ( auto mz = node_.select_node( "precursorList/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
-                    return {{ mz.node().attribute( "value" ).as_double()
-                                  , intens.node().attribute( "value" ).as_double()   }};
-                }
-            }
-            return {};
-        }
-
-        std::optional< double > collision_energy() const {
-            if ( auto ce = node_.select_node( "activation/cvParam[@accession='MS:1000045']" ) ) {
-                return ce.node().attribute( "value" ).as_double();
-            }
-            return {};
-        }
+        bool is_negative_scan() const { return ac_.is_negative_scan(); }
+        bool is_positive_scan() const { return ac_.is_positive_scan(); }
+        std::optional< int > ms_level() const { return ac_.ms_level(); }
+        std::optional< double > total_ion_current() const { return ac_.total_ion_current(); }
+        std::optional< double > base_peak_mz() const { return ac_.base_peak_mz(); }
+        std::optional< double > base_peak_intensity() const { return ac_.base_peak_intensity(); }
 
         bool is_increasing_mz_scan() const {
-            return node_.select_node( "cvParam[@accession='MS:1000093]" );
+            return node_.select_node( "cvParam[@accession='MS:1000093']" );
         }
         bool is_linear() const {
-            return node_.select_node( "cvParam[@accession='MS:1000095]" );
+            return node_.select_node( "cvParam[@accession='MS:1000095']" );
         }
 
         std::pair< double, double >
-        basePeak() const {
-            if ( auto intens = node_.select_node( "//cvParam[accession='MS:1000505']" ) ) {
-                if ( auto mz = node_.select_node( "//cvParam[accession='MS:1000504']" ) ) {
+        base_peak() const {
+            if ( auto intens = node_.select_node( "cvParam[@accession='MS:1000505']" ) ) {
+                if ( auto mz = node_.select_node( "cvParam[@accession='MS:1000504']" ) ) {
                     return { mz.node().attribute( "value" ).as_double()
                              , intens.node().attribute( "value" ).as_double()   };
                 }
@@ -283,19 +340,94 @@ namespace mzml {
         }
     };
 
+    struct scanWindow {
+        double lower_limit_;
+        double upper_limit_;
+        scanWindow( double _1 = 0, double _2 = 0 ) : lower_limit_( _1 ), upper_limit_( _2 ) {}
+    };
+
+    class scan {
+    public:
+        double scan_start_time_;
+        std::vector< mzml::scanWindow > scan_window_;
+        scan( const scan& t ) : scan_start_time_( t.scan_start_time_ )
+                              , scan_window_( t.scan_window_ ) {
+        }
+
+        scan( pugi::xml_node scan ) {
+            if ( auto node = scan.select_node( "cvParam[@accession='MS:1000016']" ) ) {
+                scan_start_time_ = node.node().attribute( "value" ).as_double();
+                for ( auto window: scan.select_nodes( "scanWindowList/scanWindow" ) ) {
+                    if ( auto ulimit = window.node().select_node( "cvParam[@accession='MS:1000500']" ) ) {
+                        if ( auto llimit = window.node().select_node( "cvParam[@accession='MS:1000501']" ) ) {
+                            scan_window_.emplace_back( llimit.node().attribute( "value" ).as_double()
+                                                       , ulimit.node().attribute( "value" ).as_double() );
+                        }
+                    }
+                    // ADDEBUG() << "#### scan: " << boost::json::value_from( *this );
+                }
+            }
+
+        }
+    };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const mzml::scanWindow& t )
+    {
+        jv = boost::json::value{{ "lower_limit", t.lower_limit_ }, { "upper_limit", t.upper_limit_ } };
+    }
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const mzml::scan& t )
+    {
+        jv = boost::json::value{{ "scan_start_time", t.scan_start_time_ },
+                                { "scanWindow", boost::json::value_from( t.scan_window_ ) }};
+    }
+
+
     class mzMLSpectrum : public mzMLDatumBase {
         binaryDataArray mzArray_;
         binaryDataArray intensityArray_;
+        std::vector< mzml::scan > scanlist_;
+        std::vector< mzml::precursor > precursorlist_;
     public:
-        mzMLSpectrum() {}
+        mzMLSpectrum() {
+        }
         mzMLSpectrum( binaryDataArray prime
                       , binaryDataArray secondi
                       , pugi::xml_node node ) : mzMLDatumBase( node )
                                               , mzArray_( prime )
                                               , intensityArray_( secondi ) {
+            ADDEBUG() << "##################### mzMLSpectrum #####################";
+            node_.print( std::cout );
+            for ( auto node: node_.select_nodes("scanList/scan") ) {
+                ADDEBUG() << "---------------- scan --------------------" << node.node().name();
+                scanlist_.emplace_back( node.node() );
+                ADDEBUG() << "---------------- end scan --------------------";
+
+            }
+            ADDEBUG() << "---------------- end scanList --------------------";
+            for ( auto node: node_.select_nodes( "precursorList/precursor" ) ) {
+                precursorlist_.emplace_back( node.node() );
+            }
         }
         size_t length() const { return mzArray_.size(); }
 
+        // std::optional< double > scan_start_time() const { return scan_.scan_start_time(); }
+
+        boost::json::value to_value() const {
+            return boost::json::value{
+                { "id", id() }
+                , { "index", index() }
+                , { "length", length() }
+                , { "scan", boost::json::value_from( scanlist_ ) }
+                , { "precursor", boost::json::value_from( precursorlist_ ) }
+                , { "base_peak", { "mz", boost::json::value_from( base_peak_mz() )
+                                   , { "intens", boost::json::value_from( base_peak_intensity() ) }
+                    }
+                }
+            };
+        }
     };
 
     class mzMLChromatogram : public mzMLDatumBase {
@@ -312,6 +444,7 @@ namespace mzml {
                                                     , intensityArray_( secondi ) {
         }
         size_t length() const { return timeArray_.size(); }
+        const pugi::xml_node& node() const { return node_; }
 
     };
 
@@ -387,7 +520,6 @@ struct spectrumList {
                         , [&](std::shared_ptr< mzml::mzMLSpectrum > arg) {vec.emplace_back( arg ); }
                         }, v);
         }
-        ADDEBUG() << node.name() << " count=" << count << ", vec.size=" << vec.size();
         return vec;
     }
 };
@@ -402,13 +534,12 @@ struct chromatogramList {
         size_t count = node.attribute( "count" ).as_uint();
 
         for ( const auto node1: node.select_nodes( "chromatogram" ) ) {
-            auto v = mzml::mzMLdatum< mzml::dataTypeSpectrum >{}( node1.node() );
+            auto v = mzml::mzMLdatum< mzml::dataTypeChromatogram >{}( node1.node() );
             std::visit( mzml::overloaded{
                     [](auto arg) { std::cout << arg << ' '; }
                         , [&](std::shared_ptr< mzml::mzMLChromatogram > arg) {vec.emplace_back( arg ); }
                         }, v);
         }
-        ADDEBUG() << node.name() << " count=" << count << ", vec.size=" << vec.size();
         return vec;
     }
 };
@@ -467,34 +598,33 @@ struct mzMLWalker {
                 ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
                 ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
 
-                if ( auto spNode = run.node().select_node( "spectrumList"  ) ) {
-                    auto vec = spectrumList{}( spNode.node() );
+                if ( auto node1 = run.node().select_node( "spectrumList"  ) ) {
+                    auto vec = spectrumList{}( node1.node() );
                     spectra_.insert(std::end(spectra_), std::begin(vec), std::end(vec));
                 }
-                if ( auto chroNode = run.node().select_node( "chromatogramList"  ) ) {
-                    auto vec = chromatogramList{}( chroNode.node() );
+                if ( auto node1 = run.node().select_node( "chromatogramList"  ) ) {
+                    auto vec = chromatogramList{}( node1.node() );
                     chromatograms_.insert(std::end(chromatograms_), std::begin(vec), std::end(vec));
                 }
 
                 ADDEBUG() << "total " << std::make_pair( spectra_.size(), chromatograms_.size() ) << " spectra & chroamtograms";
                 for ( const auto sp: spectra_ ) {
-                    std::ostringstream o;
-                    o << boost::format( "{}, {}, {}" ) << sp->id(), sp->index(), sp->length();
-                    if ( auto value = sp->scan_start_time() )
-                        o << std::format( ", scan start time: {}", *value );
-                    if ( auto value = sp->precursor() )
-                        o << std::format( ", precursor: {}", *value );
-                    o << std::format( ", srmCount: {}", sp->selectedIonCount() );
-                    if ( auto value = sp->selectedIon() )
-                        o << std::format( ", selected ion: {},{}", value->first, value->second );
-                    if ( auto value = sp->collision_energy() )
-                        o << std::format( ", CE: {}", *value );
-
-                    ADDEBUG() << o.str() << " BP:" << sp->basePeak();
+                    if ( sp->length() > 0 ) {
+                        // ADDEBUG() << sp->to_value();
+                        auto doc = QJsonDocument::fromJson( boost::json::serialize( sp->to_value() ).c_str() );
+                        ADDEBUG() << std::endl << doc.toJson().toStdString(); // for human readabilty
+                    }
                 }
+#if 0
+                for ( const auto sp: spectra_ ) {
+                    if ( sp->length() == 0 )
+                        ADDEBUG() << sp->to_value();
+                }
+                ADDEBUG() << "------------------------------ chromatograms ------------------------------";
                 for ( const auto cp: chromatograms_ ) {
-                    ADDEBUG() << std::format( "{}, {}, {}", cp->id(), cp->index(), cp->length() ) << cp->ac().toString();
+                    ADDEBUG() << std::format( "chromatogram: id={}, indx={}, length={}, ", cp->id(), cp->index(), cp->length() ) << cp->ac().toString();
                 }
+#endif
             }
             ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
         }
