@@ -384,29 +384,44 @@ namespace mzml {
                                 { "scanWindow", boost::json::value_from( t.scan_window_ ) }};
     }
 
-
     class mzMLSpectrum : public mzMLDatumBase {
         binaryDataArray mzArray_;
         binaryDataArray intensityArray_;
         std::vector< mzml::scan > scanlist_;
         std::vector< mzml::precursor > precursorlist_;
+        bool is_profile_spectrum_;
+        size_t ms_level_;
+        double base_peak_intensity_;
+        double base_peak_mz_;
+        double highest_observed_mz_;
+        double lowest_observed_mz_;
     public:
-        mzMLSpectrum() {
+        mzMLSpectrum() : is_profile_spectrum_( false )
+                       , ms_level_(0)
+                       , base_peak_intensity_(0)
+                       , base_peak_mz_(0)
+                       , highest_observed_mz_(0)
+                       , lowest_observed_mz_(0) {
+        }
+        mzMLSpectrum( const mzMLSpectrum& t ) : mzArray_( t.mzArray_ )
+                                              , intensityArray_( t.intensityArray_ )
+                                              , scanlist_( t.scanlist_ )
+                                              , precursorlist_( t.precursorlist_ )
+                                              , is_profile_spectrum_( t.is_profile_spectrum_ )
+                                              , ms_level_( t.ms_level_ )
+                                              , base_peak_intensity_( t.base_peak_intensity_ )
+                                              , base_peak_mz_( t.base_peak_mz_ )
+                                              , highest_observed_mz_( t.highest_observed_mz_ )
+                                              , lowest_observed_mz_( t.lowest_observed_mz_ ) {
         }
         mzMLSpectrum( binaryDataArray prime
                       , binaryDataArray secondi
                       , pugi::xml_node node ) : mzMLDatumBase( node )
                                               , mzArray_( prime )
                                               , intensityArray_( secondi ) {
-            ADDEBUG() << "##################### mzMLSpectrum #####################";
-            node_.print( std::cout );
             for ( auto node: node_.select_nodes("scanList/scan") ) {
-                ADDEBUG() << "---------------- scan --------------------" << node.node().name();
                 scanlist_.emplace_back( node.node() );
-                ADDEBUG() << "---------------- end scan --------------------";
-
             }
-            ADDEBUG() << "---------------- end scanList --------------------";
             for ( auto node: node_.select_nodes( "precursorList/precursor" ) ) {
                 precursorlist_.emplace_back( node.node() );
             }
@@ -422,10 +437,9 @@ namespace mzml {
                 , { "length", length() }
                 , { "scan", boost::json::value_from( scanlist_ ) }
                 , { "precursor", boost::json::value_from( precursorlist_ ) }
-                , { "base_peak", { "mz", boost::json::value_from( base_peak_mz() )
-                                   , { "intens", boost::json::value_from( base_peak_intensity() ) }
-                    }
-                }
+                , { "base_peak", { "mz", boost::json::value_from( ac().base_peak_mz() ) }
+                    , { "intensity", boost::json::value_from( ac().base_peak_intensity()) } }
+                , { "is_positive_scan", boost::json::value_from( ac().is_positive_scan() ) }
             };
         }
     };
