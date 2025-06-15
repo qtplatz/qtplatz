@@ -56,6 +56,7 @@
 #include <openssl/evp.h>
 #include "accession.hpp"
 #include "xmlwalker.hpp"
+#include "xmltojson.hpp"
 #include <boost/json.hpp>
 
 namespace po = boost::program_options;
@@ -231,6 +232,7 @@ namespace mzml {
         pugi::xml_node node_;
     public:
         operator bool () const { return node_ && node_.name() == std::string("precursor"); }
+        pugi::xml_node node() const { return node_; };
         precursor() {}
         precursor( pugi::xml_node node ) : node_( node ) {}
 
@@ -260,8 +262,7 @@ namespace mzml {
         selectedIon() const {
             std::vector< mzml::selectedIon > v;
             for ( auto node: node_.select_nodes( "selectedIonList/selectedIon" ) ) {
-                node.node().print( std::cout );
-
+                // node.node().print( std::cout );
                 if ( auto node1 = node.node().select_node( "cvParam[@accession='MS:1000744']" ) ) { // m/z
                     if ( auto node2 = node.node().select_node( "cvParam[@accession='MS:1000042']" ) ) { // intensity
                         v.emplace_back( node1.node().attribute( "value" ).as_double()
@@ -290,6 +291,7 @@ namespace mzml {
     void
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const precursor& t )
     {
+        // jv = mzml::to_value{}( t.node() );
         jv = boost::json::value{
             { "isolationWindow", boost::json::value_from ( t.isolationWindow() ) }
             , { "selectedIon", boost::json::value_from ( t.selectedIon() ) }
@@ -320,13 +322,6 @@ namespace mzml {
         std::optional< double > total_ion_current() const { return ac_.total_ion_current(); }
         std::optional< double > base_peak_mz() const { return ac_.base_peak_mz(); }
         std::optional< double > base_peak_intensity() const { return ac_.base_peak_intensity(); }
-
-        bool is_increasing_mz_scan() const {
-            return node_.select_node( "cvParam[@accession='MS:1000093']" );
-        }
-        bool is_linear() const {
-            return node_.select_node( "cvParam[@accession='MS:1000095']" );
-        }
 
         std::pair< double, double >
         base_peak() const {
@@ -425,12 +420,25 @@ namespace mzml {
             for ( auto node: node_.select_nodes( "precursorList/precursor" ) ) {
                 precursorlist_.emplace_back( node.node() );
             }
+            {
+                auto jv = mzml::to_value{}( node_.select_node( "scanList" ).node() );
+                ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
+                    .toJson( QJsonDocument::Indented ).toStdString();
+            }
+            {
+                auto jv = mzml::to_value{}( node_.select_node( "precursorList" ).node() );
+                ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
+                    .toJson( QJsonDocument::Indented ).toStdString();
+            }
         }
         size_t length() const { return mzArray_.size(); }
 
         // std::optional< double > scan_start_time() const { return scan_.scan_start_time(); }
 
         boost::json::value to_value() const {
+            // ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+            // ADDEBUG() << mzml::to_value{}( node_ );
+            // ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
             return boost::json::value{
                 { "id", id() }
                 , { "index", index() }
@@ -518,7 +526,6 @@ namespace mzml {
     }
 }
 
-
 struct spectrumList {
     spectrumList() {}
 
@@ -558,7 +565,6 @@ struct chromatogramList {
     }
 };
 
-
 struct mzMLWalker {
     std::vector< std::shared_ptr< mzml::mzMLChromatogram > > chromatograms_;
     std::vector< std::shared_ptr< mzml::mzMLSpectrum > > spectra_;
@@ -572,39 +578,46 @@ struct mzMLWalker {
 
             auto cvList = node.select_node( "cvList" );
             mzml::accession fileDescription( node.select_node( "fileDescription/fileContent" ).node() );
-            ADDEBUG() << "fileDescription: " << fileDescription.toString();
+            ADDEBUG() << "============ fileDescription ===============>";
+            ADDEBUG() << mzml::to_value{}( node.select_node( "fileDescription" ).node() );
 
             auto sourceFileListCount = node.select_node( "sourceFileList/@count" ).attribute().as_uint();
-            for ( size_t i = 0; i < sourceFileListCount; ++i ) {
-                for ( auto sourceFile : node.select_nodes( "sourceFileList/sourceFile" ) ) {
-                    ADDEBUG() << mzml::accession(sourceFile.node()).toString();
-                }
-            }
+            ADDEBUG() << mzml::to_value{}( node.select_node( "sourceFileList" ).node() );
+            // for ( size_t i = 0; i < sourceFileListCount; ++i ) {
+            //     for ( auto sourceFile : node.select_nodes( "sourceFileList/sourceFile" ) ) {
+            //         ADDEBUG() << mzml::accession(sourceFile.node()).toString();
+            //     }
+            // }
 
             auto softwareListCount = node.select_node( "softwareList/@count" ).attribute().as_uint();
-            for ( auto node1 : node.select_nodes( "softwareList/software" ) ) {
-                ADDEBUG() << "software: " << node1.node().attribute("id").value() << ", " << node1.node().attribute("version").value();
-                ADDEBUG() << mzml::accession(node1.node()).toString();
-            }
+            ADDEBUG() << mzml::to_value{}( node.select_node( "softwareList" ).node() );
+            // for ( auto node1 : node.select_nodes( "softwareList/software" ) ) {
+            //     ADDEBUG() << "software: " << node1.node().attribute("id").value() << ", " << node1.node().attribute("version").value();
+            //     ADDEBUG() << mzml::accession(node1.node()).toString();
+            // }
 
             auto instrumentConfigurationListCount = node.select_node( "instrumentConfigurationList/@count" ).attribute().as_uint();
-            for ( auto node1 : node.select_nodes( "instrumentConfigurationList/instrumentConfiguration" ) ) {
-                ADDEBUG() << "instrumentConfiguration: " << node1.node().attribute( "id" ).value();
-                ADDEBUG() << mzml::accession(node1.node()).toString();
-            }
+            ADDEBUG() << mzml::to_value{}( node.select_node( "instrumentConfigurationList" ).node() );
+            // for ( auto node1 : node.select_nodes( "instrumentConfigurationList/instrumentConfiguration" ) ) {
+            //     ADDEBUG() << "instrumentConfiguration: " << node1.node().attribute( "id" ).value();
+            //     ADDEBUG() << mzml::accession(node1.node()).toString();
+            // }
 
             auto componentListCount = node.select_node( "componentList/@count" ).attribute().as_uint();
-            for ( auto node1 : node.select_nodes( "componentList/*" ) ) {
-                ADDEBUG() << "component: " << node1.node().name() << ", order=" << node1.node().attribute( "order" ).value();
-                ADDEBUG() << "\t" << mzml::accession( node1.node() ).toString();
-            }
+            ADDEBUG() << mzml::to_value{}( node.select_node( "componentList" ).node() );
+            // for ( auto node1 : node.select_nodes( "componentList/*" ) ) {
+            //     ADDEBUG() << "component: " << node1.node().name() << ", order=" << node1.node().attribute( "order" ).value();
+            //     ADDEBUG() << "\t" << mzml::accession( node1.node() ).toString();
+            // }
 
             auto dataProcessingListCount = node.select_node( "dataProcessingList/@count" ).attribute().as_uint();
-            for ( auto node1 : node.select_nodes( "dataProcessingList/dataProcessing" ) ) {
-                ADDEBUG() << "dataProcessing: " << node1.node().attribute("id").value();
-                ADDEBUG() << "\t: " << node1.node().select_node( "processingMethod/@softwareRef").attribute().value();
-                ADDEBUG() << "\t: " << mzml::accession( node1.node().select_node( "processingMethod").node() ).toString();
-            }
+            ADDEBUG() << mzml::to_value{}( node.select_node( "dataProcessingList" ).node() );
+            // for ( auto node1 : node.select_nodes( "dataProcessingList/dataProcessing" ) ) {
+            //     ADDEBUG() << "dataProcessing: " << node1.node().attribute("id").value();
+            //     ADDEBUG() << "\t: " << node1.node().select_node( "processingMethod/@softwareRef").attribute().value();
+            //     ADDEBUG() << "\t: " << mzml::accession( node1.node().select_node( "processingMethod").node() ).toString();
+            // }
+            return;
 
             if (  auto run = node.select_node( "run" ) ) {
                 ADDEBUG() << "run defaultInstrumentConfigurationRef=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
@@ -625,8 +638,8 @@ struct mzMLWalker {
                 for ( const auto sp: spectra_ ) {
                     if ( sp->length() > 0 ) {
                         // ADDEBUG() << sp->to_value();
-                        auto doc = QJsonDocument::fromJson( boost::json::serialize( sp->to_value() ).c_str() );
-                        ADDEBUG() << std::endl << doc.toJson().toStdString(); // for human readabilty
+                        ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( sp->to_value() ).c_str() )
+                            .toJson( QJsonDocument::Compact ).toStdString();
                     }
                 }
 #if 0
