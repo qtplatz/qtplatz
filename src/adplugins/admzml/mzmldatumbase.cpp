@@ -66,3 +66,9 @@ mzMLDatumBase::index() const
 {
     return impl_->node_.attribute( "index" ).as_uint();
 }
+
+const pugi::xml_node&
+mzMLDatumBase::node() const
+{
+    return impl_->node_;
+}

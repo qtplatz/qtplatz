@@ -25,6 +25,8 @@
 
 #include "mzmlspectrum.hpp"
 #include "binarydataarray.hpp"
+#include "mzmldatumbase.hpp"
+#include "xmltojson.hpp"
 #include <boost/json.hpp>
 #include <pugixml.hpp>
 
@@ -34,10 +36,8 @@ namespace mzml {
     public:
         impl() {}
         impl( binaryDataArray prime
-              , binaryDataArray secondi
-              , pugi::xml_node node ) : prime_( prime )
-                                      , secondi_( secondi )
-                                      , node_( node ) {
+              , binaryDataArray secondi ) : prime_( prime )
+                                          , secondi_( secondi ) {
         }
         binaryDataArray prime_; // mz array
         binaryDataArray secondi_; // intensity array
@@ -67,7 +67,8 @@ namespace mzml {
 
     mzMLSpectrum::mzMLSpectrum( binaryDataArray prime
                                 , binaryDataArray secondi
-                                , pugi::xml_node node ) : impl_( std::make_unique< impl >( prime, secondi, node ) )
+                                , pugi::xml_node node ) : mzMLDatumBase( node )
+                                                        , impl_( std::make_unique< impl >( prime, secondi ) )
     {
 #if 0
         for ( auto node: node_.select_nodes("scanList/scan") ) {
@@ -99,6 +100,7 @@ namespace mzml {
 
     boost::json::value
     mzMLSpectrum::to_value() const {
+        // return mzml::to_value{}( node() );
         // ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
         // ADDEBUG() << mzml::to_value{}( node_ );
         // ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";

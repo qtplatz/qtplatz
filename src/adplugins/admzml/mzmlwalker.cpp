@@ -24,12 +24,14 @@
 **************************************************************************/
 
 #include "mzmlwalker.hpp"
+#include "accession.hpp"
 #include "xmltojson.hpp"
 #include "mzmlspectrum.hpp"
 #include "mzmlchromatogram.hpp"
 #include "mzmlreader.hpp"
 #include <adportable/debug.hpp>
 #include <variant>
+#include <pugixml.hpp>
 #include <boost/json.hpp>
 #include <QJsonDocument>
 
@@ -85,11 +87,129 @@ namespace {
 }
 
 namespace mzml {
-    class mzMLWalker::impl {
-    public:
-        std::vector< std::shared_ptr< mzml::mzMLChromatogram > > chromatograms_;
-        std::vector< std::shared_ptr< mzml::mzMLSpectrum > > spectra_;
+
+    node_only::node_only( const pugi::xml_node& node ) : node_( node )
+    {
+    }
+    const pugi::xml_node& node_only::node() const
+    {
+        return node_;
+    }
+    std::string
+    node_only::toString() const
+    {
+        return accession( node_ ).toString();
+    }
+
+    //-------
+    fileDescription::fileDescription( const pugi::xml_node& node )
+        : node_only( node.select_node( "fileDescription" ).node() )
+    {
+    }
+    fileDescription& fileDescription::operator=( const fileDescription& t )
+    {
+        node_ = t.node_;
+        return *this;
+    }
+
+    softwareList::softwareList( const pugi::xml_node& node )
+        : node_only( node.select_node( "softwareList" ).node() )
+    {
+    }
+    softwareList& softwareList::operator=( const softwareList& t )
+    {
+        node_ = t.node_;
+        return *this;
+    }
+
+    instrumentConfigurationList::instrumentConfigurationList( const pugi::xml_node& node )
+        : node_only( node.select_node( "instrumentConfigurationList" ).node() )
+    {
+    }
+    instrumentConfigurationList& instrumentConfigurationList::operator=( const instrumentConfigurationList& t )
+    {
+        node_ = t.node_;
+        return *this;
+    }
+
+    dataProcessingList::dataProcessingList( const pugi::xml_node& node )
+        : node_only( node.select_node( "dataProcessingList" ).node() )
+    {
+    }
+    dataProcessingList& dataProcessingList::operator = ( const dataProcessingList& t )
+    {
+        node_ = t.node_;
+        return *this;
+    }
+
+    boost::json::array collect_names(const char* xpath, const pugi::xml_node& root) {
+        boost::json::array result;
+        for (auto n : root.select_nodes(xpath))
+            result.emplace_back(n.node().attribute("name").value());
+        return result;
     };
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const fileDescription& t )
+    {
+        jv = {
+            { "fileContent", collect_names("//fileContent/cvParam", t.node()) },
+            { "sourceFile", {
+                    { "id",     t.node().select_node("//sourceFile/@id").attribute().value() },
+                    { "name",   t.node().select_node("//sourceFile/@name").attribute().value() },
+                    { "format", t.node().select_node("//sourceFile/userParam/@value").attribute().value() },
+                    { "cvParam", collect_names("//sourceFile/cvParam", t.node()) }
+                }}
+        };
+    }
+
+    // <softwareList count="1">
+    // 	<software id="LabSolutions" version="5.120">
+    // 		<cvParam accession="MS:1001557" cvRef="MS" name="Shimadzu Corporation software" />
+    // 	</software>
+    // </softwareList>
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const softwareList& t )
+    {
+        jv = {
+            { "id",     t.node().select_node("//software/@id").attribute().value() }
+            , { "version",     t.node().select_node("//software/@version").attribute().value() }
+            , { "cvparam", collect_names( "//software/cvParam", t.node()) }
+            };
+    }
+
+    	// <instrumentConfiguration id="LCMS-8060">
+		// <cvParam accession="MS:1000124" cvRef="MS" name="Shimadzu instrument model" />
+		// <cvParam accession="MS:1000529" cvRef="MS" name="instrument serial number" value="O11105700580AE" />
+		// <componentList count="3">
+		// 	<source order="1">
+		// 		<cvParam accession="MS:1000073" cvRef="MS" name="electrospray ionization" />
+		// 	</source>
+		// 	<analyzer order="2">
+		// 		<cvParam accession="MS:1000081" cvRef="MS" name="quadrupole" />
+		// 	</analyzer>
+		// 	<detector order="3">
+		// 		<cvParam accession="MS:1000026" cvRef="MS" name="detector type" />
+		// 	</detector>
+		// </componentList>
+	    // </instrumentConfiguration>
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const instrumentConfigurationList& t )
+    {
+        boost::json::array a;
+        for ( auto node: t.node().select_nodes("//instrumentConfiguration/componetList/source") ) {
+        }
+        jv = {
+            { "id",     t.node().select_node("//instrumentConfiguration/@id").attribute().value() }
+            , { "serialnumber",
+                t.node().select_node( "//instrumentConfiguration/cvParam[@accession='MS:1000529']").node().attribute("value").value() }
+            , { "source", collect_names( "//instrumentConfiguration/componentList/source/cvParam", t.node()) }
+            , { "analyzer", collect_names( "//instrumentConfiguration/componentList/analyzer/cvParam", t.node()) }
+            , { "detector", collect_names( "//instrumentConfiguration/componentList/detector/cvParam", t.node()) }
+        };
+    }
+
 }
 
 using namespace mzml;
@@ -98,22 +218,24 @@ mzMLWalker::~mzMLWalker()
 {
 }
 
-mzMLWalker::mzMLWalker() : impl_( std::make_unique< impl >() )
+mzMLWalker::mzMLWalker()
 {
 }
 
-void
+std::vector< data_t >
 mzMLWalker::operator()( const pugi::xml_node& root_node )
 {
+    std::vector< data_t > var;
+
     if ( auto mzML = root_node.select_node( "mzML" ) ) {
         auto node = mzML.node();
 
-        ADDEBUG() << mzml::to_value{}( node.select_node( "fileDescription" ).node() );
-        ADDEBUG() << mzml::to_value{}( node.select_node( "sourceFileList" ).node() );
-        ADDEBUG() << mzml::to_value{}( node.select_node( "softwareList" ).node() );
-        ADDEBUG() << mzml::to_value{}( node.select_node( "instrumentConfigurationList" ).node() );
-        ADDEBUG() << mzml::to_value{}( node.select_node( "componentList" ).node() );
-        ADDEBUG() << mzml::to_value{}( node.select_node( "dataProcessingList" ).node() );
+        var.emplace_back( mzml::fileDescription( node ) );
+        var.emplace_back( mzml::softwareList( node ) );
+        var.emplace_back( mzml::instrumentConfigurationList( node ) );
+        var.emplace_back( mzml::dataProcessingList( node ) );
+
+        mzml::chromatograms_t chromatograms;
 
         if (  auto run = node.select_node( "run" ) ) {
             ADDEBUG() << "run defaultInstrumentConfigurationRef=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
@@ -122,32 +244,13 @@ mzMLWalker::operator()( const pugi::xml_node& root_node )
             ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
 
             if ( auto node1 = run.node().select_node( "spectrumList"  ) ) {
-                auto vec = spectrumList{}( node1.node() );
-                impl_->spectra_.insert(std::end(impl_->spectra_), std::begin(vec), std::end(vec));
+                var.emplace_back( spectrumList{}( node1.node() ) );
             }
 
             if ( auto node1 = run.node().select_node( "chromatogramList"  ) ) {
-                auto vec = chromatogramList{}( node1.node() );
-                impl_->chromatograms_.insert(std::end(impl_->chromatograms_), std::begin(vec), std::end(vec));
-            }
-
-            ADDEBUG() << "total " << std::make_pair( impl_->spectra_.size(), impl_->chromatograms_.size() ) << " spectra & chroamtograms";
-            for ( const auto sp: impl_->spectra_ ) {
-                if ( sp->length() > 0 ) {
-                    ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( sp->to_value() ).c_str() )
-                        .toJson( QJsonDocument::Compact ).toStdString();
-                }
-            }
-            for ( const auto sp: impl_->spectra_ ) {
-                if ( sp->length() == 0 )
-                    ADDEBUG() << sp->to_value();
-            }
-
-            ADDEBUG() << "------------------------------ chromatograms ------------------------------";
-            for ( const auto cp: impl_->chromatograms_ ) {
-                ADDEBUG() << std::format( "chromatogram: id={}, indx={}, length={}, ", cp->id(), cp->index(), cp->length() ); // << cp->ac().toString();
+                var.emplace_back( chromatogramList{}( node1.node() ) );
             }
         }
-        ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
     }
+    return var;
 }

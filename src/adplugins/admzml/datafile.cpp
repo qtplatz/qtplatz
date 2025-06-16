@@ -79,6 +79,7 @@ namespace mzml {
         std::unique_ptr< mzML > mzml_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
+        std::map< std::string, std::shared_ptr< adcontrols::MassSpectrum > > vSpectrum_;
         boost::json::object json_;
 
         impl() : mzml_( std::make_unique< mzML >() )
@@ -160,67 +161,38 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
-
-
-    // if ( auto file = adnetcdf::netcdf::open( std::filesystem::path( filename ) ) ) {
-
-    //     auto folder = portfolio.addFolder( L"Chromatograms" );
-
-    //     if ( auto temp = file.get_att_text( "aia_template_revision" ) ) {
-    //         auto andi = std::make_shared< AndiChromatography >();
-    //         for ( auto chro: andi->import( file ) ) {
-    //             auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
-    //             impl_->vChro_.emplace( folium.id<char>(), chro );
-    //         }
-    //         impl_->cdf_ = std::move( andi );
-    //     } else if ( auto temp = file.get_att_text( "ms_template_revision" ) ) {
-    //         auto andi = std::make_shared< AndiMS >();
-
-    //         for ( auto& chro: andi->import( file ) ) {
-    //             auto folium = folder.addFolium( chro->make_title() ).assign( chro, chro->dataClass() );
-    //             impl_->vChro_.emplace( folium.id<char>(), chro );
-    //         }
-    //         impl_->cdf_ = std::move( andi );
-    //     }
-
-    //     // has spectra ?
-    //     std::visit( overloaded{
-    //             [&]( const auto& arg ) { /* do nothing */ }
-    //                 , [&]( const std::shared_ptr< AndiMS >& p ) {
-    //                     if ( p->has_spectra() ) {
-    //                         auto folder = portfolio.addFolder( L"Spectra" );
-    //                         auto v = p->dataReaders();
-    //                         if ( ! v.empty() ) {
-    //                             if ( auto reader = v.at(0) ) {
-    //                                 if ( auto ms = reader->coaddSpectrum( reader->begin(), reader->end() ) ) {
-    //                                     auto folium = folder.addFolium( "Coadded spectrum" ).assign( ms, ms->dataClass() );
-    //                                     impl_->vSpectrum_.emplace( folium.id<char>(), ms );
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //                 }, impl_->cdf_ );
-
-    //     impl_->processedDataset_->xml( portfolio.xml() );
-    //     return true;
-    // }
+    impl_->mzml_ = std::make_unique< mzML >();
+    if ( impl_->mzml_->open( filename ) ) {
+        auto folder= portfolio.addFolder( L"Chromatograms" );
+        for ( auto chro: impl_->mzml_->import_chromatograms() ) {
+            std::string name = chro->display_name() ? *chro->display_name() : chro->make_title();
+            auto folium = folder.addFolium( name ).assign( chro, chro->dataClass() );
+            impl_->vChro_.emplace( folium.id<char>(), chro );
+        }
+    }
+    impl_->processedDataset_->xml( portfolio.xml() );
     return true;
+}
+
+int
+datafile::dataformat_version() const
+{
+    return 3;
 }
 
 boost::any
 datafile::fetch( const std::string& path, const std::string& dataType ) const
 {
-//     if ( dataType == adportable::utf::to_utf8( adcontrols::MassSpectrum::dataClass() ) ) {
-//         auto it = impl_->vSpectrum_.find( path );
-//         if ( it != impl_->vSpectrum_.end() )
-//             return it->second;
-//     }
-//     if ( dataType == adportable::utf::to_utf8( adcontrols::Chromatogram::dataClass() ) ) {
-//         auto it = impl_->vChro_.find( path );
-//         if ( it != impl_->vChro_.end() )
-//             return it->second;
-//     }
+    if ( dataType == adportable::utf::to_utf8( adcontrols::MassSpectrum::dataClass() ) ) {
+        auto it = impl_->vSpectrum_.find( path );
+        if ( it != impl_->vSpectrum_.end() )
+            return it->second;
+    }
+    if ( dataType == adportable::utf::to_utf8( adcontrols::Chromatogram::dataClass() ) ) {
+        auto it = impl_->vChro_.find( path );
+        if ( it != impl_->vChro_.end() )
+            return it->second;
+    }
     ADDEBUG() << "Error: ======== " << __FUNCTION__ << std::make_pair( path, dataType ) << " not in the object"; // guid, Chromatogram
     return {};
 }

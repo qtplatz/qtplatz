@@ -27,7 +27,12 @@
 
 #include "mzmldatumbase.hpp"
 #include "binarydataarray.hpp"
+#include <boost/json/fwd.hpp>
 #include <memory>
+
+namespace adcontrols {
+    class Chromatogram;
+}
 
 namespace mzml {
 
@@ -41,6 +46,11 @@ namespace mzml {
                           , binaryDataArray secondi
                           , pugi::xml_node node );
         size_t length() const;
-        const pugi::xml_node& node();
+        std::pair< const binaryDataArray&, const binaryDataArray& > dataArrays() const;
+
+        boost::json::value to_value() const;
+
+        static std::shared_ptr< adcontrols::Chromatogram > toChromatogram( const mzMLChromatogram& );
     };
+
 }

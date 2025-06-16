@@ -25,20 +25,71 @@
 
 #pragma once
 
-#include <pugixml.hpp>
+#include "mzmlspectrum.hpp"
 #include <memory>
+#include <vector>
+#include <map>
+
+namespace pugi {
+    class xml_node;
+}
 
 namespace mzml {
+
+    class mzMLChromatogram;
+    class mzMLSpectrum;
+
+    class node_only {
+    protected:
+        pugi::xml_node node_;
+        node_only( const pugi::xml_node& node );
+    public:
+        const pugi::xml_node& node() const;
+        virtual std::string toString() const;
+    };
+
+    class fileDescription : public node_only {
+    public:
+        fileDescription( const pugi::xml_node& node );
+        fileDescription& operator = ( const fileDescription& );
+    };
+
+    class softwareList : public node_only {
+    public:
+        softwareList( const pugi::xml_node& node );
+        softwareList& operator = ( const softwareList& );
+    };
+
+    class instrumentConfigurationList : public node_only {
+    public:
+        instrumentConfigurationList( const pugi::xml_node& node );
+        instrumentConfigurationList& operator = ( const instrumentConfigurationList& );
+    };
+
+    class dataProcessingList : public node_only {
+    public:
+        dataProcessingList( const pugi::xml_node& node );
+        dataProcessingList& operator = ( const dataProcessingList& );
+    };
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const fileDescription& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const softwareList& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const instrumentConfigurationList& );
+
+    using spectra_t = std::vector< std::shared_ptr< mzml::mzMLSpectrum > >;
+    using chromatograms_t = std::vector< std::shared_ptr< mzml::mzMLChromatogram > >;
+
+    using data_t = std::variant< fileDescription
+                                 , softwareList
+                                 , instrumentConfigurationList
+                                 , dataProcessingList
+                                 , spectra_t
+                                 , chromatograms_t >;
 
     class mzMLWalker {
     public:
         ~mzMLWalker();
         mzMLWalker();
-
-        void operator()( const pugi::xml_node& root_node );
-    private:
-        class impl;
-        std::unique_ptr< impl > impl_;
+        std::vector< data_t > operator()( const pugi::xml_node& root_node );
     };
 
 }

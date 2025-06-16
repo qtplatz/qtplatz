@@ -24,6 +24,10 @@
 **************************************************************************/
 
 #include "mzml.hpp"
+#include "mzmlwalker.hpp"
+#include "mzmlchromatogram.hpp"
+#include "mzmlspectrum.hpp"
+#include "xmltojson.hpp"
 #include <pugixml.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -61,15 +65,54 @@
 #include <sstream>
 #include <set>
 #include <regex>
+#include <variant>
+
+namespace {
+    // helper for visitor
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+    // end helper for visitor
+}
 
 namespace mzml {
 
     class mzML::impl {
     public:
         pugi::xml_document doc_;
+        std::optional< fileDescription > fileDescription_;
+        std::optional< softwareList > softwareList_;
+        std::optional< instrumentConfigurationList > instrumentConfigurationList_;
+        std::optional< dataProcessingList > dataProcessingList_;
+        spectra_t spectra_;
+        chromatograms_t chromatograms_;
+        void print() {
+            if ( auto p = fileDescription_ ) {
+                ADDEBUG() << boost::json::value_from( *p );
+            }
+            if ( auto p = softwareList_ ) {
+                ADDEBUG() << boost::json::value_from( *p );
+            }
+            if ( auto p = instrumentConfigurationList_ ) {
+                ADDEBUG() << boost::json::value_from( *p );
+            }
+            if ( auto p = dataProcessingList_ ) {
+                // p->node().print( std::cout );
+            }
+            ADDEBUG() << "spectra.size: " << spectra_.size();
+            // for ( auto sp: spectra_ ) {
+            //     ADDEBUG() << sp->to_value();
+            // }
+
+            ADDEBUG() << "chromatograms.size: " << chromatograms_.size();
+            for ( auto sp: chromatograms_ ) {
+                // ADDEBUG() << sp->to_value();
+                // ADDEBUG() << to_value{}( sp->node() );
+            }
+        }
     };
 }
-
 
 using namespace mzml;
 
@@ -87,12 +130,51 @@ mzML::open( const std::filesystem::path& path )
 {
     if ( auto result = impl_->doc_.load_file( path.c_str() ) ) {
         if ( auto node = impl_->doc_.select_node( "/indexedmzML" ) ) {
+            auto var = mzMLWalker{}( node.node() );
+            for ( auto& data: var ) {
+                std::visit( overloaded {
+                        [&](fileDescription& arg) {
+                            impl_->fileDescription_ = std::move( arg );
+                        }
+                            , [&](softwareList& arg) {
+                                impl_->softwareList_ = std::move( arg );
+                            }
+                            , [&](instrumentConfigurationList& arg) {
+                                impl_->instrumentConfigurationList_ = std::move( arg );
+                            }
+                            , [&](dataProcessingList& arg) {
+                                impl_->dataProcessingList_ = std::move( arg );
+                            }
+                            , [&]( const spectra_t& arg ){
+                                impl_->spectra_ = std::move( arg );
+                            }
+                            , [&](const chromatograms_t& arg ) {
+                                impl_->chromatograms_ = std::move( arg );
+                            }
+                            }, data );
+            }
+            impl_->print();
 
             return true;
         }
     }
+    return false;
 }
 
+std::vector< std::shared_ptr< adcontrols::Chromatogram > >
+mzML::import_chromatograms() const
+{
+    std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+    for ( const auto& pc: impl_->chromatograms_ )
+        vec.emplace_back( mzMLChromatogram::toChromatogram( *pc ) );
+    return vec;
+}
+
+int
+mzML::dataformat_version() const
+{
+    return 3;
+}
 
 // LCMSDataset();
 size_t

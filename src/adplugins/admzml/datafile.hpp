@@ -54,6 +54,8 @@ namespace mzml {
         boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 
         adcontrols::datafile::factory_type factory() override { return 0; }
+        int dataformat_version() const override;
+
 #if 0
         // LCMSDataset
         size_t getFunctionCount() const override;

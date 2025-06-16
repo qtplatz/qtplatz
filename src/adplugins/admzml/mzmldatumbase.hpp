@@ -31,9 +31,6 @@
 
 namespace mzml {
 
-    class mzMLSpectrum;
-    class mzMLChromatogram;
-
     class mzMLDatumBase {
         class impl;
         std::unique_ptr< impl > impl_;
@@ -44,7 +41,6 @@ namespace mzml {
         mzMLDatumBase( pugi::xml_node node );
         std::string_view id() const;
         size_t index() const;
-
-
+        const pugi::xml_node& node() const;
     };
 }

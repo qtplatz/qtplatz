@@ -25,6 +25,12 @@
 
 #include "mzmlchromatogram.hpp"
 #include "binarydataarray.hpp"
+#include "xmltojson.hpp"
+#include <adcontrols/chromatogram.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
+#include <adportable/debug.hpp>
+#include <algorithm>
 #include <pugixml.hpp>
 
 namespace mzml {
@@ -33,15 +39,12 @@ namespace mzml {
     public:
         binaryDataArray prime_;
         binaryDataArray secondi_;
-        pugi::xml_node node_;
 
     public:
         impl() {}
         impl( binaryDataArray prime
-              , binaryDataArray secondi
-              , pugi::xml_node node ) : prime_( prime )
-                                      , secondi_( secondi )
-                                      , node_( node ) {
+              , binaryDataArray secondi ) : prime_( prime )
+                                          , secondi_( secondi ) {
         }
     };
 
@@ -56,19 +59,68 @@ namespace mzml {
 
     mzMLChromatogram::mzMLChromatogram( binaryDataArray prime
                                         , binaryDataArray secondi
-                                        , pugi::xml_node node ) : impl_( std::make_unique< impl >( prime, secondi, node ) )
+                                        , pugi::xml_node node) : mzMLDatumBase( node )
+                                                               , impl_( std::make_unique< impl >( prime, secondi ) )
     {
     }
 
     size_t
     mzMLChromatogram::length() const
     {
-        return impl_->prime_.length(); // held in base class
+        return std::min( impl_->prime_.length(), impl_->secondi_.length() ); // held in base class
     }
 
-    const pugi::xml_node&
-    mzMLChromatogram::node()
+    std::pair< const binaryDataArray&, const binaryDataArray& >
+    mzMLChromatogram::dataArrays() const
     {
-        return node(); // held in base class
+        return { impl_->prime_, impl_->secondi_ };
     }
+
+    boost::json::value
+    mzMLChromatogram::to_value() const
+    {
+        return mzml::to_value{}( node() );
+    }
+}
+
+
+namespace {
+    // helper for visitor
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+    // end helper for visitor
+}
+
+using namespace mzml;
+
+std::shared_ptr< adcontrols::Chromatogram >
+mzMLChromatogram::toChromatogram( const mzMLChromatogram& t )
+{
+    auto sp = std::make_shared< adcontrols::Chromatogram >();
+
+    sp->resize( t.length() );
+    sp->timeArray().resize( t.length() );
+
+    auto [times,intensities] = t.dataArrays();
+
+    std::visit([&](auto arg){
+        std::transform(arg, arg + t.length(), sp->timeArray().begin(),
+                       [](auto v) { return static_cast<double>(v); });
+    }, times.data() );
+
+    std::visit([&](auto arg){
+        for ( size_t i = 0; i < t.length(); ++i )
+            sp->setIntensity( i, *arg++ );
+    }, intensities.data() );
+
+    sp->setMinimumTime( sp->timeArray().front() );
+    sp->setMinimumTime( sp->timeArray().back() );
+
+    sp->addDescription( { "id", t.node().select_node( "@id" ).attribute().value() } );
+    sp->addDescription( { "metadata", boost::json::serialize( mzml::to_value{}(t.node() ) ) } );
+    sp->set_display_name( t.node().select_node( "@id" ).attribute().value() );
+
+    return sp;
 }

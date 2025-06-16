@@ -56,42 +56,45 @@ namespace mzml {
     public:
         ~mzML();
         mzML();
+        // AcquiredDataset
+        int dataformat_version() const override;
 
         // LCMSDataset();
-        size_t getFunctionCount() const;
-        size_t getSpectrumCount( int fcn ) const;
-        size_t getChromatogramCount() const;
-        bool getTIC( int fcn, adcontrols::Chromatogram& ) const;
-        bool getSpectrum( int fcn, size_t npos, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const;
-        size_t posFromTime( double x ) const;
-        double timeFromPos( size_t ) const;
-        bool index( size_t /*pos*/, int& /*idx*/, int& /*fcn*/, int& /*rep*/, double * t = 0 ) const;
-        size_t find_scan( int idx, int /* fcn */ ) const;
-        int /* idx */ make_index( size_t pos, int& fcn ) const;
+        size_t getFunctionCount() const override;
+        size_t getSpectrumCount( int fcn ) const override;
+        size_t getChromatogramCount() const override;
+        bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+        bool getSpectrum( int fcn, size_t npos, adcontrols::MassSpectrum&, uint32_t objid = 0 ) const override;
+        size_t posFromTime( double x ) const override;
+        double timeFromPos( size_t ) const override;
+        bool index( size_t /*pos*/, int& /*idx*/, int& /*fcn*/, int& /*rep*/, double * t = 0 ) const override;
+        size_t find_scan( int idx, int /* fcn */ ) const override;
+        int /* idx */ make_index( size_t pos, int& fcn ) const override;
         bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
                                , std::vector< adcontrols::Chromatogram >&
                                , std::function< bool (long curr, long total ) > progress
                                , int begPos = 0
-                               , int endPos = (-1) ) const;
+                               , int endPos = (-1) ) const override;
 
         // --------------- v2 ???
-        bool getCalibration( int, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& ) const { return false; }
-        bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const { return false; }
-        uint32_t findObjId( const std::wstring& /* traceId */) const { return 0; }
+        bool getCalibration( int, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& ) const override { return false; }
+        bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override { return false; }
+        uint32_t findObjId( const std::wstring& /* traceId */) const override { return 0; }
         bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
-                     , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const { return 0; }
-        adfs::sqlite * db() const { return 0; }
-        bool mslocker( adcontrols::lockmass::mslock&, uint32_t = 0 ) const { return 0; }
+                     , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const override { return 0; }
+        adfs::sqlite * db() const  override { return 0; }
+        bool mslocker( adcontrols::lockmass::mslock&, uint32_t = 0 ) const override { return 0; }
 
         // v3 data support
-        size_t dataReaderCount() const;
-        const adcontrols::DataReader * dataReader( size_t idx ) const;
-        const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const;
-        std::vector < std::shared_ptr< adcontrols::DataReader > > dataReaders( bool allPossible = false ) const;
-        adcontrols::MSFractuation * msFractuation() const;
+        size_t dataReaderCount() const override;
+        const adcontrols::DataReader * dataReader( size_t idx ) const override;
+        const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const override;
+        std::vector < std::shared_ptr< adcontrols::DataReader > > dataReaders( bool allPossible = false ) const override;
+        adcontrols::MSFractuation * msFractuation() const override;
 
         // mzML
         bool open( const std::filesystem::path& path );
+        std::vector< std::shared_ptr< adcontrols::Chromatogram > > import_chromatograms() const;
     private:
         class impl;
         std::unique_ptr< impl > impl_;
