@@ -85,6 +85,10 @@ namespace mzml {
         , MS_MAX
 	};
 
+    // adcontrols/constant.hpp
+    enum ion_polarity_type: unsigned int { polarity_positive, polarity_negative, polarity_unknown };
+
+
     class accession {
         mutable pugi::xml_node parent_node_;
     public:
@@ -112,11 +116,13 @@ namespace mzml {
         bool is_MS1_spectrum() const;
         bool is_SRM_spectrum() const;
 
+        ion_polarity_type ion_polarity() const;
+        static std::string to_string( ion_polarity_type );
+
         std::optional< int > ms_level() const;
         std::optional< double > total_ion_current() const;
         std::optional< double > base_peak_mz() const;
         std::optional< double > base_peak_intensity() const;
-
     };
 
 } // namespace

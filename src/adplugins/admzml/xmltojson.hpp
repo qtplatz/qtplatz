@@ -30,32 +30,33 @@ namespace mzml {
 
     class to_value {
     public:
-        boost::json::value operator()(const pugi::xml_node& node) const {
-            boost::json::object json_obj;
+        boost::json::value operator()(const pugi::xml_node& node) const;
+        //     {
+        //     boost::json::object json_obj;
 
-            // Add attributes
-            for (auto attr : node.attributes())
-                json_obj["@" + std::string(attr.name())] = attr.value();
+        //     // Add attributes
+        //     for (auto attr : node.attributes())
+        //         json_obj["@" + std::string(attr.name())] = attr.value();
 
-            // Map of name -> array of children
-            std::map< std::string, std::vector<boost::json::value> > children;
+        //     // Map of name -> array of children
+        //     std::map< std::string, std::vector<boost::json::value> > children;
 
-            for ( pugi::xml_node child : node.children() ) {
-                if (child.type() != pugi::node_element)
-                    continue;
-                children[ child.name() ].emplace_back((*this)(child) );
-            }
+        //     for ( pugi::xml_node child : node.children() ) {
+        //         if (child.type() != pugi::node_element)
+        //             continue;
+        //         children[ child.name() ].emplace_back((*this)(child) );
+        //     }
 
-            // Add children to JSON
-            for (auto& [key, vec] : children) {
-                if (vec.size() == 1)
-                    json_obj[key] = vec.front();
-                else
-                    json_obj[key] = boost::json::value_from(vec);
-            }
+        //     // Add children to JSON
+        //     for (auto& [key, vec] : children) {
+        //         if (vec.size() == 1)
+        //             json_obj[key] = vec.front();
+        //         else
+        //             json_obj[key] = boost::json::value_from(vec);
+        //     }
 
-            return json_obj;
-        }
+        //     return json_obj;
+        // }
     };
 
 } // namespace

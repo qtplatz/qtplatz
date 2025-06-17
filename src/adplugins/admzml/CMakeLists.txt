@@ -33,6 +33,9 @@ add_library( ${PROJECT_NAME} MODULE
   mzmlreader.cpp mzmlreader.hpp
   mzmlspectrum.cpp mzmlspectrum.hpp
   mzmlwalker.cpp mzmlwalker.hpp
+  datareader.cpp datareader.hpp
+  xmltojson.cpp xmltojson.hpp
+  scan_protocol.cpp scan_protocol.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

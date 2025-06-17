@@ -153,12 +153,12 @@ namespace mzml {
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const fileDescription& t )
     {
         jv = {
-            { "fileContent", collect_names("//fileContent/cvParam", t.node()) },
+            { "fileContent", collect_names(".//fileContent/cvParam", t.node()) },
             { "sourceFile", {
-                    { "id",     t.node().select_node("//sourceFile/@id").attribute().value() },
-                    { "name",   t.node().select_node("//sourceFile/@name").attribute().value() },
-                    { "format", t.node().select_node("//sourceFile/userParam/@value").attribute().value() },
-                    { "cvParam", collect_names("//sourceFile/cvParam", t.node()) }
+                    { "id",     t.node().select_node(".//sourceFile/@id").attribute().value() },
+                    { "name",   t.node().select_node(".//sourceFile/@name").attribute().value() },
+                    { "format", t.node().select_node(".//sourceFile/userParam/@value").attribute().value() },
+                    { "cvParam", collect_names(".//sourceFile/cvParam", t.node()) }
                 }}
         };
     }
@@ -172,9 +172,9 @@ namespace mzml {
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const softwareList& t )
     {
         jv = {
-            { "id",     t.node().select_node("//software/@id").attribute().value() }
-            , { "version",     t.node().select_node("//software/@version").attribute().value() }
-            , { "cvparam", collect_names( "//software/cvParam", t.node()) }
+            { "id",     t.node().select_node(".//software/@id").attribute().value() }
+            , { "version",     t.node().select_node(".//software/@version").attribute().value() }
+            , { "cvparam", collect_names( ".//software/cvParam", t.node()) }
             };
     }
 
@@ -197,16 +197,13 @@ namespace mzml {
     void
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const instrumentConfigurationList& t )
     {
-        boost::json::array a;
-        for ( auto node: t.node().select_nodes("//instrumentConfiguration/componetList/source") ) {
-        }
         jv = {
-            { "id",     t.node().select_node("//instrumentConfiguration/@id").attribute().value() }
+            { "id",     t.node().select_node(".//instrumentConfiguration/@id").attribute().value() }
             , { "serialnumber",
-                t.node().select_node( "//instrumentConfiguration/cvParam[@accession='MS:1000529']").node().attribute("value").value() }
-            , { "source", collect_names( "//instrumentConfiguration/componentList/source/cvParam", t.node()) }
-            , { "analyzer", collect_names( "//instrumentConfiguration/componentList/analyzer/cvParam", t.node()) }
-            , { "detector", collect_names( "//instrumentConfiguration/componentList/detector/cvParam", t.node()) }
+                t.node().select_node( ".//instrumentConfiguration/cvParam[@accession='MS:1000529']").node().attribute("value").value() }
+            , { "source", collect_names( ".//instrumentConfiguration/componentList/source/cvParam", t.node()) }
+            , { "analyzer", collect_names( ".//instrumentConfiguration/componentList/analyzer/cvParam", t.node()) }
+            , { "detector", collect_names( ".//instrumentConfiguration/componentList/detector/cvParam", t.node()) }
         };
     }
 

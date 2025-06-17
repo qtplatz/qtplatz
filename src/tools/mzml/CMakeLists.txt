@@ -20,12 +20,21 @@ endif()
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml
   )
 
 add_executable( ${PROJECT_NAME}
   main.cpp
-  accession.cpp accession.hpp
   xmlwalker.cpp xmlwalker.hpp
+  get_full_xpath.cpp
+  cvparamlist.cpp cvparamlist.hpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/xmltojson.cpp ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/xmltojson.hpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/accession.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/accession.hpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/mzmlspectrum.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/mzmlchromatogram.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/mzmldatumbase.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/binarydataarray.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

@@ -22,37 +22,23 @@
 **
 **************************************************************************/
 
-#include <iostream>
 #include <pugixml.hpp>
-#include "xmlwalker.hpp"
-#include <accession.hpp>
-#include <map>
 
-namespace mzml {
-
-    xmlWalker::xmlWalker( const std::string& tab
-                          , std::ostream& out ) : tab_( tab )
-                                                , out_( out )
-    {
-    }
-
-    void
-    xmlWalker::operator()( const pugi::xml_node& node ) const
-    {
-        for ( auto node1: node.select_nodes( "./*[not(self::cvParam)][not(self::offset)]" ) ) {
-            std::map< std::string, std::string > attrs;
-            for ( auto attr: node1.node().select_nodes( "@*" ) )
-                attrs[ attr.attribute().name() ] = attr.attribute().value();
-            mzml::accession ac( node );
-            out_ << tab_ << node1.node().name();
-            if ( not attrs.empty() ) {
-                for ( const auto& attr: attrs )
-                    out_ << " " << attr.first << "\"=\"" << attr.second << "\"";
-            }
-            if ( not ac.empty() )
-                out_ << tab_ << node1.node().name() << "\t[" << ac.toString() << "]";
-            out_ << std::endl;
-            xmlWalker{ tab_ + "\t" }( node1.node() );
+std::string
+get_full_xpath(pugi::xml_node node)
+{
+    std::string path;
+    while (node && node.type() == pugi::node_element) {
+        std::string name = node.name();
+        // Optional: include index if parent has multiple with same name
+        int index = 1;
+        pugi::xml_node sibling = node.previous_sibling(name.c_str());
+        while (sibling) {
+            ++index;
+            sibling = sibling.previous_sibling(name.c_str());
         }
+        path = "/" + name + "[" + std::to_string(index) + "]" + path;
+        node = node.parent();
     }
-} // namespace
+    return path.empty() ? "/" : path;
+}

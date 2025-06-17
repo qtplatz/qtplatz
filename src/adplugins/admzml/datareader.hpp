@@ -34,15 +34,15 @@
 
 namespace adcontrols { class MassSpectrometer; }
 
-namespace adnetcdf {
+namespace mzml {
 
-    class AndiMS;
+    class mzML;
 
     class DataReader : public adcontrols::DataReader {
 
     public:
         virtual ~DataReader( void );
-        DataReader( const char * traceid, std::shared_ptr< const AndiMS >  );
+        DataReader( const char * traceid, std::shared_ptr< const mzML >  );
 
         static std::vector< std::string > traceid_list();
 

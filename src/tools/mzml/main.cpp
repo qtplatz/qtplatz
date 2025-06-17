@@ -22,6 +22,12 @@
 **
 **************************************************************************/
 
+#include <adplugins/admzml/mzmlspectrum.hpp>
+#include <adplugins/admzml/mzmlchromatogram.hpp>
+#include <adplugins/admzml/xmltojson.hpp>
+#include "accession.hpp"
+#include "cvparamlist.hpp"
+
 #include <pugixml.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -54,72 +60,12 @@
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
-#include "accession.hpp"
+// #include "accession.hpp"
 #include "xmlwalker.hpp"
-#include "xmltojson.hpp"
+
 #include <boost/json.hpp>
 
 namespace po = boost::program_options;
-
-struct cvParamList {
-    bool operator()( const std::vector< std::string >& files ) const {
-        std::map< std::string, std::string > cvParam;
-        for ( auto file: files ) {
-            pugi::xml_document doc;
-            if ( auto result = doc.load_file( file.c_str() ) ) {
-                for (auto param : doc.select_nodes("//cvParam")) {
-                    std::string name = param.node().attribute("name").value();
-                    cvParam[ param.node().attribute("accession").value() ] = param.node().attribute("name").value();
-                }
-            }
-        }
-
-        std::cout << "\nnamespace mzml {" << std::endl
-                  << "\tenum Accession {" << std::endl;
-
-        for ( const auto& param: cvParam ) {
-            std::string tag = param.first;
-            std::replace( tag.begin(), tag.end(), ':', '_');
-            if ( param == *cvParam.begin() )
-                std::cout << std::format( "\t {}", tag) << std::endl;
-            else
-                std::cout << std::format( "\t, {}", tag) << std::endl;
-        }
-        std::cout << std::format( "\t, MS_MAX") << std::endl
-                  << "\t};" << std::endl
-                  << "} // namespace" << std::endl;
-
-        std::cout << "\nnamespace mzml {" << std::endl
-                  << "\tconst std::array< std::tuple< std::string, Accession, std::string >, MS_MAX > accession_list = {{" << std::endl;
-
-        for ( const auto& param: cvParam ) {
-            std::string tag = param.first;
-            std::replace( tag.begin(), tag.end(), ':', '_');
-            std::cout << "\t,{" << std::format( "\t\"{}\",\t{},\t\"{}\"\t", param.first, tag, param.second) << "}" << std::endl;
-        }
-        std::cout << "\t}};" << std::endl
-                  << "} // namespace" << std::endl;
-        return 0;
-    }
-};
-
-std::string get_full_xpath(pugi::xml_node node) {
-    std::string path;
-    while (node && node.type() == pugi::node_element) {
-        std::string name = node.name();
-        // Optional: include index if parent has multiple with same name
-        int index = 1;
-        pugi::xml_node sibling = node.previous_sibling(name.c_str());
-        while (sibling) {
-            ++index;
-            sibling = sibling.previous_sibling(name.c_str());
-        }
-        path = "/" + name + "[" + std::to_string(index) + "]" + path;
-        node = node.parent();
-    }
-    return path.empty() ? "/" : path;
-}
-
 
 namespace mzml {
 
@@ -130,59 +76,7 @@ namespace mzml {
     overloaded(Ts...) -> overloaded<Ts...>;
     // end helper for visitor
 
-    typedef std::variant< const float *, const double * > data_ptr;
-
-    class binaryDataArray {
-        size_t encodedLength_;
-        std::string decoded_;
-        accession ac_;
-    public:
-        binaryDataArray( size_t length = 0
-                         , mzml::accession&& ac = {}
-                         , std::string&& decoded = {} ) : encodedLength_( length )
-                                                             , ac_( ac )
-                                                             , decoded_( decoded ) {
-        }
-
-        binaryDataArray( const binaryDataArray& t ) : encodedLength_( t.encodedLength_ )
-                                                    , ac_( t.ac_ )
-                                                    , decoded_( t.decoded_ ) {
-        }
-
-        operator bool () const { return not decoded_.empty(); }
-        const accession& accession() const { return ac_; }
-        size_t size() const { return decoded_.size(); }
-        size_t length() const {
-            if ( ac_.is_32bit() ) {
-                return size() / sizeof(float);
-            } else if ( ac_.is_64bit() ) {
-                return size() / sizeof(double);
-            }
-            return size();
-        }
-
-        data_ptr data() const {
-            if ( ac_.is_32bit() )
-                return reinterpret_cast< const float * >( decoded_.data() );
-            if ( ac_.is_64bit() )
-                return reinterpret_cast< const double * >( decoded_.data() );
-            return {};
-        }
-
-        static binaryDataArray make_instance( const pugi::xml_node& node ) {
-            size_t length = node.attribute( "encodedLength" ).as_uint();
-            mzml::accession ac(node);
-
-            std::string decoded;
-            if ( auto binary = node.select_node( "binary" ) ) {
-                std::string_view encoded = binary.node().child_value();
-                if ( encoded.size() == length )
-                    decoded  = base64_decode( encoded );
-            }
-            return { length, std::move( ac ), std::move( decoded ) };
-        }
-    };
-
+    // typedef std::variant< const float *, const double * > data_ptr;
     struct isolationWindow {
         double target_mz_;
         double lower_offset_;
@@ -298,43 +192,6 @@ namespace mzml {
             , { "activation", boost::json::value_from( t.activation() ) } };
     }
 
-
-    struct mzMLDatumBase {
-        accession ac_;
-        pugi::xml_node node_;
-        mzMLDatumBase() {}
-        mzMLDatumBase( const mzMLDatumBase& t ) : ac_(t.ac_)
-                                                , node_( t.node_ ) {}
-        mzMLDatumBase( pugi::xml_node node ) : ac_( node )
-                                             , node_( node ) {
-        }
-        std::string_view id() const {
-            return node_.attribute( "id" ).value();
-        }
-        size_t index() const {
-            return node_.attribute( "index" ).as_uint();
-        }
-        const mzml::accession& ac() const { return ac_; }
-
-        bool is_negative_scan() const { return ac_.is_negative_scan(); }
-        bool is_positive_scan() const { return ac_.is_positive_scan(); }
-        std::optional< int > ms_level() const { return ac_.ms_level(); }
-        std::optional< double > total_ion_current() const { return ac_.total_ion_current(); }
-        std::optional< double > base_peak_mz() const { return ac_.base_peak_mz(); }
-        std::optional< double > base_peak_intensity() const { return ac_.base_peak_intensity(); }
-
-        std::pair< double, double >
-        base_peak() const {
-            if ( auto intens = node_.select_node( "cvParam[@accession='MS:1000505']" ) ) {
-                if ( auto mz = node_.select_node( "cvParam[@accession='MS:1000504']" ) ) {
-                    return { mz.node().attribute( "value" ).as_double()
-                             , intens.node().attribute( "value" ).as_double()   };
-                }
-            }
-            return { 0, 0 };
-        }
-    };
-
     struct scanWindow {
         double lower_limit_;
         double upper_limit_;
@@ -378,97 +235,6 @@ namespace mzml {
         jv = boost::json::value{{ "scan_start_time", t.scan_start_time_ },
                                 { "scanWindow", boost::json::value_from( t.scan_window_ ) }};
     }
-
-    class mzMLSpectrum : public mzMLDatumBase {
-        binaryDataArray mzArray_;
-        binaryDataArray intensityArray_;
-        std::vector< mzml::scan > scanlist_;
-        std::vector< mzml::precursor > precursorlist_;
-        bool is_profile_spectrum_;
-        size_t ms_level_;
-        double base_peak_intensity_;
-        double base_peak_mz_;
-        double highest_observed_mz_;
-        double lowest_observed_mz_;
-    public:
-        mzMLSpectrum() : is_profile_spectrum_( false )
-                       , ms_level_(0)
-                       , base_peak_intensity_(0)
-                       , base_peak_mz_(0)
-                       , highest_observed_mz_(0)
-                       , lowest_observed_mz_(0) {
-        }
-        mzMLSpectrum( const mzMLSpectrum& t ) : mzArray_( t.mzArray_ )
-                                              , intensityArray_( t.intensityArray_ )
-                                              , scanlist_( t.scanlist_ )
-                                              , precursorlist_( t.precursorlist_ )
-                                              , is_profile_spectrum_( t.is_profile_spectrum_ )
-                                              , ms_level_( t.ms_level_ )
-                                              , base_peak_intensity_( t.base_peak_intensity_ )
-                                              , base_peak_mz_( t.base_peak_mz_ )
-                                              , highest_observed_mz_( t.highest_observed_mz_ )
-                                              , lowest_observed_mz_( t.lowest_observed_mz_ ) {
-        }
-        mzMLSpectrum( binaryDataArray prime
-                      , binaryDataArray secondi
-                      , pugi::xml_node node ) : mzMLDatumBase( node )
-                                              , mzArray_( prime )
-                                              , intensityArray_( secondi ) {
-            for ( auto node: node_.select_nodes("scanList/scan") ) {
-                scanlist_.emplace_back( node.node() );
-            }
-            for ( auto node: node_.select_nodes( "precursorList/precursor" ) ) {
-                precursorlist_.emplace_back( node.node() );
-            }
-            {
-                auto jv = mzml::to_value{}( node_.select_node( "scanList" ).node() );
-                ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
-                    .toJson( QJsonDocument::Indented ).toStdString();
-            }
-            {
-                auto jv = mzml::to_value{}( node_.select_node( "precursorList" ).node() );
-                ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
-                    .toJson( QJsonDocument::Indented ).toStdString();
-            }
-        }
-        size_t length() const { return mzArray_.size(); }
-
-        // std::optional< double > scan_start_time() const { return scan_.scan_start_time(); }
-
-        boost::json::value to_value() const {
-            // ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-            // ADDEBUG() << mzml::to_value{}( node_ );
-            // ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
-            return boost::json::value{
-                { "id", id() }
-                , { "index", index() }
-                , { "length", length() }
-                , { "scan", boost::json::value_from( scanlist_ ) }
-                , { "precursor", boost::json::value_from( precursorlist_ ) }
-                , { "base_peak", { "mz", boost::json::value_from( ac().base_peak_mz() ) }
-                    , { "intensity", boost::json::value_from( ac().base_peak_intensity()) } }
-                , { "is_positive_scan", boost::json::value_from( ac().is_positive_scan() ) }
-            };
-        }
-    };
-
-    class mzMLChromatogram : public mzMLDatumBase {
-        binaryDataArray timeArray_;
-        binaryDataArray intensityArray_;
-        accession ac_;
-        pugi::xml_node node_;
-    public:
-        mzMLChromatogram() {}
-        mzMLChromatogram(   binaryDataArray prime
-                          , binaryDataArray secondi
-                            , pugi::xml_node node ) : mzMLDatumBase( node )
-                                                    , timeArray_( prime )
-                                                    , intensityArray_( secondi ) {
-        }
-        size_t length() const { return timeArray_.size(); }
-        const pugi::xml_node& node() const { return node_; }
-
-    };
 
     enum dataType { dataTypeSpectrum, dataTypeChromatogram };
 
@@ -583,41 +349,18 @@ struct mzMLWalker {
 
             auto sourceFileListCount = node.select_node( "sourceFileList/@count" ).attribute().as_uint();
             ADDEBUG() << mzml::to_value{}( node.select_node( "sourceFileList" ).node() );
-            // for ( size_t i = 0; i < sourceFileListCount; ++i ) {
-            //     for ( auto sourceFile : node.select_nodes( "sourceFileList/sourceFile" ) ) {
-            //         ADDEBUG() << mzml::accession(sourceFile.node()).toString();
-            //     }
-            // }
 
             auto softwareListCount = node.select_node( "softwareList/@count" ).attribute().as_uint();
             ADDEBUG() << mzml::to_value{}( node.select_node( "softwareList" ).node() );
-            // for ( auto node1 : node.select_nodes( "softwareList/software" ) ) {
-            //     ADDEBUG() << "software: " << node1.node().attribute("id").value() << ", " << node1.node().attribute("version").value();
-            //     ADDEBUG() << mzml::accession(node1.node()).toString();
-            // }
 
             auto instrumentConfigurationListCount = node.select_node( "instrumentConfigurationList/@count" ).attribute().as_uint();
             ADDEBUG() << mzml::to_value{}( node.select_node( "instrumentConfigurationList" ).node() );
-            // for ( auto node1 : node.select_nodes( "instrumentConfigurationList/instrumentConfiguration" ) ) {
-            //     ADDEBUG() << "instrumentConfiguration: " << node1.node().attribute( "id" ).value();
-            //     ADDEBUG() << mzml::accession(node1.node()).toString();
-            // }
 
             auto componentListCount = node.select_node( "componentList/@count" ).attribute().as_uint();
             ADDEBUG() << mzml::to_value{}( node.select_node( "componentList" ).node() );
-            // for ( auto node1 : node.select_nodes( "componentList/*" ) ) {
-            //     ADDEBUG() << "component: " << node1.node().name() << ", order=" << node1.node().attribute( "order" ).value();
-            //     ADDEBUG() << "\t" << mzml::accession( node1.node() ).toString();
-            // }
 
             auto dataProcessingListCount = node.select_node( "dataProcessingList/@count" ).attribute().as_uint();
             ADDEBUG() << mzml::to_value{}( node.select_node( "dataProcessingList" ).node() );
-            // for ( auto node1 : node.select_nodes( "dataProcessingList/dataProcessing" ) ) {
-            //     ADDEBUG() << "dataProcessing: " << node1.node().attribute("id").value();
-            //     ADDEBUG() << "\t: " << node1.node().select_node( "processingMethod/@softwareRef").attribute().value();
-            //     ADDEBUG() << "\t: " << mzml::accession( node1.node().select_node( "processingMethod").node() ).toString();
-            // }
-            return;
 
             if (  auto run = node.select_node( "run" ) ) {
                 ADDEBUG() << "run defaultInstrumentConfigurationRef=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
@@ -629,29 +372,38 @@ struct mzMLWalker {
                     auto vec = spectrumList{}( node1.node() );
                     spectra_.insert(std::end(spectra_), std::begin(vec), std::end(vec));
                 }
+
                 if ( auto node1 = run.node().select_node( "chromatogramList"  ) ) {
                     auto vec = chromatogramList{}( node1.node() );
                     chromatograms_.insert(std::end(chromatograms_), std::begin(vec), std::end(vec));
                 }
 
                 ADDEBUG() << "total " << std::make_pair( spectra_.size(), chromatograms_.size() ) << " spectra & chroamtograms";
+
+                // make_scan_indices
                 for ( const auto sp: spectra_ ) {
-                    if ( sp->length() > 0 ) {
-                        // ADDEBUG() << sp->to_value();
-                        ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( sp->to_value() ).c_str() )
-                            .toJson( QJsonDocument::Compact ).toStdString();
+                    std::string id;
+                    size_t index{0};
+                    mzml::accession ac( sp->node() );
+
+                    if ( auto scan = sp->node().select_node( "./scanList[1]/scan" ) ) {
+                        id = sp->node().attribute( "id" ).value();
+                        index = sp->node().attribute( "id" ).as_uint();
+                        double scan_start_time = scan.node().select_node( "cvParam[@accession='MS:1000016']" ).node().attribute("value").as_double();
+                        double selected_ion_mz{0}, ce{0};
+                        if ( auto node =
+                             sp->node().select_node( "./precursorList[1]/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
+                            selected_ion_mz = node.node().attribute( "value" ).as_double();
+                        }
+                        if ( auto node =
+                             sp->node().select_node( "./precursorList[1]/precursor/activation/cvParam[@accession='MS:1000045']" ) ) {
+                            ce = node.node().attribute( "value" ).as_double();
+                        }
+                        ADDEBUG() << std::make_tuple( id, index, sp->length(), scan_start_time, selected_ion_mz, ce, ac.to_string( ac.ion_polarity() ) )
+                                  << ", ms_level=" << *ac.ms_level();
                     }
+                    // ADDEBUG() << mzml::to_value{}( sp->node().select_node(".//scan").node() );
                 }
-#if 0
-                for ( const auto sp: spectra_ ) {
-                    if ( sp->length() == 0 )
-                        ADDEBUG() << sp->to_value();
-                }
-                ADDEBUG() << "------------------------------ chromatograms ------------------------------";
-                for ( const auto cp: chromatograms_ ) {
-                    ADDEBUG() << std::format( "chromatogram: id={}, indx={}, length={}, ", cp->id(), cp->index(), cp->length() ) << cp->ac().toString();
-                }
-#endif
             }
             ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
         }

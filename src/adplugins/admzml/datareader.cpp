@@ -23,9 +23,9 @@
  **************************************************************************/
 
 #include "datareader.hpp"
-#include "andims.hpp"
 #include "chromatogram.hpp"
 #include "timestamp.hpp"
+#include "mzml.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
@@ -33,27 +33,28 @@
 #include <chrono>
 #include <numeric>
 
-namespace adnetcdf {
+namespace mzml {
 
     class DataReader::impl {
     public:
-        impl( std::shared_ptr< const AndiMS > cdf ) : cdf_( cdf ) {
+        impl( std::shared_ptr< const mzML > mzml ) : mzml_( mzml ) {
         }
-        std::shared_ptr< const AndiMS > cdf_;
+        std::shared_ptr< const mzML > mzml_;
 
-        constexpr const static boost::uuids::uuid uuid_ = { 0x07,0x5E,0x16,0x20
-                                                            ,0x3D,0x70,0x42,0x75
-                                                            ,0x93,0xDE,0x8D,0xC2
-                                                            ,0x00,0x4A,0xDF,0x57 };
+        // 6a6cf573-ef05-4c5c-a607-0a417edf37b0
+        constexpr const static boost::uuids::uuid uuid_ = {
+            0x6a, 0x6c, 0xf5, 0x73, 0xef, 0x05, 0x4c, 0x5c
+            , 0xa6, 0x07, 0x0a, 0x41, 0x7e, 0xdf, 0x37, 0xb0 };
+
         static const std::string objtext_;
         static const std::string display_name_;
     };
 
-    const std::string DataReader::impl::objtext_ = "1.adnetcdf.ms-cheminfo.com";
-    const std::string DataReader::impl::display_name_ = "AndiMS";
+    const std::string DataReader::impl::objtext_ = "1.admzml.ms-cheminfo.com";
+    const std::string DataReader::impl::display_name_ = "mzML";
 }
 
-using namespace adnetcdf;
+using namespace mzml;
 
 
 DataReader::~DataReader()
@@ -61,8 +62,8 @@ DataReader::~DataReader()
 }
 
 DataReader::DataReader( const char * traceid
-                        , std::shared_ptr< const AndiMS > cdf ) : adcontrols::DataReader( traceid )
-                                                                , impl_( std::make_unique< impl >( cdf ) )
+                        , std::shared_ptr< const mzML > mzml ) : adcontrols::DataReader( traceid )
+                                                               , impl_( std::make_unique< impl >( mzml ) )
 {
 }
 
@@ -116,7 +117,7 @@ size_t
 DataReader::size( int fcn ) const
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    return impl_->cdf_->data().size();
+    return impl_->mzml_->scan_indices().size();
 }
 
 adcontrols::DataReader::const_iterator
@@ -134,18 +135,18 @@ DataReader::end() const
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    auto& data = impl_->cdf_->data();
-    auto it = std::lower_bound( data.begin(), data.end(), seconds
-                                , [](const auto& a, const auto& b){ return std::get< scan_acquisition_time >( a ) < b; } );
-    if ( it != data.end() ) {
-        size_t rowid = std::distance( data.begin(), it );
-        if ( closest && (it+1) != data.end() ) {
-            if ( std::abs( std::get< scan_acquisition_time >(*it) - seconds ) > std::abs( std::get< scan_acquisition_time >(*(it+1)) - seconds ) )
-                ++rowid;
-        }
-        ADDEBUG() << "-- DataReader " << __FUNCTION__ << " ================ pos: " << rowid;
-        return adcontrols::DataReader_iterator( this, rowid, fcn );
-    }
+    auto& indecies = impl_->mzml_->scan_indices();
+    // auto it = std::lower_bound( data.begin(), data.end(), seconds
+    //                             , [](const auto& a, const auto& b){ return std::get< scan_acquisition_time >( a ) < b; } );
+    // if ( it != data.end() ) {
+    //     size_t rowid = std::distance( data.begin(), it );
+    //     if ( closest && (it+1) != data.end() ) {
+    //         if ( std::abs( std::get< scan_acquisition_time >(*it) - seconds ) > std::abs( std::get< scan_acquisition_time >(*(it+1)) - seconds ) )
+    //             ++rowid;
+    //     }
+    //     ADDEBUG() << "-- DataReader " << __FUNCTION__ << " ================ pos: " << rowid;
+    //     return adcontrols::DataReader_iterator( this, rowid, fcn );
+    // }
     return end();
 }
 
@@ -155,9 +156,9 @@ DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
 
     assert( ispec == TriggerNumber );
-    auto& data = impl_->cdf_->data();
-    if ( 0 <= pos && pos <= data.size() )
-        return std::get< scan_acquisition_time >( data[ pos ] );
+    auto& data = impl_->mzml_->scan_indices();
+    // if ( 0 <= pos && pos <= data.size() )
+    //     return std::get< scan_acquisition_time >( data[ pos ] );
     return -1.0;
 }
 
@@ -165,7 +166,7 @@ std::shared_ptr< const adcontrols::Chromatogram >
 DataReader::TIC( int fcn ) const
 {
     if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
-        impl_->cdf_->getTIC( fcn, *chro );
+        impl_->mzml_->getTIC( fcn, *chro );
         return chro;
     }
     return nullptr;
@@ -180,7 +181,7 @@ DataReader::next( int64_t rowid ) const
 int64_t
 DataReader::next( int64_t rowid, int fcn ) const
 {
-    if ( ( rowid + 1 ) < impl_->cdf_->data().size() )
+    if ( ( rowid + 1 ) < impl_->mzml_->scan_indices().size() )
         return ++rowid;
     return (-1);
 }
@@ -196,7 +197,7 @@ DataReader::prev( int64_t rowid, int fcn ) const
 {
     if ( rowid >= 1 )
         return --rowid;
-    return impl_->cdf_->data().size() - 1;
+    return impl_->mzml_->scan_indices().size() - 1;
 }
 
 int64_t
@@ -209,9 +210,9 @@ DataReader::pos( int64_t rowid ) const
 int64_t
 DataReader::elapsed_time( int64_t rowid ) const
 {
-    if ( 0 <= rowid && rowid < impl_->cdf_->data().size() ) {
-        const auto& datum = impl_->cdf_->data()[ rowid ];
-        return std::get< scan_acquisition_time >( datum );
+    if ( 0 <= rowid && rowid < impl_->mzml_->scan_indices().size() ) {
+        const auto& datum = impl_->mzml_->scan_indices()[ rowid ];
+        // return std::get< scan_start_time >( datum );
     }
     return -1;
 }
@@ -227,10 +228,10 @@ double
 DataReader::time_since_inject( int64_t rowid ) const
 {
     // ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== rowid = " << rowid;
-    if ( 0 <= rowid && rowid < impl_->cdf_->data().size() ) {
-        const auto& datum = impl_->cdf_->data()[ rowid ];
-        return std::get< scan_acquisition_time >( datum );
-    }
+    // if ( 0 <= rowid && rowid < impl_->mzml_->scan_indices().size() ) {
+    //     const auto& datum = impl_->mzml_->scan_indices()[ rowid ];
+    //     return std::get< enum_scan_start_time >( datum );
+    // }
     return -1;
 }
 
@@ -258,41 +259,41 @@ std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::readSpectrum( const const_iterator& it ) const
 {
     size_t idx = it->rowid();
-
-    const auto& data = impl_->cdf_->data();
-    const auto& transformed = impl_->cdf_->transformed();
-
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
-    ms->resize( transformed.size() );
 
-    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_type" ) ) {
-        if ( *value == "Centroided Mass Spectrum" ) // I'm not sure this is typo by Shimadzu or wrong specification by ASTM
-            ms->setCentroid( adcontrols::CentroidNative );
-    }
-    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
-    std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( idx ) ) * 1e9 ) );
-    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
-        tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
-    }
-    if ( auto value = impl_->cdf_->find_global_attribute( "/test_ionization_polarity" ) ) {
-        if ( *value == "Positive Polarity" )
-            ms->setPolarity( adcontrols::PolarityPositive );
-        if ( *value == "Negative Polarity" )
-            ms->setPolarity( adcontrols::PolarityNegative );
-    }
-    ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) );
-    auto& prop = ms->getMSProperty();
-    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( idx ) ) );
-    prop.setTrigNumber( std::get< actual_scan_number >( data.at( idx ) ) );
-    prop.setInstMassRange( { std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) } );
+    // const auto& data = impl_->mzml_->scan_indecies();
+    // const auto& transformed = impl_->mzml_->transformed();
 
-    prop.setTimePoint( tp );
+    // ms->resize( transformed.size() );
 
-    for ( const auto& map: transformed ) {
-        const auto& [ch,values] = map;
-        ms->setMass( ch, values.first );
-        ms->setIntensity( ch, *(values.second.begin() + idx) );
-    }
+    // if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_type" ) ) {
+    //     if ( *value == "Centroided Mass Spectrum" ) // I'm not sure this is typo by Shimadzu or wrong specification by ASTM
+    //         ms->setCentroid( adcontrols::CentroidNative );
+    // }
+    // std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
+    // std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( idx ) ) * 1e9 ) );
+    // if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
+    //     tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
+    // }
+    // if ( auto value = impl_->mzml_->find_global_attribute( "/test_ionization_polarity" ) ) {
+    //     if ( *value == "Positive Polarity" )
+    //         ms->setPolarity( adcontrols::PolarityPositive );
+    //     if ( *value == "Negative Polarity" )
+    //         ms->setPolarity( adcontrols::PolarityNegative );
+    // }
+    // ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) );
+    // auto& prop = ms->getMSProperty();
+    // prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( idx ) ) );
+    // prop.setTrigNumber( std::get< actual_scan_number >( data.at( idx ) ) );
+    // prop.setInstMassRange( { std::get< mass_range_min >(data.at( idx )), std::get< mass_range_max >(data.at( idx )) } );
+
+    // prop.setTimePoint( tp );
+
+    // for ( const auto& map: transformed ) {
+    //     const auto& [ch,values] = map;
+    //     ms->setMass( ch, values.first );
+    //     ms->setIntensity( ch, *(values.second.begin() + idx) );
+    // }
 
     return ms;
 }
@@ -308,23 +309,24 @@ std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
-    const auto& transformed = impl_->cdf_->transformed();
+#if 0
+    const auto& transformed = impl_->mzml_->transformed();
 
-    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_type" ) ) {
+    if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_type" ) ) {
         if ( *value == "Centroided Mass Spectrum" ) { // I'm not sure this is typo by Shimadzu or wrong specification by ASTM
             ms->setCentroid( adcontrols::CentroidNative );
         }
     }
-    const auto& data = impl_->cdf_->data();
+    const auto& data = impl_->mzml_->scan_indices();
     size_t fst = first->rowid();
     size_t lst = last != end() ? last->rowid() : transformed.size();
 
     std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
     std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( fst ) ) * 1e9 ) );
-    if ( auto value = impl_->cdf_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
+    if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
         tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
     }
-    if ( auto value = impl_->cdf_->find_global_attribute( "/test_ionization_polarity" ) ) {
+    if ( auto value = impl_->mzml_->find_global_attribute( "/test_ionization_polarity" ) ) {
         if ( *value == "Positive Polarity" )
             ms->setPolarity( adcontrols::PolarityPositive );
         if ( *value == "Negative Polarity" )
@@ -347,7 +349,7 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
         ms->setIntensity( ch, std::accumulate( values.second.begin() + fst, values.second.begin() + lst, 0.0 ) );
         // ADDEBUG() << "\t" << std::make_tuple( ch, values.first, ms->intensity( ch ) );
     }
-
+#endif
     return ms;
 }
 

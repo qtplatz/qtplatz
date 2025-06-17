@@ -26,9 +26,9 @@
 #include "accession.hpp"
 #include <algorithm>
 #include <array>
-#include <numeric>
 #include <tuple>
 #include <boost/format.hpp>
+#include <exception>
 
 namespace mzml {
 
@@ -191,8 +191,9 @@ namespace mzml {
 
     std::optional< int >
     accession::ms_level() const {
-        if ( auto ms_level = parent_node_.select_node( "cvParam[@accession='MS:1000511']" ) )
-            ms_level.attribute().as_int();
+        if ( auto ms_level = parent_node_.select_node( "./cvParam[@accession='MS:1000511']" ) ) {
+            return ms_level.node().attribute("value").as_int();
+        }
         return {};
     }
 
@@ -229,4 +230,37 @@ namespace mzml {
         return parent_node_.select_node( "cvParam[@accession='MS:1000583']" );
     }
 
+    ion_polarity_type
+    accession::ion_polarity() const
+    {
+        if ( parent_node_.name() == std::string( "spectrum" ) ) {
+            for (const auto& param : parent_node_.select_nodes("cvParam")) {
+                auto ac = param.node().attribute("accession").value();
+
+                if (std::strcmp(ac, "MS:1000129") == 0)
+                    return ion_polarity_type::polarity_negative;
+                if (std::strcmp(ac, "MS:1000130") == 0)
+                    return ion_polarity_type::polarity_positive;
+                if (std::strcmp(ac, "MS:1000465") == 0) {
+                    auto value = param.node().attribute("value").as_int();
+                    return ( value == -1 ) ? ion_polarity_type::polarity_negative
+                        : ( value == 1 ) ? ion_polarity_type::polarity_positive
+                        : ion_polarity_type::polarity_unknown;
+                }
+            }
+        }
+        throw std::invalid_argument("Passed node should be a <spectrum>.");
+    }
+
+    std::string
+    accession::to_string( ion_polarity_type t )
+    {
+        switch( t ) {
+        case polarity_positive: return "positive polarity";
+        case polarity_negative: return "negative polarity";
+        case polarity_unknown: return "unknown polarity";
+        default:
+            return "";
+        }
+    }
 }

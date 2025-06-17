@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <scan_protocol.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datainterpreter.hpp>
@@ -50,7 +51,8 @@ namespace adcontrols {
 
 namespace mzml {
 
-    class mzML : public adcontrols::LCMSDataset {
+    class mzML : public adcontrols::LCMSDataset
+               , public std::enable_shared_from_this< mzML > {
         mzML( const mzML& ) = delete;
         mzML& operator = ( const mzML& ) = delete;
     public:
@@ -95,6 +97,7 @@ namespace mzml {
         // mzML
         bool open( const std::filesystem::path& path );
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > import_chromatograms() const;
+        const std::vector< mzml::scan_id > &scan_indices() const;
     private:
         class impl;
         std::unique_ptr< impl > impl_;

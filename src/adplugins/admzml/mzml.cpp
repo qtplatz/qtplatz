@@ -28,6 +28,7 @@
 #include "mzmlchromatogram.hpp"
 #include "mzmlspectrum.hpp"
 #include "xmltojson.hpp"
+#include "datareader.hpp"
 #include <pugixml.hpp>
 #include <adacquire/signalobserver.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -87,6 +88,9 @@ namespace mzml {
         std::optional< dataProcessingList > dataProcessingList_;
         spectra_t spectra_;
         chromatograms_t chromatograms_;
+        std::shared_ptr< DataReader > dataReader_;
+        std::vector< mzml::scan_id > scan_indices_;
+
         void print() {
             if ( auto p = fileDescription_ ) {
                 ADDEBUG() << boost::json::value_from( *p );
@@ -101,14 +105,26 @@ namespace mzml {
                 // p->node().print( std::cout );
             }
             ADDEBUG() << "spectra.size: " << spectra_.size();
-            // for ( auto sp: spectra_ ) {
-            //     ADDEBUG() << sp->to_value();
-            // }
+            for ( auto sp: spectra_ ) {
+                size_t index = sp->node().attribute( "index" ).as_uint();
+                accession ac( sp->node() );
+
+                double scan_start_time = sp->node().select_node("scanList/scan[@accession='MS:1000016']").node().attribute( "value" ).as_double();
+                ADDEBUG() << sp->to_value();
+            }
 
             ADDEBUG() << "chromatograms.size: " << chromatograms_.size();
             for ( auto sp: chromatograms_ ) {
                 // ADDEBUG() << sp->to_value();
                 // ADDEBUG() << to_value{}( sp->node() );
+            }
+        }
+
+        void make_scan_indices() {
+            for ( const auto& sp: spectra_ ) {
+                auto id = mzml::scan_identifier()( sp->node() );
+                this->scan_indices_.emplace_back( id );
+                ADDEBUG() << boost::json::value_from( id );
             }
         }
     };
@@ -154,7 +170,7 @@ mzML::open( const std::filesystem::path& path )
                             }, data );
             }
             impl_->print();
-
+            impl_->make_scan_indices();
             return true;
         }
     }
@@ -168,6 +184,12 @@ mzML::import_chromatograms() const
     for ( const auto& pc: impl_->chromatograms_ )
         vec.emplace_back( mzMLChromatogram::toChromatogram( *pc ) );
     return vec;
+}
+
+const std::vector< scan_id >&
+mzML::scan_indices() const
+{
+    return impl_->scan_indices_;
 }
 
 int

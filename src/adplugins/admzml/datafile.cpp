@@ -76,13 +76,13 @@ namespace mzml {
 
     class datafile::impl {
     public:
-        std::unique_ptr< mzML > mzml_;
+        std::shared_ptr< mzML > mzml_;
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
         std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
         std::map< std::string, std::shared_ptr< adcontrols::MassSpectrum > > vSpectrum_;
         boost::json::object json_;
 
-        impl() : mzml_( std::make_unique< mzML >() )
+        impl() : mzml_( std::make_shared< mzML >() )
                , processedDataset_( std::make_unique< adcontrols::ProcessedDataset >() )
             {
         }
@@ -156,8 +156,6 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
-    ADDEBUG() << "################ datafile::open: " << filename;
-
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 

@@ -285,6 +285,13 @@ document::findTIC( Dataprocessor * dp, int fcn )
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
             return cptr;
         }
+
+        std::string mzML = ( boost::format( "./folium[contains(@name,'TIC%d')]" ) % ( fcn + 1 ) ).str();
+        if ( auto folium = cfolder.findFoliumByRegex( mzML ) ) {
+            auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            return cptr;
+        }
+
     }
     ADDEBUG() << "## " << __FUNCTION__ << " ## " << "TIC for protocol " << fcn + 1 << " cannot be found";
     return 0;
