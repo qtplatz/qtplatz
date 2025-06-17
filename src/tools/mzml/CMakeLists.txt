@@ -35,6 +35,7 @@ add_executable( ${PROJECT_NAME}
   ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/mzmlchromatogram.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/mzmldatumbase.cpp
   ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/binarydataarray.cpp
+  ${CMAKE_SOURCE_DIR}/src/adplugins/admzml/scan_protocol.cpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC

@@ -258,6 +258,7 @@ DataReader::getSpectrum( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::readSpectrum( const const_iterator& it ) const
 {
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     size_t idx = it->rowid();
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
@@ -308,6 +309,7 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     auto ms = std::make_shared< adcontrols::MassSpectrum >();
 #if 0
     const auto& transformed = impl_->mzml_->transformed();

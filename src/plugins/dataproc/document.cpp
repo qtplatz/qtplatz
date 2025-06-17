@@ -517,6 +517,7 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     ADDEBUG() << "======================= " << __FUNCTION__ << " ===========================";
 
     for ( auto reader: dset->dataReaders() ) {
+        ADDEBUG() << "\tdataReaders ";
         if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
             std::ostringstream text;
             text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;

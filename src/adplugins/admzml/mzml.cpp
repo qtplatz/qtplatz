@@ -80,6 +80,7 @@ namespace {
 namespace mzml {
 
     class mzML::impl {
+        std::mutex mutex_;
     public:
         pugi::xml_document doc_;
         std::optional< fileDescription > fileDescription_;
@@ -91,6 +92,17 @@ namespace mzml {
         std::shared_ptr< DataReader > dataReader_;
         std::vector< mzml::scan_id > scan_indices_;
 
+        impl() {}
+        //-------------------------
+        std::shared_ptr< adcontrols::DataReader > dataReader( const mzML * p ) {
+            if ( not dataReader_ ) {
+                // std::unique_lock lock( mutex_ );
+                if ( not dataReader_ )
+                    dataReader_ = std::make_shared< DataReader >( "mzML", p->shared_from_this() );
+            }
+            return dataReader_;
+        }
+        //-------------------------
         void print() {
             if ( auto p = fileDescription_ ) {
                 ADDEBUG() << boost::json::value_from( *p );
@@ -104,27 +116,15 @@ namespace mzml {
             if ( auto p = dataProcessingList_ ) {
                 // p->node().print( std::cout );
             }
-            ADDEBUG() << "spectra.size: " << spectra_.size();
-            for ( auto sp: spectra_ ) {
-                size_t index = sp->node().attribute( "index" ).as_uint();
-                accession ac( sp->node() );
-
-                double scan_start_time = sp->node().select_node("scanList/scan[@accession='MS:1000016']").node().attribute( "value" ).as_double();
-                ADDEBUG() << sp->to_value();
-            }
-
-            ADDEBUG() << "chromatograms.size: " << chromatograms_.size();
-            for ( auto sp: chromatograms_ ) {
-                // ADDEBUG() << sp->to_value();
-                // ADDEBUG() << to_value{}( sp->node() );
-            }
         }
 
         void make_scan_indices() {
             for ( const auto& sp: spectra_ ) {
-                auto id = mzml::scan_identifier()( sp->node() );
-                this->scan_indices_.emplace_back( id );
-                ADDEBUG() << boost::json::value_from( id );
+                if ( sp->length() > 0 ) {
+                    auto id = mzml::scan_identifier()( sp->node() );
+                    scan_indices_.emplace_back( id );
+                    // ADDEBUG() << boost::json::value_from( id );
+                }
             }
         }
     };
@@ -280,18 +280,26 @@ mzML::dataReaderCount() const
 const adcontrols::DataReader *
 mzML::dataReader( size_t idx ) const
 {
+    if ( idx == 0 )
+        return impl_->dataReader( this ).get();
     return nullptr;
+
 }
 
 const adcontrols::DataReader *
 mzML::dataReader( const boost::uuids::uuid& ) const
 {
-    return nullptr;
+    return impl_->dataReader( this ).get();
 }
 
 std::vector < std::shared_ptr< adcontrols::DataReader > >
 mzML::dataReaders( bool allPossible ) const
 {
+    try {
+        return std::vector < std::shared_ptr< adcontrols::DataReader > >{ impl_->dataReader( this ) };
+    } catch ( std::exception& ex ) {
+        ADDEBUG() << "## Exception: " << ex.what();
+    }
     return {};
 }
 

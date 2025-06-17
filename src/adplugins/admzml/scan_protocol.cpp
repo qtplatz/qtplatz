@@ -34,6 +34,8 @@ namespace mzml {
                                    , precursor_mz_( 0 )
                                    , collision_energy_( 0 )
                                    , polarity_( polarity_unknown )
+                                   , scan_window_lower_limit_(0)
+                                   , scan_window_upper_limit_(0)
     {
     }
 
@@ -41,10 +43,17 @@ namespace mzml {
                                                            , precursor_mz_( t.precursor_mz_ )
                                                            , collision_energy_( t.collision_energy_ )
                                                            , polarity_( t.polarity_ )
+                                                           , scan_window_lower_limit_(t.scan_window_lower_limit_)
+                                                           , scan_window_upper_limit_(t.scan_window_upper_limit_)
     {
     }
 
-    scan_protocol::scan_protocol( pugi::xml_node spectrum_node )
+    scan_protocol::scan_protocol( pugi::xml_node spectrum_node ) : ms_level_( 0 )
+                                                                 , precursor_mz_( 0 )
+                                                                 , collision_energy_( 0 )
+                                                                 , polarity_( polarity_unknown )
+                                                                 , scan_window_lower_limit_(0)
+                                                                 , scan_window_upper_limit_(0)
     {
         accession ac(spectrum_node );
         if ( auto level = ac.ms_level() )
@@ -59,6 +68,12 @@ namespace mzml {
             if ( auto node =
                  spectrum_node.select_node( "./precursorList[1]/precursor/activation/cvParam[@accession='MS:1000045']" ) ) {
                 collision_energy_ = node.node().attribute( "value" ).as_double();
+            }
+            if ( auto upper = scan.node().select_node( ".//scanWindow/cvParam[@accession='MS:1000500']" ) ) {
+                scan_window_upper_limit_ = upper.node().attribute("value").as_double();
+            }
+            if ( auto lower = scan.node().select_node( ".//scanWindow/cvParam[@accession='MS:1000501']" ) ) {
+                scan_window_lower_limit_ = lower.node().attribute("value").as_double();
             }
         }
     }
@@ -87,16 +102,29 @@ namespace mzml {
         return polarity_;
     }
 
+    double
+    scan_protocol::scan_window_lower_limit() const
+    {
+        return scan_window_lower_limit_;
+    }
+
+    double
+    scan_protocol::scan_window_upper_limit() const
+    {
+        return scan_window_upper_limit_;
+    }
+
     void
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const scan_protocol& p )
     {
         jv = {
             {"ms_level", p.ms_level() }
             , {"precursor_mz", p.precursor_mz()}
-            , {"collision_energy", p.collision_energy()}
+            , {"CE", p.collision_energy()}
             , {"polarity", p.polarity() == mzml::polarity_positive ? "positive"
                : p.polarity() == mzml::polarity_negative ? "negative"
                : "unknown"}
+            , {"scan_window", { p.scan_window_lower_limit(), p.scan_window_upper_limit() } }
         };
     }
 
@@ -104,9 +132,10 @@ namespace mzml {
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const scan_id& id )
     {
         jv = boost::json::value{
-                {"index", std::get<0>(id) },
-                {"id", std::get<1>(id) },
-                {"scan_start_time", std::get<2>(id) }
+                {"index", std::get<0>(id) }
+                , {"id", std::get<1>(id) }
+                , {"scan_start_time", std::get<2>(id) }
+                , { "scan_protocol", boost::json::value_from( std::get<3>(id) ) }
             };
     }
 

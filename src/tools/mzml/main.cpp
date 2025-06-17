@@ -22,12 +22,16 @@
 **
 **************************************************************************/
 
+#include <QtCore/qjsondocument.h>
 #include <adplugins/admzml/mzmlspectrum.hpp>
 #include <adplugins/admzml/mzmlchromatogram.hpp>
 #include <adplugins/admzml/xmltojson.hpp>
+#include <adplugins/admzml/scan_protocol.hpp>
 #include "accession.hpp"
 #include "cvparamlist.hpp"
 
+#include <boost/json/serialize.hpp>
+#include <boost/json/serializer.hpp>
 #include <pugixml.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
@@ -382,27 +386,10 @@ struct mzMLWalker {
 
                 // make_scan_indices
                 for ( const auto sp: spectra_ ) {
-                    std::string id;
-                    size_t index{0};
-                    mzml::accession ac( sp->node() );
-
-                    if ( auto scan = sp->node().select_node( "./scanList[1]/scan" ) ) {
-                        id = sp->node().attribute( "id" ).value();
-                        index = sp->node().attribute( "id" ).as_uint();
-                        double scan_start_time = scan.node().select_node( "cvParam[@accession='MS:1000016']" ).node().attribute("value").as_double();
-                        double selected_ion_mz{0}, ce{0};
-                        if ( auto node =
-                             sp->node().select_node( "./precursorList[1]/precursor/selectedIonList/selectedIon/cvParam[@accession='MS:1000744']" ) ) {
-                            selected_ion_mz = node.node().attribute( "value" ).as_double();
-                        }
-                        if ( auto node =
-                             sp->node().select_node( "./precursorList[1]/precursor/activation/cvParam[@accession='MS:1000045']" ) ) {
-                            ce = node.node().attribute( "value" ).as_double();
-                        }
-                        ADDEBUG() << std::make_tuple( id, index, sp->length(), scan_start_time, selected_ion_mz, ce, ac.to_string( ac.ion_polarity() ) )
-                                  << ", ms_level=" << *ac.ms_level();
-                    }
-                    // ADDEBUG() << mzml::to_value{}( sp->node().select_node(".//scan").node() );
+                    auto id = mzml::scan_identifier()( sp->node() );
+                    ADDEBUG()
+                        << QJsonDocument::fromJson( boost::json::serialize( boost::json::value_from(id) ).c_str() )
+                        .toJson( QJsonDocument::Compact ).toStdString();;
                 }
             }
             ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";

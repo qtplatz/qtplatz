@@ -37,6 +37,8 @@ namespace mzml {
         double precursor_mz_;
         double collision_energy_;
         ion_polarity_type polarity_;
+        double scan_window_lower_limit_;
+        double scan_window_upper_limit_;
     public:
         scan_protocol();
         scan_protocol( const scan_protocol& );
@@ -45,6 +47,8 @@ namespace mzml {
         double precursor_mz() const;
         double collision_energy() const;
         ion_polarity_type polarity() const;
+        double scan_window_lower_limit() const;
+        double scan_window_upper_limit() const;
 
         template< uint32_t Resolution = 100 >
         std::tuple< int                     // ms_level
