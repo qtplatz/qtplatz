@@ -18,6 +18,10 @@ include_directories(
 
 add_definitions(-DADTXTFACTORY_LIBRARY)
 
+if ( WIN32 )
+  set ( BASE64LIB ${CMAKE_SOURCE_DIR}/src/libs/adportable/base64.cpp )
+endif()
+
 # An issue need to be resolved
 # several .cpp files are refered from adimport project
 
@@ -36,17 +40,18 @@ add_library( ${PROJECT_NAME} MODULE
   datareader.cpp datareader.hpp
   xmltojson.cpp xmltojson.hpp
   scan_protocol.cpp scan_protocol.hpp
+  ${BASE64LIB}
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
-  ${Boost_LIBRARIES}
+  adportable
   adcontrols
   adlog
-  adportable
   xmlparser
   portfolio
   adplugin
   adfs
+  ${Boost_LIBRARIES}
   ${ZLIB_LIBRARIES}
   Threads::Threads
   Qt6::Core

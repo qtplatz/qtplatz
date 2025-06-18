@@ -25,6 +25,7 @@
 #pragma once
 
 #include "accession.hpp"
+#include <variant>
 
 namespace mzml {
 

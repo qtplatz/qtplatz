@@ -21,9 +21,7 @@ if ( WITH_QT5 AND NOT CMAKE_CROSSCOMPILING )
   add_subdirectory( plugins )
 endif()
 
-if ( NOT WIN32 )
-  add_subdirectory( tools )
-endif()
+add_subdirectory( tools )
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/cmake/Modules/QtPlatzConfig.cmake.in
