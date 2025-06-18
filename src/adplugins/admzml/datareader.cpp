@@ -23,12 +23,15 @@
  **************************************************************************/
 
 #include "datareader.hpp"
+#include "mzmlspectrum.hpp"
 #include "chromatogram.hpp"
+#include "scan_protocol.hpp"
 #include "timestamp.hpp"
 #include "mzml.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
+#include <boost/json.hpp>
 #include <algorithm>
 #include <chrono>
 #include <numeric>
@@ -135,18 +138,19 @@ DataReader::end() const
 adcontrols::DataReader::const_iterator
 DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    auto& indecies = impl_->mzml_->scan_indices();
-    // auto it = std::lower_bound( data.begin(), data.end(), seconds
-    //                             , [](const auto& a, const auto& b){ return std::get< scan_acquisition_time >( a ) < b; } );
-    // if ( it != data.end() ) {
-    //     size_t rowid = std::distance( data.begin(), it );
-    //     if ( closest && (it+1) != data.end() ) {
-    //         if ( std::abs( std::get< scan_acquisition_time >(*it) - seconds ) > std::abs( std::get< scan_acquisition_time >(*(it+1)) - seconds ) )
-    //             ++rowid;
-    //     }
-    //     ADDEBUG() << "-- DataReader " << __FUNCTION__ << " ================ pos: " << rowid;
-    //     return adcontrols::DataReader_iterator( this, rowid, fcn );
-    // }
+    auto& indices = impl_->mzml_->scan_indices();
+    auto it = std::lower_bound( indices.begin(), indices.end(), seconds
+                                , [](const auto& a, const auto& b){
+                                    return std::get< enum_scan_start_time >( a.first ) < b; } );
+    if ( it != indices.end() ) {
+        size_t rowid = std::distance( indices.begin(), it );
+        if ( closest && (it+1) != indices.end() ) {
+            if ( std::abs( std::get< enum_scan_start_time >(it->first) - seconds )
+                 > std::abs( std::get< enum_scan_start_time >((it + 1)->first) - seconds ) )
+                ++rowid;
+        }
+        return adcontrols::DataReader_iterator( this, rowid, fcn );
+    }
     return end();
 }
 
@@ -156,9 +160,9 @@ DataReader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
 
     assert( ispec == TriggerNumber );
-    auto& data = impl_->mzml_->scan_indices();
-    // if ( 0 <= pos && pos <= data.size() )
-    //     return std::get< scan_acquisition_time >( data[ pos ] );
+    auto& indices = impl_->mzml_->scan_indices();
+    if ( 0 <= pos && pos <= indices.size() )
+        return std::get< enum_scan_start_time >( indices[ pos ].first );
     return -1.0;
 }
 
@@ -310,15 +314,15 @@ std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-#if 0
-    const auto& transformed = impl_->mzml_->transformed();
 
-    if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_type" ) ) {
-        if ( *value == "Centroided Mass Spectrum" ) { // I'm not sure this is typo by Shimadzu or wrong specification by ASTM
-            ms->setCentroid( adcontrols::CentroidNative );
-        }
+    auto [scan_id, sp] = impl_->mzml_->find_spectrum( first->fcn(), first->pos(), first->rowid() );
+    if ( sp && sp->length() ) {
+        ADDEBUG() << boost::json::value_from( scan_id );
+        auto ms = sp->toMassSpectrum( *sp );
+        return ms;
     }
+
+#if 0
     const auto& data = impl_->mzml_->scan_indices();
     size_t fst = first->rowid();
     size_t lst = last != end() ? last->rowid() : transformed.size();
@@ -335,8 +339,6 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
             ms->setPolarity( adcontrols::PolarityNegative );
     }
 
-    // ADDEBUG() << __FUNCTION__ << "######### fst/lst=" << std::make_pair(fst, lst);
-
     ms->resize( transformed.size() );
     ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) );
     auto& prop = ms->getMSProperty();
@@ -352,7 +354,7 @@ DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
         // ADDEBUG() << "\t" << std::make_tuple( ch, values.first, ms->intensity( ch ) );
     }
 #endif
-    return ms;
+    return {};
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >

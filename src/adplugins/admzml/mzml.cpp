@@ -27,6 +27,7 @@
 #include "mzmlwalker.hpp"
 #include "mzmlchromatogram.hpp"
 #include "mzmlspectrum.hpp"
+#include "scan_protocol.hpp"
 #include "xmltojson.hpp"
 #include "datareader.hpp"
 #include <pugixml.hpp>
@@ -67,6 +68,7 @@
 #include <set>
 #include <regex>
 #include <variant>
+#include <unordered_map>
 
 namespace {
     // helper for visitor
@@ -87,12 +89,14 @@ namespace mzml {
         std::optional< softwareList > softwareList_;
         std::optional< instrumentConfigurationList > instrumentConfigurationList_;
         std::optional< dataProcessingList > dataProcessingList_;
-        spectra_t spectra_;
+        spectra_t spectra_; // all spectra stored in the file including no length data
         chromatograms_t chromatograms_;
         std::shared_ptr< DataReader > dataReader_;
-        std::vector< mzml::scan_id > scan_indices_;
+        std::vector< std::pair< mzml::scan_id, std::shared_ptr<mzml::mzMLSpectrum> > > scan_indices_;
+        std::unordered_map< mzml::scan_protocol_key_t, int, mzml::protocol_key_hash, mzml::protocol_key_equal > protocol_map_;
+        size_t number_of_protocols_;
 
-        impl() {}
+        impl() : number_of_protocols_( 0 ) {}
         //-------------------------
         std::shared_ptr< adcontrols::DataReader > dataReader( const mzML * p ) {
             if ( not dataReader_ ) {
@@ -119,15 +123,26 @@ namespace mzml {
         }
 
         void make_scan_indices() {
+            int next_id{0};
             for ( const auto& sp: spectra_ ) {
                 if ( sp->length() > 0 ) {
                     auto id = mzml::scan_identifier()( sp->node() );
-                    scan_indices_.emplace_back( id );
-                    // ADDEBUG() << boost::json::value_from( id );
+                    auto key  = std::get< enum_scan_protocol >( id ).protocol_key();
+                    auto [it, inserted] = protocol_map_.emplace( key, next_id );
+                    if ( inserted ) {
+                        ADDEBUG() << "--------- add protocol : " << next_id;
+                        ++next_id;
+                    }
+                    int protocol_id = it->second;
+                    sp->set_protocol_id( protocol_id );
+                    scan_indices_.emplace_back( id, sp );
                 }
             }
+            number_of_protocols_ = next_id;
         }
     };
+
+
 }
 
 using namespace mzml;
@@ -186,12 +201,23 @@ mzML::import_chromatograms() const
     return vec;
 }
 
-const std::vector< scan_id >&
+const std::vector< std::pair< mzml::scan_id, std::shared_ptr< mzMLSpectrum > > > &
 mzML::scan_indices() const
 {
     return impl_->scan_indices_;
 }
 
+std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > >
+mzML::find_spectrum( int fcn, size_t pos, size_t rowid ) const
+{
+    ADDEBUG() << "find_spectrum: " << std::make_tuple( fcn, pos, rowid );
+    if ( impl_->scan_indices_.size() > rowid ) {
+        return impl_->scan_indices_.at( rowid );
+    }
+    return {};
+}
+
+//////////
 int
 mzML::dataformat_version() const
 {
@@ -206,7 +232,8 @@ mzML::getFunctionCount() const
 }
 
 size_t
-mzML::getSpectrumCount( int fcn ) const {
+mzML::getSpectrumCount( int fcn ) const
+{
     return {};
 }
 
@@ -223,9 +250,10 @@ mzML::getTIC( int fcn, adcontrols::Chromatogram& ) const
 }
 
 bool
-mzML::getSpectrum( int fcn, size_t npos, adcontrols::MassSpectrum&, uint32_t objid ) const
+mzML::getSpectrum( int fcn, size_t npos, adcontrols::MassSpectrum& ms, uint32_t objid ) const
 {
-    return {};
+    ADDEBUG() << "getSpectrum(" << std::make_tuple( fcn, npos, objid ) << ")";
+    return true;
 }
 
 size_t

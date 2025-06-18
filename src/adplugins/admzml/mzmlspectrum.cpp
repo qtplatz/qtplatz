@@ -24,98 +24,210 @@
 **************************************************************************/
 
 #include "mzmlspectrum.hpp"
+#include "accession.hpp"
 #include "binarydataarray.hpp"
 #include "mzmldatumbase.hpp"
+#include "scan_protocol.hpp"
 #include "xmltojson.hpp"
+#include <adcontrols/massspectrum.hpp>
+#include <adcontrols/msproperty.hpp>
+#include <adportable/debug.hpp>
 #include <boost/json.hpp>
 #include <pugixml.hpp>
+#include <algorithm>
 
 namespace mzml {
 
     class mzMLSpectrum::impl {
+        mzMLSpectrum * this_;
     public:
-        impl() {}
-        impl( binaryDataArray prime
-              , binaryDataArray secondi ) : prime_( prime )
-                                          , secondi_( secondi ) {
+        impl( mzMLSpectrum * pThis ) : this_( pThis ) {}
+        impl( mzMLSpectrum * pThis
+              , binaryDataArray prime
+              , binaryDataArray secondi ) : this_( pThis )
+                                          , prime_( prime )
+                                          , secondi_( secondi )
+                                          , scan_id_( scan_identifier{}( this_->node() ) )
+                                          , protocol_number_( 0 )
+                                          , highest_observed_mz_ ( 0 )
+                                          , lowest_observed_mz_( 0 ) {
         }
-        binaryDataArray prime_; // mz array
-        binaryDataArray secondi_; // intensity array
-        pugi::xml_node node_;
+        impl( mzMLSpectrum * pThis
+              , const impl& t ) : this_( pThis )
+                                , prime_( t.prime_ )
+                                , secondi_( t.secondi_ )
+                                , scan_id_( t.scan_id_ )
+                                , protocol_number_( t.protocol_number_ )
+                                , highest_observed_mz_( t.highest_observed_mz_ )
+                                , lowest_observed_mz_( t.lowest_observed_mz_ ) {
+        }
 
-        bool is_profile_spectrum_;
-        size_t ms_level_;
-        double base_peak_intensity_;
-        double base_peak_mz_;
+        binaryDataArray prime_;   // mz array
+        binaryDataArray secondi_; // intensity array
+        mzml::scan_id scan_id_;   // index, id (scan="1"), scan_start_time,
+                                  // scan_protocol { ms_level_, precursor_mz_, CE, scan range
+        int protocol_number_;
         double highest_observed_mz_;
         double lowest_observed_mz_;
-
     };
 
     mzMLSpectrum::~mzMLSpectrum()
     {
     }
 
-    mzMLSpectrum::mzMLSpectrum() : impl_( std::make_unique< impl >() )
+    mzMLSpectrum::mzMLSpectrum() : impl_( std::make_unique< impl >( this ) )
     {
     }
 
-    mzMLSpectrum::mzMLSpectrum( const mzMLSpectrum& t ) : impl_( std::make_unique< impl >( *t.impl_ ) )
+    mzMLSpectrum::mzMLSpectrum( const mzMLSpectrum& t )
+        : impl_( std::make_unique< impl >( this, *t.impl_ ) )
     {
     }
-
 
     mzMLSpectrum::mzMLSpectrum( binaryDataArray prime
                                 , binaryDataArray secondi
-                                , pugi::xml_node node ) : mzMLDatumBase( node )
-                                                        , impl_( std::make_unique< impl >( prime, secondi ) )
+                                , pugi::xml_node node )
+        : mzMLDatumBase( node )
+        , impl_( std::make_unique< impl >( this, prime, secondi ) )
     {
-#if 0
-        for ( auto node: node_.select_nodes("scanList/scan") ) {
-            scanlist_.emplace_back( node.node() );
-        }
-        for ( auto node: node_.select_nodes( "precursorList/precursor" ) ) {
-            precursorlist_.emplace_back( node.node() );
-        }
-        {
-            auto jv = mzml::to_value{}( node_.select_node( "scanList" ).node() );
-            ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
-                .toJson( QJsonDocument::Indented ).toStdString();
-        }
-        {
-            auto jv = mzml::to_value{}( node_.select_node( "precursorList" ).node() );
-            ADDEBUG() << QJsonDocument::fromJson( boost::json::serialize( jv ).c_str() )
-                .toJson( QJsonDocument::Indented ).toStdString();
-        }
-#endif
     }
 
     size_t
     mzMLSpectrum::length() const
     {
-        return impl_->prime_.size();
+        return impl_->prime_.length();
     }
 
-    // std::optional< double > scan_start_time() const { return scan_.scan_start_time(); }
+    std::pair< const binaryDataArray&, const binaryDataArray& >
+    mzMLSpectrum::dataArrays() const
+    {
+        return { impl_->prime_, impl_->secondi_ };
+    }
 
     boost::json::value
-    mzMLSpectrum::to_value() const {
-        // return mzml::to_value{}( node() );
-        // ADDEBUG() << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
-        // ADDEBUG() << mzml::to_value{}( node_ );
-        // ADDEBUG() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
-#if 0
-        return boost::json::value{
-            { "id", id() }
-            , { "index", index() }
-            , { "length", length() }
-            , { "scan", boost::json::value_from( scanlist_ ) }
-            , { "precursor", boost::json::value_from( precursorlist_ ) }
-            , { "base_peak", { "mz", boost::json::value_from( ac().base_peak_mz() ) }
-                , { "intensity", boost::json::value_from( ac().base_peak_intensity()) } }
-            , { "is_positive_scan", boost::json::value_from( ac().is_positive_scan() ) }
-        };
-#endif
+    mzMLSpectrum::to_value() const
+    {
+        return mzml::to_value{}( node() );
+    }
+
+    const scan_id&
+    mzMLSpectrum::scan_id() const
+    {
+        return impl_->scan_id_;
+    }
+
+    double
+    mzMLSpectrum::scan_start_time() const
+    {
+        return scan_id_accessor{impl_->scan_id_}.scan_start_time();
+    }
+
+    std::pair< double, double >
+    mzMLSpectrum::scan_range() const // lower, upper
+    {
+        const auto& proto = scan_id_accessor{ impl_->scan_id_ }.scan_protocol();
+        return { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() };
+    }
+
+    double
+    mzMLSpectrum::precursor_mz() const
+    {
+        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().precursor_mz();
+    }
+
+    int
+    mzMLSpectrum::ms_level() const
+    {
+        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().ms_level();
+    }
+
+    ion_polarity_type
+    mzMLSpectrum::polarity() const
+    {
+        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().polarity();
+    }
+
+    std::pair< double, double >
+    mzMLSpectrum::base_peak() const  // mz, intensity
+    {
+        accession ac( node() );
+        if ( auto mass = ac.base_peak_mz() ) {
+            if ( auto bpi = ac.base_peak_intensity() ) {
+                return { *mass, *bpi };
+            }
+        }
         return {};
     }
+
+    bool
+    mzMLSpectrum::is_profile() const
+    {
+        return accession( node() ).is_profile_spectrum();
+    }
+
+    double
+    mzMLSpectrum::total_ion_current() const
+    {
+        if ( auto tic = accession( node() ).total_ion_current() )
+            return *tic;
+        return 0;
+    }
+
+    void
+    mzMLSpectrum::set_protocol_id( int id )
+    {
+        impl_->protocol_number_ = id;
+    }
+
+    int
+    mzMLSpectrum::protocol_id() const
+    {
+        return impl_->protocol_number_;
+    }
+
+}
+
+std::shared_ptr< adcontrols::MassSpectrum >
+mzml::mzMLSpectrum::toMassSpectrum( const mzMLSpectrum& t )
+{
+    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+
+    ms->resize( t.length() );
+    auto [ masses, intensities ] = t.dataArrays();
+
+    std::visit([&](auto arg){
+        for ( size_t i = 0; i < t.length(); ++i )
+            ms->setMass( i, *arg++ );
+     }, masses.data() );
+
+    std::visit([&](auto arg){
+        for ( size_t i = 0; i < t.length(); ++i )
+            ms->setIntensity ( i, *arg++ );
+    }, intensities.data() );
+
+    const auto& id = t.scan_id();
+    const auto& proto = scan_id_accessor{ t.scan_id() }.scan_protocol();
+
+    if ( t.is_profile() )
+        ms->setCentroid( adcontrols::CentroidNone );
+
+    ms->setAcquisitionMassRange( proto.scan_window_lower_limit(), proto.scan_window_upper_limit() );
+    auto polarity = t.polarity();
+    if ( polarity == polarity_negative )
+        ms->setPolarity( adcontrols::PolarityNegative );
+    else
+        ms->setPolarity( adcontrols::PolarityPositive );
+
+    auto& prop = ms->getMSProperty();
+    prop.setTimeSinceInjection( t.scan_start_time() );
+    prop.setTrigNumber( scan_id_accessor{ t.scan_id() }.scan_index() );
+    prop.setInstMassRange( { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() } );
+
+    // Shimadzu does not expose timestamp in mzML
+    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp; // epoch
+    std::chrono::nanoseconds elapsed_time( int64_t( t.scan_start_time() * 1e9 ) );
+    tp += elapsed_time;
+    prop.setTimePoint( tp );
+
+    return ms;
 }

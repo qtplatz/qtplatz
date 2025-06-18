@@ -23,10 +23,12 @@
 **************************************************************************/
 
 #include "scan_protocol.hpp"
+#include "accession.hpp"
 #include <boost/json.hpp>
 #include <stdexcept>
 #include <string>
-#include "accession.hpp"
+#include <utility>
+#include <boost/json.hpp>
 
 namespace mzml {
 
@@ -114,6 +116,56 @@ namespace mzml {
         return scan_window_upper_limit_;
     }
 
+    scan_identifier::scan_identifier()
+    {
+    }
+
+    scan_id
+    scan_identifier::operator()( const pugi::xml_node& spectrum_node ) const
+    {
+        if ( spectrum_node.name() != std::string( "spectrum" ) )
+            throw std::invalid_argument( "not a spectrum node" );
+
+        if ( auto scan = spectrum_node.select_node( "./scanList[1]/scan" ) ) {
+            auto id = spectrum_node.attribute( "id" ).value();
+            auto index = spectrum_node.attribute( "id" ).as_uint();
+            double scan_start_time = scan.node().select_node( "cvParam[@accession='MS:1000016']" ).node().attribute("value").as_double();
+
+            return { index, id, scan_start_time, scan_protocol( spectrum_node ) };
+        }
+        return {};
+    }
+
+} // namespace
+
+
+namespace mzml {
+
+    std::size_t
+    protocol_key_hash::operator()(const scan_protocol_key_t& key) const
+    {
+        std::size_t seed = 0;
+        hash_combine(seed, std::get<0>(key));
+        hash_combine(seed, std::get<1>(key));
+        hash_combine(seed, std::get<2>(key));
+        hash_combine(seed, std::get<3>(key));
+        hash_combine(seed, std::get<4>(key));
+        hash_combine(seed, std::get<5>(key));
+        return seed;
+    }
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const scan_protocol_key_t& t )
+    {
+        jv = boost::json::value{
+            { "ms_level", std::get< 0 >( t ) }
+            , { "polarity", std::get< 1 >( t ) }
+            , { "precursor_mz", std::get< 2 >( t ) }
+            , { "ce", std::get< 3 >( t ) }
+            , { "scan_window", boost::json::value_from( std::make_tuple( std::get< 4 >( t ), std::get< 5 >( t ) ) ) }
+        };
+    }
+
     void
     tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const scan_protocol& p )
     {
@@ -139,24 +191,5 @@ namespace mzml {
             };
     }
 
-    scan_identifier::scan_identifier()
-    {
-    }
 
-    scan_id
-    scan_identifier::operator()( const pugi::xml_node& spectrum_node ) const
-    {
-        if ( spectrum_node.name() != std::string( "spectrum" ) )
-            throw std::invalid_argument( "not a spectrum node" );
-
-        if ( auto scan = spectrum_node.select_node( "./scanList[1]/scan" ) ) {
-            auto id = spectrum_node.attribute( "id" ).value();
-            auto index = spectrum_node.attribute( "id" ).as_uint();
-            double scan_start_time = scan.node().select_node( "cvParam[@accession='MS:1000016']" ).node().attribute("value").as_double();
-
-            return { index, id, scan_start_time, scan_protocol( spectrum_node ) };
-        }
-        return {};
-    }
-
-} // namespace
+}

@@ -198,13 +198,6 @@ namespace mzml {
     }
 
     std::optional< double >
-    accession::total_ion_current() const {
-        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000285']" ) )
-            return attr.attribute().as_double();
-        return {};
-    }
-
-    std::optional< double >
     accession::base_peak_mz() const {
         if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000504']" ) )
             return attr.attribute().as_double();
@@ -228,6 +221,18 @@ namespace mzml {
     bool
     accession::is_SRM_spectrum() const {
         return parent_node_.select_node( "cvParam[@accession='MS:1000583']" );
+    }
+
+    bool
+    accession::is_profile_spectrum() const {
+        return parent_node_.select_node( "cvParam[@accession='MS:1000128']" );
+    }
+
+    std::optional< double >
+    accession::total_ion_current() const {
+        if ( auto node = parent_node_.select_node( "cvParam[@accession='MS:1000285']" ) )
+            return node.node().attribute("value").as_double();
+        return {};
     }
 
     ion_polarity_type

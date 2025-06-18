@@ -51,6 +51,8 @@ namespace adcontrols {
 
 namespace mzml {
 
+    class mzMLSpectrum;
+
     class mzML : public adcontrols::LCMSDataset
                , public std::enable_shared_from_this< mzML > {
         mzML( const mzML& ) = delete;
@@ -97,7 +99,10 @@ namespace mzml {
         // mzML
         bool open( const std::filesystem::path& path );
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > import_chromatograms() const;
-        const std::vector< mzml::scan_id > &scan_indices() const;
+        const std::vector< std::pair< mzml::scan_id, std::shared_ptr< mzMLSpectrum > > >& scan_indices() const;
+
+        std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > find_spectrum( int fcn, size_t pos, size_t rowid ) const;
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

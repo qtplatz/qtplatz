@@ -27,10 +27,17 @@
 
 #include "mzmldatumbase.hpp"
 #include "binarydataarray.hpp"
+#include "scan_protocol.hpp"
 #include <boost/json/fwd.hpp>
 #include <memory>
 
+namespace adcontrols {
+    class MassSpectrum;
+}
+
 namespace mzml {
+
+    enum ion_polarity_type : unsigned int;
 
     class mzMLSpectrum : public mzMLDatumBase {
         class impl;
@@ -45,5 +52,20 @@ namespace mzml {
 
         size_t length() const;
         boost::json::value to_value() const;
+        std::pair< const binaryDataArray&, const binaryDataArray& > dataArrays() const;
+
+        const scan_id& scan_id() const;
+        double scan_start_time() const;
+        std::pair< double, double > scan_range() const; // lower, upper
+        std::pair< double, double > base_peak() const;  // mz, intensity
+        double precursor_mz() const;
+        int ms_level() const;
+        bool is_profile() const;
+        ion_polarity_type polarity() const;
+        double total_ion_current() const;
+        void set_protocol_id( int );
+        int protocol_id() const;
+
+        static std::shared_ptr< adcontrols::MassSpectrum > toMassSpectrum( const mzMLSpectrum& );
     };
 }
