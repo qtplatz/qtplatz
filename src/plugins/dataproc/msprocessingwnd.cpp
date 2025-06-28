@@ -1251,8 +1251,6 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
     auto ptr = pImpl_->pProcessedSpectrum_.second.lock();
 
-    ADDEBUG() << "--------- " << __FUNCTION__ << " -----------------";
-
     QMenu menu;
 
     // [0]
@@ -1950,8 +1948,6 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                                                 , double left
                                                 , double right )
 {
-    ADDEBUG() << "--------------- " << __FUNCTION__ << " ------------- " << ptr->isCentroid() << ", " << std::make_pair( left, right );
-
     if ( ptr && ptr->isCentroid() ) {
 
         const int h_threshold = left < 0 ? 1000 : 100;
@@ -1959,8 +1955,6 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
         std::shared_ptr< adcontrols::MSPeakInfo > xpkinfo;
 
         if ( auto pkinfo = pImpl_->pkinfo_.second.lock() ) {
-
-            ADDEBUG() << "--- " << __FUNCTION__ << " -- pkinfo = " << pkinfo->size();
 
             for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
 
@@ -1996,7 +1990,6 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
 
 
         if ( xpkinfo ) {
-            ADDEBUG() << __FUNCTION__ << " xpkinfo.size() = " << xpkinfo->size();
 
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 

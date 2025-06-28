@@ -244,8 +244,11 @@ mzML::import_chromatograms() const
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
     for ( const auto& tic: impl_->TICs_ )
         vec.emplace_back( tic.second );
+#if 0
+    // Shimadzu LabSolutions saved TIC&BPC chromatograms, which contains SRM or SIM data so that no need to review
     for ( const auto& pc: impl_->chromatograms_ )
         vec.emplace_back( mzMLChromatogram::toChromatogram( *pc ) );
+#endif
     for ( const auto& srm: impl_->SRMs_ )
         vec.emplace_back( srm.second );
     return vec;

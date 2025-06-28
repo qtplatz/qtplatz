@@ -1609,7 +1609,6 @@ MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list, int id )
 void
 MainWindow::actionApply()
 {
-    ScopedDebug(__t);
     qtwrapper::waitCursor wait;
 
     adcontrols::ProcessMethod pm;

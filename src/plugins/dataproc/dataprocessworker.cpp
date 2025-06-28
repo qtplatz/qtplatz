@@ -125,8 +125,6 @@ DataprocessWorker::createChromatogramsByPeakInfo3( Dataprocessor* processor
     auto p( adwidgets::ProgressWnd::instance()->addbar() );
     auto ptr = reader->shared_from_this();
 
-    ADDEBUG() << __FUNCTION__ << ", " << reader->display_name();
-
     threads_.emplace_back( adportable::asio::thread( [=,this] {
         handleChromatogramsByPeakInfo3( processor, pm, pkinfo, ptr, p );
     }));
@@ -654,7 +652,6 @@ DataprocessWorker::handleChromatogramsByPeakInfo3( Dataprocessor * processor
                                       , reader
                                       , [progress]( size_t curr, size_t total ){ return (*progress)( curr, total ); } );
 
-        ADDEBUG() << "## " << __FUNCTION__ << " ## vec.size: " << vec.size();
     }
 
     portfolio::Folium folium;

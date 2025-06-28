@@ -182,9 +182,6 @@ DataReader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) con
 
         if ( it != indices.end() ) {
             size_t rowid = std::distance( indices.begin(), it );
-            ADDEBUG() << "\tfound rowid=" << rowid << ", key=" << std::get< enum_scan_protocol >(it->first).protocol_key() << ", *key=" << *key
-                      << " --> " << (std::get< enum_scan_protocol >(it->first).protocol_key() == *key);
-
             if ( closest && (it+1) != indices.end() ) {
                 if ( std::abs( std::get< enum_scan_start_time >(it->first) - seconds )
                      > std::abs( std::get< enum_scan_start_time >((it + 1)->first) - seconds ) )
@@ -334,9 +331,6 @@ DataReader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 DataReader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== "
-              << std::make_pair( first->time_since_inject(), last->time_since_inject() );
-
     auto it = impl_->mzml_->scan_indices().begin() + first.rowid();
     if ( it->second->protocol_id() != impl_->fcn_ )
         throw std::invalid_argument("protocol id missmatch");

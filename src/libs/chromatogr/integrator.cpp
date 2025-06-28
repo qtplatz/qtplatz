@@ -582,7 +582,7 @@ namespace {
                 } else {
                     auto& baseline = baselines.emplace_back( helper::baseline( c, pk.startPos(), pk.endPos()) );
                     pk.setBaseId( baseline.baseId() );
-                    ADDEBUG() << "#### baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
+                    // ADDEBUG() << "#### baseline not assigned for peak: " << std::make_tuple( pk.startTime(), pk.peakTime(), pk.endTime() );
                 }
             }
         }
@@ -1590,7 +1590,7 @@ helper::baseline( const signal_processor& c, int spos, int epos, long baseId )
     bs.setStopHeight( c.intensity( epos ) ) ;
     bs.setBaseId( baseId );
 
-    ADDEBUG() << "add baseline: " << std::make_pair(bs.startTime(), bs.stopTime()) << ", id=" << baseId;
+    // ADDEBUG() << "add baseline: " << std::make_pair(bs.startTime(), bs.stopTime()) << ", id=" << baseId;
 
     return bs;
 }

@@ -165,11 +165,7 @@ document::initialSetup()
         path = QFileInfo( path ).path();
     }
     // fake project directory for help initial openfiledialog location
-#if QTC_VERSION <= 0x03'02'81
-    Core::DocumentManager::setProjectsDirectory( path );
-#else
     Core::DocumentManager::setProjectsDirectory( Utils::FilePath::fromString( path ) );
-#endif
     Core::DocumentManager::setUseProjectsDirectory( true );
 
     std::filesystem::path mfile( dir / "default.pmth" );
@@ -274,7 +270,6 @@ document::findTIC( Dataprocessor * dp, int fcn )
         std::wstring name = ( boost::wformat( L"TIC/TIC.%d" ) % ( fcn + 1 ) ).str();
         if ( auto folium = cfolder.findFoliumByName( name ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
-            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
             return cptr;
         }
 
@@ -283,16 +278,9 @@ document::findTIC( Dataprocessor * dp, int fcn )
         query << boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 );
         if ( auto folium = cfolder.findFoliumByRegex( query.str() ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
-            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
             return cptr;
         }
 
-        std::string mzML = ( boost::format( "./folium[contains(@name,'TIC%d')]" ) % ( fcn + 1 ) ).str();
-        if ( auto folium = cfolder.findFoliumByRegex( mzML ) ) {
-            auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
-            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
-            return cptr;
-        }
     }
     ADDEBUG() << "## " << __FUNCTION__ << " ## " << "TIC for protocol " << fcn + 1 << " cannot be found";
     return 0;
@@ -418,12 +406,10 @@ document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
-//#if 0
-            auto cptr = document::findTIC( dp, 0 );
-            (void)(cptr);
-            // if ( not cptr )
-            //     return;
-//#endif
+            {
+                auto cptr = document::findTIC( dp, 0 );
+            }
+
             if ( dset->dataformat_version() >= 3 ) {
 
                 handleSelectTimeRangeOnChromatogram_v3( dp, dset, x1, x2 );
