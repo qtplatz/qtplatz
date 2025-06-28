@@ -100,7 +100,6 @@ namespace adcontrols {
     figshareREST::set_resource_doi( const std::string& resource_doi )
     {
         resource_doi_ = resource_doi;
-        ADDEBUG() << "--------------> set_resource_doi: " << resource_doi_;
     }
 
     std::string

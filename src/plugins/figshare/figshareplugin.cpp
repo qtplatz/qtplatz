@@ -50,7 +50,6 @@ using namespace figshare;
 
 FigsharePlugin::FigsharePlugin() : impl_( new FigsharePlugin::impl() )
 {
-    ADDEBUG() << "============== FigsharePlugin::FigsharePlugin ================";
 }
 
 
@@ -62,12 +61,10 @@ FigsharePlugin::~FigsharePlugin()
 bool
 FigsharePlugin::initialize(const QStringList &arguments, QString *errorMessage)
 {
-    ADDEBUG() << __FUNCTION__;
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
         impl_->mainWindow_->activateWindow();
         impl_->mainWindow_->createActions();
 
-        ADDEBUG() << "----------- createContents ------------";
         if ( QWidget * widget = impl_->mainWindow_->createContents() ) {
             if (( impl_->mode_ = std::make_unique< Mode >() )) {
                 impl_->mode_->setWidget( widget );

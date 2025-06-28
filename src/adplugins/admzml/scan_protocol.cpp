@@ -24,11 +24,14 @@
 
 #include "scan_protocol.hpp"
 #include "accession.hpp"
+#include <adportable/debug.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/json_helper.hpp>
 #include <boost/json.hpp>
+#include <boost/format.hpp>
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <boost/json.hpp>
 
 namespace mzml {
 
@@ -136,6 +139,19 @@ namespace mzml {
         return {};
     }
 
+    std::ostream&
+    operator<<(std::ostream& out, const scan_protocol& obj)
+    {
+        out << boost::format( "ms_level: %d, precursor_mz: %.2f, CE: %.1f, polarity: %s scan_mz={%.1f, %.1f}" )
+            % obj.ms_level_
+            % obj.precursor_mz_
+            % obj.collision_energy_
+            % (obj.polarity_ == polarity_negative ? "negative" : (obj.polarity_ == polarity_positive ? "positive" : "unknown" ) )
+            % obj.scan_window_lower_limit_
+            % obj.scan_window_upper_limit_;
+        return out;
+    }
+
 } // namespace
 
 
@@ -172,12 +188,33 @@ namespace mzml {
         jv = {
             {"ms_level", p.ms_level() }
             , {"precursor_mz", p.precursor_mz()}
-            , {"CE", p.collision_energy()}
+            , {"ce", p.collision_energy()}
             , {"polarity", p.polarity() == mzml::polarity_positive ? "positive"
                : p.polarity() == mzml::polarity_negative ? "negative"
                : "unknown"}
             , {"scan_window", { p.scan_window_lower_limit(), p.scan_window_upper_limit() } }
         };
+    }
+
+    scan_protocol
+    tag_invoke( const boost::json::value_to_tag< scan_protocol >&, const boost::json::value& jv )
+    {
+        using namespace adportable::json;
+
+        if ( jv.kind() == boost::json::kind::object ) {
+            scan_protocol t;
+            auto obj = jv.as_object();
+            extract( obj, t.ms_level_, "ms_level" );
+            extract( obj, t.precursor_mz_, "precursor_mz" );
+            extract( obj, t.collision_energy_, "ce" );
+            auto pol = obj.at( "polarity" ).as_string();
+            t.polarity_ = ( pol == "positive" ) ? mzml::polarity_positive
+                : ( pol == "negative" ) ? mzml::polarity_negative : mzml::polarity_unknown;
+            t.scan_window_lower_limit_ = jv.at( "scan_window" ).as_array().at( 0 ).as_double();
+            t.scan_window_lower_limit_ = jv.at( "scan_window" ).as_array().at( 1 ).as_double();
+            return t;
+        }
+        return {};
     }
 
     void

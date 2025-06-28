@@ -89,11 +89,7 @@ MainWindow::OnClose()
 void
 MainWindow::OnInitialUpdate()
 {
-    ADDEBUG() << __FUNCTION__;
-
 	setSimpleDockWidgetArrangement();
-
-    ADDEBUG() << __FUNCTION__;
 
 #if ! defined Q_OS_MAC
     if ( auto wnd = findChild< RESTWnd * >() ) {

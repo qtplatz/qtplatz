@@ -65,6 +65,8 @@ namespace mzml {
                      , int(scan_window_lower_limit_ * Resolution + 0.5)
                      , int(scan_window_upper_limit_ * Resolution + 0.5) };
         }
+        friend std::ostream& operator<<(std::ostream&, const scan_protocol&);
+        friend scan_protocol tag_invoke( const boost::json::value_to_tag< scan_protocol >&, const boost::json::value&);
     };
 
     using scan_protocol_key_t = decltype(std::declval<mzml::scan_protocol>().protocol_key<>());

@@ -836,27 +836,24 @@ MainWindow::createDockWidgets()
                 }
             }
 
-            if ( qobject_cast< adwidgets::CentroidWidget * >( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::MSSimulatorWidget *>( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::TargetingWidget *>( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::MSChromatogramWidget *>( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::PeakMethodForm *>( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::MSCalibrateWidget *>( pWidget ) == nullptr &&
-                 qobject_cast< dataproc::MSPropertyForm *>( pWidget ) == nullptr &&
-                 qobject_cast< adwidgets::MSPeakWidget *>( pWidget ) == nullptr ) {
+            if ( qobject_cast< dataproc::MSPeakTable * >( pWidget ) ) {
 
-                // all MSPeakTable variants
                 if ( auto wnd = findChild< MSProcessingWnd *>() ) {
-                    connect( pWidget, SIGNAL( currentChanged( int, int ) ), wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
-                    connect( pWidget, SIGNAL( formulaChanged( int, int ) ), wnd, SLOT( handleFormulaChanged( int, int ) ) );
-                    connect( pWidget, SIGNAL( modeChanged( int, int, int ) ), wnd, SLOT( handleModeChanged( int, int, int ) ) );
+                    connect( pWidget, SIGNAL( currentChanged( int, int ) )
+                             , wnd, SLOT( handleCurrentChanged( int, int ) ) ); // idx, fcn
+                    connect( pWidget, SIGNAL( formulaChanged( int, int ) )
+                             , wnd, SLOT( handleFormulaChanged( int, int ) ) );
+                    connect( pWidget, SIGNAL( modeChanged( int, int, int ) )
+                             , wnd, SLOT( handleModeChanged( int, int, int ) ) );
                     connect( pWidget, SIGNAL( triggerLockMass( const QVector<QPair<int, int>>& ) )
                              , wnd, SLOT( handleLockMass( const QVector<QPair<int, int>>& ) ) );
                     connect( pWidget, SIGNAL( estimateScanLaw( const QVector<QPair<int, int>>& ) )
                              , wnd, SLOT( handleScanLawEst( const QVector<QPair<int, int>>& ) ) );
-                    connect( pWidget, SIGNAL( rescaleY( int ) ), wnd, SLOT( handleRescaleY( int ) ) ); // fcn (a.k.a protocol)
+                    connect( pWidget, SIGNAL( rescaleY( int ) )
+                             , wnd, SLOT( handleRescaleY( int ) ) ); // fcn (a.k.a protocol)
                 }
-                connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF&, int ) ), pWidget, SLOT( handleZoomedOnSpectrum( const QRectF&, int ) ) );
+                connect( this, SIGNAL( onZoomedOnSpectrum( const QRectF&, int ) )
+                         , pWidget, SLOT( handleZoomedOnSpectrum( const QRectF&, int ) ) );
 
                 if ( qobject_cast<adwidgets::MSPeakTable *>( pWidget ) == nullptr )
                     connect( this, SIGNAL( onZoomedOnChromatogram( const QRectF& ) )
@@ -867,7 +864,8 @@ MainWindow::createDockWidgets()
                  qobject_cast< adwidgets::MSPeakTable * >( pWidget ) == nullptr &&
                  qobject_cast< adwidgets::MSPeakWidget * >( pWidget ) == nullptr ) {
 
-                connect( pWidget, SIGNAL( triggerProcess( const QString& ) ), this, SLOT( handleProcess( const QString& ) ) );
+                connect( pWidget, SIGNAL( triggerProcess( const QString& ) )
+                         , this, SLOT( handleProcess( const QString& ) ) );
             }
 
             if ( auto p = qobject_cast< adwidgets::PeptideWidget *>( pWidget ) ) {

@@ -65,8 +65,6 @@ namespace adcontrols {
     };
 
     class ADCONTROLSSHARED_EXPORT DataReader_iterator {
-        // : public std::iterator< std::bidirectional_iterator_tag
-        //                         , DataReader_iterator > {
         std::weak_ptr< const DataReader > reader_;
         DataReader_value_type value_;
         int fcn_;
@@ -202,7 +200,9 @@ namespace adcontrols {
                             , const std::string& axisY_label
                             , int axisX_decimals, int axisY_decimals);
 
-        std::string abbreviated_display_name() const;
+        virtual std::string abbreviated_display_name() const;
+
+    protected:
         static std::string abbreviated_name( const std::string& display_name );
 
     public:

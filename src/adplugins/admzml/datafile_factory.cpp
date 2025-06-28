@@ -74,7 +74,7 @@ datafile_factory::mimeTypes() const
 const wchar_t *
 datafile_factory::name() const
 {
-    return L"netCDF";
+    return L"mzML";
 }
 
 bool
@@ -100,13 +100,14 @@ datafile_factory::open( const wchar_t * filename, bool readonly ) const
 const char *
 datafile_factory::iid() const
 {
-    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.adnetcdf";
+    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.mzml";
 }
 
 void
 datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
-	// v.visit( this, adplugin );
+    // support subsidery plugin install via v.visit
+	// v.visit( datareader_factory::instance(), adpluginspec );
 }
 
 void *

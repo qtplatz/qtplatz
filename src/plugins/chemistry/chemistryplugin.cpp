@@ -78,8 +78,6 @@ ChemistryPlugin::~ChemistryPlugin()
 bool
 ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
 {
-    ADDEBUG() << "ChemistryPlugin initialized";
-    // ScopedDebug( x );
     initialize_actions();
 
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {

@@ -42,7 +42,7 @@ namespace mzml {
 
     public:
         virtual ~DataReader( void );
-        DataReader( const char * traceid, std::shared_ptr< const mzML >  );
+        DataReader( const char * traceid, int fcn, std::shared_ptr< const mzML >  );
 
         static std::vector< std::string > traceid_list();
 
@@ -84,6 +84,8 @@ namespace mzml {
         std::shared_ptr< adcontrols::MassSpectrometer > massSpectrometer() const override;
         adcontrols::DataInterpreter * dataInterpreter() const override;
         void handleCalibrateResultAltered() const override;
+        std::string abbreviated_display_name() const override;
+
     private:
         class impl;
         std::unique_ptr< impl > impl_;

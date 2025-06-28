@@ -101,7 +101,11 @@ namespace mzml {
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > import_chromatograms() const;
         const std::vector< std::pair< mzml::scan_id, std::shared_ptr< mzMLSpectrum > > >& scan_indices() const;
 
+        int get_protocol_index( const mzml::scan_protocol_key_t& key ) const;
+        std::optional<mzml::scan_protocol_key_t> find_key_by_index(int index) const;
+
         std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > find_spectrum( int fcn, size_t pos, size_t rowid ) const;
+        std::optional< std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > > find_first_spectrum( int fcn, double tR ) const;
 
     private:
         class impl;

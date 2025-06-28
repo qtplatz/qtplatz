@@ -29,6 +29,7 @@
 #include <tuple>
 #include <boost/format.hpp>
 #include <exception>
+#include <iostream>
 
 namespace mzml {
 
@@ -199,15 +200,17 @@ namespace mzml {
 
     std::optional< double >
     accession::base_peak_mz() const {
-        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000504']" ) )
-            return attr.attribute().as_double();
+        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000504']" ) ) {
+            return attr.node().attribute( "value" ).as_double();
+        }
         return {};
     }
 
     std::optional< double >
     accession::base_peak_intensity() const {
-        if ( auto attr = parent_node_.select_node( "cvParam[@accession='MS:1000505']" ) )
-            return attr.attribute().as_double();
+        if ( auto attr = parent_node_.select_node( ".//cvParam[@accession='MS:1000505']" ) ) {
+            return attr.node().attribute( "value" ).as_double();
+        }
         return {};
     }
 

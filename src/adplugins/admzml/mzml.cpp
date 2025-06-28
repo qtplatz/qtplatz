@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mzml.hpp"
+#include "accession.hpp"
 #include "mzmlwalker.hpp"
 #include "mzmlchromatogram.hpp"
 #include "mzmlspectrum.hpp"
@@ -61,14 +62,12 @@
 #include <boost/exception/all.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
-#include <memory>
 #include <cstdint>
 #include <filesystem>
-#include <sstream>
-#include <set>
-#include <regex>
-#include <variant>
+#include <memory>
+#include <numeric>
 #include <unordered_map>
+#include <variant>
 
 namespace {
     // helper for visitor
@@ -91,21 +90,27 @@ namespace mzml {
         std::optional< dataProcessingList > dataProcessingList_;
         spectra_t spectra_; // all spectra stored in the file including no length data
         chromatograms_t chromatograms_;
-        std::shared_ptr< DataReader > dataReader_;
+        std::map< int, std::shared_ptr< adcontrols::Chromatogram > > TICs_;
+        std::map< int, std::shared_ptr< adcontrols::Chromatogram > > SRMs_; // both SRM and SIM
+        std::map< int, std::shared_ptr< DataReader > > dataReaders_;
+
         std::vector< std::pair< mzml::scan_id, std::shared_ptr<mzml::mzMLSpectrum> > > scan_indices_;
         std::unordered_map< mzml::scan_protocol_key_t, int, mzml::protocol_key_hash, mzml::protocol_key_equal > protocol_map_;
+        std::unordered_map< mzml::scan_protocol_key_t, int, mzml::protocol_key_hash, mzml::protocol_key_equal > srm_map_;
         size_t number_of_protocols_;
 
         impl() : number_of_protocols_( 0 ) {}
+
         //-------------------------
-        std::shared_ptr< adcontrols::DataReader > dataReader( const mzML * p ) {
-            if ( not dataReader_ ) {
-                // std::unique_lock lock( mutex_ );
-                if ( not dataReader_ )
-                    dataReader_ = std::make_shared< DataReader >( "mzML", p->shared_from_this() );
-            }
-            return dataReader_;
-        }
+        // std::shared_ptr< adcontrols::DataReader > dataReader( const mzML * p ) {
+        //     if ( not dataReader_ ) {
+        //         // std::unique_lock lock( mutex_ );
+        //         if ( not dataReader_ )
+        //             dataReader_ = std::make_shared< DataReader >( "mzML", p->shared_from_this() );
+        //     }
+        //     return dataReader_;
+        // }
+
         //-------------------------
         void print() {
             if ( auto p = fileDescription_ ) {
@@ -122,22 +127,63 @@ namespace mzml {
             }
         }
 
-        void make_scan_indices() {
-            int next_id{0};
+        void handle_SRM( std::shared_ptr< const mzml::mzMLSpectrum > sp, int& next_id ) {
+            auto scan_protocol = std::get< enum_scan_protocol >( mzml::scan_identifier()( sp->node() ) );
+            auto key = std::get< enum_scan_protocol >( mzml::scan_identifier()( sp->node() ) ).protocol_key();
+            auto [ it, inserted ] = srm_map_.emplace( key, next_id );
+            if ( inserted ) {
+                SRMs_[ it->second ] = std::make_shared< adcontrols::Chromatogram >();
+                if ( scan_protocol.ms_level() == 2 ) {
+                    SRMs_[ it->second ]->addDescription( { "id"
+                            , (boost::format("SRM %.1f->%.1f %s %.1fV")
+                               % scan_protocol.precursor_mz()
+                               % sp->base_peak().first
+                               % (scan_protocol.polarity() == polarity_negative ? "(neg)" : "(pos)")
+                               % scan_protocol.collision_energy()).str() } );
+                } else {
+                    SRMs_[ it->second ]->addDescription( { "id"
+                            , (boost::format("SIM %.1f %s")
+                               % sp->base_peak().first
+                               % (scan_protocol.polarity() == polarity_negative ? "(neg)" : "(pos)") ).str() });
+                }
+                next_id++;
+            }
+            (*SRMs_[ it->second ]) << std::make_pair( sp->scan_start_time(), sp->base_peak().second );
+        }
+
+        //------------------------
+        void make_scan_indices( const mzML * mzml ) {
+            int next_id{0}, next_srm_id(0);
             for ( const auto& sp: spectra_ ) {
                 if ( sp->length() > 0 ) {
                     auto id = mzml::scan_identifier()( sp->node() );
                     auto key  = std::get< enum_scan_protocol >( id ).protocol_key();
                     auto [it, inserted] = protocol_map_.emplace( key, next_id );
                     if ( inserted ) {
-                        ADDEBUG() << "--------- add protocol : " << next_id;
+                        TICs_[ it->second ] = std::make_shared< adcontrols::Chromatogram >();
+                        TICs_[ it->second ]->addDescription( { "id", (boost::format("TIC/TIC.%d") % (it->second + 1)).str() } );
+                        auto traceid = boost::json::value_from( std::get< enum_scan_protocol >( id ) );
+                        dataReaders_[ it->second ] = std::make_shared< DataReader >( boost::json::serialize( traceid ).c_str()
+                                                                                     , it->second // fcn
+                                                                                     , mzml->shared_from_this() );
                         ++next_id;
                     }
-                    int protocol_id = it->second;
-                    sp->set_protocol_id( protocol_id );
+                    sp->set_protocol_id( it->second );
+                    (*TICs_[ it->second ]) << std::make_pair( sp->scan_start_time(), sp->total_ion_current() );
                     scan_indices_.emplace_back( id, sp );
+                } else {
+                    handle_SRM( sp, next_srm_id );
                 }
             }
+            for ( auto& cp: TICs_ ) {
+                cp.second->setMinimumTime( cp.second->timeArray().front() );
+                cp.second->setMaximumTime( cp.second->timeArray().back() );
+            }
+            for ( auto& cp: SRMs_ ) {
+                cp.second->setMinimumTime( cp.second->timeArray().front() );
+                cp.second->setMaximumTime( cp.second->timeArray().back() );
+            }
+
             number_of_protocols_ = next_id;
         }
     };
@@ -184,8 +230,8 @@ mzML::open( const std::filesystem::path& path )
                             }
                             }, data );
             }
-            impl_->print();
-            impl_->make_scan_indices();
+            // impl_->print();
+            impl_->make_scan_indices( this );
             return true;
         }
     }
@@ -196,8 +242,12 @@ std::vector< std::shared_ptr< adcontrols::Chromatogram > >
 mzML::import_chromatograms() const
 {
     std::vector< std::shared_ptr< adcontrols::Chromatogram > > vec;
+    for ( const auto& tic: impl_->TICs_ )
+        vec.emplace_back( tic.second );
     for ( const auto& pc: impl_->chromatograms_ )
         vec.emplace_back( mzMLChromatogram::toChromatogram( *pc ) );
+    for ( const auto& srm: impl_->SRMs_ )
+        vec.emplace_back( srm.second );
     return vec;
 }
 
@@ -207,12 +257,57 @@ mzML::scan_indices() const
     return impl_->scan_indices_;
 }
 
+int
+mzML::get_protocol_index( const mzml::scan_protocol_key_t& key ) const
+{
+    auto it = impl_->protocol_map_.find( key );
+    if (it != impl_->protocol_map_.end() )
+        return it->second;
+    return -1;
+}
+
+std::optional<mzml::scan_protocol_key_t>
+mzML::find_key_by_index(int index) const
+{
+    for (const auto& [key, idx] : impl_->protocol_map_) {
+        if (idx == index)
+            return key;
+    }
+    return {};
+}
+
+
 std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > >
 mzML::find_spectrum( int fcn, size_t pos, size_t rowid ) const
 {
     ADDEBUG() << "find_spectrum: " << std::make_tuple( fcn, pos, rowid );
+    // if ( fcn >= 0 ) {
+        // if ( auto tkey = find_key_by_index( fcn ) ) {
+        //     for ( const auto& idx: impl_->scan_indices_ ) {
+        //         ;
+        //     }
+        // }
     if ( impl_->scan_indices_.size() > rowid ) {
         return impl_->scan_indices_.at( rowid );
+    }
+    return {};
+}
+
+std::optional< std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > >
+mzML::find_first_spectrum( int fcn, double tR ) const
+{
+    if ( fcn >= 0 ) {
+        if ( auto key = find_key_by_index( fcn ) ) {
+            auto it = std::lower_bound( impl_->scan_indices_.begin()
+                                        , impl_->scan_indices_.end()
+                                        , tR
+                                        , [&](const auto& a, const auto& b) {
+                                            return std::get< enum_scan_start_time >(a.first) < b &&
+                                                std::get< enum_scan_protocol >(a.first).protocol_key() == *key;
+                                        });
+            if ( it != impl_->scan_indices_.end() )
+                return *it;
+        }
     }
     return {};
 }
@@ -228,19 +323,24 @@ mzML::dataformat_version() const
 size_t
 mzML::getFunctionCount() const
 {
-    return {};
+    return impl_->number_of_protocols_;
 }
 
 size_t
 mzML::getSpectrumCount( int fcn ) const
 {
-    return {};
+    return std::accumulate( impl_->scan_indices_.begin()
+                     , impl_->scan_indices_.end()
+                     , size_t{}
+                     , [&](size_t a, const auto& b) {
+                         return a + ( b.second->protocol_id() == fcn ? 1 : 0 );
+                     });
 }
 
 size_t
 mzML::getChromatogramCount() const
 {
-    return {};
+    return impl_->TICs_.size() + impl_->SRMs_.size() + impl_->chromatograms_.size();
 }
 
 bool
@@ -308,8 +408,9 @@ mzML::dataReaderCount() const
 const adcontrols::DataReader *
 mzML::dataReader( size_t idx ) const
 {
-    if ( idx == 0 )
-        return impl_->dataReader( this ).get();
+    ADDEBUG() << "##################### NOT IMPLEMENTED ###########################";
+    // if ( idx == 0 )
+    //     return impl_->dataReader( this ).get();
     return nullptr;
 
 }
@@ -317,18 +418,23 @@ mzML::dataReader( size_t idx ) const
 const adcontrols::DataReader *
 mzML::dataReader( const boost::uuids::uuid& ) const
 {
-    return impl_->dataReader( this ).get();
+    ADDEBUG() << "##################### NOT IMPLEMENTED ###########################";
+    return nullptr; // impl_->dataReader( this ).get();
 }
 
 std::vector < std::shared_ptr< adcontrols::DataReader > >
 mzML::dataReaders( bool allPossible ) const
 {
-    try {
-        return std::vector < std::shared_ptr< adcontrols::DataReader > >{ impl_->dataReader( this ) };
-    } catch ( std::exception& ex ) {
-        ADDEBUG() << "## Exception: " << ex.what();
-    }
-    return {};
+    std::vector < std::shared_ptr< adcontrols::DataReader > > vec;
+    for ( auto a: impl_->dataReaders_ )
+        vec.emplace_back( a.second );
+    return vec;
+    // try {
+    //     return std::vector < std::shared_ptr< adcontrols::DataReader > >{ impl_->dataReader( this ) };
+    // } catch ( std::exception& ex ) {
+    //     ADDEBUG() << "## Exception: " << ex.what();
+    // }
+    // return {};
 }
 
 adcontrols::MSFractuation *

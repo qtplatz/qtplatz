@@ -269,12 +269,12 @@ document::findCheckedTICs( Dataprocessor * dp, std::set< int >& vfcn )
 const std::shared_ptr< adcontrols::Chromatogram >
 document::findTIC( Dataprocessor * dp, int fcn )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     if ( dp ) {
         auto cfolder = dp->portfolio().findFolder( L"Chromatograms" );
         std::wstring name = ( boost::wformat( L"TIC/TIC.%d" ) % ( fcn + 1 ) ).str();
         if ( auto folium = cfolder.findFoliumByName( name ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
             return cptr;
         }
 
@@ -283,15 +283,16 @@ document::findTIC( Dataprocessor * dp, int fcn )
         query << boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 );
         if ( auto folium = cfolder.findFoliumByRegex( query.str() ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
             return cptr;
         }
 
         std::string mzML = ( boost::format( "./folium[contains(@name,'TIC%d')]" ) % ( fcn + 1 ) ).str();
         if ( auto folium = cfolder.findFoliumByRegex( mzML ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
+            ADDEBUG() << "## " << __FUNCTION__ << " ## fcn=" << fcn << " --> " << folium.name();
             return cptr;
         }
-
     }
     ADDEBUG() << "## " << __FUNCTION__ << " ## " << "TIC for protocol " << fcn + 1 << " cannot be found";
     return 0;
@@ -412,19 +413,17 @@ document::findScanLaw( const QString& model, double& flength, double& accv, doub
 void
 document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 {
-    ScopedDebug(__t);
 	qtwrapper::waitCursor w;
 
 	Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor();
 	if ( dp ) {
-
-
 		if ( const adcontrols::LCMSDataset * dset = dp->rawdata() ) {
-
+//#if 0
             auto cptr = document::findTIC( dp, 0 );
-            if ( !cptr )
-                return;
-
+            (void)(cptr);
+            // if ( not cptr )
+            //     return;
+//#endif
             if ( dset->dataformat_version() >= 3 ) {
 
                 handleSelectTimeRangeOnChromatogram_v3( dp, dset, x1, x2 );
@@ -441,69 +440,8 @@ document::handleSelectTimeRangeOnChromatogram( double x1, double x2 )
 void
 document::handleSelectTimeRangeOnChromatogram_v2( Dataprocessor * dp, const adcontrols::LCMSDataset * dset, double x1, double x2 )
 {
-    try {
-        auto ms = std::shared_ptr< adcontrols::MassSpectrum>();
-        size_t pos1 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x1 ) );
-        size_t pos2 = dset->posFromTime( adcontrols::Chromatogram::toSeconds( x2 ) );
-        double t1 = x1;
-        double t2 = x2;
-
-        int pos = int( pos1 );
-
-        if ( dset->getSpectrum( -1, pos++, *ms ) ) {
-
-            t1 = ms->getMSProperty().timeSinceEpoch(); // adcontrols::Chromatogram::toMinutes( ms.getMSProperty().timeSinceInjection() );
-
-            std::wostringstream text;
-            if ( pos2 > pos1 ) {
-                auto progress = adwidgets::ProgressWnd::instance()->addbar();
-                adwidgets::ProgressWnd::instance()->show();
-                adwidgets::ProgressWnd::instance()->raise();
-
-                std::thread t( [&] () {
-                        progress->setRange( int( pos1 ), int( pos2 ) );
-                        adcontrols::MassSpectrum a;
-                        while ( pos < int( pos2 ) && dset->getSpectrum( -1, pos++, a ) ) {
-                            adcontrols::segments_helper::add( *ms, a );
-                            ( *progress )( );
-                        }
-                        if ( !adportable::compare<double>::approximatelyEqual( a.getMSProperty().timeSinceInjection(), 0.0 ) )
-                            t2 = a.getMSProperty().timeSinceInjection(); // adcontrols::Chromatogram::toMinutes( a.getMSProperty().timeSinceInjection() );
-                    } );
-
-                t.join();
-
-
-                text << L"Spectrum (" << std::fixed << std::setprecision( 3 ) << t1 << " - " << t2 << ")min";
-            } else {
-                text << L"Spectrum @ " << std::fixed << std::setprecision( 3 ) << t1 << "min";
-            }
-            adcontrols::ProcessMethod m;
-            ms->addDescription( adcontrols::description( L"create", text.str() ) );
-            dp->mslock( *ms, 0 );
-            portfolio::Folium folium = dp->addSpectrum( ms, m );
-
-            // add centroid spectrum if exist (Bruker's compassXtract returns centroid as 2nd function)
-            if ( folium ) {
-                bool hasCentroid( false );
-                if ( pos == pos2 && dset->hasProcessedSpectrum( 0, static_cast<int>( pos1 ) ) ) {
-                    adcontrols::MassSpectrumPtr pCentroid( new adcontrols::MassSpectrum );
-                    if ( dset->getSpectrum( 0, static_cast<int>( pos1 ), *pCentroid, dset->findObjId( L"MS.CENTROID" ) ) ) {
-                        hasCentroid = true;
-                        portfolio::Folium att = folium.addAttachment( L"Centroid Spectrum" );
-                        att.assign( pCentroid, pCentroid->dataClass() );
-                        SessionManager::instance()->updateDataprocessor( dp, folium );
-                    }
-                }
-                if ( !hasCentroid ) {
-                    MainWindow::instance()->getProcessMethod( m );
-                }
-            }
-        }
-    } catch ( ... ) {
-        ADTRACE() << boost::current_exception_diagnostic_information();
-        QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
-    }
+    // v2 data not supported
+    QMessageBox::warning( 0, "DataprocPlugin", boost::current_exception_diagnostic_information().c_str() );
 }
 
 void
@@ -515,9 +453,12 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
     double t2 = (horAxis( PlotChromatogram ) == adcontrols::axis::Seconds) ? x2 : double( adcontrols::Chromatogram::toSeconds( x2 ) );
 
     for ( auto reader: dset->dataReaders() ) {
-            if ( auto ms = reader->coaddSpectrum( reader->findPos( t1 ), reader->findPos( t2 ) ) ) {
+        auto it1 = reader->findPos( t1 );
+        auto it2 = reader->findPos( t2 );
+        auto range = std::make_pair( it1->time_since_inject(), it2->time_since_inject() );
+        if ( auto ms = reader->coaddSpectrum( std::move(it1), std::move( it2 ) ) ) {
             std::ostringstream text;
-            text << DataReader::abbreviated_name( reader->display_name() ) << boost::format( " %.3f-%.3fs" ) % x1 % x2;
+            text << reader->abbreviated_display_name() << boost::format( " %.1f-%.1fs" ) % range.first % range.second;
             adcontrols::ProcessMethod m;
             ms->addDescription( adcontrols::description({"folium.create", text.str()}) );
             dp->mslock( *ms, t1 );
@@ -538,9 +479,9 @@ document::onSelectSpectrum_v3( Dataprocessor * dp, double /*time*/, adcontrols::
         if ( auto ms = reader->readSpectrum( iterator ) ) {
             std::ostringstream text;
             if ( iterator._fcn() < 0 ) {
-                text << DataReader::abbreviated_name( reader->display_name() ) << boost::format ( " %.3fs" ) % iterator->time_since_inject();
+                text << reader->abbreviated_display_name() << boost::format ( " %.3fs" ) % iterator->time_since_inject();
             } else {
-                text << DataReader::abbreviated_name( reader->display_name() )
+                text << reader->abbreviated_display_name()
                      << boost::format ( " %.3fs p%d.%d " ) % iterator->time_since_inject() % ms->protocolId() % ms->nProtocols() ;
             }
             adcontrols::ProcessMethod m;

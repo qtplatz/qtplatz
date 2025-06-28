@@ -103,12 +103,7 @@ datafile::datafile() : impl_( std::make_unique< impl >() )
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
-    // subscribe acquired dataset <LCMSDataset>
-    // No LC/GC data supported
-    // sub.subscribe( *this );
-    // subscribe processed dataset
-
-    sub.subscribe( *impl_->mzml_ );
+    sub.subscribe( *impl_->mzml_ ); // LCMSDataset
 
     if ( impl_->processedDataset_ )
         sub.subscribe( *impl_->processedDataset_ );
