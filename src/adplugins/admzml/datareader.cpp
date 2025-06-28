@@ -33,6 +33,7 @@
 #include <adportable/debug.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <numeric>
 #include <sstream>
@@ -61,7 +62,6 @@ namespace mzml {
     };
 
     const std::string DataReader::impl::objtext_ = "1.admzml.ms-cheminfo.com";
-    // const std::string DataReader::impl::display_name_ = "mzML";
 }
 
 using namespace mzml;
@@ -91,7 +91,6 @@ DataReader::DataReader( const char * traceid
           : impl_->scan_protocol_.polarity() == polarity_positive ? "(+)"
           : "(?)");
     impl_->display_name_ = o.str();
-    ADDEBUG() << "display_name: " << impl_->display_name_;
 }
 
 std::string
@@ -115,14 +114,13 @@ DataReader::finalize()
 const boost::uuids::uuid&
 DataReader::objuuid() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================= " << impl_->uuid_;
     return impl_->uuid_;
 }
 
 const std::string&
 DataReader::objtext() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     return impl_->objtext_;
 }
 
@@ -146,15 +144,21 @@ DataReader::fcnCount() const
 }
 
 size_t
-DataReader::size( int fcn ) const
+DataReader::size( int fcn /* segmented fcn */ ) const
 {
-    return impl_->mzml_->getSpectrumCount( fcn );
+    return std::accumulate( impl_->mzml_->scan_indices().begin()
+                            , impl_->mzml_->scan_indices().end()
+                            , 0
+                            , [&]( const auto& a, const auto& b ){
+                                return (b.second->protocol_id() == impl_->fcn_ ? 1 : 0) + a;
+                            });
+    // return impl_->mzml_->getSpectrumCount( fcn );
 }
 
 adcontrols::DataReader::const_iterator
 DataReader::begin( int fcn ) const
 {
-    return adcontrols::DataReader_iterator( this, 0, fcn );
+    return adcontrols::DataReader_iterator( this, 0, impl_->fcn_ );
 }
 
 adcontrols::DataReader::const_iterator
@@ -316,6 +320,7 @@ DataReader::readSpectrum( const const_iterator& it ) const
         const auto& datum = impl_->mzml_->scan_indices()[ it->rowid() ];
         return datum.second->toMassSpectrum( *datum.second );
     }
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " =============== return nullptr";
     return {};
 }
 

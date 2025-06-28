@@ -1117,14 +1117,18 @@ MSProcessingWnd::selectedOnProfile( const QRectF& rect )
 
         std::pair<size_t, size_t> range;
 
+        ADDEBUG() << "--------- " << __FUNCTION__ << " -----------------";
+
         if ( auto ms = pImpl_->pProfileSpectrum_.second.lock() ) {
 
+            ADDEBUG() << "--------- " << __FUNCTION__ << " --------------" << ms->size() << ", " << ms->dataReaderUuid();
             if ( ms->dataReaderUuid() != boost::uuids::uuid( {{0}} ) ) {
                 // v3 data
                 if ( Dataprocessor * dp = SessionManager::instance()->getActiveDataprocessor() ) {
                     if ( auto rd = dp->rawdata() ) {
                         if ( auto reader = rd->dataReader( ms->dataReaderUuid()) ) {
                             auto display_name = QString::fromStdString( reader->display_name() );
+                            ADDEBUG() << "--------- " << __FUNCTION__ << " -----------------" << reader->display_name();
 
                             // todo: chromatogram creation by m/z|time range
                             if ( pImpl_->axis_ == adcontrols::hor_axis_mass ) {
@@ -1247,6 +1251,8 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     bool hasRange = int( std::abs( x1 - x0 ) ) > 2;
     auto ptr = pImpl_->pProcessedSpectrum_.second.lock();
 
+    ADDEBUG() << "--------- " << __FUNCTION__ << " -----------------";
+
     QMenu menu;
 
     // [0]
@@ -1254,12 +1260,14 @@ MSProcessingWnd::selectedOnProcessed( const QRectF& rect )
     // [1]
     if ( hasRange ) {
         menu.addAction( tr( "Make mass chromatograms" )
-                        , [&]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rect.left(), rect.right() ); } );
+                        , [&]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock()
+                                                              , pImpl_->axis_, rect.left(), rect.right() ); } );
     } else {
         QRectF rc = pImpl_->profileSpectrum_->zoomRect();
         menu.addAction( tr( "Make mass chromatograms (%1--%2)" )
                         .arg( QString::number(rc.left(),'g',5) ).arg( QString::number(rc.right(),'g',5) )
-                        , [=,this]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock(), pImpl_->axis_, rc.left(), rc.right() ); } );
+                        , [=,this]{ make_chromatograms_from_peaks( pImpl_->pProcessedSpectrum_.second.lock()
+                                                                   , pImpl_->axis_, rc.left(), rc.right() ); } );
     }
 
     // [2]
@@ -1942,6 +1950,8 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                                                 , double left
                                                 , double right )
 {
+    ADDEBUG() << "--------------- " << __FUNCTION__ << " ------------- " << ptr->isCentroid() << ", " << std::make_pair( left, right );
+
     if ( ptr && ptr->isCentroid() ) {
 
         const int h_threshold = left < 0 ? 1000 : 100;
@@ -1950,11 +1960,15 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
 
         if ( auto pkinfo = pImpl_->pkinfo_.second.lock() ) {
 
+            ADDEBUG() << "--- " << __FUNCTION__ << " -- pkinfo = " << pkinfo->size();
+
             for ( const auto& pkseg: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
 
                 adcontrols::MSPeakInfo xInfo;
 
-                auto beg = std::lower_bound( pkseg.begin(), pkseg.end(), left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
+                auto beg = std::lower_bound( pkseg.begin()
+                                             , pkseg.end()
+                                             , left, [&]( const adcontrols::MSPeakInfoItem& a, const double& left ) {
                     return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
 
                 if ( beg != pkseg.end() ) {
@@ -1967,7 +1981,7 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );
 
                     std::for_each( beg, end, [&]( const adcontrols::MSPeakInfoItem& a ){
-                        if ( a.area() > bp->area() / h_threshold ) // 1 or 0.1% above for base peak
+                        if ( a.height() > bp->height() / h_threshold ) // 1 or 0.1% above for base peak
                             xInfo << a;
                     });
                     if ( xInfo.size() > 0 ) {
@@ -1980,7 +1994,9 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
             }
         }
 
+
         if ( xpkinfo ) {
+            ADDEBUG() << __FUNCTION__ << " xpkinfo.size() = " << xpkinfo->size();
 
             if ( Dataprocessor * processor = SessionManager::instance()->getActiveDataprocessor() ) {
 

@@ -30,10 +30,11 @@
 #include <cmath>
 #include <limits>
 #include <map>
-#include <string>
-#include <vector>
-#include <thread>
 #include <mutex>
+#include <regex>
+#include <string>
+#include <thread>
+#include <vector>
 
 namespace adcontrols {
 
@@ -277,6 +278,15 @@ std::string
 DataReader::abbreviated_display_name() const
 {
     return abbreviated_name( this->display_name() );
+}
+
+bool
+DataReader::isCounting() const
+{
+    bool isCounting = std::regex_search(
+        this->objtext()
+        , std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com|1\\.adnetcdf\\.ms-cheminfo\\.com" ) );
+    return isCounting;
 }
 
 //static

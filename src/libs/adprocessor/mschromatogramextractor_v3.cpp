@@ -243,6 +243,8 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 {
     const size_t nSpectra = reader->size( fcn );
 
+    ADDEBUG() << __FUNCTION__ << ", nSpectra=" << nSpectra  << ", reader='" << reader->display_name() << "'";
+
     if ( nSpectra == 0 )
         return false;
 
@@ -274,10 +276,16 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
             (*global_mslock)( *ms );
         }
 
+        ADDEBUG() << __FUNCTION__ << ", reader it=" << std::make_tuple( it->fcn(), it->rowid(), it->time_since_inject() )
+                  << ", tR=" << ms->getMSProperty().timeSinceInjection()
+                  << ", pos=" << it->pos();
+
         impl_->spectra_[ it->pos() ] = ms; // (:= pos sort order) keep mass locked spectral series
         if ( progress( ++nProg, nCount ) )
             return false;
     }
+    ADDEBUG() << __FUNCTION__ << ">>>>>>>>>> spectra.size=" << impl_->spectra_.size();
+
     return ! impl_->spectra_.empty();
 }
 
@@ -512,14 +520,20 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     const size_t nCounts = reader->size( -1 ) * 2;
     size_t nProg(0);
 
+    ADDEBUG() << "## " << __FUNCTION__ << " ## n=" << nCounts << ", reader.objtext: " << reader->objtext();
+
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
-        const bool isCounting = std::regex_search(
-            reader->objtext()
-            , std::regex( "^histogram.*$|^pkd\\.[1-9]\\.u5303a\\.ms-cheminfo.com|1\\.adnetcdf\\.ms-cheminfo\\.com" ) );
+        const bool isCounting = reader->isCounting();
+
+        ADDEBUG() << "## " << __FUNCTION__ << " ## isCounting: " << isCounting
+                  << ", spectra.size() = " << impl_->spectra_.size();
 
         for ( auto& ms : impl_->spectra_ ) {
+            ADDEBUG() << ms.second->getMSProperty().timeSinceInjection() << ", " << ms.second->protocolId();
+
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( *pkinfo ) ) {
+                ADDEBUG() << "protocolId info/ms = " << info.protocolId() << ", " << ms.second->protocolId();
                 if ( info.protocolId() == ms.second->protocolId() ) {
                     impl_->append_to_chromatogram( ms.first, *ms.second, info, reader->abbreviated_display_name(), width );
                 }

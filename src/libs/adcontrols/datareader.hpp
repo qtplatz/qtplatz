@@ -161,6 +161,8 @@ namespace adcontrols {
 
         virtual std::shared_ptr< adcontrols::MassSpectrum >  getSpectrum( int64_t rowid ) const { return nullptr; }
 
+        virtual bool isCounting() const;
+
         /**
          * @brief Return a chromatogram from a series of spectra computed by time-of-flight and time-width
          */

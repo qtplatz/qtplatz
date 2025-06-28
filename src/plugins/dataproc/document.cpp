@@ -534,8 +534,6 @@ document::onSelectSpectrum_v2( double /*minutes*/, size_t pos, int fcn )
 void
 document::handle_folium_added( const QString& fname, const QString& path, const QString& id )
 {
-    ScopedDebug(__t);
-    ADDEBUG() << "<----- waitCursor: " << __FUNCTION__;
     qtwrapper::waitCursorBlocker block;
 
 	std::wstring filename = fname.toStdWString();

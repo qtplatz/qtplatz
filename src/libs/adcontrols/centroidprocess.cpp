@@ -338,9 +338,12 @@ CentroidProcessImpl::findpeaks( const MassSpectrum& profile )
                 if ( method_.areaMethod() == CentroidMethod::eAreaDa ) {
                     item.area_ = area * ( item.centroid_right_mass_ - item.centroid_left_mass_ ) * std::milli::den / dw; // I x mDa
                 } else if ( method_.areaMethod() == CentroidMethod::eAreaTime ) {
-                    item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den / dw;  // I x ns
-                    // ADDEBUG() << "mass: " << item.mass();
-                    // ADDEBUG() << "area: " << area
+                    if ( (item.centroid_right_time_ - item.centroid_left_time_) < 1.0e-15 )
+                        item.area_ = area * 1.0 * std::nano::den / dw;  // I x ns (assume t = 1.0 ns)
+                    else
+                        item.area_ = area * ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den / dw;  // I x ns
+                    // ADDEBUG() << "mass: " << item.mass()
+                    //           << ", area: " << area
                     //           << ", area(ns): " << item.area_
                     //           << ", time(ns): " << ( item.centroid_right_time_ - item.centroid_left_time_ ) * std::nano::den
                     //           << ", width: " << dw;
