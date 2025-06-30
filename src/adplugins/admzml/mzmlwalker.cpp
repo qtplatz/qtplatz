@@ -239,7 +239,8 @@ mzMLWalker::operator()( const pugi::xml_node& root_node )
         mzml::chromatograms_t chromatograms;
 
         if (  auto run = node.select_node( "run" ) ) {
-            // ADDEBUG() << "run defaultInstrumentConfigurationRef=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
+            // ADDEBUG() << "run defaultInstrumentConfigurationRef="
+            // << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
             // ADDEBUG() << "\t=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
             // ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
             // ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();

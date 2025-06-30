@@ -213,7 +213,7 @@ datafile::export_rawdata( const adcontrols::datafile& db ) const
 
         auto spc = serializer::deserialize( xml.data(), xml.size() );
 
-        mzMLReader::read( pugi::xml_node{} );
+        mzMLReader{}( pugi::xml_node{} );
 
         auto r = mzMLReader{}(pugi::xml_node{} );
 

@@ -88,4 +88,5 @@ namespace mzml {
         std::vector< data_t > operator()( const pugi::xml_node& root_node );
     };
 
+
 }

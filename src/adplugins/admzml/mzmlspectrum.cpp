@@ -23,12 +23,13 @@
 **
 **************************************************************************/
 
+#include "mzmlspectrum.hpp"
 #include "accession.hpp"
 #include "binarydataarray.hpp"
+//#include "mzmlchromatogram.hpp"
 #include "mzmldatumbase.hpp"
-#include "mzmlreader.hpp"
+//#include "mzmlreader.hpp"
 #include "serializer.hpp"
-#include "mzmlspectrum.hpp"
 #include "scan_protocol.hpp"
 #include "xmltojson.hpp"
 #include "mzmlwalker.hpp"
@@ -39,6 +40,21 @@
 #include <pugixml.hpp>
 #include <sstream>
 #include <variant>
+
+#if 0
+namespace {
+    struct reader {
+        static mzml::datum_variant_t read( const pugi::xml_node& node ) {
+            // return mzml::mzMLReader{}( node );
+            mzml::mzMLDatumBase b{};
+            // mzml::mzMLWalker z{};
+            mzml::mzMLSpectrum y{};
+            mzml::mzMLChromatogram x{};
+            return {};
+        }
+    };
+}
+#endif
 
 namespace mzml {
 
@@ -234,16 +250,6 @@ namespace mzml {
         return ms;
     }
 
-    ///////////////////////////
-    // helper for visitor
-#if 0
-    template<class... Ts>
-    struct overloaded : Ts... { using Ts::operator()...; };
-    template<class... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>;
-    // end helper for visitor
-#endif
-
     std::string
     mzMLSpectrum::serialize() const
     {
@@ -252,6 +258,7 @@ namespace mzml {
         return o.str();
     }
 
+#if 0
     namespace {
         template<class... Ts>
         struct overloaded : Ts... { using Ts::operator()...; };
@@ -266,18 +273,16 @@ namespace mzml {
         pugi::xml_document doc;
         if ( doc.load_string( data ) ) {
             if ( auto node = doc.select_node( "spectrum" ) ) {
-#if 0
-                auto v = ::mzml::mzMLReader{}(node.node() );
+                auto v = reader::read( node.node() );
                 return std::visit( overloaded{
                         [](auto&& arg)->std::shared_ptr< mzml::mzMLSpectrum >{ return nullptr; }
                             , [](std::shared_ptr< mzml::mzMLSpectrum >&& sp) { return sp; }
                             }, v);
-#endif
             }
         }
         return nullptr;
         // return ::mzml::serializer::deserialize( data, size );
         //return ::mzml::serializer::deserialize( data, size );
     }
-
+#endif
 } // mzml
