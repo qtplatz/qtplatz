@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2024 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2025 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -36,15 +36,13 @@ namespace adcontrols { class MassSpectrometer; }
 
 namespace mzml {
 
-    class mzML;
-
-    namespace local {
+    namespace exposed {
 
         class data_reader : public adcontrols::DataReader {
 
         public:
             virtual ~data_reader( void );
-            data_reader( const char * traceid, int fcn, std::shared_ptr< const mzML >  );
+            data_reader( const char * traceid );
 
             static std::vector< std::string > traceid_list();
 
@@ -92,5 +90,5 @@ namespace mzml {
             class impl;
             std::unique_ptr< impl > impl_;
         };
-    } // local
+    } // exported
 }

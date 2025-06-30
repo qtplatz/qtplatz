@@ -30,12 +30,16 @@
 #include "chromatogram.hpp"
 #include "datafile.hpp"
 #include "mzml.hpp"
+#include "mzmlreader.hpp"
+#include "mzmlspectrum.hpp"
+#include "mzmlwalker.hpp"
+#include "serializer.hpp"
 #include <adcontrols/countinghistogram.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adcontrols/datainterpreterbroker.hpp>
 #include <adcontrols/datapublisher.hpp>
-#include <adcontrols/datareader.hpp>
+// #include <adcontrols/datareader.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/description.hpp>
 #include <adcontrols/descriptions.hpp>
@@ -194,4 +198,32 @@ boost::any
 datafile::fetch( const std::wstring& path, const std::wstring& dataType ) const
 {
     return fetch( adportable::utf::as_utf8( path ), adportable::utf::as_utf8( dataType ) );
+}
+
+bool
+datafile::export_rawdata( const adcontrols::datafile& db ) const
+{
+    ADDEBUG() << __FUNCTION__;
+
+    for ( const auto [scan_id,sp]: impl_->mzml_->scan_indices() ) {
+        // scan_id = std::tuple< int, string, double (time), scan_protocol
+        // sp = mzMLSpectrum
+        ADDEBUG() << scan_id;
+        auto xml = sp->serialize();
+
+        auto spc = serializer::deserialize( xml.data(), xml.size() );
+
+        mzMLReader::read( pugi::xml_node{} );
+
+        auto r = mzMLReader{}(pugi::xml_node{} );
+
+    }
+
+    // Spectrometer uuid, scantype, description, fLength
+    // AcquiredConf
+    // AcquiredData (blob)
+    // ScanLaw { uuid (observer id), objtext (observer text), acclVoltage, tDelay, spectrometer (text), spectrometer (clsid)
+    // MetaData := ControlMethod clsid	'cd53abe6-8223-11e6-b2d8-cb9185077a24'
+
+    return true;
 }

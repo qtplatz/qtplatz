@@ -237,6 +237,7 @@ namespace {
                     if ( ! std::filesystem::exists( backup ) ) {
                         std::error_code ec;
                         std::filesystem::rename( path, backup, ec );
+                        // std::filesystem::copy( path, backup, ec );
                         if ( ec ) {
                             *errorString_ = QString::fromStdString( ec.message() );
                             return false;
@@ -248,41 +249,30 @@ namespace {
             return true;
         }
 
+        // save as
         bool operator()( std::filesystem::path&& path ) const {
 
+            // :memory: --> create new .adfs file
+            // if ( this_.db()->db_filename().empty() /*:memory:*/ && path.extension() != ".adfs" ) {
             path.replace_extension( L".adfs" );
-            if ( rename_backup( path ) ) {
-                if ( auto file = adcontrols::datafile::create( path.wstring() ) ) {
-                    do {
-                        auto fs = std::make_unique< adfs::filesystem >();
-                        if ( fs->mount( path ) )
-                            adutils::v3::AcquiredConf::create_table_v3( *fs->_ptr() );
-                    } while ( 0 );
-
-                    adfs::stmt sql( *this_.db() ); // source db
-                    if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
-
-                        sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
-                        sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
-                        sql.exec( "INSERT INTO X.MetaData SELECT * FROM MetaData" );
-                        sql.exec( "INSERT INTO X.MSCalibration SELECT * FROM MSCalibration" );
-
-                        sql.exec( "DETACH DATABASE X" );
-                    }
-
-                    if ( file->saveContents( L"/Processed", this_.portfolio(), *this_.file() ) ) {
+            rename_backup( path );  // rename *~.adfs if already exists
+            if ( auto dest = adcontrols::datafile::create( path.wstring() ) ) {
+                if ( auto db = dest->sqlite() ) {
+                    adutils::v3::AcquiredConf::create_table_v3( *db );
+                    this_.file()->export_rawdata( *dest );
+                    if ( dest->saveContents( L"/Processed", this_.portfolio(), *this_.file() ) ) {
                         this_.setModified( false );
                     }
-                    // for debugging
-#if 0
-                    path.replace_extension( ".xml" );
-                    boost::filesystem::remove( path );
-                    pugi::xml_document dom;
-                    dom.load( portfolio_->xml().c_str() );
-                    dom.save_file( path.string().c_str() );
-#endif
-                    return true;
                 }
+                // adfs::stmt sql( *this_.db() ); // source db
+                // if ( sql.exec( ( boost::format( "ATTACH DATABASE '%1%' AS X" ) % path.string() ).str() ) ) {
+                //     sql.exec( "INSERT INTO X.ScanLaw SELECT * FROM ScanLaw" );
+                //     sql.exec( "INSERT INTO X.Spectrometer SELECT * FROM Spectrometer" );
+                //     sql.exec( "INSERT INTO X.MetaData SELECT * FROM MetaData" );
+                //     sql.exec( "INSERT INTO X.MSCalibration SELECT * FROM MSCalibration" );
+                //     sql.exec( "DETACH DATABASE X" );
+                // }
+                return true;
             }
             return false;
         }
@@ -293,10 +283,10 @@ namespace {
 
 Dataprocessor::~Dataprocessor()
 {
-    do {
-        auto rpath = std::filesystem::proximate( filename(), adportable::profile::user_data_dir<char>() );
-        // ADDEBUG() << "## Dataprocessor::dtor closeing file: " << rpath << " ##";
-    } while(0);
+    // do {
+    //     auto rpath = std::filesystem::proximate( filename(), adportable::profile::user_data_dir<char>() );
+    //     ADDEBUG() << "## Dataprocessor::dtor closeing file: " << rpath << " ##";
+    // } while(0);
     disconnect( this, &Dataprocessor::onNotify, MainWindow::instance(), &MainWindow::handleWarningMessage );
 }
 
@@ -376,8 +366,14 @@ Dataprocessor::saveImpl( QString *errorString, const Utils::FilePath &filePath, 
 bool
 Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
 {
+    namespace fs = std::filesystem;
+
     bool isSave = filePath.isEmpty(); // or isSaveAs
+    isSave = filePath.isEmpty() ||
+        ( file()->filename().extension() == ".adfs" &&
+          fs::absolute( filePath.toString().toStdString() ) == fs::absolute( file()->filename() ) );
     if ( isSave ) {
+        ADDEBUG() << "########### SAVE ########### ";
         std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
         if ( path.extension() == ".adfs" ) {
             if ( file()->saveContents( L"/Processed", portfolio() ) ) {
@@ -393,6 +389,7 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
         return false;
     } else {
         // Save As
+        ADDEBUG() << "########### SAVE_AS : " << filePath.toString().toStdString();
         return save_as( *this, errorString )( std::filesystem::path( filePath.toString().toStdString() ) );
     }
     return false;

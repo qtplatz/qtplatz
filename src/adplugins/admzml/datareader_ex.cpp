@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2024 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2025 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -22,7 +22,7 @@
  **
  **************************************************************************/
 
-#include "datareader.hpp"
+#include "datareader_ex.hpp"
 #include "accession.hpp"
 #include "mzmlspectrum.hpp"
 #include "chromatogram.hpp"
@@ -36,26 +36,34 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <numeric>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 
 namespace mzml {
-    namespace local {
+    namespace exposed {
+
+        template< typename Interpreter, int = 0 > struct TID {
+            static const std::string value;
+            static const std::string display_name;
+            typedef Interpreter type;
+        };
+
+        // template<> const std::string TID< spectrum::DataInterpreter< mzml::spectrum > >::value = "1.mzml.ms-cheminfo.com";
 
         class data_reader::impl {
         public:
-            impl( std::shared_ptr< const mzML > mzml
-                  , int fcn ) : mzml_( mzml )
-                              , fcn_( fcn ) {
+            impl() : fcn_( 0 ) {
             }
-            std::shared_ptr< const mzML > mzml_;
             int fcn_;
+            std::shared_ptr< const mzML > mzml_;
             mzml::scan_protocol scan_protocol_;
             mzml::scan_protocol_key_t protocol_key_;
 
-            // 57B0153C-6BDD-41AF-82E9-6C32772841A0
+            // 6a6cf573-ef05-4c5c-a607-0a417edf37b0
             constexpr const static boost::uuids::uuid uuid_ = {
-                0x57, 0xB0, 0x15, 0x3C, 0x6B, 0xDD, 0x41, 0xAF, 0x82, 0xE9, 0x6C, 0x32, 0x77, 0x28, 0x41, 0xA0 };
+                0x6a, 0x6c, 0xf5, 0x73, 0xef, 0x05, 0x4c, 0x5c
+                , 0xa6, 0x07, 0x0a, 0x41, 0x7e, 0xdf, 0x37, 0xb0 };
 
             static const std::string objtext_;
             std::string display_name_;
@@ -65,17 +73,15 @@ namespace mzml {
     }
 }
 
-using namespace mzml::local;
+using namespace mzml::exposed;
+
 
 data_reader::~data_reader()
 {
 }
 
-data_reader::data_reader( const char * traceid
-                          , int fcn
-                          , std::shared_ptr< const mzML > mzml )
-    : adcontrols::DataReader( traceid )
-    , impl_( std::make_unique< impl >( mzml, fcn ) )
+data_reader::data_reader( const char * traceid ) : adcontrols::DataReader( traceid )
+                                                 , impl_( std::make_unique< impl >() )
 {
     auto jv = boost::json::parse( traceid );
     impl_->scan_protocol_ = boost::json::value_to< scan_protocol >( jv );
@@ -100,6 +106,7 @@ data_reader::abbreviated_display_name() const
     return impl_->display_name_;
 }
 
+// entry for addatafile::datafile
 bool
 data_reader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
@@ -147,19 +154,20 @@ data_reader::fcnCount() const
 size_t
 data_reader::size( int fcn /* segmented fcn */ ) const
 {
-    return std::accumulate( impl_->mzml_->scan_indices().begin()
-                            , impl_->mzml_->scan_indices().end()
-                            , 0
-                            , [&]( const auto& a, const auto& b ){
-                                return (b.second->protocol_id() == impl_->fcn_ ? 1 : 0) + a;
-                            });
+    // return std::accumulate( impl_->mzml_->scan_indices().begin()
+    //                         , impl_->mzml_->scan_indices().end()
+    //                         , 0
+    //                         , [&]( const auto& a, const auto& b ){
+    //                             return (b.second->protocol_id() == impl_->fcn_ ? 1 : 0) + a;
+    //                         });
     // return impl_->mzml_->getSpectrumCount( fcn );
+    return 0;
 }
 
 adcontrols::DataReader::const_iterator
 data_reader::begin( int fcn ) const
 {
-    return adcontrols::DataReader_iterator( this, 0, impl_->fcn_ );
+    return adcontrols::DataReader_iterator( this, 0, 0 );
 }
 
 adcontrols::DataReader::const_iterator
@@ -171,26 +179,26 @@ data_reader::end() const
 adcontrols::DataReader::const_iterator
 data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    if ( auto key = impl_->mzml_->find_key_by_index( impl_->fcn_ ) ) {
-        auto& indices = impl_->mzml_->scan_indices();
+    // if ( auto key = impl_->mzml_->find_key_by_index( impl_->fcn_ ) ) {
+    //     auto& indices = impl_->mzml_->scan_indices();
 
-        auto it = std::find_if( indices.begin()
-                                , indices.end()
-                                , [&](const auto& a){
-                                    return std::get< enum_scan_protocol >(a.first).protocol_key() == *key &&
-                                        (std::get<enum_scan_start_time>(a.first) >= seconds);
-                                });
+    //     auto it = std::find_if( indices.begin()
+    //                             , indices.end()
+    //                             , [&](const auto& a){
+    //                                 return std::get< enum_scan_protocol >(a.first).protocol_key() == *key &&
+    //                                     (std::get<enum_scan_start_time>(a.first) >= seconds);
+    //                             });
 
-        if ( it != indices.end() ) {
-            size_t rowid = std::distance( indices.begin(), it );
-            if ( closest && (it+1) != indices.end() ) {
-                if ( std::abs( std::get< enum_scan_start_time >(it->first) - seconds )
-                     > std::abs( std::get< enum_scan_start_time >((it + 1)->first) - seconds ) )
-                    ++rowid;
-            }
-            return adcontrols::DataReader_iterator( this, rowid, impl_->fcn_ );
-        }
-    }
+    //     if ( it != indices.end() ) {
+    //         size_t rowid = std::distance( indices.begin(), it );
+    //         if ( closest && (it+1) != indices.end() ) {
+    //             if ( std::abs( std::get< enum_scan_start_time >(it->first) - seconds )
+    //                  > std::abs( std::get< enum_scan_start_time >((it + 1)->first) - seconds ) )
+    //                 ++rowid;
+    //         }
+    //         return adcontrols::DataReader_iterator( this, rowid, impl_->fcn_ );
+    //     }
+    // }
     return end();
 }
 
@@ -355,38 +363,6 @@ data_reader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) cons
     ms->setIntensityArray( std::move( intensities ) );
     return ms;
 
-#if 0
-    const auto& data = impl_->mzml_->scan_indices();
-    size_t fst = first->rowid();
-    size_t lst = last != end() ? last->rowid() : transformed.size();
-
-    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
-    std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( fst ) ) * 1e9 ) );
-    if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
-        tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
-    }
-    if ( auto value = impl_->mzml_->find_global_attribute( "/test_ionization_polarity" ) ) {
-        if ( *value == "Positive Polarity" )
-            ms->setPolarity( adcontrols::PolarityPositive );
-        if ( *value == "Negative Polarity" )
-            ms->setPolarity( adcontrols::PolarityNegative );
-    }
-
-    ms->resize( transformed.size() );
-    ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) );
-    auto& prop = ms->getMSProperty();
-    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( fst ) ) );
-    prop.setTrigNumber( std::get< actual_scan_number >( data.at( fst ) ) );
-    prop.setInstMassRange( { std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) } );
-    prop.setTimePoint( tp );
-
-    for ( const auto& map: transformed ) {
-        const auto& [ch,values] = map;
-        ms->setMass( ch, values.first );
-        ms->setIntensity( ch, std::accumulate( values.second.begin() + fst, values.second.begin() + lst, 0.0 ) );
-        // ADDEBUG() << "\t" << std::make_tuple( ch, values.first, ms->intensity( ch ) );
-    }
-#endif
     return {};
 }
 
@@ -407,4 +383,10 @@ data_reader::dataInterpreter() const
 void
 data_reader::handleCalibrateResultAltered() const
 {
+}
+
+std::vector< std::string >
+data_reader::traceid_list()
+{
+    return {};
 }

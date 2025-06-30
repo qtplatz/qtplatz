@@ -28,8 +28,6 @@
 
 namespace adplugin {
 
-#
-
     namespace iid {
 
         const char * const iid_massspectrometer = "adplugins.massSpectrometer"; // "[clsid].adplugin.massSpectrometer.[provider]"
@@ -42,5 +40,3 @@ namespace adplugin {
 
     }
 }
-
-

@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "datafile_factory.hpp"
+#include "datareader_factory.hpp"
 #include "adplugin/plugin.hpp"
 #include "datafile.hpp"
 #include <adportable/debug.hpp>
@@ -107,7 +108,7 @@ void
 datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
     // support subsidery plugin install via v.visit
-	// v.visit( datareader_factory::instance(), adpluginspec );
+    datareader_factory::instance()->accept( v, adplugin );
 }
 
 void *

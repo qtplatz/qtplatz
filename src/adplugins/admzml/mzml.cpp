@@ -92,7 +92,7 @@ namespace mzml {
         chromatograms_t chromatograms_;
         std::map< int, std::shared_ptr< adcontrols::Chromatogram > > TICs_;
         std::map< int, std::shared_ptr< adcontrols::Chromatogram > > SRMs_; // both SRM and SIM
-        std::map< int, std::shared_ptr< DataReader > > dataReaders_;
+        std::map< int, std::shared_ptr< local::data_reader > > dataReaders_;
 
         std::vector< std::pair< mzml::scan_id, std::shared_ptr<mzml::mzMLSpectrum> > > scan_indices_;
         std::unordered_map< mzml::scan_protocol_key_t, int, mzml::protocol_key_hash, mzml::protocol_key_equal > protocol_map_;
@@ -163,9 +163,9 @@ namespace mzml {
                         TICs_[ it->second ] = std::make_shared< adcontrols::Chromatogram >();
                         TICs_[ it->second ]->addDescription( { "id", (boost::format("TIC/TIC.%d") % (it->second + 1)).str() } );
                         auto traceid = boost::json::value_from( std::get< enum_scan_protocol >( id ) );
-                        dataReaders_[ it->second ] = std::make_shared< DataReader >( boost::json::serialize( traceid ).c_str()
-                                                                                     , it->second // fcn
-                                                                                     , mzml->shared_from_this() );
+                        dataReaders_[ it->second ] = std::make_shared< local::data_reader >( boost::json::serialize( traceid ).c_str()
+                                                                                             , it->second // fcn
+                                                                                             , mzml->shared_from_this() );
                         ++next_id;
                     }
                     sp->set_protocol_id( it->second );
@@ -193,7 +193,6 @@ namespace mzml {
 
 using namespace mzml;
 
-
 mzML::~mzML()
 {
 }
@@ -207,6 +206,7 @@ mzML::open( const std::filesystem::path& path )
 {
     if ( auto result = impl_->doc_.load_file( path.c_str() ) ) {
         if ( auto node = impl_->doc_.select_node( "/indexedmzML" ) ) {
+
             auto var = mzMLWalker{}( node.node() );
             for ( auto& data: var ) {
                 std::visit( overloaded {

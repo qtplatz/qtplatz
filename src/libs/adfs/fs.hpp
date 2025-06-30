@@ -25,10 +25,11 @@
 
 #pragma once
 
+#include "file.hpp"
+#include <cstdint>
+#include <filesystem>
 #include <string>
 #include <vector>
-#include <cstdint>
-#include "file.hpp"
 
 namespace adfs {
 
@@ -56,19 +57,19 @@ namespace adfs {
             static bool format_directory( sqlite& db );
             static bool mount( sqlite& db, int& version );
             static bool prealloc( adfs::sqlite& db, uint64_t size );
-            
-            static folder add_folder( adfs::sqlite& db, const std::wstring& fullpath, bool create );  // full path required
-            static folder find_folder( adfs::sqlite& db, const std::wstring& fullpath ); // full path required
+
+            static folder add_folder( adfs::sqlite& db, const std::filesystem::path& fullpath, bool create );  // full path required
+            static folder find_folder( adfs::sqlite& db, const std::filesystem::path& fullpath ); // full path required
             static folder get_parent_folder( adfs::sqlite& db, int64_t rowid );
             static file add_file( const folder&, const std::wstring& name );
             static file add_file( const folder&, const boost::uuids::uuid& uuid );
             static file add_attachment( const file&, const std::wstring& name );
             static file add_attachment( const file&, const boost::uuids::uuid& uuid );
-            
+
             static bool select_folders( adfs::sqlite& db, int64_t parent_id, std::vector<folder>& );
             static bool select_file( adfs::sqlite&, int64_t parent_id, const std::wstring& id, file& );
             static bool select_files( adfs::sqlite& db, int64_t parent_id, files& );
-            
+
             static bool write( adfs::sqlite& db, int64_t fileid, size_t size, const char_t * pbuf );
             static int64_t rowid_from_fileid( adfs::sqlite&, int64_t fileid );
             static bool read( adfs::sqlite& db, int64_t rowid, size_t size, char_t * pbuf );
@@ -77,4 +78,3 @@ namespace adfs {
 
     } // internal
 } // adfs
-

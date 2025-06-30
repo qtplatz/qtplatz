@@ -65,7 +65,7 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
     adfs::stmt sql( db );
 
     sql.exec(
-        "CREATE TABLE ScanLaw (\
+        "CREATE TABLE IF NOT EXISTS ScanLaw (\
  objuuid UUID PRIMARY KEY      \
 ,objtext        TEXT           \
 ,acclVoltage    REAL           \
@@ -78,7 +78,7 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
     // Spectrometer.id --> ScanLaw.spectrometer
     // scanType = { 0 := TOf (Time Squard Scanlaw), ... TBD }
     sql.exec(
-        "CREATE TABLE Spectrometer (\
+        "CREATE TABLE IF NOT EXISTS Spectrometer (\
  id           TEXT PRIMARY KEY \
 ,scanType     INTEGER \
 ,description  TEXT \
@@ -88,8 +88,7 @@ AcquiredConf::create_table_v3( adfs::sqlite& db )
 
 
     sql.exec(
-        "CREATE TABLE \
-AcquiredConf (                \
+        "CREATE TABLE IF NOT EXISTS AcquiredConf (\
  objuuid              UUID PRIMARY KEY \
 ,objtext              TEXT    \
 ,pobjuuid             UUID    \

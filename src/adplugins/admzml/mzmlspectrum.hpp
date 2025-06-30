@@ -28,6 +28,7 @@
 #include "mzmldatumbase.hpp"
 #include "binarydataarray.hpp"
 #include "scan_protocol.hpp"
+#include "serializer.hpp"
 #include <boost/json/fwd.hpp>
 #include <memory>
 
@@ -66,6 +67,11 @@ namespace mzml {
         void set_protocol_id( int );
         int protocol_id() const;
 
+        // DataInterpreter API -->
+        std::string serialize() const;
+        std::shared_ptr< mzMLSpectrum > deserialize( const char *, size_t ) const;
+        // <------
         static std::shared_ptr< adcontrols::MassSpectrum > toMassSpectrum( const mzMLSpectrum& );
     };
+
 }

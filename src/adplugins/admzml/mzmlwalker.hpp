@@ -25,14 +25,10 @@
 
 #pragma once
 
-#include "mzmlspectrum.hpp"
 #include <memory>
 #include <vector>
-#include <map>
-
-namespace pugi {
-    class xml_node;
-}
+#include <pugixml.hpp>
+#include <boost/json/fwd.hpp>
 
 namespace mzml {
 

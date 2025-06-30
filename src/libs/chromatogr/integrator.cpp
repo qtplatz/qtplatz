@@ -1403,7 +1403,8 @@ helper::tRetention_lsq(  const signal_processor& c, adcontrols::Peak& pk )
 
         if ( tR < X.front() || X.back() < tR ) {
             // apex is outside range -- no maximum found
-            ADDEBUG() << "\t" << __FUNCTION__ << "\tparabora fitting failed.";
+            ADDEBUG() << "\t" << __FUNCTION__ << "\tparabora fitting failed. "
+                      << boost::format("obtained tR=%.2f, which outside of {%.2f back=%.2f}") % tR % X.front() % X.back();
             return false;
         }
 

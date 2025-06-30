@@ -23,28 +23,37 @@
 **
 **************************************************************************/
 
-#pragma once
-
-#include "mzmlchromatogram.hpp"
+#include "serializer.hpp"
 #include "mzmlspectrum.hpp"
+#include "mzmlreader.hpp"
 #include <pugixml.hpp>
-#include <memory>
+#include <variant>
+
+using namespace mzml;
+
+namespace {
+    // helper for visitor
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+    // end helper for visitor
+}
 
 namespace mzml {
-
-    using datum_variant_t = std::variant< std::shared_ptr< mzMLSpectrum >
-                                          , std::shared_ptr< mzMLChromatogram > >;
-
-    class mzMLReader {
-    public:
-        ~mzMLReader();
-        mzMLReader();
-        datum_variant_t  operator()( const pugi::xml_node& node ) const;
-        static datum_variant_t read( const pugi::xml_node& node );
-    private:
-        std::pair< const pugi::xml_node, const pugi::xml_node > getSpectrumArrays( const pugi::xml_node& ) const;
-        std::pair< const pugi::xml_node, const pugi::xml_node > getChromatogramArrays( const pugi::xml_node& ) const;
-        std::pair< const pugi::xml_node, const pugi::xml_node > getArrays( const pugi::xml_node& ) const;
-    };
-
-} // namespace
+    std::shared_ptr< mzMLSpectrum >
+    serializer::deserialize( const char * data, size_t )
+    {
+        pugi::xml_document doc;
+        if ( doc.load_string( data ) ) {
+            if ( auto node = doc.select_node( "spectrum" ) ) {
+                auto v = mzMLReader{}(node.node() );
+                return std::visit( overloaded{
+                        [](auto&& arg)->std::shared_ptr< mzml::mzMLSpectrum >{ return nullptr; }
+                            , [](std::shared_ptr< mzml::mzMLSpectrum >&& sp) { return sp; }
+                            }, v);
+            }
+        }
+        return nullptr;
+    }
+}

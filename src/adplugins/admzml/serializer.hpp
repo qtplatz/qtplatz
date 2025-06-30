@@ -25,26 +25,15 @@
 
 #pragma once
 
-#include "mzmlchromatogram.hpp"
-#include "mzmlspectrum.hpp"
-#include <pugixml.hpp>
 #include <memory>
 
 namespace mzml {
 
-    using datum_variant_t = std::variant< std::shared_ptr< mzMLSpectrum >
-                                          , std::shared_ptr< mzMLChromatogram > >;
+    class mzMLSpectrum;
 
-    class mzMLReader {
+    class serializer {
     public:
-        ~mzMLReader();
-        mzMLReader();
-        datum_variant_t  operator()( const pugi::xml_node& node ) const;
-        static datum_variant_t read( const pugi::xml_node& node );
-    private:
-        std::pair< const pugi::xml_node, const pugi::xml_node > getSpectrumArrays( const pugi::xml_node& ) const;
-        std::pair< const pugi::xml_node, const pugi::xml_node > getChromatogramArrays( const pugi::xml_node& ) const;
-        std::pair< const pugi::xml_node, const pugi::xml_node > getArrays( const pugi::xml_node& ) const;
+        static std::shared_ptr< mzMLSpectrum > deserialize( const char *, size_t );
     };
 
-} // namespace
+}

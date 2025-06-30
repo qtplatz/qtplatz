@@ -22,11 +22,7 @@
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 **************************************************************************/
-#if QTC_VERSION < 0x08'00'00
-# define EXCLUDE 1
-#else
-# define EXCLUDE 0
-#endif
+
 #include "dataprocplugin.hpp"
 #include "actionmanager.hpp"
 #include "constants.hpp"
@@ -38,9 +34,6 @@
 #include "isnapshothandlerimpl.hpp"
 #include "ipeptidehandlerimpl.hpp"
 #include "mainwindow.hpp"
-#if EXCLUDE
-#include "mimetypehelper.hpp"
-#endif
 
 #include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
@@ -84,11 +77,7 @@
 #include <pugixml.hpp>
 
 #include <coreplugin/icore.h>
-#if EXCLUDE
-#include <coreplugin/id.h>
-#else
 #include <utils/id.h>
-#endif
 #include <coreplugin/actionmanager/actioncontainer.h>
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/coreconstants.h>

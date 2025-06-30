@@ -24,12 +24,21 @@
 **************************************************************************/
 
 #include "mzmlreader.hpp"
+#include "mzmlspectrum.hpp"
 
 namespace mzml {
 
-    template<>
+    mzMLReader::mzMLReader()
+    {
+    }
+
+    mzMLReader::~mzMLReader()
+    {
+    }
+
     std::pair< const pugi::xml_node, const pugi::xml_node >
-    mzMLReader< dataTypeSpectrum >::getArrayNodes( const pugi::xml_node node ) const {
+    mzMLReader::getSpectrumArrays( const pugi::xml_node& node ) const
+    {
         if (auto intens= node.select_node("binaryDataArrayList/binaryDataArray[cvParam[@accession='MS:1000515']]")) {
             if (auto mz= node.select_node("binaryDataArrayList/binaryDataArray[cvParam[@accession='MS:1000514']]")) {
                 return { mz.node(), intens.node() };
@@ -38,10 +47,9 @@ namespace mzml {
         return {};
     }
 
-    template<>
     std::pair< const pugi::xml_node, const pugi::xml_node >
-    mzMLReader< dataTypeChromatogram >::getArrayNodes( const pugi::xml_node node ) const {
-
+    mzMLReader::getChromatogramArrays( const pugi::xml_node& node ) const
+    {
         if (auto intens= node.select_node("binaryDataArrayList/binaryDataArray[cvParam[@accession='MS:1000515']]")) {
             if (auto time = node.select_node("binaryDataArrayList/binaryDataArray[cvParam[@accession='MS:1000595']]")) {
                 return { time.node(), intens.node()};
@@ -50,4 +58,38 @@ namespace mzml {
         return {};
     }
 
+    std::pair< const pugi::xml_node, const pugi::xml_node >
+    mzMLReader::getArrays( const pugi::xml_node& node ) const
+    {
+        if ( node.name() == std::string( "spectrum" ) )
+            return getSpectrumArrays( node );
+        if ( node.name() == std::string( "chromatogram" ) )
+            return getChromatogramArrays( node );
+        return {};
+    }
+
+    datum_variant_t
+    mzMLReader::operator()( const pugi::xml_node& node ) const
+    {
+        size_t count = node.select_node( "binaryDataArrayList/@count" ).attribute().as_uint();
+        if ( count == 2 ) {
+            auto arrays = getArrays( node );
+            auto prime = binaryDataArray::make_instance( std::get<0>( arrays ) );
+            auto secondi = binaryDataArray::make_instance( std::get<1>( arrays ) );
+            if ( prime.length() == secondi.length()) {
+                if ( node.name() == std::string( "spectrum")  )
+                    return std::make_shared< mzMLSpectrum >( prime, secondi, node );
+                else if ( node.name() == std::string( "chromatogram" ) )
+                    return std::make_shared< mzMLChromatogram >( prime, secondi, node );
+            }
+        }
+        return {};
+    }
+
+    // static
+    datum_variant_t
+    mzMLReader::read( const pugi::xml_node& node )
+    {
+        return mzMLReader{}( node );
+    }
 } // namespace

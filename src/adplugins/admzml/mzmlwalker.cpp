@@ -26,8 +26,6 @@
 #include "mzmlwalker.hpp"
 #include "accession.hpp"
 #include "xmltojson.hpp"
-#include "mzmlspectrum.hpp"
-#include "mzmlchromatogram.hpp"
 #include "mzmlreader.hpp"
 #include <adportable/debug.hpp>
 #include <variant>
@@ -44,6 +42,8 @@ namespace {
     overloaded(Ts...) -> overloaded<Ts...>;
     // end helper for visitor
 
+    ///////////////////////////////////////////////////////////
+
     struct spectrumList {
         spectrumList() {}
 
@@ -54,7 +54,8 @@ namespace {
             size_t count = node.attribute( "count" ).as_uint();
 
             for ( const auto node1: node.select_nodes( "spectrum" ) ) {
-                auto v = mzml::mzMLReader< mzml::dataTypeSpectrum >{}( node1.node() );
+                // auto v = mzml::mzMLReader_< mzml::dataTypeSpectrum >{}( node1.node() );
+                auto v = mzml::mzMLReader{}( node1.node() );
                 std::visit( overloaded{
                         [](auto arg) { }
                             , [&](std::shared_ptr< mzml::mzMLSpectrum > arg) {vec.emplace_back( arg ); }
@@ -63,6 +64,8 @@ namespace {
             return vec;
         }
     };
+
+    ///////////////////////////////////////////////////////////
 
     struct chromatogramList {
         chromatogramList() {}
@@ -74,7 +77,8 @@ namespace {
             size_t count = node.attribute( "count" ).as_uint();
 
             for ( const auto node1: node.select_nodes( "chromatogram" ) ) {
-                auto v = mzml::mzMLReader< mzml::dataTypeChromatogram >{}( node1.node() );
+                //auto v = mzml::mzMLReader_< mzml::dataTypeChromatogram >{}( node1.node() );
+                auto v = mzml::mzMLReader{}( node1.node() );
                 std::visit( overloaded{
                         [](auto arg) { }
                             , [&](std::shared_ptr< mzml::mzMLChromatogram > arg) {vec.emplace_back( arg ); }

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2025 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -22,15 +22,32 @@
 **
 **************************************************************************/
 
-#include <boost/json.hpp>
-#include <pugixml.hpp>
-#include <map>
+#pragma once
+
+#include <adcontrols/massspectrometer.hpp>
+#include <adcontrols/massspectrometer_factory.hpp>
+#include <adplugin/plugin.hpp>
+#include <memory>
 
 namespace mzml {
 
-    class to_value {
+    class datareader_factory : public adplugin::plugin {
+
+        datareader_factory( const datareader_factory& ) = delete;
+        const datareader_factory& operator = ( const datareader_factory& ) = delete;
+
+        datareader_factory();
     public:
-        boost::json::value operator()(const pugi::xml_node& node) const;
+        ~datareader_factory();
+
+        static adplugin::plugin * instance();
+
+        void accept( adplugin::visitor&, const char * adplugin ) override;
+        const char * iid() const override;
+        void * query_interface_workaround( const char * typname ) override;
+
+    private:
+        static std::shared_ptr< adplugin::plugin > instance_;
     };
 
-} // namespace
+}

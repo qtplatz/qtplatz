@@ -196,6 +196,12 @@ sqlite::last_insert_rowid() const
     return sqlite3_last_insert_rowid( db_ );
 }
 
+std::string
+sqlite::db_filename( const char * zDbName )
+{
+    return ::sqlite3_db_filename( db_, zDbName );
+}
+
 //////////////////////
 
 stmt::~stmt()

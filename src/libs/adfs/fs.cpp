@@ -180,9 +180,8 @@ fs::prealloc( adfs::sqlite& db, uint64_t size )
 }
 
 adfs::folder
-fs::add_folder( adfs::sqlite& db, const std::wstring& name, bool recursive )
+fs::add_folder( adfs::sqlite& db, const std::filesystem::path& path, bool recursive )
 {
-    std::filesystem::path path( name );
     std::wstring branch = path.parent_path().wstring(); //.c_str();
     std::wstring leaf = path.filename().wstring(); //c_str();
 
@@ -221,9 +220,8 @@ fs::add_folder( adfs::sqlite& db, const std::wstring& name, bool recursive )
 }
 
 adfs::folder
-fs::find_folder( adfs::sqlite& db, const std::wstring& name )
+fs::find_folder( adfs::sqlite& db, const std::filesystem::path& path )
 {
-    std::filesystem::path path( name );
     std::wstring branch = path.parent_path().wstring(); // .c_str();
     std::wstring leaf = path.filename().wstring(); // c_str();
 

@@ -53,6 +53,8 @@ namespace mzml {
         boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
         boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 
+        bool export_rawdata( const adcontrols::datafile& ) const override;
+
         adcontrols::datafile::factory_type factory() override { return 0; }
         int dataformat_version() const override;
 

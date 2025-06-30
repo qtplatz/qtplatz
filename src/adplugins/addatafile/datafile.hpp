@@ -75,6 +75,8 @@ namespace addatafile {
 
         int dataformat_version() const override;
 
+        std::shared_ptr< adfs::sqlite > sqlite() const override;
+
     private:
         bool loadContents( portfolio::Portfolio&, const std::wstring& query );
 

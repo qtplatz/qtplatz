@@ -23,18 +23,22 @@
 **
 **************************************************************************/
 
-#include "mzmlspectrum.hpp"
 #include "accession.hpp"
 #include "binarydataarray.hpp"
 #include "mzmldatumbase.hpp"
+#include "mzmlreader.hpp"
+#include "serializer.hpp"
+#include "mzmlspectrum.hpp"
 #include "scan_protocol.hpp"
 #include "xmltojson.hpp"
+#include "mzmlwalker.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
 #include <boost/json.hpp>
 #include <pugixml.hpp>
-#include <algorithm>
+#include <sstream>
+#include <variant>
 
 namespace mzml {
 
@@ -185,49 +189,95 @@ namespace mzml {
         return impl_->protocol_number_;
     }
 
-}
+    std::shared_ptr< adcontrols::MassSpectrum >
+    mzMLSpectrum::toMassSpectrum( const mzMLSpectrum& t )
+    {
+        auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
-std::shared_ptr< adcontrols::MassSpectrum >
-mzml::mzMLSpectrum::toMassSpectrum( const mzMLSpectrum& t )
-{
-    auto ms = std::make_shared< adcontrols::MassSpectrum >();
+        ms->resize( t.length() );
+        auto [ masses, intensities ] = t.dataArrays();
 
-    ms->resize( t.length() );
-    auto [ masses, intensities ] = t.dataArrays();
+        std::visit([&](auto arg){
+            for ( size_t i = 0; i < t.length(); ++i )
+                ms->setMass( i, *arg++ );
+        }, masses.data() );
 
-    std::visit([&](auto arg){
-        for ( size_t i = 0; i < t.length(); ++i )
-            ms->setMass( i, *arg++ );
-     }, masses.data() );
+        std::visit([&](auto arg){
+            for ( size_t i = 0; i < t.length(); ++i )
+                ms->setIntensity ( i, *arg++ );
+        }, intensities.data() );
 
-    std::visit([&](auto arg){
-        for ( size_t i = 0; i < t.length(); ++i )
-            ms->setIntensity ( i, *arg++ );
-    }, intensities.data() );
+        const auto& id = t.scan_id();
+        const auto& proto = scan_id_accessor{ t.scan_id() }.scan_protocol();
 
-    const auto& id = t.scan_id();
-    const auto& proto = scan_id_accessor{ t.scan_id() }.scan_protocol();
+        if ( t.is_profile() )
+            ms->setCentroid( adcontrols::CentroidNone );
 
-    if ( t.is_profile() )
-        ms->setCentroid( adcontrols::CentroidNone );
+        ms->setAcquisitionMassRange( proto.scan_window_lower_limit(), proto.scan_window_upper_limit() );
+        auto polarity = t.polarity();
+        if ( polarity == polarity_negative )
+            ms->setPolarity( adcontrols::PolarityNegative );
+        else
+            ms->setPolarity( adcontrols::PolarityPositive );
 
-    ms->setAcquisitionMassRange( proto.scan_window_lower_limit(), proto.scan_window_upper_limit() );
-    auto polarity = t.polarity();
-    if ( polarity == polarity_negative )
-        ms->setPolarity( adcontrols::PolarityNegative );
-    else
-        ms->setPolarity( adcontrols::PolarityPositive );
+        auto& prop = ms->getMSProperty();
+        prop.setTimeSinceInjection( t.scan_start_time() );
+        prop.setTrigNumber( scan_id_accessor{ t.scan_id() }.scan_index() );
+        prop.setInstMassRange( { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() } );
 
-    auto& prop = ms->getMSProperty();
-    prop.setTimeSinceInjection( t.scan_start_time() );
-    prop.setTrigNumber( scan_id_accessor{ t.scan_id() }.scan_index() );
-    prop.setInstMassRange( { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() } );
+        // Shimadzu does not expose timestamp in mzML
+        std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp; // epoch
+        std::chrono::nanoseconds elapsed_time( int64_t( t.scan_start_time() * 1e9 ) );
+        tp += elapsed_time;
+        prop.setTimePoint( tp );
 
-    // Shimadzu does not expose timestamp in mzML
-    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp; // epoch
-    std::chrono::nanoseconds elapsed_time( int64_t( t.scan_start_time() * 1e9 ) );
-    tp += elapsed_time;
-    prop.setTimePoint( tp );
+        return ms;
+    }
 
-    return ms;
-}
+    ///////////////////////////
+    // helper for visitor
+#if 0
+    template<class... Ts>
+    struct overloaded : Ts... { using Ts::operator()...; };
+    template<class... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
+    // end helper for visitor
+#endif
+
+    std::string
+    mzMLSpectrum::serialize() const
+    {
+        std::ostringstream o;
+        node().print( o );
+        return o.str();
+    }
+
+    namespace {
+        template<class... Ts>
+        struct overloaded : Ts... { using Ts::operator()...; };
+        template<class... Ts>
+        overloaded(Ts...) -> overloaded<Ts...>;
+    }
+
+    // static
+    std::shared_ptr< mzMLSpectrum >
+    mzMLSpectrum::deserialize( const char * data, size_t size ) const
+    {
+        pugi::xml_document doc;
+        if ( doc.load_string( data ) ) {
+            if ( auto node = doc.select_node( "spectrum" ) ) {
+#if 0
+                auto v = ::mzml::mzMLReader{}(node.node() );
+                return std::visit( overloaded{
+                        [](auto&& arg)->std::shared_ptr< mzml::mzMLSpectrum >{ return nullptr; }
+                            , [](std::shared_ptr< mzml::mzMLSpectrum >&& sp) { return sp; }
+                            }, v);
+#endif
+            }
+        }
+        return nullptr;
+        // return ::mzml::serializer::deserialize( data, size );
+        //return ::mzml::serializer::deserialize( data, size );
+    }
+
+} // mzml

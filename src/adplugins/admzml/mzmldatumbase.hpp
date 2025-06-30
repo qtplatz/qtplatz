@@ -26,7 +26,6 @@
 #pragma once
 
 #include <memory>
-#include <variant>
 #include <pugixml.hpp>
 
 namespace mzml {

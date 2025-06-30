@@ -4,7 +4,7 @@ cmake_policy( SET CMP0028 NEW )
 project( admzml )
 
 set( PROVIDER MS-Cheminformatics )
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 qtplatz_adplugin_output_dir( _adplugin_output_dir ${PROVIDER} )
 qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
@@ -31,17 +31,21 @@ add_library( ${PROJECT_NAME} MODULE
   binarydataarray.cpp binarydataarray.hpp
   datafile.cpp datafile.hpp
   datafile_factory.cpp datafile_factory.hpp
+  datainterpreter.cpp datainterpreter.hpp
+  datareader.cpp datareader.hpp
+  datareader_ex.cpp datareader_ex.hpp
+  datareader_factory.cpp datareader_factory.hpp
   mzml.cpp mzml.hpp
   mzmlchromatogram.cpp mzmlchromatogram.hpp
   mzmldatumbase.cpp mzmldatumbase.hpp
   mzmlreader.cpp mzmlreader.hpp
   mzmlspectrum.cpp mzmlspectrum.hpp
   mzmlwalker.cpp mzmlwalker.hpp
-  datareader.cpp datareader.hpp
-  xmltojson.cpp xmltojson.hpp
   scan_protocol.cpp scan_protocol.hpp
+  serializer.cpp serializer.hpp
+  xmltojson.cpp xmltojson.hpp
   ${BASE64LIB}
-  )
+)
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable

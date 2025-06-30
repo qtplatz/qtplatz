@@ -50,6 +50,7 @@
 #include <adfs/adfs.hpp>
 #include <adfs/file.hpp>
 #include <adfs/sqlite.hpp>
+#include <adfs/sqlite3.h>
 #include <adlog/logger.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
@@ -131,8 +132,6 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
 {
     if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.wstring(), false ) ) ) {
 
-        // std::filesystem::path path( filename );
-
         auto fs = std::make_unique< adfs::filesystem >();
         if ( fs->mount( filename ) ) {
             impl_->fs_ = std::move( fs );
@@ -141,6 +140,7 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
             adutils::v3::AcquiredConf::create_table_v3( *db() );
         } else
             return false;
+
         impl_->file_ = std::move( file );
         try {
             impl_->file_->accept( *this );  // may access 'db' if file was imported from csv.

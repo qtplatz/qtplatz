@@ -28,11 +28,12 @@
 #pragma once
 
 #include "adcontrols_global.h"
+#include <boost/any.hpp>
 #include <filesystem>
 #include <string>
-#include <boost/any.hpp>
 
 namespace portfolio { class Portfolio; }
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -71,6 +72,9 @@ namespace adcontrols {
 
         virtual bool applyCalibration( const std::wstring&, const MSCalibrateResult& ) { return false; }
         virtual bool readCalibration( size_t idx, MSCalibrateResult& ) const { (void)idx; return false; }
+
+        virtual std::shared_ptr< adfs::sqlite > sqlite() const { return {}; }
+        virtual bool export_rawdata( const datafile& ) const { return false; }
 
         static bool access( const std::wstring& filename );
         static datafile * create( const std::wstring& filename );

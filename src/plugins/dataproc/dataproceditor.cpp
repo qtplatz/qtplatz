@@ -78,14 +78,12 @@ DataprocEditor::document() const
 QWidget *
 DataprocEditor::toolBar()
 {
-    // ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
     return 0;
 }
 
 Core::IEditor *
 DataprocEditor::duplicate()
 {
-    // ADDEBUG() << "########### DataprocEditor::" << __FUNCTION__ << " ####################";
     return 0;
 }
 

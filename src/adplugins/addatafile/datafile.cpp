@@ -296,6 +296,7 @@ datafile::accept( adcontrols::dataSubscriber& sub )
                 sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, boost::json::serialize( ptop ) );
             }
         }
+
         // publish processed dataset
         portfolio::Portfolio portfolio;
         if ( loadContents( portfolio, L"/Processed" ) && processedDataset_ ) {
@@ -317,6 +318,12 @@ datafile::dataformat_version() const
 {
     // 0 = v2, 1 = v3
     return rawdata_.which() + 2;
+}
+
+std::shared_ptr< adfs::sqlite >
+datafile::sqlite() const
+{
+    return dbf_._ptr();
 }
 
 bool

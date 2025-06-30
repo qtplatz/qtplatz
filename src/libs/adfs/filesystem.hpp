@@ -41,11 +41,9 @@ namespace adfs {
     class folder;
 
     class ADFSSHARED_EXPORT filesystem {
-        pragma_msvc_warning_push_disable_4251
         std::shared_ptr< adfs::sqlite > db_;
         std::mutex mutex_;
         std::string filename_;
-        pragma_msvc_warning_pop
         int format_version_;
     public:
         ~filesystem();
