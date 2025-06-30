@@ -29,6 +29,7 @@
 #include <vector>
 #include <pugixml.hpp>
 #include <boost/json/fwd.hpp>
+#include <variant>
 
 namespace mzml {
 

@@ -48,11 +48,12 @@ namespace mzml {
         return not decoded_.empty();
     }
 
-    const accession&
-    binaryDataArray::accession() const
+    const mzml::accession&
+    binaryDataArray::get_accession() const
     {
         return ac_;
     }
+
     size_t
     binaryDataArray::size() const { return decoded_.size(); }
 

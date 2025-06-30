@@ -12,7 +12,7 @@ endif()
 
 add_subdirectory ( adurlx )
 add_subdirectory ( eventbroker )
-if ( NOT WIN32 )
+if ( APPLE )
   add_subdirectory ( mzml )
 endif()
 if ( APPLE )

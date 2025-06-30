@@ -99,9 +99,9 @@ namespace mzml {
     struct scan_id_accessor {
         const scan_id& _;
         inline int scan_index() const                     { return std::get<0>( _ ); }
-        inline const std::string& scan_id() const         { return get<1>( _ ); }
+        inline const std::string& get_scan_id() const     { return get<1>( _ ); }
         inline double scan_start_time() const             { return std::get< 2 >( _ ); }
-        inline const scan_protocol& scan_protocol() const { return std::get< 3 >( _ ); }
+        inline const scan_protocol& get_scan_protocol() const { return std::get< 3 >( _ ); }
     };
 
     void

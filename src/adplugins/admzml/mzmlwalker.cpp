@@ -223,7 +223,7 @@ mzMLWalker::mzMLWalker()
 {
 }
 
-std::vector< data_t >
+std::vector< mzml::data_t >
 mzMLWalker::operator()( const pugi::xml_node& root_node )
 {
     std::vector< data_t > var;

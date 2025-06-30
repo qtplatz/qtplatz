@@ -131,7 +131,7 @@ namespace mzml {
     }
 
     const scan_id&
-    mzMLSpectrum::scan_id() const
+    mzMLSpectrum::get_scan_id() const
     {
         return impl_->scan_id_;
     }
@@ -145,26 +145,26 @@ namespace mzml {
     std::pair< double, double >
     mzMLSpectrum::scan_range() const // lower, upper
     {
-        const auto& proto = scan_id_accessor{ impl_->scan_id_ }.scan_protocol();
+        const auto& proto = scan_id_accessor{ impl_->scan_id_ }.get_scan_protocol();
         return { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() };
     }
 
     double
     mzMLSpectrum::precursor_mz() const
     {
-        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().precursor_mz();
+        return scan_id_accessor{ impl_->scan_id_ }.get_scan_protocol().precursor_mz();
     }
 
     int
     mzMLSpectrum::ms_level() const
     {
-        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().ms_level();
+        return scan_id_accessor{ impl_->scan_id_ }.get_scan_protocol().ms_level();
     }
 
     ion_polarity_type
     mzMLSpectrum::polarity() const
     {
-        return scan_id_accessor{ impl_->scan_id_ }.scan_protocol().polarity();
+        return scan_id_accessor{ impl_->scan_id_ }.get_scan_protocol().polarity();
     }
 
     std::pair< double, double >
@@ -223,8 +223,8 @@ namespace mzml {
                 ms->setIntensity ( i, *arg++ );
         }, intensities.data() );
 
-        const auto& id = t.scan_id();
-        const auto& proto = scan_id_accessor{ t.scan_id() }.scan_protocol();
+        const auto& id = t.get_scan_id();
+        const auto& proto = scan_id_accessor{ t.get_scan_id() }.get_scan_protocol();
 
         if ( t.is_profile() )
             ms->setCentroid( adcontrols::CentroidNone );
@@ -238,7 +238,7 @@ namespace mzml {
 
         auto& prop = ms->getMSProperty();
         prop.setTimeSinceInjection( t.scan_start_time() );
-        prop.setTrigNumber( scan_id_accessor{ t.scan_id() }.scan_index() );
+        prop.setTrigNumber( scan_id_accessor{ t.get_scan_id() }.scan_index() );
         prop.setInstMassRange( { proto.scan_window_lower_limit(), proto.scan_window_upper_limit() } );
 
         // Shimadzu does not expose timestamp in mzML

@@ -44,7 +44,7 @@ namespace mzml {
 
 
         operator bool () const;
-        const accession& accession() const;
+        const mzml::accession& get_accession() const;
         size_t size() const;
         size_t length() const;
         data_ptr data() const;

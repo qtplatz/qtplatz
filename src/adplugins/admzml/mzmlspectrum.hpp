@@ -55,7 +55,7 @@ namespace mzml {
         boost::json::value to_value() const;
         std::pair< const binaryDataArray&, const binaryDataArray& > dataArrays() const;
 
-        const scan_id& scan_id() const;
+        const scan_id& get_scan_id() const;
         double scan_start_time() const;
         std::pair< double, double > scan_range() const; // lower, upper
         std::pair< double, double > base_peak() const;  // mz, intensity
