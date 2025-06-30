@@ -28,7 +28,7 @@
 #include "binarydataarray.hpp"
 //#include "mzmlchromatogram.hpp"
 #include "mzmldatumbase.hpp"
-//#include "mzmlreader.hpp"
+#include "mzmlreader.hpp"
 #include "serializer.hpp"
 #include "scan_protocol.hpp"
 #include "xmltojson.hpp"
@@ -45,9 +45,9 @@
 namespace {
     struct reader {
         static mzml::datum_variant_t read( const pugi::xml_node& node ) {
-            // return mzml::mzMLReader{}( node );
+            return mzml::mzMLReader{}( node );
             mzml::mzMLDatumBase b{};
-            // mzml::mzMLWalker z{};
+            mzml::mzMLWalker z{};
             mzml::mzMLSpectrum y{};
             mzml::mzMLChromatogram x{};
             return {};
