@@ -26,13 +26,13 @@
 #pragma once
 
 #include "adcontrols_global.h"
-#include <string>
+#include <filesystem>
 
 namespace adcontrols {
 
     class datafile;
     enum access_mode { read_access = 1, write_access = 2 };
-    
+
     class ADCONTROLSSHARED_EXPORT datafile_factory {
     public:
         datafile_factory(void) {}
@@ -40,11 +40,12 @@ namespace adcontrols {
 		virtual const char * mimeTypes() const = 0;
         virtual const wchar_t * name() const = 0;
         virtual bool access( const wchar_t * filename, access_mode = read_access ) const = 0;
+        virtual bool access( const std::filesystem::path& filename, access_mode = read_access ) const = 0;
         virtual datafile * open( const wchar_t * filename, bool readonly = false ) const = 0;
+        virtual datafile * open( const std::filesystem::path& filename, bool readonly = false ) const = 0;
         virtual void close( datafile * ) = 0;
     private:
 
     };
-    
-}
 
+}

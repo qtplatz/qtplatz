@@ -25,19 +25,18 @@
 
 #pragma once
 
+#include "mzmlwalker.hpp"
 #include <scan_protocol.hpp>
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/datainterpreter.hpp>
 #include <adfs/adfs.hpp>
-#include <adutils/acquiredconf.hpp>
 #include <adutils/acquiredconf_v3.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/variant.hpp>
 #include <memory>
 #include <map>
 #include <cstdint>
-
 
 namespace adcontrols {
     class Chromatogram;
@@ -81,11 +80,14 @@ namespace mzml {
                                , int endPos = (-1) ) const override;
 
         // --------------- v2 ???
-        bool getCalibration( int, adcontrols::MSCalibrateResult&, adcontrols::MassSpectrum& ) const override { return false; }
+        bool getCalibration( int, adcontrols::MSCalibrateResult&
+                             , adcontrols::MassSpectrum& ) const override { return false; }
         bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override { return false; }
         uint32_t findObjId( const std::wstring& /* traceId */) const override { return 0; }
         bool getRaw( uint64_t /*objid*/, uint64_t /*npos*/
-                     , uint64_t& /*fcn*/, std::vector< char >& /*data*/, std::vector< char >& /*meta*/ ) const override { return 0; }
+                     , uint64_t& /*fcn*/
+                     , std::vector< char >& /*data*/
+                     , std::vector< char >& /*meta*/ ) const override { return 0; }
         adfs::sqlite * db() const  override { return 0; }
         bool mslocker( adcontrols::lockmass::mslock&, uint32_t = 0 ) const override { return 0; }
 
@@ -104,8 +106,18 @@ namespace mzml {
         int get_protocol_index( const mzml::scan_protocol_key_t& key ) const;
         std::optional<mzml::scan_protocol_key_t> find_key_by_index(int index) const;
 
-        std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > find_spectrum( int fcn, size_t pos, size_t rowid ) const;
-        std::optional< std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > > find_first_spectrum( int fcn, double tR ) const;
+        std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > >
+        find_spectrum( int fcn, size_t pos, size_t rowid ) const;
+
+        std::optional< std::pair< mzml::scan_id, std::shared_ptr< const mzml::mzMLSpectrum > > >
+        find_first_spectrum( int fcn, double tR ) const;
+
+        // export_to_adfs interface
+        const pugi::xml_document& xml_document() const;
+        std::optional< fileDescription > get_fileDescription() const;
+        std::optional< softwareList > get_softwareList() const;
+        std::optional< instrumentConfigurationList > get_instrumentConfigurationList() const;
+        std::optional< dataProcessingList > get_dataProcessingList() const;
 
     private:
         class impl;

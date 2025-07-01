@@ -206,8 +206,9 @@ mzML::open( const std::filesystem::path& path )
 {
     if ( auto result = impl_->doc_.load_file( path.c_str() ) ) {
         if ( auto node = impl_->doc_.select_node( "/indexedmzML" ) ) {
+            mzml::mzMLWalker walker;
 
-            auto var = mzMLWalker{}( node.node() );
+            auto var = walker( node.node() );
             for ( auto& data: var ) {
                 std::visit( overloaded {
                         [&](fileDescription& arg) {
@@ -313,6 +314,36 @@ mzML::find_first_spectrum( int fcn, double tR ) const
         }
     }
     return {};
+}
+
+const pugi::xml_document&
+mzML::xml_document() const
+{
+    return impl_->doc_;
+}
+
+std::optional< fileDescription >
+mzML::get_fileDescription() const
+{
+    return impl_->fileDescription_;
+}
+
+std::optional< softwareList >
+mzML::get_softwareList() const
+{
+    return impl_->softwareList_;
+}
+
+std::optional< instrumentConfigurationList >
+mzML::get_instrumentConfigurationList() const
+{
+    return impl_->instrumentConfigurationList_;
+}
+
+std::optional< dataProcessingList >
+mzML::get_dataProcessingList() const
+{
+    return impl_->dataProcessingList_;
 }
 
 //////////

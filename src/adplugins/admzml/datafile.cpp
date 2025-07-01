@@ -29,6 +29,7 @@
 
 #include "chromatogram.hpp"
 #include "datafile.hpp"
+#include "export_to_adfs.hpp"
 #include "mzml.hpp"
 #include "mzmlreader.hpp"
 #include "mzmlspectrum.hpp"
@@ -205,25 +206,26 @@ datafile::export_rawdata( const adcontrols::datafile& db ) const
 {
     ADDEBUG() << __FUNCTION__;
 
-    for ( const auto [scan_id,sp]: impl_->mzml_->scan_indices() ) {
-        // scan_id = std::tuple< int, string, double (time), scan_protocol
-        // sp = mzMLSpectrum
-        ADDEBUG() << scan_id;
-        auto xml = sp->serialize();
+    auto sqlite = db.sqlite();
+    export_to_adfs exporter( std::move( sqlite ) );
+    exporter( *impl_->mzml_ );
 
-        auto spc = serializer::deserialize( xml.data(), xml.size() );
+    // for ( const auto [scan_id,sp]: impl_->mzml_->scan_indices() ) {
+    //     // scan_id = std::tuple< int, string, double (time), scan_protocol
+    //     // sp = mzMLSpectrum
+    //     ADDEBUG() << scan_id;
+    //     auto xml = sp->serialize();
 
-        mzMLReader{}( pugi::xml_node{} );
+    //     adfs::stmt sql( *db.sqlite() );
 
-        auto r = mzMLReader{}(pugi::xml_node{} );
 
-    }
+    //     auto spc = serializer::deserialize( xml.data(), xml.size() );
 
-    // Spectrometer uuid, scantype, description, fLength
-    // AcquiredConf
-    // AcquiredData (blob)
-    // ScanLaw { uuid (observer id), objtext (observer text), acclVoltage, tDelay, spectrometer (text), spectrometer (clsid)
-    // MetaData := ControlMethod clsid	'cd53abe6-8223-11e6-b2d8-cb9185077a24'
+    //     mzMLReader{}( pugi::xml_node{} );
+
+    //     auto r = mzMLReader{}(pugi::xml_node{} );
+
+    // }
 
     return true;
 }

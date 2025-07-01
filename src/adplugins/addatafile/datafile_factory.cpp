@@ -70,14 +70,18 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    std::filesystem::path path(filename);
+    return access( std::filesystem::path{ filename }, mode );
+}
 
-    // ADDEBUG() << "============= access( " << filename << ") ============ " << path.extension();
-
-    if ( path.extension() == ".qtms" ) // obsolete
+bool
+datafile_factory::access( const std::filesystem::path& path, adcontrols::access_mode mode ) const
+{
+    if ( path.extension() == ".qtms" )  // obsolete
         return mode == adcontrols::read_access;
-    if ( path.extension() == ".adfs" )
+
+    if ( path.extension() == ".adfs" ) {
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
+    }
     if ( path.extension() == ".adfs~" )
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
     return false;
@@ -86,10 +90,15 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
+    return open( std::filesystem::path{ filename }, readonly );
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::filesystem::path& path, bool readonly ) const
+{
     // ADDEBUG() << "===> datafile_factory::open(" << filename << ")";
-    std::filesystem::path path(filename);
     datafile * p = new datafile;
-    if ( p->open( filename, readonly ) )
+    if ( p->open( path.wstring(), readonly ) )
         return p;
     delete p;
     return 0;

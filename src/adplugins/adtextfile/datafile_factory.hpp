@@ -42,7 +42,9 @@ namespace adtextfile {
 		const char * mimeTypes() const;
         const wchar_t * name() const;
         bool access( const wchar_t * filename, adcontrols::access_mode ) const;
+        bool access( const std::filesystem::path& filename, adcontrols::access_mode ) const;
         adcontrols::datafile * open( const wchar_t * filename, bool readonly ) const;
+        adcontrols::datafile * open( const std::filesystem::path& filename, bool readonly ) const;
         void close( adcontrols::datafile * );
 
         // adplugin::plugin

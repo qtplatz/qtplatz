@@ -43,7 +43,11 @@ namespace mzml {
 		const char * mimeTypes() const override;
         const wchar_t * name() const override;
         bool access( const wchar_t * filename, adcontrols::access_mode ) const override;
+        bool access( const std::filesystem::path& filename, adcontrols::access_mode ) const override;
+
         adcontrols::datafile * open( const wchar_t * filename, bool readonly ) const override;
+        adcontrols::datafile * open( const std::filesystem::path& filename, bool readonly ) const override;
+
         void close( adcontrols::datafile * ) override;
 
         // adplugin::plugin

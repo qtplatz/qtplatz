@@ -80,15 +80,27 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    std::filesystem::path path(filename);
+    return access( std::filesystem::path{ filename }, mode );
+}
+
+bool
+datafile_factory::access( const std::filesystem::path& path, adcontrols::access_mode mode ) const
+{
 	return ( path.extension() == L".cdf" || path.extension() == L".CDF" ) && ( mode == adcontrols::read_access );
 }
+
 
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
+    return open( std::filesystem::path{ filename }, readonly );
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::filesystem::path& path, bool readonly ) const
+{
     datafile * p = new datafile;
-    if ( p->open( filename, readonly ) )
+    if ( p->open( path.wstring(), readonly ) )
         return p;
     delete p;
     return 0;

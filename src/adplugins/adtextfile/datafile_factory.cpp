@@ -79,7 +79,12 @@ datafile_factory::name() const
 bool
 datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode ) const
 {
-    std::filesystem::path path(filename);
+    return access( std::filesystem::path{ filename }, mode );
+}
+
+bool
+datafile_factory::access( const std::filesystem::path& path, adcontrols::access_mode mode ) const
+{
 	return ( path.extension() == L".txt" ||
              path.extension() == L".csv" ||
              path.extension() == L".jdx" ) && ( mode = adcontrols::read_access );
@@ -88,8 +93,14 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
+    return open( std::filesystem::path{ filename }, readonly );
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::filesystem::path& path, bool readonly ) const
+{
     datafile * p = new datafile;
-    if ( p->open( filename, readonly ) )
+    if ( p->open( path.wstring(), readonly ) )
         return p;
     delete p;
     return 0;

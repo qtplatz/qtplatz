@@ -29,6 +29,7 @@ add_library( ${PROJECT_NAME} SHARED
   mscalibio.hpp
   processeddata.hpp
   processeddata_t.hpp
+  datafile_signature.cpp datafile_signature.hpp
   )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
