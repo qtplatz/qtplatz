@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2025 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,9 +25,11 @@
 
 #include "datafile_factory.hpp"
 #include "datafile.hpp"
+#include <adutils/datafile_signature.hpp>
 #include <adportable/debug.hpp>
 #include <adplugin/plugin.hpp>
 #include <adplugin/visitor.hpp>
+#include <adfs/sqlite.hpp>
 #include <filesystem>
 #include <boost/config.hpp>
 #include <boost/dll/alias.hpp>
@@ -79,11 +81,26 @@ datafile_factory::access( const std::filesystem::path& path, adcontrols::access_
     if ( path.extension() == ".qtms" )  // obsolete
         return mode == adcontrols::read_access;
 
-    if ( path.extension() == ".adfs" ) {
+    if ( path.extension() == ".adfs" || path.extension() == ".adfs~" ) {
+        ADDEBUG() << "######### datafile_factory : " << path;
+        adfs::sqlite db;
+        if ( db.open( path.string().c_str() ) ) {
+            adfs::stmt sql( db );
+            using namespace adutils::data_signature;
+            std::map< std::string, value_t > sig;
+            sql >> sig;
+            auto it = sig.find( "data_factory" );
+            if ( it != sig.end() ) {
+                if ( auto *p = std::get_if< std::string >(&it->second) ) {
+                    ADDEBUG() << "### data_factory: " << *p << " == " << this->iid();
+                    return *p == std::string( this->iid() );
+                }
+            }
+        } else {
+            ADDEBUG() << "######## sqlite open failed.";
+        }
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
     }
-    if ( path.extension() == ".adfs~" )
-        return mode == adcontrols::read_access || mode == adcontrols::write_access;
     return false;
 }
 

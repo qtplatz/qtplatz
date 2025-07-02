@@ -71,6 +71,7 @@ namespace mzml {
     void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const fileDescription& );
     void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const softwareList& );
     void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const instrumentConfigurationList& );
+    void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const dataProcessingList& );
 
     using spectra_t = std::vector< std::shared_ptr< mzml::mzMLSpectrum > >;
     using chromatograms_t = std::vector< std::shared_ptr< mzml::mzMLChromatogram > >;

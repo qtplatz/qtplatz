@@ -211,6 +211,12 @@ namespace mzml {
         };
     }
 
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const dataProcessingList& t )
+    {
+        jv = mzml::to_value{}( t.node() );
+    }
+
 }
 
 using namespace mzml;

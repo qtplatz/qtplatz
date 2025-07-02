@@ -24,15 +24,24 @@
 **************************************************************************/
 
 #include "export_to_adfs.hpp"
+#include "adportfolio/node.hpp"
+#include "adutils/acquireddata.hpp"
+#include "adutils/acquireddata_v3.hpp"
+#include "datareader.hpp"
+#include "datareader_ex.hpp"
 #include "mzml.hpp"
 #include "mzmlspectrum.hpp"
 #include "scan_protocol.hpp"
 #include "mzmlreader.hpp"
+#include "datafile_factory.hpp"
+#include <adacquire/constants.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/bzip2.hpp>
+#include <adutils/datafile_signature.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
-#include <sstream>
+#include <chrono>
+#include <net/if_var.h>
 
 namespace mzml {
     class export_to_adfs::impl {
@@ -78,46 +87,71 @@ export_to_adfs::operator()( const mzML& _ )
     // ScanLaw { uuid (observer id), objtext (observer text), acclVoltage, tDelay, spectrometer (text), spectrometer (clsid)
     // MetaData := ControlMethod clsid	'cd53abe6-8223-11e6-b2d8-cb9185077a24'
 
+    adutils::data_signature::datafileSignature::create_table( *impl_->db_ );
+    adutils::v3::AcquiredData::create_table_v3( *impl_->db_ );
+
     adfs::stmt sql( *impl_->db_ );
 
+    using namespace adutils::data_signature;
+    sql << datum_t{ "creator", value_t( impl_->uuid_ ) };
+    sql << datum_t{ "create_date", value_t( std::chrono::system_clock::now() ) };
+    sql << datum_t{ "datafile_factory", value_t( std::string(datafile_factory::instance()->iid() ) ) };
+
     if ( auto d = _.get_fileDescription() ) {
-        ADDEBUG() << boost::json::value_from( *d );
+        sql << datum_t{ "fileDescription", value_t( boost::json::value_from( *d ) ) };
     }
     if ( auto d = _.get_softwareList() ) {
-        ADDEBUG() << boost::json::value_from( *d );
+        sql << datum_t{ "softwareList", value_t( boost::json::value_from( *d ) ) };
     }
     if ( auto d = _.get_instrumentConfigurationList() ) {
-        ADDEBUG() << boost::json::value_from( *d );
+        sql << datum_t{ "instrumentConfigurationList", value_t( boost::json::value_from( *d ) ) };
     }
     if ( auto d = _.get_dataProcessingList() ) {
-        std::ostringstream o;
-        d->node().print( o );
-        ADDEBUG() << o.str();
+        sql << datum_t{ "dataProcessingList", value_t( boost::json::value_from( *d ) ) };
     }
 
-    if ( auto run = _.xml_document().select_node( "/indexdmzML/mzML/run" ) ) {
+    if ( auto run = _.xml_document().select_node( "//run" ) ) {
         ADDEBUG() << "run defaultInstrumentConfigurationRef="
                   << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
         ADDEBUG() << "\t=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
         ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
         ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
     }
+    const auto reader_uuid = mzml::local::data_reader::__uuid__();
 
+    size_t wcounts(0);
     for ( const auto [scan_id,sp]: _.scan_indices() ) {
         // scan_id = std::tuple< int, string, double (time), scan_protocol
         // sp = mzMLSpectrum
         auto xml = sp->serialize();
-        std::string ar;
-        adportable::bzip2::compress( ar, xml.data(), xml.size() );
+        std::string xdata;
+        adportable::bzip2::compress( xdata, xml.data(), xml.size() );
 
         { // verify
             std::string inflated;
-            adportable::bzip2::decompress( inflated, ar.data(), ar.size() );
+            adportable::bzip2::decompress( inflated, xdata.data(), xdata.size() );
             auto spc = serializer::deserialize( inflated.data(), inflated.size() );
-
             ADDEBUG() << scan_id
-                      << "\t size=" << std::make_pair( ar.size(), xml.size() );
+                      << "\tcomp.ratio=" << double(xml.size()) / xml.size();
         }
+        scan_id_accessor scan_ident( scan_id );
+        const uint32_t events = ( wcounts++ == 0 ) ?
+            adacquire::SignalObserver::wkEvent::wkEvent_AcqInProgress | adacquire::SignalObserver::wkEvent::wkEvent_INJECT
+            : adacquire::SignalObserver::wkEvent::wkEvent_AcqInProgress;
+        if ( ! adutils::v3::AcquiredData::insert(
+                 *impl_->db_
+                 , reader_uuid
+                 , uint64_t( scan_ident.scan_start_time() * 1e9 ) // elapsed_time
+                 , uint64_t( scan_ident.scan_start_time() * 1e9 ) // epoch_time
+                 , scan_ident.scan_index() // pos
+                 , sp->protocol_id()   // fcn
+                 , sp->length()    // ndata (number of data in the buffer
+                 , events
+                 , xdata  // xdata
+                 , {}     // xmeta
+                 ) ) {
+        }
+
 
     }
 

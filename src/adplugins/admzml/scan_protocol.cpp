@@ -131,7 +131,7 @@ namespace mzml {
 
         if ( auto scan = spectrum_node.select_node( "./scanList[1]/scan" ) ) {
             auto id = spectrum_node.attribute( "id" ).value();
-            auto index = spectrum_node.attribute( "id" ).as_uint();
+            auto index = spectrum_node.attribute( "index" ).as_uint();
             double scan_start_time = scan.node().select_node( "cvParam[@accession='MS:1000016']" ).node().attribute("value").as_double();
 
             return { index, id, scan_start_time, scan_protocol( spectrum_node ) };

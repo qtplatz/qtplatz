@@ -47,6 +47,7 @@ namespace mzml {
             data_reader( const char * traceid, int fcn, std::shared_ptr< const mzML >  );
 
             static std::vector< std::string > traceid_list();
+            static const boost::uuids::uuid& __uuid__();
 
             // <===== adcontrols::DataReader
             bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;

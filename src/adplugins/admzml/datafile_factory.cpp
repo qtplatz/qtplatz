@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2024 MS-Cheminformatics LLC
+** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2025 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -112,7 +112,7 @@ datafile_factory::open( const std::filesystem::path& path, bool readonly ) const
 const char *
 datafile_factory::iid() const
 {
-    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.mzml";
+    return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.admzml";
 }
 
 void

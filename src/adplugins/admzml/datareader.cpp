@@ -94,6 +94,13 @@ data_reader::data_reader( const char * traceid
     impl_->display_name_ = o.str();
 }
 
+
+const boost::uuids::uuid&
+data_reader::__uuid__()
+{
+    return impl::uuid_;
+}
+
 std::string
 data_reader::abbreviated_display_name() const
 {

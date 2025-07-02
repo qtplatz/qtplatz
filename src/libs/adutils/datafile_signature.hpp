@@ -23,14 +23,16 @@
 **************************************************************************/
 
 #pragma once
-
-#include <boost/uuid/uuid.hpp>
-#include <cstdint>
-#include <sstream>
-#include <string>
-#include <vector>
 #include "adutils_global.h"
+
+#include "adportfolio/node.hpp"
+#include <boost/json/value.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <chrono>
+#include <map>
+#include <string>
 #include <tuple>
+#include <variant>
 
 namespace adfs { class sqlite; class stmt; }
 
@@ -38,20 +40,28 @@ namespace adutils {
 
     namespace data_signature {
 
-        using datum_t = std::tuple< std::string // id
-                                    , std::string // type ('json'|'xml'|'text'|'uuid'|'isodate')
-                                    , std::string // value
-                                    , boost::uuids::uuid
-                                    >;
+        using value_t = std::variant< std::string
+                                      , boost::uuids::uuid
+                                      , boost::json::value
+                                      , std::shared_ptr< pugi::xml_document >
+                                      , std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>
+                                      >;
+
+        using datum_t = std::tuple<
+            std::string // id
+            , value_t   // value
+            >;
 
         class ADUTILSSHARED_EXPORT datafileSignature {
         public:
             ~datafileSignature();
             datafileSignature();
-            static void create_table( const adfs::sqlite& );
+            static bool create_table( adfs::sqlite& );
+            std::vector< datum_t > operator()( const std::string& id ) const;
         };
 
-        adfs::stmt& operator << (adfs::stmt& sql, datum_t );
+        adfs::stmt& operator << (adfs::stmt& sql, datum_t&& );
+        adfs::stmt& operator >> (adfs::stmt&, std::map< std::string, value_t >& );
 
     };
 }

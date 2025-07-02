@@ -56,6 +56,7 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   portfolio
   adplugin
   adfs
+  adutils
   ${Boost_LIBRARIES}
   ${ZLIB_LIBRARIES}
   Threads::Threads
