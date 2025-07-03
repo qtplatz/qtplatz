@@ -53,8 +53,11 @@ namespace adcontrols {
 
         void visit( adcontrols::datafile& );
 
-        datafile * open( const std::wstring& filename, bool readonly, error_code * );
-        datafile * create( const std::wstring& filename, error_code * );
+        // [[deprecated]] datafile * open( const std::wstring& filename, bool readonly, error_code * );
+        // [[deprecated]] datafile * create( const std::wstring& filename, error_code * );
+
+        datafile * open( const std::filesystem::path& filename, bool readonly, error_code * );
+        datafile * create( const std::filesystem::path& filename, error_code * );
 
         static datafileBrokerImpl * instance();
 
@@ -96,27 +99,26 @@ datafileBroker::register_factory( datafile_factory * factory, const std::string&
 }
 
 datafile *
-datafileBroker::open( const std::wstring& filename, bool readonly, error_code * ec )
+datafileBroker::open( const std::filesystem::path& path, bool readonly, error_code * ec )
 {
-    return datafileBrokerImpl::instance()->open( filename, readonly, ec );
+    return datafileBrokerImpl::instance()->open( path, readonly, ec );
 }
 
 // static
 bool
-datafileBroker::access( const std::wstring& filename )
+datafileBroker::access( const std::filesystem::path& path )
 {
-    ADDEBUG() << "## access: " << filename;
     for ( auto f: datafileBrokerImpl::instance()->factories() ) {
-		if ( f.second && f.second->access( filename.c_str() ) )
+		if ( f.second && f.second->access( path ) )
             return true;
     }
     return false;
 }
 
 datafile *
-datafileBroker::create( const std::wstring& filename, error_code * ec )
+datafileBroker::create( const std::filesystem::path& path, error_code * ec )
 {
-    return datafileBrokerImpl::instance()->create( filename, ec );
+    return datafileBrokerImpl::instance()->create( path, ec );
 }
 
 //static
@@ -147,14 +149,13 @@ datafileBrokerImpl::visit( adcontrols::datafile& )
 
 
 datafile *
-datafileBrokerImpl::open( const std::wstring& name, bool readonly, error_code * ec )
+datafileBrokerImpl::open( const std::filesystem::path& path, bool readonly, error_code * ec )
 {
     if ( ec )
         *ec = {};
     for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
-        if ( it->second && it->second->access( name.c_str() ) ) {
-            return it->second->open( name.c_str(), readonly );
-        }
+        if ( it->second && it->second->access( path ) )
+            return it->second->open( path, readonly );
     }
     if ( ec ) {
         ec->assign( -1, "No data factory installed" );
@@ -163,11 +164,11 @@ datafileBrokerImpl::open( const std::wstring& name, bool readonly, error_code * 
 }
 
 datafile *
-datafileBrokerImpl::create( const std::wstring& name, error_code * ec )
+datafileBrokerImpl::create( const std::filesystem::path& path, error_code * ec )
 {
     for ( auto it = factories_.begin(); it != factories_.end(); ++it ) {
-        if ( it->second && it->second->access( name.c_str(), adcontrols::write_access ) )
-            return it->second->open( name.c_str(), false );
+        if ( it->second && it->second->access( path, adcontrols::write_access ) )
+            return it->second->open( path, false );
     }
 
     if ( factories_.empty() && ec )

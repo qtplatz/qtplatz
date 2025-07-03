@@ -130,7 +130,7 @@ dataprocessor::setModified( bool modified )
 bool
 dataprocessor::open( const std::filesystem::path& filename, std::string& error_message )
 {
-    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename.wstring(), false ) ) ) {
+    if ( auto file = std::unique_ptr< adcontrols::datafile >( adcontrols::datafile::open( filename, false ) ) ) {
 
         auto fs = std::make_unique< adfs::filesystem >();
         if ( fs->mount( filename ) ) {

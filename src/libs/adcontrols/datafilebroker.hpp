@@ -28,6 +28,7 @@
 #include "adcontrols_global.h"
 #include "visitor.hpp"
 #include <string>
+#include <filesystem>
 
 namespace adcontrols {
 
@@ -42,9 +43,9 @@ namespace adcontrols {
     public:
         static bool register_factory( datafile_factory *, const std::string& uniqname );
 
-        static datafile * create( const std::wstring& filename, error_code * );
-        static datafile * open( const std::wstring& filename, bool readonly = false, error_code* = nullptr );
-        static bool access( const std::wstring& filename );
+        static datafile * create( const std::filesystem::path&, error_code * );
+        static datafile * open( const std::filesystem::path&, bool readonly = false, error_code* = nullptr );
+        static bool access( const std::filesystem::path& );
         static void clear_factories();
     };
 

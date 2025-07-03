@@ -165,12 +165,12 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 }
 
 bool
-datafile::open( const std::wstring& filename, bool /* readonly */ )
+datafile::open( const std::filesystem::path& filename, bool /* readonly */ )
 {
     portfolio::Portfolio portfolio;
     portfolio.create_with_fullpath( filename );
 
-    if ( auto file = adnetcdf::netcdf::open( std::filesystem::path( filename ) ) ) {
+    if ( auto file = adnetcdf::netcdf::open( filename ) ) {
 
         auto folder = portfolio.addFolder( L"Chromatograms" );
 

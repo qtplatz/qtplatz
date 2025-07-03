@@ -50,7 +50,8 @@ namespace addatafile {
         virtual ~datafile();
         datafile();
 
-        bool open( const std::wstring& filename, bool readonly = false );
+        // bool open( const std::wstring& filename, bool readonly = false );
+        bool open( const std::filesystem::path&, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;
@@ -82,7 +83,7 @@ namespace addatafile {
 
     private:
         bool mounted_;
-        std::wstring filename_;
+        std::filesystem::path filename_;
         adfs::filesystem dbf_;
 
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;

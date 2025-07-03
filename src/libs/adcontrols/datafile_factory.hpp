@@ -39,8 +39,12 @@ namespace adcontrols {
         virtual ~datafile_factory(void) {}
 		virtual const char * mimeTypes() const = 0;
         virtual const wchar_t * name() const = 0;
+
+        [[deprecated("use std::filesystem::path interface")]]
         virtual bool access( const wchar_t * filename, access_mode = read_access ) const = 0;
         virtual bool access( const std::filesystem::path& filename, access_mode = read_access ) const = 0;
+
+        [[deprecated("use std::filesystem::path interface")]]
         virtual datafile * open( const wchar_t * filename, bool readonly = false ) const = 0;
         virtual datafile * open( const std::filesystem::path& filename, bool readonly = false ) const = 0;
         virtual void close( datafile * ) = 0;

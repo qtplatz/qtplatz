@@ -35,30 +35,23 @@ datafile::~datafile()
 {
 }
 
-// static
-bool
-datafile::access( const std::wstring& filename )
-{
-    return datafileBroker::access( filename );
-}
-
 datafile*
-datafile::create( const std::wstring& filename )
+datafile::create( const std::filesystem::path& path )
 {
-    datafile * file = datafileBroker::create( filename, 0 );
+    datafile * file = datafileBroker::create( path, 0 );
     if ( file ) {
-        file->filename_ = filename;
+        file->filename_ = path;
         file->readonly_ = false;
     }
     return file;
 }
 
 datafile*
-datafile::open( const std::wstring& filename, bool readonly )
+datafile::open( const std::filesystem::path& path, bool readonly )
 {
-    datafile * file = datafileBroker::open( filename, readonly );
+    datafile * file = datafileBroker::open( path, readonly );
     if ( file ) {
-        file->filename_ = filename;
+        file->filename_ = path;
         file->readonly_ = readonly;
     }
     return file;

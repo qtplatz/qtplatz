@@ -181,7 +181,7 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
     {
         size_t n_spectra( 0 );
         for ( const auto& sample: samples_ ) {
-            std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( sample.dataSource(), /* read-only */ true ) );
+            std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( std::filesystem::path(sample.dataSource()), /* read-only */ true ) );
             if ( file ) {
                 struct subscriber : adcontrols::dataSubscriber {
                     const adcontrols::LCMSDataset * raw;
@@ -201,7 +201,8 @@ QuanCountingProcessor::QuanCountingProcessor( QuanProcessor * processor
             }
         }
         progress_current_ = 0;
-        progress_total_ = ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ? std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
+        progress_total_ = ( n_spectra > std::numeric_limits< decltype( progress_total_ ) >::max() ) ?
+            std::numeric_limits< decltype( progress_total_ ) >::max() : n_spectra;
     }
     // <-- end dry run
 

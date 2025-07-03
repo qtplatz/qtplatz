@@ -92,9 +92,8 @@ datafile_factory::access( const std::filesystem::path& path, adcontrols::access_
     if ( path.extension() == ".adfs" ) {
         adfs::sqlite db;
         if ( db.open( path.string().c_str() ) ) {
-            using namespace adutils::data_signature;
-            if ( auto value = find( db, "datafile_factory" ) ) {
-                return to_string( *value ) == std::string( this->iid() );
+            if ( auto value = adutils::data_signature::find( db, "datafile_factory" ) ) {
+                return adutils::data_signature::to_string( *value ) == std::string( this->iid() );
             }
         }
     }

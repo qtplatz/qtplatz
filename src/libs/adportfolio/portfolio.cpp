@@ -116,9 +116,9 @@ Portfolio::erased_dataIds() const
 /////////////
 
 bool
-Portfolio::create_with_fullpath( const std::wstring& fullpath )
+Portfolio::create_with_fullpath( const std::filesystem::path& path )
 {
-    return impl_->create_with_fullpath( fullpath );
+    return impl_->create_with_fullpath( path.wstring() );
 }
 
 Folder

@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <filesystem>
 
 namespace boost { namespace uuids { struct uuid; } }
 
@@ -61,7 +62,8 @@ namespace portfolio {
         Folder findFolder( const std::wstring& name ) const;
 
         // create new from scratch
-        bool create_with_fullpath( const std::wstring& fullpath );
+        // bool create_with_fullpath( const std::wstring& fullpath );
+        bool create_with_fullpath( const std::filesystem::path& fullpath );
 
         Folder addFolder( const std::wstring& name, bool uniq = true );
         Folder addFolder( const std::string& name, bool uniq = true );

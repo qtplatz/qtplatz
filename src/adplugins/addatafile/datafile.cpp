@@ -327,15 +327,15 @@ datafile::sqlite() const
 }
 
 bool
-datafile::open( const std::wstring& filename, bool /* readonly */ )
+datafile::open( const std::filesystem::path& path, bool /* readonly */ )
 {
-    filename_ = filename;
-    processedDataset_.reset( new adcontrols::ProcessedDataset );
+    filename_ = path;
+    processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
 
-    if ( ( mounted_ = dbf_.mount( filename.c_str() ) ) )
+    if ( ( mounted_ = dbf_.mount( path.wstring().c_str() ) ) )
         return true;
 
-    if ( ( mounted_ = dbf_.create( filename.c_str() ) ) )
+    if ( ( mounted_ = dbf_.create( path.wstring().c_str() ) ) )
         return true;
 
     return false;

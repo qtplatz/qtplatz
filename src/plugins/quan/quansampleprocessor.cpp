@@ -117,7 +117,7 @@ QuanSampleProcessor::dryrun()
     size_t n_spectra = 0;
 
     for ( const auto& sample: samples_ ) {
-        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( sample.dataSource(), /* read-only */ true ) );
+        std::unique_ptr< adcontrols::datafile > file( adcontrols::datafile::open( std::filesystem::path(sample.dataSource()), /* read-only */ true ) );
         if ( file ) {
             struct subscriber : adcontrols::dataSubscriber {
                 const adcontrols::LCMSDataset * raw;

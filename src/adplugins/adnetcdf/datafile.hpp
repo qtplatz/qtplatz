@@ -29,7 +29,7 @@
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
-#include <map>
+#include <filesystem>
 
 namespace adcontrols {
     class Chromatogram;
@@ -47,7 +47,7 @@ namespace adnetcdf {
         ~datafile();
         datafile();
 
-        bool open( const std::wstring& filename, bool readonly = false );
+        bool open( const std::filesystem::path& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;

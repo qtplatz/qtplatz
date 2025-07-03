@@ -126,10 +126,10 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 }
 
 bool
-datafile::open( const std::wstring& filename, bool /* readonly */ )
+datafile::open( const std::filesystem::path& path, bool /* readonly */ )
 {
     portfolio::Portfolio portfolio;
-    portfolio.create_with_fullpath( filename );
+    portfolio.create_with_fullpath( path );
 
     Dialog dlg;
 
@@ -139,7 +139,6 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
     dlg.setDataInterpreterClsids( models );
 
-    std::filesystem::path path( filename );
     std::string adfsname;
 
     if ( time_data_reader::is_time_data( path.string(), adfsname ) ) {
@@ -156,7 +155,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     std::ifstream in( path );
     if ( in.fail() ) {
         QMessageBox::information(0, "Text file provider"
-                                 , QString("Cannot open fil: '%1'").arg( QString::fromStdWString( filename) ) );
+                                 , QString("Cannot open fil: '%1'").arg( QString::fromStdWString( path.wstring() ) ) );
         return false;
     }
 
@@ -188,7 +187,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
         if ( dlg.dataType() == Dialog::data_chromatogram ) {
             adtextfile::TXTChromatogram txt;
             portfolio::Portfolio portfolio;
-            if ( txt.load( filename ) && prepare_portfolio( txt, filename, portfolio ) ) {
+            if ( txt.load( path.wstring() ) && prepare_portfolio( txt, path.wstring(), portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
                 return true;
@@ -196,7 +195,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
 
         } else if ( dlg.dataType() == Dialog::data_spectrum ) {
             TXTSpectrum txt;
-            if ( txt.load( filename, dlg ) && prepare_portfolio( txt, filename, portfolio ) ) {
+            if ( txt.load( path.wstring(), dlg ) && prepare_portfolio( txt, path.wstring(), portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
                 return true;
@@ -209,7 +208,7 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
                                             << boost::format( "\t%.1f%%\r")
                                       % (double( numerator ) * 100 / double(denominator) );
                                   return true;
-                              }) && prepare_portfolio( reader, filename, portfolio ) ) {
+                              }) && prepare_portfolio( reader, path.wstring(), portfolio ) ) {
                 processedDataset_.reset( new adcontrols::ProcessedDataset );
                 processedDataset_->xml( portfolio.xml() );
                 return true;

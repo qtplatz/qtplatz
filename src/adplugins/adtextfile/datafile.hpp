@@ -30,7 +30,7 @@
 #include <adcontrols/lcmsdataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
-//#include <adportfolio/portfolio.hpp>
+#include <filesystem>
 #include <map>
 
 namespace adcontrols {
@@ -53,7 +53,7 @@ namespace adtextfile {
         ~datafile();
         datafile();
 
-        bool open( const std::wstring& filename, bool readonly = false );
+        bool open( const std::filesystem::path& filename, bool readonly = false );
 
         //--------- implement adcontrols::datafile ----------------
         void accept( adcontrols::dataSubscriber& ) override;

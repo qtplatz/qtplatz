@@ -76,15 +76,12 @@ namespace adcontrols {
         virtual std::shared_ptr< adfs::sqlite > sqlite() const { return {}; }
         virtual bool export_rawdata( const datafile& ) const { return false; }
 
-        static bool access( const std::wstring& filename );
-        static datafile * create( const std::wstring& filename );
-        static datafile * open( const std::wstring& filename, bool readonly = false );
+        static bool access( const std::filesystem::path& );
+        static datafile * create( const std::filesystem::path& );
+        static datafile * open( const std::filesystem::path&, bool readonly = false );
         static void close( datafile *& );
 
     private:
-#ifdef _MSC_VER
-# pragma warning( disable: 4251 ) // dll-linkage for
-#endif
         std::filesystem::path filename_;
         bool readonly_;
     };

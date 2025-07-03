@@ -226,9 +226,8 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 }
 
 bool
-datafile::open( const std::wstring& filename, bool /* readonly */ )
+datafile::open( const std::filesystem::path& path, bool /* readonly */ )
 {
-    auto path = std::filesystem::path( filename );
     impl_->filepath_ = path;
 
     ADDEBUG() << "datafile::open(" << path << ")";
@@ -237,10 +236,10 @@ datafile::open( const std::wstring& filename, bool /* readonly */ )
     portfolio::Portfolio portfolio;
 
     if ( path.extension() == ".adfs" ) {
-        if (( impl_->mounted_ = impl_->dbf_.mount( filename.c_str() ) )) {
+        if (( impl_->mounted_ = impl_->dbf_.mount( path  ) )) {
             impl_->loadContents( portfolio, L"/Processed" );
         }
-    } else if ( impl_->mzml_->open( filename ) ) {
+    } else if ( impl_->mzml_->open( path ) ) {
         portfolio.create_with_fullpath( path.wstring() );
         auto folder= portfolio.addFolder( L"Chromatograms" );
         for ( auto chro: impl_->mzml_->import_chromatograms() ) {
@@ -290,23 +289,6 @@ datafile::export_rawdata( const adcontrols::datafile& db ) const
     auto sqlite = db.sqlite();
     export_to_adfs exporter( std::move( sqlite ) );
     exporter( *impl_->mzml_ );
-
-    // for ( const auto [scan_id,sp]: impl_->mzml_->scan_indices() ) {
-    //     // scan_id = std::tuple< int, string, double (time), scan_protocol
-    //     // sp = mzMLSpectrum
-    //     ADDEBUG() << scan_id;
-    //     auto xml = sp->serialize();
-
-    //     adfs::stmt sql( *db.sqlite() );
-
-
-    //     auto spc = serializer::deserialize( xml.data(), xml.size() );
-
-    //     mzMLReader{}( pugi::xml_node{} );
-
-    //     auto r = mzMLReader{}(pugi::xml_node{} );
-
-    // }
 
     return true;
 }
