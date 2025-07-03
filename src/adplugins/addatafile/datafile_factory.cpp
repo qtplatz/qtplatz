@@ -33,6 +33,7 @@
 #include <filesystem>
 #include <boost/config.hpp>
 #include <boost/dll/alias.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <mutex>
 
 using namespace addatafile;
@@ -82,22 +83,14 @@ datafile_factory::access( const std::filesystem::path& path, adcontrols::access_
         return mode == adcontrols::read_access;
 
     if ( path.extension() == ".adfs" || path.extension() == ".adfs~" ) {
-        ADDEBUG() << "######### datafile_factory : " << path;
         adfs::sqlite db;
         if ( db.open( path.string().c_str() ) ) {
-            adfs::stmt sql( db );
             using namespace adutils::data_signature;
-            std::map< std::string, value_t > sig;
-            sql >> sig;
-            auto it = sig.find( "data_factory" );
-            if ( it != sig.end() ) {
-                if ( auto *p = std::get_if< std::string >(&it->second) ) {
-                    ADDEBUG() << "### data_factory: " << *p << " == " << this->iid();
-                    return *p == std::string( this->iid() );
-                }
+            if ( auto value = find( db, "datafile_factory" ) ) {
+                // return to_string( *value ) == std::string( this->iid() );
+                ADDEBUG() << "datafile_factory: " << std::make_pair(to_string( *value ), std::string( this->iid() ));
+                return true; // workaround until mzML imported data handling to be done.
             }
-        } else {
-            ADDEBUG() << "######## sqlite open failed.";
         }
         return mode == adcontrols::read_access || mode == adcontrols::write_access;
     }

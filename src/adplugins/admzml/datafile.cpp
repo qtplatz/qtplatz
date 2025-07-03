@@ -79,6 +79,53 @@ namespace {
 
 namespace mzml {
 
+    // ------------> from addatafile::datafile.cpp
+    struct import {
+        //---
+        void static attributes( portfolio::Folium& d, const adfs::attributes& s )   {
+            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                    d.setAttribute( it->first, it->second );
+        }
+
+        void static attributes( portfolio::Folder& d, const adfs::attributes& s )  {
+            for ( adfs::attributes::vector_type::const_iterator it = s.begin(); it != s.end(); ++it )
+                d.setAttribute( it->first, it->second );
+        }
+
+        void static attributes( adfs::attributes& d, const std::vector< std::pair< std::wstring, std::wstring > >& s ) {
+            for ( const auto& a: s )
+                d.setAttribute( a.first, a.second );
+        }
+    };
+
+    struct attachment {
+        static bool load( portfolio::Folium dst, const adfs::file& src ) {
+            import::attributes( dst, src );
+            for ( const adfs::file& att: src.attachments() )
+                attachment::load( dst.addAttachment( att.name() ), att );
+            return true;
+        }
+    };
+
+    struct folium {
+        static bool load( portfolio::Folium dst, const adfs::file& src ) {
+            import::attributes( dst, src );
+            for ( const adfs::file& att: src.attachments() )
+                attachment::load( dst.addAttachment( att.name() ), att );
+            return true;
+        }
+    };
+
+    struct folder {
+        static bool load( portfolio::Folder parent, const adfs::folder& adfolder ) {
+            for ( const adfs::file& file: adfolder.files() )
+                folium::load( parent.addFolium( file.name() ), file );
+            return true;
+        }
+    };
+    // <----------------------
+
+
     class datafile::impl {
     public:
         std::shared_ptr< mzML > mzml_;
@@ -86,10 +133,35 @@ namespace mzml {
         std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
         std::map< std::string, std::shared_ptr< adcontrols::MassSpectrum > > vSpectrum_;
         boost::json::object json_;
+        std::filesystem::path filepath_;
+        adfs::filesystem dbf_;
+        bool mounted_;
 
         impl() : mzml_( std::make_shared< mzML >() )
                , processedDataset_( std::make_unique< adcontrols::ProcessedDataset >() )
+               , mounted_( false )
             {
+        }
+
+        bool
+        loadContents( portfolio::Portfolio& portfolio, const std::wstring& query ) {
+            if ( ! mounted_ )
+                return false;
+            portfolio.create_with_fullpath( filepath_.wstring() );
+            adfs::folder processed = dbf_.findFolder( query );  // L"/Processed"
+            if ( ! processed ) {
+                return false;
+            }
+            // top folder should be L"Spectra" | L"Chromatograms"
+            for ( const adfs::folder& folder: processed.folders() ) {
+                const std::wstring& name = folder.name();
+                portfolio::Folder xmlfolder = portfolio.addFolder( name );
+                folder::load( xmlfolder, folder );
+            }
+            processedDataset_ = std::make_unique< adcontrols::ProcessedDataset >();
+            std::string xml = portfolio.xml();
+            processedDataset_->xml( xml );
+            return true;
         }
     };
 
@@ -156,19 +228,28 @@ datafile::accept( adcontrols::dataSubscriber& sub )
 bool
 datafile::open( const std::wstring& filename, bool /* readonly */ )
 {
-    portfolio::Portfolio portfolio;
-    portfolio.create_with_fullpath( filename );
+    auto path = std::filesystem::path( filename );
+    impl_->filepath_ = path;
+
+    ADDEBUG() << "datafile::open(" << path << ")";
 
     impl_->mzml_ = std::make_unique< mzML >();
-    if ( impl_->mzml_->open( filename ) ) {
+    portfolio::Portfolio portfolio;
+
+    if ( path.extension() == ".adfs" ) {
+        if (( impl_->mounted_ = impl_->dbf_.mount( filename.c_str() ) )) {
+            impl_->loadContents( portfolio, L"/Processed" );
+        }
+    } else if ( impl_->mzml_->open( filename ) ) {
+        portfolio.create_with_fullpath( path.wstring() );
         auto folder= portfolio.addFolder( L"Chromatograms" );
         for ( auto chro: impl_->mzml_->import_chromatograms() ) {
             std::string name = chro->display_name() ? *chro->display_name() : chro->make_title();
             auto folium = folder.addFolium( name ).assign( chro, chro->dataClass() );
             impl_->vChro_.emplace( folium.id<char>(), chro );
         }
+        impl_->processedDataset_->xml( portfolio.xml() );
     }
-    impl_->processedDataset_->xml( portfolio.xml() );
     return true;
 }
 

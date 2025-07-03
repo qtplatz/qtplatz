@@ -27,8 +27,10 @@
 #include "datareader_factory.hpp"
 #include "adplugin/plugin.hpp"
 #include "datafile.hpp"
-#include <adportable/debug.hpp>
+#include <adfs/sqlite.hpp>
 #include <adplugin/visitor.hpp>
+#include <adportable/debug.hpp>
+#include <adutils/datafile_signature.hpp>
 #include <mutex>
 
 using namespace mzml;
@@ -87,6 +89,15 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode mode
 bool
 datafile_factory::access( const std::filesystem::path& path, adcontrols::access_mode mode ) const
 {
+    if ( path.extension() == ".adfs" ) {
+        adfs::sqlite db;
+        if ( db.open( path.string().c_str() ) ) {
+            using namespace adutils::data_signature;
+            if ( auto value = find( db, "datafile_factory" ) ) {
+                return to_string( *value ) == std::string( this->iid() );
+            }
+        }
+    }
 	return ( ( path.extension() == L".mzML" || path.extension() == L".mzml" ) && ( mode == adcontrols::read_access ) );
 }
 

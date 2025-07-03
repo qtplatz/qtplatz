@@ -122,11 +122,12 @@ namespace adutils { namespace data_signature {
             }
             return sql;
         }
+
         ///////////////////
         adfs::stmt&
         operator >> (adfs::stmt& sql, std::map< std::string, value_t >& t )
         {
-            if ( sql.prepare( "SELECT * FROM DATAFILE_SIGNATURE VALUES (id,type,value)" ) ) {
+            if ( sql.prepare( "SELECT * FROM DATAFILE_SIGNATURE" ) ) {
                 while ( sql.step() == adfs::sqlite_row ) {
                     const auto id = sql.get_column_value< std::string > ( 0 );
                     const auto dt = sql.get_column_value< std::string > ( 1 );
@@ -154,6 +155,59 @@ namespace adutils { namespace data_signature {
             return sql;
         }
 
+        /////////////
+
+        std::optional< value_t >
+        find( adfs::sqlite& db, const std::string& id )
+        {
+            adfs::stmt sql( db );
+            if ( sql.prepare( "SELECT * FROM DATAFILE_SIGNATURE WHERE id=?" ) ) {
+                sql.bind(1) = id;
+                if ( sql.step() == adfs::sqlite_row ) {
+                    const auto dt = sql.get_column_value< std::string > ( 1 );
+                    if ( dt == "text" ) {
+                        return sql.get_column_value< std::string > ( 2 );
+                    } else if ( dt == "uuid" ) {
+                        return sql.get_column_value< boost::uuids::uuid >( 2 );
+                    } else if ( dt == "json" ) {
+                        boost::system::error_code ec;
+                        return boost::json::parse( sql.get_column_value< std::string >( 2 ), ec );
+                    } else if ( dt == "xml" ) {
+                        auto doc = std::shared_ptr< pugi::xml_document >();
+                        doc->load_string( sql.get_column_value< std::string >( 2 ).c_str() );
+                        return doc;
+                    } else if ( dt == "tp" ) {
+                        auto value = sql.get_column_value< std::string >( 2 );
+                        if ( auto tp = adportable::iso8601::parse< std::string::const_iterator
+                             , std::chrono::nanoseconds>( value.begin(), value.end() ) ) {
+                            return *tp;
+                        }
+                    }
+                }
+            }
+            return {};
+        }
+
+        std::string to_string( const value_t& t )
+        {
+            return std::visit( overloaded{
+                    [&]( const std::string& a ){
+                        return a;
+                    }
+                        , [&]( const boost::uuids::uuid& a ){
+                            return boost::uuids::to_string( a );
+                        }
+                        , [&]( const boost::json::value& a ){
+                            return to_string( a );
+                        }
+                        , [&]( const std::shared_ptr< pugi::xml_document >& a ){
+                            return to_string( *a );
+                        }
+                        , [&]( const std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>& a ){
+                            return to_string( a );
+                        }
+                        }, t);
+        }
 
     }
 }

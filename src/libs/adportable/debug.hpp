@@ -29,6 +29,7 @@
 #include <exception>
 #include <utility>
 #include <tuple>
+#include <chrono>
 
 namespace adportable {
     class ADPORTABLESHARED_EXPORT debug;
@@ -78,6 +79,7 @@ namespace adportable {
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::error_code& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::exception& );
     template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const boost::exception& );
+    template<> ADPORTABLESHARED_EXPORT debug& debug::operator << ( const std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds>& );
 
     inline std::string where( const char * file, const int line ) {
         debug x( file, line );

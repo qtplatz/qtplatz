@@ -60,6 +60,9 @@ namespace adutils {
             std::vector< datum_t > operator()( const std::string& id ) const;
         };
 
+        std::optional< value_t > find( adfs::sqlite&, const std::string& id );
+        std::string to_string( const value_t& );
+
         adfs::stmt& operator << (adfs::stmt& sql, datum_t&& );
         adfs::stmt& operator >> (adfs::stmt&, std::map< std::string, value_t >& );
 

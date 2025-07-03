@@ -25,9 +25,8 @@
 
 #include "debug.hpp"
 #include "debug_core.hpp"
-#include <fstream>
+#include "date_time.hpp"
 #include <iostream>
-#include <iomanip>
 #include <cstdlib>
 #include "string.hpp"
 #ifdef WIN32
@@ -113,4 +112,11 @@ debug::operator << ( const wchar_t * text )
 {
 	o_ << adportable::string::convert( text );
 	return *this;
+}
+
+template<> debug&
+debug::operator << ( const std::chrono::time_point<std::chrono::system_clock,std::chrono::nanoseconds>& tp )
+{
+    o_ << date_time::to_iso<std::chrono::nanoseconds>( tp );
+    return *this;
 }
