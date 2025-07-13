@@ -44,10 +44,11 @@ namespace mzml {
             virtual ~data_reader( void );
             data_reader( const char * traceid );
 
-            static std::vector< std::string > traceid_list();
+            static const boost::uuids::uuid& __objuuid__();
+            static const std::string& __objtext__();
 
             // <===== adcontrols::DataReader
-            bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
+            bool initialize( std::shared_ptr< adfs::sqlite >, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
             void finalize() override;
 
             const boost::uuids::uuid& objuuid() const override;

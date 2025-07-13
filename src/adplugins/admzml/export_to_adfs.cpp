@@ -24,6 +24,8 @@
 **************************************************************************/
 
 #include "export_to_adfs.hpp"
+#include "datareader_ex.hpp"
+#include "datareader_factory.hpp"
 #include "adportfolio/node.hpp"
 #include "adutils/acquireddata.hpp"
 #include "adutils/acquireddata_v3.hpp"
@@ -50,7 +52,31 @@ namespace mzml {
 
         // 9C457C8F-D0B6-44EA-98F5-E89F8A229A63
         static constexpr const boost::uuids::uuid uuid_ =
-        { 0x9C, 0x45, 0x7C, 0x8F, 0xD0, 0xB6, 0x44, 0xEA, 0x98, 0xF5, 0xE8, 0x9F, 0x8A, 0x22, 0x9A, 0x63 };
+        { 0x9C, 0x45, 0x7C, 0x8F, 0xD0, 0xB6, 0x44, 0xEA
+          , 0x98, 0xF5, 0xE8, 0x9F, 0x8A, 0x22, 0x9A, 0x63 };
+
+        void create_acquired_conf() const {
+            adfs::stmt sql( *db_ );
+            sql.exec( "DROP TABLE IF EXISTS AcquiredConf" );
+            sql.exec(
+                "CREATE TABLE AcquiredConf ("
+                " objuuid              UUID"
+                ",objtext              TEXT"
+                ",pobjuuid             UUID"
+                ",dataInterpreterClsid TEXT"
+                ",trace_method         INTEGER"
+                ",spectrometer         INTEGER"
+                ",trace_id             TEXT"
+                ",trace_display_name   TEXT"
+                ",axis_x_label         TEXT"
+                ",axis_y_label         TEXT"
+                ",axis_x_decimals      INTEGER"
+                ",axis_y_decimals      INTEGER"
+                ",UNIQUE (objuuid,trace_id)"
+                ")"
+                );
+        }
+
     };
 }
 
@@ -91,6 +117,7 @@ export_to_adfs::operator()( const mzML& _ )
     adutils::v3::AcquiredData::create_table_v3( *impl_->db_ );
 
     adfs::stmt sql( *impl_->db_ );
+    sql.exec( "DELETE FROM AcquiredData" );
 
     using namespace adutils::data_signature;
     sql << datum_t{ "creator", value_t( impl_->uuid_ ) };
@@ -117,7 +144,44 @@ export_to_adfs::operator()( const mzML& _ )
         ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
         ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
     }
-    const auto reader_uuid = mzml::local::data_reader::__uuid__();
+
+    do {
+        impl_->create_acquired_conf();
+        bool success = sql.prepare(
+            "INSERT OR REPLACE INTO \
+ AcquiredConf VALUES(    \
+:objuuid                 \
+,:objtext                \
+,:pobjuuid               \
+,:dataInterpreterClsid   \
+,:trace_method           \
+,:spectrometer           \
+,:trace_id               \
+,:trace_display_name     \
+,:axis_x_label           \
+,:axis_y_label           \
+,:axis_x_decimails       \
+,:axis_y_decimals        \
+)" );
+        for ( const auto& reader: _.dataReaderMap() ) {
+            int col = 1;
+            ADDEBUG() << "\t traceid: " << reader.second->traceid();
+            sql.bind( col++ ) = exposed::data_reader::__objuuid__(); // objid; <-- 6a6df573-...
+            sql.bind( col++ ) = exposed::data_reader::__objtext__(); // d.objtext; <-- 1.admzml.ms-cheminfo.com
+            sql.bind( col++ ) = boost::uuids::uuid{0}; // d.pobjid;
+            sql.bind( col++ ) = std::string( "mzML" ); // dataInterpreterClsid
+            sql.bind( col++ ) = int64_t( adacquire::SignalObserver::eTRACE_SPECTRA );
+            sql.bind( col++ ) = int64_t( adacquire::SignalObserver::eMassSpectrometer );
+            sql.bind( col++ ) = reader.second->traceid(); //
+            sql.bind( col++ ) = std::string{};
+            sql.bind( col++ ) = std::string("Time");
+            sql.bind( col++ ) = std::string("Count");
+            sql.bind( col++ ) = 2;
+            sql.bind( col++ ) = 0;
+            if ( sql.step() != adfs::sqlite_done )
+                ADDEBUG() << sql.errmsg();
+        };
+    } while ( 0 );
 
     size_t wcounts(0);
     for ( const auto [scan_id,sp]: _.scan_indices() ) {
@@ -131,16 +195,19 @@ export_to_adfs::operator()( const mzML& _ )
             std::string inflated;
             adportable::bzip2::decompress( inflated, xdata.data(), xdata.size() );
             auto spc = serializer::deserialize( inflated.data(), inflated.size() );
-            ADDEBUG() << scan_id
-                      << "\tcomp.ratio=" << double(xml.size()) / xml.size();
+            // ADDEBUG() << scan_id
+            //           << "\tcomp.ratio=" << double(xml.size()) / xml.size();
         }
         scan_id_accessor scan_ident( scan_id );
         const uint32_t events = ( wcounts++ == 0 ) ?
             adacquire::SignalObserver::wkEvent::wkEvent_AcqInProgress | adacquire::SignalObserver::wkEvent::wkEvent_INJECT
             : adacquire::SignalObserver::wkEvent::wkEvent_AcqInProgress;
+
+        std::string xmeta = boost::json::serialize( boost::json::value_from( scan_id ) );
+
         if ( ! adutils::v3::AcquiredData::insert(
                  *impl_->db_
-                 , reader_uuid
+                 , exposed::data_reader::__objuuid__() // objid; <-- 6a6df573-...
                  , uint64_t( scan_ident.scan_start_time() * 1e9 ) // elapsed_time
                  , uint64_t( scan_ident.scan_start_time() * 1e9 ) // epoch_time
                  , scan_ident.scan_index() // pos
@@ -148,11 +215,9 @@ export_to_adfs::operator()( const mzML& _ )
                  , sp->length()    // ndata (number of data in the buffer
                  , events
                  , xdata  // xdata
-                 , {}     // xmeta
+                 , xmeta  // xmeta
                  ) ) {
         }
-
-
     }
 
     return true;

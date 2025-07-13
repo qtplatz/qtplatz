@@ -36,6 +36,7 @@ namespace adcontrols {
     class MassSpectrum;
     class ProcessedDataset;
 	class MSCalibrateResult;
+    class LCMSDataset;
 }
 
 namespace portfolio { class Portfolio; }
@@ -44,6 +45,7 @@ namespace addatafile {
 
     namespace v2 { class rawdata; }
     namespace v3 { class rawdata; }
+    namespace v4 { class rawdata; }
 
     class datafile : public adcontrols::datafile {
     public:
@@ -88,7 +90,9 @@ namespace addatafile {
 
 		std::unique_ptr< adcontrols::ProcessedDataset > processedDataset_;
 
-        boost::variant< std::unique_ptr< v2::rawdata >, std::unique_ptr< v3::rawdata > > rawdata_;
+        std::variant< std::shared_ptr< v2::rawdata >
+                      , std::shared_ptr< v3::rawdata >
+                      , std::shared_ptr< v4::rawdata > > rawdata_;
 
         std::map< int, std::shared_ptr< adcontrols::MSCalibrateResult > > calibrations_; // mode, calibration pair
 

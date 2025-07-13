@@ -67,7 +67,7 @@ DataReader::DataReader( const char * traceid
 }
 
 bool
-DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
+DataReader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     return true;

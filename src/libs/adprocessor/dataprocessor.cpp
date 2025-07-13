@@ -148,7 +148,6 @@ dataprocessor::open( const std::filesystem::path& filename, std::string& error_m
             error_message = ex.what();
             return false;
         }
-
         if ( auto sp = massSpectrometer() )
             ProcessMediator::instance()->onCreate( sp->massSpectrometerClsid(), this->shared_from_this() );
         return true;

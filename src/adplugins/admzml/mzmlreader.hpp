@@ -32,15 +32,16 @@
 
 namespace mzml {
 
-    using datum_variant_t = std::variant< std::shared_ptr< mzMLSpectrum >
-                                          , std::shared_ptr< mzMLChromatogram > >;
+    using datum_variant_t = std::variant<
+        std::shared_ptr< mzml::mzMLSpectrum >
+        , std::shared_ptr< mzml::mzMLChromatogram >
+        >;
 
     class mzMLReader {
     public:
         ~mzMLReader();
         mzMLReader();
-        datum_variant_t  operator()( const pugi::xml_node& node ) const;
-        static datum_variant_t read( const pugi::xml_node& node );
+        datum_variant_t operator()( const pugi::xml_node& node ) const;
     private:
         std::pair< const pugi::xml_node, const pugi::xml_node > getSpectrumArrays( const pugi::xml_node& ) const;
         std::pair< const pugi::xml_node, const pugi::xml_node > getChromatogramArrays( const pugi::xml_node& ) const;

@@ -23,7 +23,7 @@
 **
 **************************************************************************/
 
-#include "rawdata_v3.hpp"
+#include "rawdata_v4.hpp"
 #include <adacquire/signalobserver.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datainterpreter.hpp>
@@ -61,24 +61,23 @@
 #include <regex>
 
 using namespace addatafile;
-using namespace addatafile::v3;
+using namespace addatafile::v4;
 
 rawdata::~rawdata()
 {
 }
 
-rawdata::rawdata( adfs::filesystem& dbf
-                  , adcontrols::datafile& parent ) : dbf_( dbf )
-                                                   , fcnCount_( 0 )
-                                                   , npos0_( 0 )
-                                                   , configLoaded_( false )
+rawdata::rawdata( std::shared_ptr< adfs::sqlite > db ) : db_( db )
+                                                       , fcnCount_( 0 )
+                                                       , npos0_( 0 )
+                                                       , configLoaded_( false )
 {
 }
 
 adfs::sqlite *
 rawdata::db() const
 {
-    return &dbf_.db();
+    return db_.get();
 }
 
 bool
@@ -86,20 +85,23 @@ rawdata::loadAcquiredConf()
 {
     if ( configLoaded_ )
         return true;
-    if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
-        ADDEBUG() << "\t##### loadAcquiredConf #####";
+    if ( adutils::v3::AcquiredConf::fetch( *db_, conf_ ) && !conf_.empty() ) {
+
         for ( const auto& conf: conf_ ) {
-            if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                ADDEBUG() << "\t###### ";
-                if ( reader->initialize( dbf_._ptr(), conf.objid, conf.objtext ) ) {
-                    reader->setDescription( adacquire::SignalObserver::eTRACE_METHOD( conf.trace_method )
-                                            , conf.trace_id
-                                            , adportable::utf::to_utf8( conf.trace_display_name )
-                                            , adportable::utf::to_utf8( conf.axis_label_x )
-                                            , adportable::utf::to_utf8( conf.axis_label_y )
-                                            , conf.axis_decimals_x
-                                            , conf.axis_decimals_y );
-                    readers_.emplace_back( reader, int( reader->fcnCount() ) );
+            if ( auto reader = adcontrols::DataReader::make_reader( conf.objid, conf.trace_id ) ) {
+                try {
+                    if ( reader->initialize( db_, conf.objid, conf.objtext ) ) {
+                        reader->setDescription( adacquire::SignalObserver::eTRACE_METHOD( conf.trace_method )
+                                                , conf.trace_id
+                                                , adportable::utf::to_utf8( conf.trace_display_name )
+                                                , adportable::utf::to_utf8( conf.axis_label_x )
+                                                , adportable::utf::to_utf8( conf.axis_label_y )
+                                                , conf.axis_decimals_x
+                                                , conf.axis_decimals_y );
+                        readers_.emplace_back( reader, int( reader->fcnCount() ) );
+                    }
+                } catch ( std::exception& ex ) {
+                    ADDEBUG() << "######### " << ex;
                 }
             } else {
                 undefined_data_readers_.emplace_back( conf.objtext, conf.objid );
@@ -109,7 +111,6 @@ rawdata::loadAcquiredConf()
         fcnCount_ = 0;
         for ( auto reader : readers_ )
             fcnCount_ += reader.second; // fcnCount
-        ADDEBUG() << "##### loadAcquiredConf ##### returning ture";
         return true;
     }
     return false;
@@ -124,7 +125,7 @@ rawdata::loadMSFractuation()
     auto fractuation = adcontrols::MSFractuation::create();
 
     {
-        adfs::stmt sql( dbf_.db() );
+        adfs::stmt sql( *db_ );
         sql.prepare( "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='MSLock'" );
         if ( sql.step() == adfs::sqlite_row ) {
             if ( sql.get_column_value< int64_t >( 0 ) == 0 )
@@ -132,14 +133,14 @@ rawdata::loadMSFractuation()
         }
     }
 
-    adfs::stmt sql( dbf_.db() );
+    adfs::stmt sql( *db_ );
     sql.prepare( "SELECT DISTINCT rowid FROM MSLock ORDER BY rowid" );
 
     while ( sql.step() == adfs::sqlite_row ) {
 
         int64_t rowid = sql.get_column_value< int64_t >(0);
 
-        adfs::stmt sql2( dbf_.db() );
+        adfs::stmt sql2( *db_ );
         sql2.prepare( "SELECT exactMass,matchedMass FROM MSLock where rowid = ?" );
         sql2.bind( 1 ) = rowid;
 
@@ -161,7 +162,6 @@ rawdata::loadMSFractuation()
     }
 
 }
-
 
 size_t
 rawdata::dataReaderCount() const
@@ -209,7 +209,7 @@ rawdata::dataReaders( bool allPossible ) const
 bool
 rawdata::applyCalibration( const adcontrols::MSCalibrateResult& calibResult )
 {
-    return adutils::mscalibio::write( dbf_.db(), calibResult );
+    return adutils::mscalibio::write( *db_, calibResult );
 }
 
 bool
@@ -246,7 +246,7 @@ rawdata::getSpectrum( int fcn, size_t pos, adcontrols::MassSpectrum& ms, uint32_
     assert( 0 );
     std::vector< boost::uuids::uuid > uuids;
 
-    adfs::stmt sql( dbf_.db() );
+    adfs::stmt sql( *db_ );
     if ( sql.prepare( "SELECT objuuid from AcquiredData WHERE AcquiredData.npos = ?" ) ) {
         sql.bind( 1 ) = pos;
         while ( sql.step() == adfs::sqlite_row )
@@ -433,7 +433,7 @@ bool
 rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpreter, adcontrols::TraceAccessor& accessor )
 {
     ADDEBUG() << "## " << __FUNCTION__ << " ##";
-    adfs::stmt sql( dbf_.db() );
+    adfs::stmt sql( *db_ );
 
     if ( sql.prepare( "SELECT rowid, npos, events, fcn FROM AcquiredData WHERE oid = :oid ORDER BY npos" ) ) {
 
@@ -451,13 +451,13 @@ rawdata::fetchTraces( int64_t objid, const adcontrols::DataInterpreter& interpre
             if ( npos0_ == 0 )
                 npos0_ = npos;
 
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
+            if ( blob.open( *db_, "main", "AcquiredData", "data", rowid, adfs::readonly ) ) {
                 xdata.resize( blob.size() );
                 if ( blob.size() )
                     blob.read( reinterpret_cast<int8_t *>(xdata.data()), blob.size() );
             }
 
-            if ( blob.open( dbf_.db(), "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
+            if ( blob.open( *db_, "main", "AcquiredData", "meta", rowid, adfs::readonly ) ) {
                 xmeta.resize( blob.size() );
                 if ( blob.size() )
                     blob.read( reinterpret_cast<int8_t *>(xmeta.data()), blob.size() );

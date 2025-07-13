@@ -97,6 +97,7 @@ namespace mzml {
 
     mzMLSpectrum::mzMLSpectrum() : impl_( std::make_unique< impl >( this ) )
     {
+        ADDEBUG() << "========== mzMLSpectrum::ctor =============";
     }
 
     mzMLSpectrum::mzMLSpectrum( const mzMLSpectrum& t )
@@ -110,6 +111,7 @@ namespace mzml {
         : mzMLDatumBase( node )
         , impl_( std::make_unique< impl >( this, prime, secondi ) )
     {
+        ADDEBUG() << "========== mzMLSpectrum::ctor =============";
     }
 
     size_t

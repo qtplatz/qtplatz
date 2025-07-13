@@ -80,7 +80,7 @@ datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
     adcontrols::DataReader::register_factory(
         [] ( const char * traceid ) {
             return std::make_shared< DataReader >( traceid );
-        }, typeid( DataReader ).name() );
+        }, typeid( DataReader ).name(), {} );
 
     // register all supported 'traceid' by name
     for ( const auto& traceid: DataReader::traceid_list() )

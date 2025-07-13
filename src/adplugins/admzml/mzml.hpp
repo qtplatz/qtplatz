@@ -52,6 +52,8 @@ namespace mzml {
 
     class mzMLSpectrum;
 
+    namespace local { class data_reader; }
+
     class mzML : public adcontrols::LCMSDataset
                , public std::enable_shared_from_this< mzML > {
         mzML( const mzML& ) = delete;
@@ -59,6 +61,8 @@ namespace mzml {
     public:
         ~mzML();
         mzML();
+        const std::map< int, std::shared_ptr< local::data_reader > > dataReaderMap() const;
+
         // AcquiredDataset
         int dataformat_version() const override;
 

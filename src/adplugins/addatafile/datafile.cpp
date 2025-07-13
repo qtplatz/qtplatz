@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2022 MS-Cheminformatics LLC
+** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2025 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -27,6 +27,7 @@
 #include <adutils/cpio.hpp>
 #include "rawdata_v2.hpp"
 #include "rawdata_v3.hpp"
+#include "rawdata_v4.hpp"
 #include <acewrapper/input_buffer.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datafile.hpp>
@@ -55,15 +56,41 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adutils/datafile_signature.hpp>
 #include <adutils/fsio.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/json.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <iostream>
 #include <memory>
+
+namespace {
+    // helper type for the visitor #4
+    template<class... Ts>  struct overloaded : Ts... { using Ts::operator()...; };
+    // explicit deduction guide (not needed as of C++20)
+    // template<class... Ts>  overloaded(Ts...) -> overloaded<Ts...>;
+}
+
+namespace {
+    struct handle_rawdata_v4 {
+        std::shared_ptr< addatafile::v4::rawdata > operator()( std::shared_ptr< adfs::sqlite > db ) const {
+            if ( adutils::data_signature::is_table_exists( *db, "datafile_signeture" ) ) {
+                using namespace adutils::data_signature;
+                if ( auto creator = find( *db, "creator" ) ) {
+                    if ( auto factory = find( *db, "datafile_factory" ) ) {
+                        ADDEBUG() << "-------- datafile_signature creator=" << to_string(*creator);
+                        ADDEBUG() << "-------- datafile_signature factory=" << to_string(*factory);
+                    }
+                }
+            }
+            return std::make_shared< addatafile::v4::rawdata >( db );
+        }
+    };
+}
 
 /////////////////
 namespace addatafile { namespace detail {
@@ -189,7 +216,7 @@ namespace addatafile { namespace detail {
 
         template< class T > struct serializer {
 
-            static std::shared_ptr< T > deserialize( const std::vector<char>& obuf ) { //adfs::detail::cpio& obuf ) {
+            static std::shared_ptr< T > deserialize( const std::vector<char>& obuf ) {
                 std::shared_ptr<T> ptr = std::make_shared<T>();
                 try {
                     adfs::cpio::deserialize( *ptr, obuf.data(), obuf.size() );
@@ -200,48 +227,6 @@ namespace addatafile { namespace detail {
                 return ptr;
             }
         };
-
-        struct is_valid_rawdata : public boost::static_visitor < bool > {
-            template<typename T> bool operator()( T& t ) const { return t.get() != nullptr; }
-        };
-
-        struct subscribe_rawdata : boost::static_visitor < void > {
-            adcontrols::dataSubscriber& subscriber_;
-            subscribe_rawdata( adcontrols::dataSubscriber& t ) : subscriber_( t ) {}
-            template<typename T> void operator()( T& t ) const {
-                t->loadAcquiredConf();
-                subscriber_.subscribe( *t );
-                t->loadCalibrations();
-                t->loadMSFractuation();
-            }
-        };
-
-        struct undefined_spectrometers : boost::static_visitor< std::vector< std::string > > {
-            template<typename T> const std::vector< std::string > operator()( T& t ) const {
-                return t->undefined_spectrometers();
-            }
-        };
-
-        struct undefined_data_readers : boost::static_visitor< std::vector< std::pair< std::string, boost::uuids::uuid > > > {
-            template<typename T> const std::vector< std::pair< std::string, boost::uuids::uuid > > operator()( T& t ) const {
-                return t->undefined_data_readers();
-            }
-        };
-
-        struct apply_calibration : boost::static_visitor< bool > {
-            const std::wstring& dataInterpreterClsid;
-            const adcontrols::MSCalibrateResult& result;
-            apply_calibration( const std::wstring& clsid, const adcontrols::MSCalibrateResult& r ) : dataInterpreterClsid( clsid ), result( r ) {
-            }
-            template< typename T > bool operator()( T& rawdata ) const {
-                return rawdata->applyCalibration( dataInterpreterClsid, result );
-            }
-        };
-
-        template<> bool apply_calibration::operator()( std::unique_ptr< addatafile::v3::rawdata >& rawdata ) const {
-            return rawdata->applyCalibration( result );
-        }
-
     }
 
 }
@@ -254,7 +239,6 @@ datafile::~datafile()
 
 datafile::datafile() : mounted_( false )
 {
-    //, rawdata_( new rawdata( dbf_, *this ) )
 }
 
 void
@@ -263,35 +247,53 @@ datafile::accept( adcontrols::dataSubscriber& sub )
     if ( mounted_ ) {
         // handle acquired raw data
         if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
-            rawdata_ = std::make_unique< v2::rawdata >( dbf_, *this );
+            rawdata_ = std::make_shared< v2::rawdata >( dbf_, *this );
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
-            rawdata_ = std::make_unique< v3::rawdata >( dbf_, *this );
+            if ( auto raw = handle_rawdata_v4{}( dbf_._ptr() ) )
+                rawdata_ = raw;
+            else
+                rawdata_ = std::make_shared< v3::rawdata >( dbf_, *this );
         }
-        if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
 
-            boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
+        if ( std::visit( [](const auto& p)->bool{ return p != nullptr; }, rawdata_ ) ) {
+            // if ( boost::apply_visitor( detail::is_valid_rawdata(), rawdata_ ) ) {
+            std::visit( [&](auto& t){
+                try {
+                    t->loadAcquiredConf();
+                } catch ( std::exception& ex ) {
+                    ADDEBUG() << ex;
+                }
+                sub.subscribe( *t );
+                t->loadCalibrations();
+                t->loadMSFractuation();
+            }, rawdata_);
+            // boost::apply_visitor( detail::subscribe_rawdata( sub ), rawdata_ );
 
             boost::json::object ptop;
-            auto undefined_dataReaders = boost::apply_visitor( detail::undefined_data_readers(), rawdata_ );
+            auto undefined_dataReaders //= boost::apply_visitor( detail::undefined_data_readers(), rawdata_ );
+                = std::visit( [](auto& t){ return t->undefined_data_readers(); }, rawdata_ );
             if ( ! undefined_dataReaders.empty() ) {
                 boost::json::array ja;
-                std::for_each( undefined_dataReaders.begin(), undefined_dataReaders.end()
+                std::for_each( undefined_dataReaders.begin()
+                               , undefined_dataReaders.end()
                                , [&](auto& a){
-                                   ja.emplace_back( boost::json::object{{ "objtext", a.first }, {"objid", boost::json::value_from( a.second ) }} ); // uuid
+                                   ja.emplace_back( boost::json::object{{ "objtext", a.first }
+                                                                        , {"objid", boost::json::value_from( a.second ) }} ); // uuid
                                });
                 ptop[ "dataReader" ] = ja;
             }
 
-            auto undefined_spectrometers = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
+            auto undefined_spectrometers // = boost::apply_visitor( detail::undefined_spectrometers(), rawdata_ );
+                = std::visit( [](auto& t){ return t->undefined_spectrometers();}, rawdata_ );
             if ( ! undefined_spectrometers.empty() ) {
                 boost::json::array ja;
-                std::for_each( undefined_spectrometers.begin(), undefined_spectrometers.end()
+                std::for_each( undefined_spectrometers.begin()
+                               , undefined_spectrometers.end()
                                , [&](auto& a){
                                    ja.emplace_back( boost::json::object{{"spectrometer", a }} );
                                });
                 ptop[ "spectrometer" ] = ja;
             }
-
             if ( !ptop.empty() ) {
                 sub.notify( adcontrols::dataSubscriber::idUndefinedSpectrometers, boost::json::serialize( ptop ) );
             }
@@ -317,7 +319,11 @@ int
 datafile::dataformat_version() const
 {
     // 0 = v2, 1 = v3
-    return rawdata_.which() + 2;
+    return std::visit( overloaded{
+            []( const auto& ){ return 2; }
+                , []( v3::rawdata& ){ return 3; }
+                }, rawdata_ );
+    // return rawdata_.which() + 2;
 }
 
 std::shared_ptr< adfs::sqlite >
@@ -588,7 +594,13 @@ datafile::removeContents( std::vector< std::string >&& dataIds )
 bool
 datafile::applyCalibration( const std::wstring& dataInterpreterClsid, const adcontrols::MSCalibrateResult& result )
 {
-    return boost::apply_visitor( detail::apply_calibration( dataInterpreterClsid, result ), rawdata_ );
+    //return boost::apply_visitor( detail::apply_calibration( dataInterpreterClsid, result ), rawdata_ );
+    return std::visit(overloaded{ [&](auto& t)->bool{
+        return t->applyCalibration( dataInterpreterClsid, result);}
+                , [&]( std::shared_ptr<v3::rawdata>& t ){ return t->applyCalibration( result );}
+                , [&]( std::shared_ptr<v4::rawdata>& t ){ return t->applyCalibration( result );}
+                }
+        , rawdata_ );
 }
 
 bool

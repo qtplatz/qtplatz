@@ -243,7 +243,7 @@ AcquiredConf::fetch( adfs::sqlite& db, std::vector< data >& vec )
                 d.axis_decimals_y = int32_t( sql.get_column_value<int64_t>( col++ ) );
 
             } catch ( std::bad_cast& ex ) {
-                ADDEBUG() << ex.what();
+                ADDEBUG() << "## Exception: " << ex.what();
                 return false;
             }
             vec.push_back( d );

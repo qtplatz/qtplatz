@@ -201,6 +201,12 @@ mzML::mzML() : impl_( std::make_unique< mzml::mzML::impl >() )
 {
 }
 
+const std::map< int, std::shared_ptr< local::data_reader > >
+mzML::dataReaderMap() const
+{
+    return impl_->dataReaders_;
+}
+
 bool
 mzML::open( const std::filesystem::path& path )
 {

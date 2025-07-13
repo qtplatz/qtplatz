@@ -180,6 +180,8 @@ datafile::datafile() : impl_( std::make_unique< impl >() )
 void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
+    ADDEBUG() << "################### " << __FUNCTION__ << " ################";
+
     sub.subscribe( *impl_->mzml_ ); // LCMSDataset
 
     if ( impl_->processedDataset_ )

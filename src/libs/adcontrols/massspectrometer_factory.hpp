@@ -36,7 +36,7 @@ namespace adcontrols {
 
     class MassSpectrometer;
     class datafile;
-    
+
     class ADCONTROLSSHARED_EXPORT massspectrometer_factory : public std::enable_shared_from_this< massspectrometer_factory > {
     protected:
         massspectrometer_factory(void);
@@ -49,21 +49,21 @@ namespace adcontrols {
 
         //[[deprecated]] virtual MassSpectrometer * get( const wchar_t * modelname ) = 0; // depricated
         virtual std::shared_ptr< MassSpectrometer > create() const = 0;
-        virtual bool is_canonical_name( const wchar_t * )  const { return false; }   
+        virtual bool is_canonical_name( const wchar_t * )  const { return false; }
     };
 
     namespace helper
     {
         template <std::size_t... Ts>
         struct index {};
-        
+
         template <std::size_t N, std::size_t... Ts>
         struct gen_seq : gen_seq<N - 1, N - 1, Ts...> {};
-        
+
         template <std::size_t... Ts>
         struct gen_seq<0, Ts...> : index<Ts...> {};
     }
-    
+
     template< typename massspectrometer_type, typename... Args >
     class massspectrometer_factory_type : public massspectrometer_factory {
 
@@ -97,19 +97,16 @@ namespace adcontrols {
         //--------
         const wchar_t * name() const override { return L""; }
 
-        //[[deprecated]] MassSpectrometer * get( const wchar_t * modelname ) override { return 0; } // depricated 
-
         std::shared_ptr< MassSpectrometer > create() const override {
             return creator( args_ );
         }
 
-        bool is_canonical_name( const wchar_t * )  const override { return false; }   
+        bool is_canonical_name( const wchar_t * )  const override { return false; }
 
         const char * objtext() const override { return objtext_.c_str(); }
 
         const boost::uuids::uuid& objclsid() const override { return objclsid_; }
     };
 
-    
-}
 
+}

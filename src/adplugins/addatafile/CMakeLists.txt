@@ -21,10 +21,9 @@ add_library( addatafile MODULE
   addatafile.cpp
   datafile.cpp
   datafile_factory.cpp
-  rawdata_v2.cpp
-  rawdata_v2.hpp
-  rawdata_v3.cpp
-  rawdata_v3.hpp
+  rawdata_v2.cpp  rawdata_v2.hpp
+  rawdata_v3.cpp  rawdata_v3.hpp
+  rawdata_v4.cpp  rawdata_v4.hpp
   addatafile.hpp
   addatafile_global.h
   datafile.hpp

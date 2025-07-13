@@ -26,18 +26,15 @@
 #include "serializer.hpp"
 #include "mzmlspectrum.hpp"
 #include "mzmlreader.hpp"
+#include <adportable/debug.hpp>
 #include <pugixml.hpp>
 #include <variant>
 
 using namespace mzml;
 
 namespace {
-    // helper for visitor
-    template<class... Ts>
-    struct overloaded : Ts... { using Ts::operator()...; };
-    template<class... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>;
-    // end helper for visitor
+    template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+    template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 }
 
 namespace mzml {
@@ -48,10 +45,11 @@ namespace mzml {
         if ( doc.load_string( data ) ) {
             if ( auto node = doc.select_node( "spectrum" ) ) {
                 auto v = mzMLReader{}(node.node() );
-                return std::visit( overloaded{
-                        [](auto&& arg)->std::shared_ptr< mzml::mzMLSpectrum >{ return nullptr; }
-                            , [](std::shared_ptr< mzml::mzMLSpectrum >&& sp) { return sp; }
-                            }, v);
+                return std::visit( overloaded {
+                        []( std::shared_ptr< mzMLChromatogram> sp )->std::shared_ptr< mzMLSpectrum >{ return nullptr; }
+                            , []( std::shared_ptr< mzMLSpectrum > t ) { return t; }
+                            }
+                    , v );
             }
         }
         return nullptr;

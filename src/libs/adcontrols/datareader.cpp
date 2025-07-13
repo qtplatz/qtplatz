@@ -26,6 +26,7 @@
 #include "datareader.hpp"
 #include <adportable/debug.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -33,7 +34,6 @@
 #include <mutex>
 #include <regex>
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace adcontrols {
@@ -48,8 +48,14 @@ namespace adcontrols {
         impl() {}
 
         std::shared_ptr< DataReader > make_reader( const char * traceid ) const;
-        std::map< std::string, std::function< factory_type > > reader_factories_;
-        std::map< std::string, std::string > reader_map_;  // <traceid, clsid>
+
+        // until v3 datafile, traceid is unique to each data_reader object
+        std::map< std::string, std::function< factory_type > > reader_v3_factories_;
+        std::map< std::string, std::string > reader_map_;  // mapping traceid --> clsid;
+
+        // since v4 datafile support MS/MS capability, traceid is no longer unique to the data_reader
+        // data reader should be created directry from objuuid
+        std::map< boost::uuids::uuid, std::tuple< std::function< factory_type >, std::string > > reader_v4_factories_;
     };
 
     class NullDataReader : public DataReader {
@@ -296,7 +302,8 @@ DataReader::abbreviated_name( const std::string& reader_name )
     std::string a;
     std::string::size_type pos = reader_name.find_first_of( "." );
     if ( pos != std::string::npos ) {
-        std::transform( reader_name.begin(), reader_name.begin() + pos, std::back_inserter(a), [](auto c){ return std::toupper(c); } );
+        std::transform( reader_name.begin(), reader_name.begin() + pos, std::back_inserter(a)
+                        , [](auto c){ return std::toupper(c); } );
         if (( a == "1" ) && (reader_name == "1.u5303a")) {
             return "AVG";
         }
@@ -313,17 +320,39 @@ DataReader::make_reader( const char * traceid )
     return impl::instance()->make_reader( traceid );
 }
 
+// statid
+// v4 (ms/ms supported file)
+std::shared_ptr< DataReader >
+DataReader::make_reader( const boost::uuids::uuid& objuuid, const std::string& traceid )
+{
+    auto it = impl::instance()->reader_v4_factories_.find( objuuid );
+    if ( it != impl::instance()->reader_v4_factories_.end() ) {
+        auto factory = std::get<0>(it->second);
+        auto objtext = std::get<1>(it->second);
+        auto reader = factory( traceid.c_str() );
+        ADDEBUG() << "######### make_reader for : " << objuuid << ", " << objtext << ", " << reader.get();
+        return reader;
+    }
+    return nullptr;
+}
+
 //static
 void
-DataReader::register_factory( std::function< factory_type > f, const char * clsid )
+DataReader::register_factory( std::function< factory_type > f, const char * clsid, const boost::uuids::uuid& objuuid )
 {
-    impl::instance()->reader_factories_[ clsid ] = f;
+    ADDEBUG() << "##### register_factory: " << clsid << ", " << objuuid;
+    if ( objuuid == boost::uuids::uuid{} )
+        impl::instance()->reader_v3_factories_[ clsid ] = f;
+    else
+        impl::instance()->reader_v4_factories_[ objuuid ] = {f, std::string(clsid)};
 }
 
 //static
 void
 DataReader::assign_reader( const char * clsid, const char * traceid )
 {
+    // Creating a transform table from traceid -> clsid (:= objtext)
+    // ADDEBUG() << "##### assign_reader: " << std::make_pair( clsid, traceid );
     impl::instance()->reader_map_[ traceid ] = clsid;
 }
 
@@ -333,12 +362,15 @@ DataReader::impl::make_reader( const char * traceid ) const
 {
     auto it = reader_map_.find( traceid );
     if ( it != reader_map_.end() ) {
+        ADDEBUG() << "########### make_reader find(" << traceid << ")";
         const auto& clsid = it->second;
-        auto factory = reader_factories_.find( clsid );
-        if ( factory != reader_factories_.end() )
-            return factory->second( traceid );
+        ADDEBUG() << "########### traceid,clsid = " << std::make_pair( traceid, clsid );
+        auto factory = reader_v3_factories_.find( clsid );
+        if ( factory != reader_v3_factories_.end() ) {
+            auto reader = factory->second( traceid );
+            return reader;
+        }
     }
-    ADDEBUG() << "requested DataReader for '" << traceid << "' is not installed.";
     return nullptr;
 }
 

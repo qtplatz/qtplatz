@@ -34,7 +34,7 @@
 #include <memory>
 
 namespace boost { namespace uuids { struct uuid; } }
-namespace adfs { class filesystem; }
+namespace adfs { class sqlite; }
 
 namespace adcontrols {
 
@@ -119,7 +119,7 @@ namespace adcontrols {
         enum TimeSpec { ElapsedTime, EpochTime };
         enum IndexSpec { TriggerNumber, IndexCount };
 
-        virtual bool initialize( adfs::filesystem&, const boost::uuids::uuid&, const std::string& objtxt ) { return false; }
+        virtual bool initialize( std::shared_ptr< adfs::sqlite >, const boost::uuids::uuid&, const std::string& objtxt ) { return false; }
         virtual void finalize() { return ; }
         virtual size_t fcnCount() const { return 0; }
 
@@ -211,9 +211,18 @@ namespace adcontrols {
         //////////////////////////////////////////////////////////////
         // singleton interfaces
         typedef std::shared_ptr< DataReader >( factory_type )( const char * traceid );
-        static std::shared_ptr< DataReader > make_reader( const char * traceid );
-        static void register_factory( std::function< factory_type >, const char * clsid );
+
+        static std::shared_ptr< DataReader > make_reader( const char * traceid ); // v3 interface
+        static std::shared_ptr< DataReader > make_reader( const boost::uuids::uuid& objuuid, const std::string& traceid ); // v3 & v4
+        static void register_factory( std::function< factory_type >, const char * clsid, const boost::uuids::uuid& );
+
+        // datafile v3
         static void assign_reader( const char * clsid, const char * traceid );
+
+        // datafile v4 (mzML) support --
+        // until v3 (TOF only) traceid --> create corresponding data_reader
+        // after v4 (MS/MS supported) objuuid|objtext --> create corresponding data_reader; traceid is simply a hashed id
+        static void assign_reader( const boost::uuids::uuid& objuuid, const std::string& objtext, const std::string& traceid );
 
     private:
         class impl;

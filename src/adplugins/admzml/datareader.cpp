@@ -47,21 +47,22 @@ namespace mzml {
             impl( std::shared_ptr< const mzML > mzml
                   , int fcn ) : mzml_( mzml )
                               , fcn_( fcn ) {
+                objtext_ = (boost::format("%1%.admzml.ms-cheminfo.com") % fcn_).str();
             }
             std::shared_ptr< const mzML > mzml_;
             int fcn_;
+            std::string objtext_;
             mzml::scan_protocol scan_protocol_;
             mzml::scan_protocol_key_t protocol_key_;
+            std::string traceid_;
 
             // 57B0153C-6BDD-41AF-82E9-6C32772841A0
             constexpr const static boost::uuids::uuid uuid_ = {
-                0x57, 0xB0, 0x15, 0x3C, 0x6B, 0xDD, 0x41, 0xAF, 0x82, 0xE9, 0x6C, 0x32, 0x77, 0x28, 0x41, 0xA0 };
+                0x57, 0xB0, 0x15, 0x3C, 0x6B, 0xDD, 0x41, 0xAF
+                , 0x82, 0xE9, 0x6C, 0x32, 0x77, 0x28, 0x41, 0xA0 };
 
-            static const std::string objtext_;
             std::string display_name_;
         };
-
-        const std::string data_reader::impl::objtext_ = "1.admzml.ms-cheminfo.com";
     }
 }
 
@@ -78,6 +79,7 @@ data_reader::data_reader( const char * traceid
     , impl_( std::make_unique< impl >( mzml, fcn ) )
 {
     auto jv = boost::json::parse( traceid );
+    impl_->traceid_ = boost::json::serialize( jv );
     impl_->scan_protocol_ = boost::json::value_to< scan_protocol >( jv );
     impl_->protocol_key_ = impl_->scan_protocol_.protocol_key();
 
@@ -101,6 +103,12 @@ data_reader::__uuid__()
     return impl::uuid_;
 }
 
+const std::string&
+data_reader::traceid() const
+{
+    return impl_->traceid_;
+}
+
 std::string
 data_reader::abbreviated_display_name() const
 {
@@ -108,7 +116,7 @@ data_reader::abbreviated_display_name() const
 }
 
 bool
-data_reader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
+data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     return true;

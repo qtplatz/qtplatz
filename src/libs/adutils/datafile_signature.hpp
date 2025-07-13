@@ -60,6 +60,8 @@ namespace adutils {
             std::vector< datum_t > operator()( const std::string& id ) const;
         };
 
+        bool is_table_exists( adfs::sqlite&, const std::string& );
+
         std::optional< value_t > find( adfs::sqlite&, const std::string& id );
         std::string to_string( const value_t& );
 

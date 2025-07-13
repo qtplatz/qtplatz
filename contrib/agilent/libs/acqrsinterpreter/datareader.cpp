@@ -306,13 +306,13 @@ DataReader::traceid_list()
 }
 
 bool
-DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
+DataReader::initialize( std::shared_ptr< adfs::sqlite > dbf, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
 
         objid_   = objid;      // objid := uuid of data stream such as '1.u5303a.ms-cheminfo.com'
         objtext_ = objtext;    // for debugging convension
-        db_      = dbf._ptr();
+        db_      = dbf;
 
         // find spectrometer object from ScanLaw table that interpret raw 'waveform' data into 'spectrum' (mass assign)
 
@@ -754,7 +754,6 @@ DataReader::next( int64_t rowid ) const
                 return sql.get_column_value< int64_t >( 0 );
         }
     }
-
     return -1;
 }
 

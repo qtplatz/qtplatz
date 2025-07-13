@@ -50,4 +50,12 @@ namespace mzml {
         static std::shared_ptr< adplugin::plugin > instance_;
     };
 
+    struct IID_DataInterpreter {
+        static const std::string value;
+    };
+
+    struct IID_DataReader {
+        static const std::string value;
+    };
+
 }

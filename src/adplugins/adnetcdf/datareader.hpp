@@ -47,7 +47,7 @@ namespace adnetcdf {
         static std::vector< std::string > traceid_list();
 
         // <===== adcontrols::DataReader
-        bool initialize( adfs::filesystem&, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
+        bool initialize( std::shared_ptr< adfs::sqlite >, const boost::uuids::uuid& objid, const std::string& objtxt ) override;
         void finalize() override;
 
         const boost::uuids::uuid& objuuid() const override;

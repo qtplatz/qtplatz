@@ -98,15 +98,15 @@ DataReader::traceid_list()
 }
 
 bool
-DataReader::initialize( adfs::filesystem& dbf, const boost::uuids::uuid& objid, const std::string& objtext )
+DataReader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     if ( interpreter_ ) {
 
         objid_ = objid; // objid tells channel/module id
         objtext_ = objtext; // for debugging convension
-        db_ = dbf._ptr();
+        db_ = db;
 
-        if ( auto db = db_.lock() ) {
+        if ( db ) {
             {
                 adfs::stmt sql( *db );
                 sql.prepare( "SELECT rowid FROM AcquiredConf WHERE objuuid = ?" );

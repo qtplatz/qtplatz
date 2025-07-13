@@ -25,6 +25,7 @@
 
 #include "mzmlreader.hpp"
 #include "mzmlspectrum.hpp"
+#include <adportable/debug.hpp>
 
 namespace mzml {
 
@@ -77,19 +78,16 @@ namespace mzml {
             auto prime = binaryDataArray::make_instance( std::get<0>( arrays ) );
             auto secondi = binaryDataArray::make_instance( std::get<1>( arrays ) );
             if ( prime.length() == secondi.length()) {
-                if ( node.name() == std::string( "spectrum")  )
-                    return std::make_shared< mzMLSpectrum >( prime, secondi, node );
-                else if ( node.name() == std::string( "chromatogram" ) )
-                    return std::make_shared< mzMLChromatogram >( prime, secondi, node );
+                if ( node.name() == std::string( "spectrum")  ) {
+                    ADDEBUG() << "------ found spectrum --------";
+                    return datum_variant_t( std::make_shared< mzMLSpectrum >( prime, secondi, node ) );
+                } else if ( node.name() == std::string( "chromatogram" ) ) {
+                    ADDEBUG() << "------ found chromatogram --------";
+                    return datum_variant_t( std::make_shared< mzMLChromatogram >( prime, secondi, node ) );
+                }
             }
         }
         return {};
     }
 
-    // static
-    datum_variant_t
-    mzMLReader::read( const pugi::xml_node& node )
-    {
-        return mzMLReader{}( node );
-    }
 } // namespace

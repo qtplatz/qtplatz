@@ -27,6 +27,7 @@
 #include <adcontrols/datareader.hpp>
 #include <adplugin/visitor.hpp>
 #include <adplugin/iid.hpp>
+#include <adportable/debug.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
@@ -35,14 +36,6 @@
 namespace mzml {
 
     std::shared_ptr< adplugin::plugin > datareader_factory::instance_;
-
-    struct IID_DataInterpreter {
-        static const std::string value;
-    };
-
-    struct IID_DataReader {
-        static const std::string value;
-    };
 
     const std::string IID_DataInterpreter::value = std::string( adplugin::iid::iid_datainterpreter ) + ".ms-cheminfo.com";
     const std::string IID_DataReader::value = std::string( adplugin::iid::iid_datareader ) + ".ms-cheminfo.com";
@@ -74,16 +67,17 @@ datareader_factory::instance()
 void
 datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
 {
+    ADDEBUG() << "---------- mzML datareader_factory::accept -----------";
+
     visitor.visit( this, adplugin );
 
-    adcontrols::DataReader::register_factory(
-        [] ( const char * traceid ) {
-            return std::make_shared< exposed::data_reader >( traceid );
-        }, typeid( mzml::exposed::data_reader ).name() );
+    auto factory = []( const char * traceid ) {
+        return std::make_shared< exposed::data_reader >( traceid );
+    };
 
-    // register all supported 'traceid' by name
-    for ( const auto& traceid: mzml::exposed::data_reader::traceid_list() )
-        adcontrols::DataReader::assign_reader( typeid( mzml::exposed::data_reader ).name(), traceid.c_str() );
+    adcontrols::DataReader::register_factory( factory, exposed::data_reader::__objtext__().c_str(), exposed::data_reader::__objuuid__() );
+
+    // Since v4::datafile, which create data_reader directry via objuuid, traceid is passed to data_reader when it is constracted via factory
 }
 
 const char *

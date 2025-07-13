@@ -42,6 +42,7 @@ namespace mzml {
     public:
         virtual ~DataInterpreter()  {}
         DataInterpreter()  {}
+        // dataInterpreterClsid -- see datareader_factory.cpp
 
         bool compile_header( adcontrols::MassSpectrum&, std::ifstream& ) const override {
             return false;

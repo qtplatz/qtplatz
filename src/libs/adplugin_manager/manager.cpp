@@ -187,9 +187,11 @@ namespace adplugin {
             if ( adpluginspec == 0 || plugin == 0 )
                 return;
             // make it unique
-            auto it = std::find_if( plugins_.begin(), plugins_.end(), [&](const auto& d){ return *d == (*plugin); });
-            if ( it == plugins_.end() )
+            auto it = std::find_if( plugins_.begin(), plugins_.end()
+                                    , [&](const auto& d){ return *d == (*plugin); });
+            if ( it == plugins_.end() ) {
                 additionals_.emplace_back( plugin->pThis() );
+            }
         }
 
     private:
@@ -288,9 +290,22 @@ manager::impl::select_iid( const char * regex )
     using namespace std;
 #endif
 
-	auto it = std::find_if( plugins_.begin(), plugins_.end(), [&]( const auto& p ){ return regex_match( p->iid(), matches, re ); });
+	auto it = std::find_if( plugins_.begin()
+                            , plugins_.end()
+                            , [&]( const auto& p ){
+                                return regex_match( p->iid(), matches, re );
+                            });
 	if ( it != plugins_.end() )
 		return (*it)->plugin();
+
+    // // ADDEBUG() << "--- select_iid additionals (" << regex << ")";
+    // auto ait = std::find_if( additionals_.begin()
+    //                          , additionals_.end()
+    //                          , [&]( const auto& p ){
+    //                              return regex_match( p->iid(), matches, re );
+    //                          });
+    // if ( ait != additionals_.end() )
+    //     return (*ait)->pThis();
     return 0;
 }
 
@@ -307,11 +322,17 @@ manager::impl::select_iids( const char * regex, std::vector< plugin_ptr >& vec )
     using namespace std;
 #endif
 
+    // ADDEBUG() << "--- select_iids (" << regex << ")";
 	std::for_each( plugins_.begin(), plugins_.end()
                    , [&]( const auto& p ){
-                         if ( regex_match( p->iid(), matches, re ) )
+                       if ( regex_match( p->iid(), matches, re ) )
                              vec.emplace_back( p->plugin() );
                      } );
+    std::for_each( additionals_.begin(), additionals_.end()
+                   , [&]( const auto& p ) {
+                       if ( regex_match( p->iid(), matches, re ) )
+                           vec.emplace_back( p->pThis() );
+                   });
     return vec.size();
 }
 
@@ -333,6 +354,9 @@ manager::impl::select_plugins( const char * regex, std::vector< plugin_ptr >& ve
                          if ( regex_match( m->path().string().c_str(), matches, re ) )
                              vec.emplace_back( m->plugin() );
 		} );
+
+    // ADDEBUG() << "--- select_plugins (" << regex << ") found: " << vec.size();
+
     return vec.size();
 }
 

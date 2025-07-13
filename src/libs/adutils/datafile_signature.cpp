@@ -50,7 +50,7 @@ datafileSignature::create_table( adfs::sqlite& db )
     adfs::stmt sql( db );
 
     if ( sql.exec(
-             "CREATE TABLE DATAFILE_SIGNATURE (\
+             "CREATE TABLE datafile_signature (\
  id                   TEXT                     \
 ,type                 TEXT                     \
 ,value                TEXT                     \
@@ -94,7 +94,7 @@ namespace adutils { namespace data_signature {
         adfs::stmt&
         operator << ( adfs::stmt& sql, datum_t&& dt )
         {
-            sql.prepare( "INSERT OR REPLACE INTO DATAFILE_SIGNATURE VALUES (?,?,?)" );
+            sql.prepare( "INSERT OR REPLACE INTO datafile_signature VALUES (?,?,?)" );
             auto t = std::visit( overloaded{
                     [&]( const std::string& a ){
                         return std::make_tuple( std::string("text"), a );
@@ -112,11 +112,9 @@ namespace adutils { namespace data_signature {
                             return std::make_tuple( std::string("tp"), to_string( a ) );
                         }
                         }, std::get<1>(dt));
-
-            int col = 1;
-            sql.bind( col++ ) = std::get<0>(dt);   // id
-            sql.bind( col++ ) = std::get<0>( t );  // value-type
-            sql.bind( col++ ) = std::get<1>(t );   // value
+            sql.bind( 1 ) = std::get<0>(dt);   // id
+            sql.bind( 2 ) = std::get<0>( t );  // value-type
+            sql.bind( 3 ) = std::get<1>(t );   // value
             if ( sql.step() != adfs::sqlite_done ) {
                 ADDEBUG() << sql.errmsg() << ": " << sql.expanded_sql();
             }
@@ -127,7 +125,7 @@ namespace adutils { namespace data_signature {
         adfs::stmt&
         operator >> (adfs::stmt& sql, std::map< std::string, value_t >& t )
         {
-            if ( sql.prepare( "SELECT * FROM DATAFILE_SIGNATURE" ) ) {
+            if ( sql.prepare( "SELECT * FROM datafile_signature" ) ) {
                 while ( sql.step() == adfs::sqlite_row ) {
                     const auto id = sql.get_column_value< std::string > ( 0 );
                     const auto dt = sql.get_column_value< std::string > ( 1 );
@@ -155,13 +153,25 @@ namespace adutils { namespace data_signature {
             return sql;
         }
 
+        //////////////
+        bool
+        is_table_exists( adfs::sqlite& db, const std::string& table )
+        {
+            adfs::stmt sql( db );
+            sql.prepare( "SELECT name FROM sqlite_master WHERE type='table' AND name=?" );
+            sql.bind(1) = table;
+            if ( sql.step() <= adfs::sqlite_row )
+                return true;
+            return false;
+        }
+
         /////////////
 
         std::optional< value_t >
         find( adfs::sqlite& db, const std::string& id )
         {
             adfs::stmt sql( db );
-            if ( sql.prepare( "SELECT * FROM DATAFILE_SIGNATURE WHERE id=?" ) ) {
+            if ( sql.prepare( "SELECT * FROM datafile_signature WHERE id=?" ) ) {
                 sql.bind(1) = id;
                 if ( sql.step() == adfs::sqlite_row ) {
                     const auto dt = sql.get_column_value< std::string > ( 1 );
