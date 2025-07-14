@@ -340,7 +340,6 @@ DataReader::make_reader( const boost::uuids::uuid& objuuid, const std::string& t
 void
 DataReader::register_factory( std::function< factory_type > f, const char * clsid, const boost::uuids::uuid& objuuid )
 {
-    ADDEBUG() << "##### register_factory: " << clsid << ", " << objuuid;
     if ( objuuid == boost::uuids::uuid{} )
         impl::instance()->reader_v3_factories_[ clsid ] = f;
     else

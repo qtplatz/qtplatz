@@ -26,14 +26,27 @@
 #include "binarydataarray.hpp"
 #include "accession.hpp"
 #include <adportable/base64.hpp>
+#include <adportable/debug.hpp>
 
 namespace mzml {
+
+    binaryDataArray::~binaryDataArray()
+    {
+    }
+
+    binaryDataArray::binaryDataArray( size_t length
+                                      , const mzml::accession& ac
+                                      , const std::string& decoded ) : encodedLength_( length )
+                                                                     , ac_( ac )
+                                                                     , decoded_( decoded )
+    {
+    }
 
     binaryDataArray::binaryDataArray( size_t length
                                       , mzml::accession&& ac
                                       , std::string&& decoded ) : encodedLength_( length )
-                                                                     , ac_( ac )
-                                                                     , decoded_( decoded )
+                                                                , ac_( std::move( ac ) )
+                                                                , decoded_( std::move( decoded ) )
     {
     }
 
@@ -41,6 +54,7 @@ namespace mzml {
                                                                  , ac_( t.ac_ )
                                                                  , decoded_( t.decoded_ )
     {
+        ADDEBUG() << "##### binaryDataArray::COPY ###### " << encodedLength_;
     }
 
     binaryDataArray::operator bool () const
@@ -59,13 +73,15 @@ namespace mzml {
 
     size_t
     binaryDataArray::length() const {
-            if ( ac_.is_32bit() ) {
-                return size() / sizeof(float);
-            } else if ( ac_.is_64bit() ) {
-                return size() / sizeof(double);
-            }
-            return size();
+        ADDEBUG() << "----- length ---------";
+        if ( ac_.is_32bit() ) {
+            return size() / sizeof(float);
+        } else if ( ac_.is_64bit() ) {
+            return size() / sizeof(double);
         }
+        ADDEBUG() << ac_.toString();
+        return size() / sizeof(float);
+    }
 
     data_ptr
     binaryDataArray::data() const {
@@ -73,7 +89,7 @@ namespace mzml {
             return reinterpret_cast< const float * >( decoded_.data() );
         if ( ac_.is_64bit() )
             return reinterpret_cast< const double * >( decoded_.data() );
-        return {};
+        return reinterpret_cast< const float * >( decoded_.data() );
     }
 
     binaryDataArray

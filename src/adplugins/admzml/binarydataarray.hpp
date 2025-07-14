@@ -37,9 +37,16 @@ namespace mzml {
         std::string decoded_;
         accession ac_;
     public:
+        ~binaryDataArray();
+
         binaryDataArray( size_t length = 0
-                         , mzml::accession&& ac = {}
-                         , std::string&& decoded = {} );
+                         , const mzml::accession& ac = {}
+                         , const std::string& decoded = {} );
+
+        binaryDataArray( size_t length
+                         ,  mzml::accession&& ac
+                         , std::string&& decoded );
+
         binaryDataArray( const binaryDataArray& t );
 
 

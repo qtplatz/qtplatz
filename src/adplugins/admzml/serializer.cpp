@@ -24,11 +24,10 @@
 **************************************************************************/
 
 #include "serializer.hpp"
-#include "mzmlspectrum.hpp"
-#include "mzmlreader.hpp"
 #include <adportable/debug.hpp>
+#include <adportable/bzip2.hpp>
 #include <pugixml.hpp>
-#include <variant>
+
 
 using namespace mzml;
 
@@ -38,19 +37,19 @@ namespace {
 }
 
 namespace mzml {
-    std::shared_ptr< mzMLSpectrum >
-    serializer::deserialize( const char * data, size_t )
+
+    std::shared_ptr< pugi::xml_document >
+    serializer::deserialize( const char * data, size_t length )
     {
-        pugi::xml_document doc;
-        if ( doc.load_string( data ) ) {
-            if ( auto node = doc.select_node( "spectrum" ) ) {
-                auto v = mzMLReader{}(node.node() );
-                return std::visit( overloaded {
-                        []( std::shared_ptr< mzMLChromatogram> sp )->std::shared_ptr< mzMLSpectrum >{ return nullptr; }
-                            , []( std::shared_ptr< mzMLSpectrum > t ) { return t; }
-                            }
-                    , v );
-            }
+        if ( adportable::bzip2::is_a( data, length ) ) {
+            std::string inflated;
+            adportable::bzip2::decompress( inflated, data, length );
+            return deserialize( inflated.data(), inflated.size() );
+        }
+
+        auto doc = std::make_shared< pugi::xml_document >();
+        if ( doc->load_string( data ) ) {
+            return doc;
         }
         return nullptr;
     }

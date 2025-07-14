@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "mzmlreader.hpp"
+#include "mzmldatumbase.hpp"
 #include "mzmlspectrum.hpp"
 #include <adportable/debug.hpp>
 
@@ -79,15 +80,14 @@ namespace mzml {
             auto secondi = binaryDataArray::make_instance( std::get<1>( arrays ) );
             if ( prime.length() == secondi.length()) {
                 if ( node.name() == std::string( "spectrum")  ) {
-                    ADDEBUG() << "------ found spectrum --------";
-                    return datum_variant_t( std::make_shared< mzMLSpectrum >( prime, secondi, node ) );
+                    return  std::make_shared< mzMLSpectrum >( prime, secondi, node );
                 } else if ( node.name() == std::string( "chromatogram" ) ) {
-                    ADDEBUG() << "------ found chromatogram --------";
-                    return datum_variant_t( std::make_shared< mzMLChromatogram >( prime, secondi, node ) );
+                    return  std::make_shared< mzMLChromatogram >( prime, secondi, node );
                 }
             }
         }
         return {};
     }
+
 
 } // namespace

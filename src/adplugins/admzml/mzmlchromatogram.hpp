@@ -45,11 +45,10 @@ namespace mzml {
         mzMLChromatogram( binaryDataArray prime
                           , binaryDataArray secondi
                           , pugi::xml_node node );
+
         size_t length() const;
         std::pair< const binaryDataArray&, const binaryDataArray& > dataArrays() const;
-
         boost::json::value to_value() const;
-
         static std::shared_ptr< adcontrols::Chromatogram > toChromatogram( const mzMLChromatogram& );
     };
 

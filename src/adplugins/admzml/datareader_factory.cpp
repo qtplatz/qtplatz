@@ -67,8 +67,6 @@ datareader_factory::instance()
 void
 datareader_factory::accept( adplugin::visitor& visitor, const char * adplugin )
 {
-    ADDEBUG() << "---------- mzML datareader_factory::accept -----------";
-
     visitor.visit( this, adplugin );
 
     auto factory = []( const char * traceid ) {

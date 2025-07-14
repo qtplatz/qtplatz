@@ -39,7 +39,6 @@ namespace mzml {
     public:
         binaryDataArray prime_;
         binaryDataArray secondi_;
-
     public:
         impl() {}
         impl( binaryDataArray prime

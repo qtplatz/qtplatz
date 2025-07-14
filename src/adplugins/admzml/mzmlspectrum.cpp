@@ -26,9 +26,7 @@
 #include "mzmlspectrum.hpp"
 #include "accession.hpp"
 #include "binarydataarray.hpp"
-//#include "mzmlchromatogram.hpp"
 #include "mzmldatumbase.hpp"
-#include "mzmlreader.hpp"
 #include "serializer.hpp"
 #include "scan_protocol.hpp"
 #include "xmltojson.hpp"
@@ -41,27 +39,17 @@
 #include <sstream>
 #include <variant>
 
-#if 0
-namespace {
-    struct reader {
-        static mzml::datum_variant_t read( const pugi::xml_node& node ) {
-            return mzml::mzMLReader{}( node );
-            mzml::mzMLDatumBase b{};
-            mzml::mzMLWalker z{};
-            mzml::mzMLSpectrum y{};
-            mzml::mzMLChromatogram x{};
-            return {};
-        }
-    };
-}
-#endif
-
 namespace mzml {
 
     class mzMLSpectrum::impl {
         mzMLSpectrum * this_;
     public:
-        impl( mzMLSpectrum * pThis ) : this_( pThis ) {}
+        ~impl() {
+        }
+
+        impl( mzMLSpectrum * pThis ) : this_( pThis ) {
+        }
+
         impl( mzMLSpectrum * pThis
               , binaryDataArray prime
               , binaryDataArray secondi ) : this_( pThis )
@@ -72,6 +60,7 @@ namespace mzml {
                                           , highest_observed_mz_ ( 0 )
                                           , lowest_observed_mz_( 0 ) {
         }
+
         impl( mzMLSpectrum * pThis
               , const impl& t ) : this_( pThis )
                                 , prime_( t.prime_ )
@@ -84,6 +73,7 @@ namespace mzml {
 
         binaryDataArray prime_;   // mz array
         binaryDataArray secondi_; // intensity array
+
         mzml::scan_id scan_id_;   // index, id (scan="1"), scan_start_time,
                                   // scan_protocol { ms_level_, precursor_mz_, CE, scan range
         int protocol_number_;
@@ -97,7 +87,6 @@ namespace mzml {
 
     mzMLSpectrum::mzMLSpectrum() : impl_( std::make_unique< impl >( this ) )
     {
-        ADDEBUG() << "========== mzMLSpectrum::ctor =============";
     }
 
     mzMLSpectrum::mzMLSpectrum( const mzMLSpectrum& t )
@@ -111,7 +100,13 @@ namespace mzml {
         : mzMLDatumBase( node )
         , impl_( std::make_unique< impl >( this, prime, secondi ) )
     {
-        ADDEBUG() << "========== mzMLSpectrum::ctor =============";
+    }
+
+    int
+    mzMLSpectrum::debug() const
+    {
+        ADDEBUG() << "############## mzMLSpectrum DEBUG ############ impl =" << impl_.get();
+        return 1;
     }
 
     size_t
@@ -212,6 +207,8 @@ namespace mzml {
     {
         auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
+        ADDEBUG() << __FUNCTION__ << " mzMLSpectrum.length() = " << t.length();
+
         ms->resize( t.length() );
         auto [ masses, intensities ] = t.dataArrays();
 
@@ -248,6 +245,8 @@ namespace mzml {
         std::chrono::nanoseconds elapsed_time( int64_t( t.scan_start_time() * 1e9 ) );
         tp += elapsed_time;
         prop.setTimePoint( tp );
+
+        ADDEBUG() << __FUNCTION__ << " mzMLSpectrum returning " << ms.get();
 
         return ms;
     }

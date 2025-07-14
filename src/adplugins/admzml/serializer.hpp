@@ -26,6 +26,7 @@
 #pragma once
 
 #include <memory>
+#include <pugixml.hpp>
 
 namespace mzml {
 
@@ -33,7 +34,8 @@ namespace mzml {
 
     class serializer {
     public:
-        static std::shared_ptr< mzMLSpectrum > deserialize( const char *, size_t );
+        // static std::shared_ptr< mzMLSpectrum > deserialize( const char *, size_t );
+        static std::shared_ptr< pugi::xml_document > deserialize( const char *, size_t );
     };
 
 }
