@@ -38,12 +38,9 @@
 #include <boost/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
-#include <iterator>
-#include <numeric>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
-#include <ratio>
 
 namespace {
     template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -194,6 +191,7 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > dbf, const boost::uuids
                 ADDEBUG() << "Exception: " << ex;
             }
         }
+#if 0
         ADDEBUG() << "scan_indices.size() = " << impl_->scan_indices_.size();
         size_t i=0;
         for ( const auto& idx: impl_->scan_indices_ )
@@ -203,6 +201,7 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > dbf, const boost::uuids
                       << ", " << std::get< scan_index_spectrum >( idx ).get()
                       << ", " << ( std::get< scan_index_spectrum >( idx ) ? std::get< scan_index_spectrum >( idx )->length() : 0 )
                 ;
+#endif
 
     }
     return true;
@@ -263,8 +262,6 @@ data_reader::fcnCount() const
 size_t
 data_reader::size( int fcn /* segmented fcn */ ) const
 {
-    ADDEBUG() << "### " << __FUNCTION__ << " ### " << fcn;
-
     if ( auto db = impl_->db_.lock() ) {
         adfs::stmt sql( *db );
         if ( fcn < 0 ) {
@@ -275,7 +272,7 @@ data_reader::size( int fcn /* segmented fcn */ ) const
             sql.bind( 1 ) = impl::uuid_;
             sql.bind( 2 ) = fcn;
         }
-        if ( sql.step() == adfs::sqlite_done ) {
+        if ( sql.step() <= adfs::sqlite_row ) {
             return sql.get_column_value< int64_t >( 0 );
         }
     }
@@ -316,8 +313,6 @@ data_reader::end() const
 adcontrols::DataReader::const_iterator
 data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================== " << std::make_tuple( seconds, fcn, closest );
-
     if ( auto db = impl_->db_.lock() ) {
         adfs::stmt sql( *db );
         if ( fcn >= 0 ) {
@@ -332,11 +327,10 @@ data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) co
         }
         if ( sql.step() <= adfs::sqlite_row ) {
             auto rowid = sql.get_column_value< int64_t >( 0 );
-            ADDEBUG() << sql.expanded_sql();
-            ADDEBUG() << "\t---> rowid: " << std::make_pair(rowid, fcn );
             return adcontrols::DataReader_iterator( this, rowid, impl_->fcn_ );
         }
     }
+    ADDEBUG() << __FUNCTION__ << "\tcannot find pos -- returning end()";
     return end();
 }
 
@@ -355,6 +349,7 @@ data_reader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 std::shared_ptr< const adcontrols::Chromatogram >
 data_reader::TIC( int fcn ) const
 {
+    ADDEBUG() << "## " << __FUNCTION__ << " ##";
     if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
         // impl_->mzml_->getTIC( fcn, *chro );
         // return chro;
@@ -371,7 +366,7 @@ data_reader::next( int64_t rowid ) const
 int64_t
 data_reader::next( int64_t rowid, int fcn ) const
 {
-    if ( !impl_->scan_indices_.empty() ) {
+    if ( not impl_->scan_indices_.empty() ) {
         auto it = std::lower_bound( impl_->scan_indices_.begin()
                                     , impl_->scan_indices_.end()
                                     , rowid
@@ -386,10 +381,18 @@ data_reader::next( int64_t rowid, int fcn ) const
     } else {
         if ( auto db = impl_->db_.lock() ) {
             adfs::stmt sql( *db );
-            sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND npos > (SELECT npos FROM AcquiredData WHERE rowid=?) LIMIT 1" );
+            if ( fcn >= 0 ) {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND fcn = ? AND "
+                             "npos > (SELECT npos FROM AcquiredData WHERE rowid=?) LIMIT 1" );
             sql.bind( 1 ) = impl::uuid_;
             sql.bind( 2 ) = impl_->fcn_;
             sql.bind( 3 ) = rowid;
+            } else {
+                sql.prepare( "SELECT rowid FROM AcquiredData WHERE objuuid = ? AND "
+                             "npos > (SELECT npos FROM AcquiredData WHERE rowid=?) LIMIT 1" );
+                sql.bind( 1 ) = impl::uuid_;
+                sql.bind( 3 ) = rowid;
+            }
             if ( sql.step() == adfs::sqlite_row )
                 return sql.get_column_value< int64_t >( 0 );
         }
@@ -425,12 +428,7 @@ int64_t
 data_reader::pos( int64_t rowid ) const
 {
     // convert rowid --> pos, a.k.a. trigger number since injected.
-    auto it = std::lower_bound( impl_->scan_indices_.begin()
-                                , impl_->scan_indices_.end()
-                                , rowid
-                                , []( const auto& a, int64_t b ){
-                                    return std::get<0>(a) < b;
-                                });
+    auto it = impl_->find_index( rowid );
     if ( it != impl_->scan_indices_.end() && std::get<0>(*it) == rowid )
         return std::get< scan_index_pos >( *it );
     return 0;
@@ -439,13 +437,7 @@ data_reader::pos( int64_t rowid ) const
 int64_t
 data_reader::elapsed_time( int64_t rowid ) const
 {
-    auto it = std::lower_bound( impl_->scan_indices_.begin()
-                                , impl_->scan_indices_.end()
-                                , rowid
-                                , []( const auto& a, int64_t b ){
-                                    return std::get<0>(a) < b;
-                                });
-    // ADDEBUG() << "## " << __FUNCTION__ << " ## rowid=" << rowid << "\t" << *it;
+    auto it = impl_->find_index( rowid );
     if ( it != impl_->scan_indices_.end() && std::get<0>(*it) == rowid )
         return std::get< scan_index_elapsed_time >( *it ); // ns
     return -1;
@@ -490,7 +482,6 @@ data_reader::getSpectrum( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::readSpectrum( const const_iterator& it ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     auto It = impl_->find_index( it->rowid() );
     if ( It != impl_->scan_indices_.end() && std::get<0>(*It) == it->rowid() ) {
         auto spc = std::get< scan_index_spectrum >( *It );
@@ -519,17 +510,10 @@ data_reader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) cons
             if ( sp->protocol_id() != impl_->fcn_ )
                 throw std::invalid_argument("protocol id missmatch");
 
-            ADDEBUG() << "first index: " << *beg << ", protocol_id: " << sp->protocol_id() << " == fcn_: " << impl_->fcn_;
-            ADDEBUG() << "sp= " << sp.get() << ", length: " << sp->length();
-
             auto ms = mzMLSpectrum::toMassSpectrum( *sp );
-            ADDEBUG() << "ms = " << ms.get();
             std::vector< double > intensities ( ms->size(), 0 );
-            ADDEBUG() << "ms.size: " << ms->size();
 
             for ( auto it = beg; it != end; ++it ) {
-                ADDEBUG() << "rowid: " << std::get<0>(*it) << ", " << std::get< scan_index_elapsed_time >(*it) / 1e9;
-
                 if ( std::get< scan_index_fcn >(*it) == impl_->fcn_ ) {
                     auto sp = std::get< scan_index_spectrum >( *it );
                     const auto secondi = sp->dataArrays().second;

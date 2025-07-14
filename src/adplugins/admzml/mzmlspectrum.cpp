@@ -207,8 +207,6 @@ namespace mzml {
     {
         auto ms = std::make_shared< adcontrols::MassSpectrum >();
 
-        ADDEBUG() << __FUNCTION__ << " mzMLSpectrum.length() = " << t.length();
-
         ms->resize( t.length() );
         auto [ masses, intensities ] = t.dataArrays();
 
@@ -245,8 +243,6 @@ namespace mzml {
         std::chrono::nanoseconds elapsed_time( int64_t( t.scan_start_time() * 1e9 ) );
         tp += elapsed_time;
         prop.setTimePoint( tp );
-
-        ADDEBUG() << __FUNCTION__ << " mzMLSpectrum returning " << ms.get();
 
         return ms;
     }

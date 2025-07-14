@@ -123,7 +123,6 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/variant.hpp>
 #include <boost/json.hpp>
-#include "selchanged.hpp"
 #include <algorithm>
 #include <array>
 #include <complex>
@@ -1987,7 +1986,6 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                 }
             }
         }
-
 
         if ( xpkinfo ) {
 

@@ -54,7 +54,6 @@ namespace mzml {
                                                                  , ac_( t.ac_ )
                                                                  , decoded_( t.decoded_ )
     {
-        ADDEBUG() << "##### binaryDataArray::COPY ###### " << encodedLength_;
     }
 
     binaryDataArray::operator bool () const
@@ -73,7 +72,6 @@ namespace mzml {
 
     size_t
     binaryDataArray::length() const {
-        ADDEBUG() << "----- length ---------";
         if ( ac_.is_32bit() ) {
             return size() / sizeof(float);
         } else if ( ac_.is_64bit() ) {
