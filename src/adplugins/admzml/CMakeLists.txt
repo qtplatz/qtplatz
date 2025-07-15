@@ -36,6 +36,7 @@ add_library( ${PROJECT_NAME} MODULE
   datareader_ex.cpp datareader_ex.hpp
   datareader_factory.cpp datareader_factory.hpp
   export_to_adfs.cpp export_to_adfs.hpp
+  helper.cpp helper.hpp
   mzml.cpp mzml.hpp
   mzmlchromatogram.cpp mzmlchromatogram.hpp
   mzmldatumbase.cpp mzmldatumbase.hpp

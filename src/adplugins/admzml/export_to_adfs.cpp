@@ -25,16 +25,15 @@
 
 #include "export_to_adfs.hpp"
 #include "accession.hpp"
-#include "datareader_ex.hpp"
 #include "adutils/acquireddata.hpp"
 #include "adutils/acquireddata_v3.hpp"
+#include "datafile_factory.hpp"
 #include "datareader.hpp"
 #include "datareader_ex.hpp"
 #include "mzml.hpp"
 #include "mzmldatumbase.hpp"
 #include "scan_protocol.hpp"
-#include "datafile_factory.hpp"
-#include "xmltojson.hpp"
+#include "helper.hpp"
 #include <adacquire/constants.hpp>
 #include <adcontrols/chromatogram.hpp>
 #include <adportable/debug.hpp>
@@ -53,9 +52,9 @@ namespace mzml {
         std::shared_ptr< adfs::sqlite > db_;
 
         // 9C457C8F-D0B6-44EA-98F5-E89F8A229A63
-        static constexpr const boost::uuids::uuid uuid_ =
-        { 0x9C, 0x45, 0x7C, 0x8F, 0xD0, 0xB6, 0x44, 0xEA
-          , 0x98, 0xF5, 0xE8, 0x9F, 0x8A, 0x22, 0x9A, 0x63 };
+        // static constexpr const boost::uuids::uuid uuid_ =
+        // { 0x9C, 0x45, 0x7C, 0x8F, 0xD0, 0xB6, 0x44, 0xEA
+        //   , 0x98, 0xF5, 0xE8, 0x9F, 0x8A, 0x22, 0x9A, 0x63 };
 
         void create_acquired_conf() const {
             adfs::stmt sql( *db_ );
@@ -85,17 +84,17 @@ namespace mzml {
             sql.exec( "DROP TABLE IF EXISTS Chromatograms" );
             sql.exec(
                 "CREATE TABLE Chromatograms ("
-                " objuuid              UUID"    // this->uuid_ (reserved for future use)
-                ",fcn                  INTEGER"
-                ",mode                 TEXT"     // SIM,SRM,TIC,BPI...
-                ",ms_level             INTEGER"
-                ",ion_polarity         TEXT"
-                ",precursor_mz         REAL"
-                ",collision_energy     REAL"
-                ",meta                 BLOB"
-                ",dataUUID             UUID"    // Chromatogram::__clsid__
-                ",dataClass            TEXT"    // Chromatogram::dataClass
-                ",data                 BLOB"
+                " objuuid              UUID"    // 0 this->uuid_ (reserved for future use)
+                ",fcn                  INTEGER" // 1
+                ",mode                 TEXT"    // 2 SIM,SRM,TIC,BPI...
+                ",ms_level             INTEGER" // 3
+                ",ion_polarity         TEXT"    // 4
+                ",precursor_mz         REAL"    // 5
+                ",collision_energy     REAL"    // 6
+                ",meta                 BLOB"    // 7
+                ",dataUUID             UUID"    // 8 Chromatogram::__clsid__
+                ",dataClass            TEXT"    // 9 Chromatogram::dataClass
+                ",data                 BLOB"    // 10
                 ")"
                 );
         }
@@ -104,50 +103,6 @@ namespace mzml {
 }
 
 namespace {
-
-    std::string to_string( const pugi::xml_node& node ) {
-        std::ostringstream o;
-        node.print( o );
-        return  o.str();
-    }
-
-    template< typename T >
-    std::string archive_to_string( const T& t, bool compress ) {
-        std::ostringstream ar;
-        T::archive( ar, t );
-        if ( not compress )
-            return ar.str();
-        std::string zar;
-        adportable::bzip2::compress( zar, ar.str().c_str(), ar.str().size() );
-        return zar;
-    };
-
-    template<> std::string archive_to_string( const pugi::xml_node& node, bool compress ) {
-        std::string xml = to_string( node );
-        if ( not compress )
-            return xml;
-        std::string zar;
-        adportable::bzip2::compress( zar, xml.c_str(), xml.size() );
-        return zar;
-    }
-
-    std::string decompress( const std::string& compressed ) {
-        if ( adportable::bzip2::is_a( compressed.data(), compressed.size() ) ) {
-            std::string inflated;
-            adportable::bzip2::decompress( inflated, compressed.data(), compressed.size() );
-            return inflated;
-        }
-        return compressed;
-    }
-
-    class blob_helper {
-        std::string _;
-        blob_helper( const blob_helper& t ) = delete;
-        blob_helper& operator = ( const blob_helper& t ) = delete;
-    public:
-        blob_helper( const std::string& d ) : _(d) {};
-        adfs::blob blob() const { return { _.size(), _.data() }; }
-    };
 
     /////////////////////////
     std::string monitor_mode( int ms_level ) {
@@ -204,7 +159,7 @@ export_to_adfs::operator()( const mzML& _ )
     sql.exec( "DELETE FROM AcquiredData" );
 
     using namespace adutils::data_signature;
-    sql << datum_t{ "creator", value_t( impl_->uuid_ ) };
+    sql << datum_t{ "creator", value_t( exposed::data_reader::__objuuid__() ) }; //impl_->uuid_ ) };
     sql << datum_t{ "create_date", value_t( std::chrono::system_clock::now() ) };
     sql << datum_t{ "datafile_factory", value_t( std::string(datafile_factory::instance()->iid() ) ) };
 
@@ -251,7 +206,7 @@ export_to_adfs::operator()( const mzML& _ )
 )" );
         for ( const auto& reader: _.dataReaderMap() ) {
             int col = 1;
-            ADDEBUG() << "\t traceid: " << reader.second->traceid();
+            // ADDEBUG() << "\t traceid: " << reader.second->traceid();
             sql.bind( col++ ) = exposed::data_reader::__objuuid__(); // objid; <-- 6a6df573-...
             sql.bind( col++ ) = exposed::data_reader::__objtext__(); // d.objtext; <-- 1.admzml.ms-cheminfo.com
             sql.bind( col++ ) = boost::uuids::uuid{0}; // d.pobjid;
@@ -311,7 +266,7 @@ export_to_adfs::operator()( const mzML& _ )
                  "VALUES(?,?,?,?,?,?,?,?,?,?,?)" );
     for ( const auto& [fcn, chro, node]: _.SRMs() ) {
         auto scan_protocol = std::get< enum_scan_protocol >(mzml::scan_identifier{}( node ));
-        sql.bind(1) = impl_->uuid_;
+        sql.bind(1) = exposed::data_reader::__objuuid__(); //impl_->uuid_;
         sql.bind(2) = adfs::null{}; // fcn;
         sql.bind(3) = monitor_mode( scan_protocol.ms_level() );
         sql.bind(4) = scan_protocol.ms_level();
@@ -323,10 +278,12 @@ export_to_adfs::operator()( const mzML& _ )
             sql.bind(6) = adfs::null{};
             sql.bind(7) = adfs::null{};
         }
-        sql.bind(8) = blob_helper( archive_to_string( node, true ) ).blob();
+        auto xmeta = archive_to_string( node, true );
+        auto xdata = archive_to_string( *chro, true );
+        sql.bind(8) = adfs::blob( xmeta.size(), xmeta.data() ); // blob_helper( archive_to_string( node, true ) ).blob();
         sql.bind(9) = adcontrols::Chromatogram::__clsid__();
         sql.bind(10) = std::wstring(adcontrols::Chromatogram::dataClass());
-        sql.bind(11) = blob_helper( archive_to_string( *chro, true )).blob();
+        sql.bind(11) = adfs::blob( xdata.size(), xdata.data() ); // blob_helper( archive_to_string( *chro, true )).blob();
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "Error: " << sql.errmsg();
         sql.reset();
@@ -337,7 +294,7 @@ export_to_adfs::operator()( const mzML& _ )
                  "VALUES(?,?,?,?,?,?)" );
     for ( const auto& [fcn, chro]: _.TICs() ) {
         auto zc = archive_to_string( *chro, true );
-        sql.bind(1) = impl_->uuid_;
+        sql.bind(1) = exposed::data_reader::__objuuid__();// impl_->uuid_;
         sql.bind(2) = fcn;
         sql.bind(3) = std::string("TIC");
         sql.bind(4) = adcontrols::Chromatogram::__clsid__();
@@ -352,13 +309,16 @@ export_to_adfs::operator()( const mzML& _ )
                  "(objuuid,mode,dataClass,data) "
                  "VALUES(?,?,?,?)" );
     for ( auto chro: _.mzMLChromatograms() ) {
-        sql.bind(1) = impl_->uuid_;
+        sql.bind(1) = exposed::data_reader::__objuuid__(); // impl_->uuid_;
         sql.bind(2) = chro->id();
         sql.bind(3) = std::string("XML");
-        sql.bind(4) = blob_helper( archive_to_string( chro->node(), true ) ).blob();
+        auto xdata = archive_to_string( chro->node(), true );
+        sql.bind(4) = adfs::blob( xdata.size(), xdata.data() ); // blob_helper( archive_to_string( chro->node(), true ) ).blob();
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "Error: " << sql.errmsg();
         sql.reset();
+        auto zml = archive_to_string( chro->node(), true );
+        ADDEBUG() << "is_compresssed? " << adportable::bzip2::is_a( zml.data(), zml.size() );
     }
     return true;
 }

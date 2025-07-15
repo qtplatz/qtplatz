@@ -26,6 +26,7 @@
 #include "accession.hpp"
 #include "mzmlspectrum.hpp"
 #include "chromatogram.hpp"
+#include "helper.hpp"
 #include "scan_protocol.hpp"
 #include "mzml.hpp"
 #include "mzmlreader.hpp"
@@ -202,7 +203,29 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > dbf, const boost::uuids
                       << ", " << ( std::get< scan_index_spectrum >( idx ) ? std::get< scan_index_spectrum >( idx )->length() : 0 )
                 ;
 #endif
-
+        // debug chromatograms
+        {
+#if 0
+            ADDEBUG() << "=============== Chromatograms ===============";
+            sql.prepare( "SELECT * FROM Chromatograms WHERE objuuid=?" );
+            sql.bind(1) = impl::uuid_;
+            while ( sql.step() == adfs::sqlite_row ) {
+                auto fcn = sql.is_null_column( 1 ) ? -1 : sql.get_column_value<int64_t>(1);
+                auto mode = sql.get_column_value< std::string >(2);
+                auto ms_level = sql.is_null_column( 3 ) ? -1 : sql.get_column_value<int64_t>(3);
+                auto polarity = sql.is_null_column( 4 ) ? "" : sql.get_column_value<std::string>(4);
+                auto dataClass = sql.get_column_value< std::string >( 9 );
+                auto xmeta   = bzip2_decompress( sql.get_column_value< adfs::blob >(7) );
+                auto xdata = bzip2_decompress( sql.get_column_value< adfs::blob >(10) );
+                ADDEBUG() << std::make_tuple( fcn, mode, ms_level, polarity, dataClass );
+                ADDEBUG() << xmeta;
+                if ( dataClass == "XML" ) {
+                    // ADDEBUG() << bzip2_decompress( xdata );
+                    ADDEBUG() << xdata;
+                }
+            }
+#endif
+        }
     }
     return true;
 }
