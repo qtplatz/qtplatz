@@ -28,8 +28,9 @@
 
 #include <adcontrols/datafile.hpp>
 #include <adfs/adfs.hpp>
-#include <boost/variant.hpp>
+#include <boost/any.hpp>
 #include <memory>
+#include <variant>
 
 namespace adcontrols {
     class Chromatogram;

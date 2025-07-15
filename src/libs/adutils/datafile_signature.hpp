@@ -60,13 +60,13 @@ namespace adutils {
             std::vector< datum_t > operator()( const std::string& id ) const;
         };
 
-        bool is_table_exists( adfs::sqlite&, const std::string& );
+        ADUTILSSHARED_EXPORT bool is_table_exists( adfs::sqlite&, const std::string& );
 
-        std::optional< value_t > find( adfs::sqlite&, const std::string& id );
-        std::string to_string( const value_t& );
+        ADUTILSSHARED_EXPORT std::optional< value_t > find( adfs::sqlite&, const std::string& id );
+        ADUTILSSHARED_EXPORT std::string to_string( const value_t& );
 
-        adfs::stmt& operator << (adfs::stmt& sql, datum_t&& );
-        adfs::stmt& operator >> (adfs::stmt&, std::map< std::string, value_t >& );
+        ADUTILSSHARED_EXPORT adfs::stmt& operator << (adfs::stmt& sql, datum_t&& );
+        ADUTILSSHARED_EXPORT adfs::stmt& operator >> (adfs::stmt&, std::map< std::string, value_t >& );
 
     };
 }
