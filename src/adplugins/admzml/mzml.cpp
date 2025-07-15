@@ -66,6 +66,7 @@
 #include <filesystem>
 #include <memory>
 #include <numeric>
+#include <sstream>
 #include <unordered_map>
 #include <variant>
 
@@ -92,6 +93,7 @@ namespace mzml {
         chromatograms_t chromatograms_;
         std::map< int, std::shared_ptr< adcontrols::Chromatogram > > TICs_;
         std::map< int, std::shared_ptr< adcontrols::Chromatogram > > SRMs_; // both SRM and SIM
+        std::map< int, pugi::xml_node > srm_node_; // both SRM and SIM
         std::map< int, std::shared_ptr< local::data_reader > > dataReaders_;
 
         std::vector< std::pair< mzml::scan_id, std::shared_ptr<mzml::mzMLSpectrum> > > scan_indices_;
@@ -132,7 +134,11 @@ namespace mzml {
             auto key = std::get< enum_scan_protocol >( mzml::scan_identifier()( sp->node() ) ).protocol_key();
             auto [ it, inserted ] = srm_map_.emplace( key, next_id );
             if ( inserted ) {
+                std::ostringstream xml;
+                sp->node().print( xml );
                 SRMs_[ it->second ] = std::make_shared< adcontrols::Chromatogram >();
+                srm_node_[ it->second ] = sp->node();
+
                 if ( scan_protocol.ms_level() == 2 ) {
                     SRMs_[ it->second ]->addDescription( { "id"
                             , (boost::format("SRM %.1f->%.1f %s %.1fV")
@@ -259,6 +265,37 @@ mzML::import_chromatograms() const
     for ( const auto& srm: impl_->SRMs_ )
         vec.emplace_back( srm.second );
     return vec;
+}
+
+std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram >, pugi::xml_node > >
+mzML::SRMs() const
+{
+    std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram >, pugi::xml_node > > vec;
+    for ( auto& srm: impl_->SRMs_ ) {
+        auto it = impl_->srm_node_.find( srm.first );
+        if ( it != impl_->srm_node_.end() ) {
+            auto scan_protocol = std::get< enum_scan_protocol >(mzml::scan_identifier{}( it->second ));
+            ADDEBUG() << "SRMs fcn: " << srm.first << ", " << scan_protocol;
+            vec.emplace_back( srm.first, srm.second, it->second );
+        }
+    }
+    return vec;
+}
+
+std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram > > >
+mzML::TICs() const
+{
+    std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram > > > vec;
+    for ( auto [fcn,tic]: impl_->TICs_ ) {
+        vec.emplace_back( fcn, tic );
+    }
+    return vec;
+}
+
+std::vector< std::shared_ptr< mzml::mzMLChromatogram > >
+mzML::mzMLChromatograms() const
+{
+    return impl_->chromatograms_;
 }
 
 const std::vector< std::pair< mzml::scan_id, std::shared_ptr< mzMLSpectrum > > > &

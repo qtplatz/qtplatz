@@ -80,16 +80,25 @@ namespace mzml {
     {
         return mzml::to_value{}( node() );
     }
+
+    std::string
+    mzMLChromatogram::id() const
+    {
+        return node().select_node( "@id" ).attribute().value();
+    }
+
+    int
+    mzMLChromatogram::index() const
+    {
+        return node().select_node( "@index" ).attribute().as_int();
+    }
 }
 
 
 namespace {
     // helper for visitor
-    template<class... Ts>
-    struct overloaded : Ts... { using Ts::operator()...; };
-    template<class... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>;
-    // end helper for visitor
+    template<class... Ts>  struct overloaded : Ts... { using Ts::operator()...; };
+    // template<class... Ts>  overloaded(Ts...) -> overloaded<Ts...>;
 }
 
 using namespace mzml;

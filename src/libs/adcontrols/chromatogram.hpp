@@ -87,6 +87,7 @@ namespace adcontrols {
         static bool archive( std::ostream&, const Chromatogram& );
         static bool restore( std::istream&, Chromatogram& );
 		static const wchar_t * dataClass() { return L"Chromatogram"; }
+        static const boost::uuids::uuid __clsid__();
 
         struct Event {
             size_t index;  // index since injection, should subtract dataDelayPoint in order to access dataArray;

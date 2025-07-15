@@ -24,26 +24,28 @@
 **************************************************************************/
 
 #include "export_to_adfs.hpp"
+#include "accession.hpp"
 #include "datareader_ex.hpp"
-#include "datareader_factory.hpp"
-#include "adportfolio/node.hpp"
 #include "adutils/acquireddata.hpp"
 #include "adutils/acquireddata_v3.hpp"
 #include "datareader.hpp"
 #include "datareader_ex.hpp"
 #include "mzml.hpp"
-#include "mzmlspectrum.hpp"
+#include "mzmldatumbase.hpp"
 #include "scan_protocol.hpp"
-#include "mzmlreader.hpp"
 #include "datafile_factory.hpp"
+#include "xmltojson.hpp"
 #include <adacquire/constants.hpp>
+#include <adcontrols/chromatogram.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/bzip2.hpp>
 #include <adutils/datafile_signature.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/format.hpp>
 #include <chrono>
 #include <net/if_var.h>
+#include <sstream>
 
 namespace mzml {
     class export_to_adfs::impl {
@@ -77,7 +79,94 @@ namespace mzml {
                 );
         }
 
+        //
+        void create_chromatogram_table() const {
+            adfs::stmt sql( *db_ );
+            sql.exec( "DROP TABLE IF EXISTS Chromatograms" );
+            sql.exec(
+                "CREATE TABLE Chromatograms ("
+                " objuuid              UUID"    // this->uuid_ (reserved for future use)
+                ",fcn                  INTEGER"
+                ",mode                 TEXT"     // SIM,SRM,TIC,BPI...
+                ",ms_level             INTEGER"
+                ",ion_polarity         TEXT"
+                ",precursor_mz         REAL"
+                ",collision_energy     REAL"
+                ",meta                 BLOB"
+                ",dataUUID             UUID"    // Chromatogram::__clsid__
+                ",dataClass            TEXT"    // Chromatogram::dataClass
+                ",data                 BLOB"
+                ")"
+                );
+        }
+
     };
+}
+
+namespace {
+
+    std::string to_string( const pugi::xml_node& node ) {
+        std::ostringstream o;
+        node.print( o );
+        return  o.str();
+    }
+
+    template< typename T >
+    std::string archive_to_string( const T& t, bool compress ) {
+        std::ostringstream ar;
+        T::archive( ar, t );
+        if ( not compress )
+            return ar.str();
+        std::string zar;
+        adportable::bzip2::compress( zar, ar.str().c_str(), ar.str().size() );
+        return zar;
+    };
+
+    template<> std::string archive_to_string( const pugi::xml_node& node, bool compress ) {
+        std::string xml = to_string( node );
+        if ( not compress )
+            return xml;
+        std::string zar;
+        adportable::bzip2::compress( zar, xml.c_str(), xml.size() );
+        return zar;
+    }
+
+    std::string decompress( const std::string& compressed ) {
+        if ( adportable::bzip2::is_a( compressed.data(), compressed.size() ) ) {
+            std::string inflated;
+            adportable::bzip2::decompress( inflated, compressed.data(), compressed.size() );
+            return inflated;
+        }
+        return compressed;
+    }
+
+    class blob_helper {
+        std::string _;
+        blob_helper( const blob_helper& t ) = delete;
+        blob_helper& operator = ( const blob_helper& t ) = delete;
+    public:
+        blob_helper( const std::string& d ) : _(d) {};
+        adfs::blob blob() const { return { _.size(), _.data() }; }
+    };
+
+    /////////////////////////
+    std::string monitor_mode( int ms_level ) {
+        switch( ms_level ) {
+        case 1: return "SIM";
+        case 2: return "SRM";
+        }
+        return (boost::format( "MS^%d" ) % ms_level).str();
+    }
+
+    std::string polarity_text( mzml::ion_polarity_type t )
+    {
+        switch( t ) {
+        case mzml::polarity_positive: return "positive_polarity";
+        case mzml::polarity_negative: return "negative_polarity";
+        case mzml::polarity_unknown: return "unknown_polarity";
+        }
+    }
+
 }
 
 using namespace mzml;
@@ -107,14 +196,9 @@ export_to_adfs::connect( std::shared_ptr< adfs::sqlite > db )
 bool
 export_to_adfs::operator()( const mzML& _ )
 {
-    // Spectrometer uuid, scantype, description, fLength
-    // AcquiredConf
-    // AcquiredData (blob)
-    // ScanLaw { uuid (observer id), objtext (observer text), acclVoltage, tDelay, spectrometer (text), spectrometer (clsid)
-    // MetaData := ControlMethod clsid	'cd53abe6-8223-11e6-b2d8-cb9185077a24'
-
     adutils::data_signature::datafileSignature::create_table( *impl_->db_ );
     adutils::v3::AcquiredData::create_table_v3( *impl_->db_ );
+    impl_->create_chromatogram_table();
 
     adfs::stmt sql( *impl_->db_ );
     sql.exec( "DELETE FROM AcquiredData" );
@@ -138,11 +222,13 @@ export_to_adfs::operator()( const mzML& _ )
     }
 
     if ( auto run = _.xml_document().select_node( "//run" ) ) {
-        ADDEBUG() << "run defaultInstrumentConfigurationRef="
-                  << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
-        ADDEBUG() << "\t=" << run.node().attribute( "defaultInstrumentConfigurationRef" ).value();
-        ADDEBUG() << "\t=" << run.node().attribute( "defaultSourceFileRef" ).value();
-        ADDEBUG() << "\t=" << run.node().attribute( "id" ).value();
+        sql << datum_t{ "run", boost::json::value{
+                { "defaultInstrumentConfigurationRef", run.node().attribute( "defaultInstrumentConfigurationRef" ).value() }
+                    , { "defaultSourceFileRef",  run.node().attribute( "defaultSourceFileRef" ).value() }
+                    , { "defaultSourceFileRef",  run.node().attribute( "defaultSourceFileRef" ).value() }
+                    , { "defaultSourceFileRef",  run.node().attribute( "defaultSourceFileRef" ).value() }
+                    , { "id",  run.node().attribute( "id" ).value() }
+            }};
     }
 
     do {
@@ -220,5 +306,59 @@ export_to_adfs::operator()( const mzML& _ )
         }
     }
 
+    sql.prepare( "INSERT INTO Chromatograms "
+                 "(objuuid,fcn,mode,ms_level,ion_polarity,precursor_mz,collision_energy,meta,dataUUID,dataClass,data)"
+                 "VALUES(?,?,?,?,?,?,?,?,?,?,?)" );
+    for ( const auto& [fcn, chro, node]: _.SRMs() ) {
+        auto scan_protocol = std::get< enum_scan_protocol >(mzml::scan_identifier{}( node ));
+        sql.bind(1) = impl_->uuid_;
+        sql.bind(2) = adfs::null{}; // fcn;
+        sql.bind(3) = monitor_mode( scan_protocol.ms_level() );
+        sql.bind(4) = scan_protocol.ms_level();
+        sql.bind(5) = polarity_text( scan_protocol.polarity() );
+        if ( scan_protocol.ms_level() >= 2 ) {
+            sql.bind(6) = scan_protocol.precursor_mz();
+            sql.bind(7) = scan_protocol.collision_energy();
+        } else {
+            sql.bind(6) = adfs::null{};
+            sql.bind(7) = adfs::null{};
+        }
+        sql.bind(8) = blob_helper( archive_to_string( node, true ) ).blob();
+        sql.bind(9) = adcontrols::Chromatogram::__clsid__();
+        sql.bind(10) = std::wstring(adcontrols::Chromatogram::dataClass());
+        sql.bind(11) = blob_helper( archive_to_string( *chro, true )).blob();
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "Error: " << sql.errmsg();
+        sql.reset();
+    }
+
+    sql.prepare( "INSERT INTO Chromatograms "
+                 "(objuuid,fcn,mode,dataUUID,dataClass,data)"
+                 "VALUES(?,?,?,?,?,?)" );
+    for ( const auto& [fcn, chro]: _.TICs() ) {
+        auto zc = archive_to_string( *chro, true );
+        sql.bind(1) = impl_->uuid_;
+        sql.bind(2) = fcn;
+        sql.bind(3) = std::string("TIC");
+        sql.bind(4) = adcontrols::Chromatogram::__clsid__();
+        sql.bind(5) = std::wstring(adcontrols::Chromatogram::dataClass());
+        sql.bind(6) = adfs::blob( zc.size(), zc.data() );
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "Error: " << sql.errmsg();
+        sql.reset();
+    }
+
+    sql.prepare( "INSERT INTO Chromatograms "
+                 "(objuuid,mode,dataClass,data) "
+                 "VALUES(?,?,?,?)" );
+    for ( auto chro: _.mzMLChromatograms() ) {
+        sql.bind(1) = impl_->uuid_;
+        sql.bind(2) = chro->id();
+        sql.bind(3) = std::string("XML");
+        sql.bind(4) = blob_helper( archive_to_string( chro->node(), true ) ).blob();
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "Error: " << sql.errmsg();
+        sql.reset();
+    }
     return true;
 }

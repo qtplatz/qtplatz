@@ -67,8 +67,6 @@ namespace mzml {
         void set_protocol_id( int );
         int protocol_id() const;
 
-        int debug() const;
-
         // DataInterpreter API -->
         std::string serialize() const;
         std::shared_ptr< mzMLSpectrum > deserialize( const char *, size_t ) const;

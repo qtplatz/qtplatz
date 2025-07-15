@@ -1196,6 +1196,14 @@ Chromatogram::find_single_peak( double t0, double t1, bool horizontalBaseline, d
     return {};
 }
 
+const boost::uuids::uuid
+Chromatogram::__clsid__()
+{
+    return boost::uuids::uuid{0x52, 0xDD, 0x4F, 0x0F, 0x24, 0x53, 0x44, 0x3B
+                              , 0x9B, 0x21, 0x69, 0x66, 0x0C, 0xEB, 0xE7, 0x97};
+}
+
+
 Chromatogram::iterator
 Chromatogram::begin()
 {

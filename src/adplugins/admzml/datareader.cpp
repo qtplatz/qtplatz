@@ -1,6 +1,6 @@
 /**************************************************************************
- ** Copyright (C) 2010-2024 Toshinobu Hondo, Ph.D.
- ** Copyright (C) 2013-2024 MS-Cheminformatics LLC, Toin, Mie Japan
+ ** Copyright (C) 2010-2025 Toshinobu Hondo, Ph.D.
+ ** Copyright (C) 2013-2025 MS-Cheminformatics LLC, Toin, Mie Japan
  *
  ** Contact: toshi.hondo@qtplatz.com
  **
@@ -369,40 +369,6 @@ data_reader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) cons
     }
     ms->setIntensityArray( std::move( intensities ) );
     return ms;
-
-#if 0
-    const auto& data = impl_->mzml_->scan_indices();
-    size_t fst = first->rowid();
-    size_t lst = last != end() ? last->rowid() : transformed.size();
-
-    std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds > tp;
-    std::chrono::nanoseconds elapsed_time( int64_t( std::get< scan_acquisition_time >( data.at( fst ) ) * 1e9 ) );
-    if ( auto value = impl_->mzml_->find_global_attribute( "/experiment_date_time_stamp" ) ) {
-        tp = time_stamp_parser{}( *value, true ) + elapsed_time; // ignore timezone, Shimadzu set TZ=0 (UTC), but time indicates local time
-    }
-    if ( auto value = impl_->mzml_->find_global_attribute( "/test_ionization_polarity" ) ) {
-        if ( *value == "Positive Polarity" )
-            ms->setPolarity( adcontrols::PolarityPositive );
-        if ( *value == "Negative Polarity" )
-            ms->setPolarity( adcontrols::PolarityNegative );
-    }
-
-    ms->resize( transformed.size() );
-    ms->setAcquisitionMassRange( std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) );
-    auto& prop = ms->getMSProperty();
-    prop.setTimeSinceInjection( std::get< scan_acquisition_time >( data.at( fst ) ) );
-    prop.setTrigNumber( std::get< actual_scan_number >( data.at( fst ) ) );
-    prop.setInstMassRange( { std::get< mass_range_min >(data.at( fst )), std::get< mass_range_max >(data.at( fst )) } );
-    prop.setTimePoint( tp );
-
-    for ( const auto& map: transformed ) {
-        const auto& [ch,values] = map;
-        ms->setMass( ch, values.first );
-        ms->setIntensity( ch, std::accumulate( values.second.begin() + fst, values.second.begin() + lst, 0.0 ) );
-        // ADDEBUG() << "\t" << std::make_tuple( ch, values.first, ms->intensity( ch ) );
-    }
-#endif
-    return {};
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >

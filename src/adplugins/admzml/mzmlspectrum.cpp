@@ -102,13 +102,6 @@ namespace mzml {
     {
     }
 
-    int
-    mzMLSpectrum::debug() const
-    {
-        ADDEBUG() << "############## mzMLSpectrum DEBUG ############ impl =" << impl_.get();
-        return 1;
-    }
-
     size_t
     mzMLSpectrum::length() const
     {

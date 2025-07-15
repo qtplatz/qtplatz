@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "mzmlchromatogram.hpp"
 #include "mzmlwalker.hpp"
 #include <scan_protocol.hpp>
 #include <adcontrols/datafile.hpp>
@@ -122,6 +123,9 @@ namespace mzml {
         std::optional< softwareList > get_softwareList() const;
         std::optional< instrumentConfigurationList > get_instrumentConfigurationList() const;
         std::optional< dataProcessingList > get_dataProcessingList() const;
+        std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram >, pugi::xml_node > > SRMs() const;
+        std::vector< std::tuple< int, std::shared_ptr< const adcontrols::Chromatogram > > > TICs() const;
+        std::vector< std::shared_ptr< mzml::mzMLChromatogram > > mzMLChromatograms() const;
 
     private:
         class impl;
