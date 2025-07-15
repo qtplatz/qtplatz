@@ -43,8 +43,6 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/format.hpp>
 #include <chrono>
-#include <net/if_var.h>
-#include <sstream>
 
 namespace mzml {
     class export_to_adfs::impl {
