@@ -330,7 +330,6 @@ DataReader::make_reader( const boost::uuids::uuid& objuuid, const std::string& t
         auto factory = std::get<0>(it->second);
         auto objtext = std::get<1>(it->second);
         auto reader = factory( traceid.c_str() );
-        ADDEBUG() << "######### make_reader for : " << objuuid << ", " << objtext << ", " << reader.get();
         return reader;
     }
     return nullptr;
@@ -361,9 +360,7 @@ DataReader::impl::make_reader( const char * traceid ) const
 {
     auto it = reader_map_.find( traceid );
     if ( it != reader_map_.end() ) {
-        ADDEBUG() << "########### make_reader find(" << traceid << ")";
         const auto& clsid = it->second;
-        ADDEBUG() << "########### traceid,clsid = " << std::make_pair( traceid, clsid );
         auto factory = reader_v3_factories_.find( clsid );
         if ( factory != reader_v3_factories_.end() ) {
             auto reader = factory->second( traceid );

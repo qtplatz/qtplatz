@@ -1151,6 +1151,7 @@ Dataprocessor::addSpectrum( std::shared_ptr< adcontrols::MassSpectrum > ptr
     // exclude values which key has a pattern of "acquire.protocol.*" that is description for protocol/fcn related
     // std::wstring name = ptr->getDescriptions().make_folder_name( L"^((?!acquire\\.protocol\\.).)*$" );
     std::wstring name = ptr->getDescriptions().make_folder_name( L"(^folium.create$)|(^create$)|(^processed$)" );
+    ADDEBUG() << "### " << __FUNCTION__ << ": " << name;
 
     portfolio::Folium folium = folder.addFolium( name ).assign( ptr, ptr->dataClass() );
 

@@ -26,9 +26,6 @@
 #include "dataprocessor.hpp"
 #include "sessionmanager.hpp"
 #include "mainwindow.hpp"
-#if QTC_VERSION <= 0x03'02'81
-#include "dataprocfactory.hpp"
-#endif
 #include "dataproceditor.hpp"
 #include <adcontrols/axis.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -442,6 +439,7 @@ document::handleSelectTimeRangeOnChromatogram_v3( Dataprocessor * dp, const adco
         auto it1 = reader->findPos( t1 );
         auto it2 = reader->findPos( t2 );
         auto range = std::make_pair( it1->time_since_inject(), it2->time_since_inject() );
+        ADDEBUG() << "------ time range: " << range;
         if ( auto ms = reader->coaddSpectrum( std::move(it1), std::move( it2 ) ) ) {
             std::ostringstream text;
             text << reader->abbreviated_display_name() << boost::format( " %.1f-%.1fs" ) % range.first % range.second;

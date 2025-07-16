@@ -65,7 +65,6 @@
 #include <boost/json.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
-#include <iostream>
 #include <memory>
 
 namespace {
@@ -78,16 +77,17 @@ namespace {
 namespace {
     struct handle_rawdata_v4 {
         std::shared_ptr< addatafile::v4::rawdata > operator()( std::shared_ptr< adfs::sqlite > db ) const {
-            if ( adutils::data_signature::is_table_exists( *db, "datafile_signeture" ) ) {
+            if ( adutils::data_signature::is_table_exists( *db, "datafile_signature" ) ) {
                 using namespace adutils::data_signature;
                 if ( auto creator = find( *db, "creator" ) ) {
                     if ( auto factory = find( *db, "datafile_factory" ) ) {
-                        ADDEBUG() << "-------- datafile_signature creator=" << to_string(*creator);
-                        ADDEBUG() << "-------- datafile_signature factory=" << to_string(*factory);
+                        ADDEBUG() << "-------- datafile_signature creator,factory="
+                                  << std::make_pair( to_string(*creator), to_string(*factory) );
                     }
                 }
+                return std::make_shared< addatafile::v4::rawdata >( db );
             }
-            return std::make_shared< addatafile::v4::rawdata >( db );
+            return {};
         }
     };
 }
@@ -249,10 +249,13 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v2 ) {
             rawdata_ = std::make_shared< v2::rawdata >( dbf_, *this );
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
-            if ( auto raw = handle_rawdata_v4{}( dbf_._ptr() ) )
+            if ( auto raw = handle_rawdata_v4{}( dbf_._ptr() ) ) {
                 rawdata_ = raw;
-            else
+                ADDEBUG() << "============= v4 data ==============";
+            } else {
                 rawdata_ = std::make_shared< v3::rawdata >( dbf_, *this );
+                ADDEBUG() << "============= v3 data ==============";
+            }
         }
 
         if ( std::visit( [](const auto& p)->bool{ return p != nullptr; }, rawdata_ ) ) {

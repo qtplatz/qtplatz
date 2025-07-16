@@ -278,10 +278,10 @@ export_to_adfs::operator()( const mzML& _ )
         }
         auto xmeta = archive_to_string( node, true );
         auto xdata = archive_to_string( *chro, true );
-        sql.bind(8) = adfs::blob( xmeta.size(), xmeta.data() ); // blob_helper( archive_to_string( node, true ) ).blob();
+        sql.bind(8) = adfs::blob( xmeta.size(), xmeta.data() );
         sql.bind(9) = adcontrols::Chromatogram::__clsid__();
         sql.bind(10) = std::wstring(adcontrols::Chromatogram::dataClass());
-        sql.bind(11) = adfs::blob( xdata.size(), xdata.data() ); // blob_helper( archive_to_string( *chro, true )).blob();
+        sql.bind(11) = adfs::blob( xdata.size(), xdata.data() );
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "Error: " << sql.errmsg();
         sql.reset();
@@ -311,12 +311,10 @@ export_to_adfs::operator()( const mzML& _ )
         sql.bind(2) = chro->id();
         sql.bind(3) = std::string("XML");
         auto xdata = archive_to_string( chro->node(), true );
-        sql.bind(4) = adfs::blob( xdata.size(), xdata.data() ); // blob_helper( archive_to_string( chro->node(), true ) ).blob();
+        sql.bind(4) = adfs::blob( xdata.size(), xdata.data() );
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << "Error: " << sql.errmsg();
         sql.reset();
-        auto zml = archive_to_string( chro->node(), true );
-        ADDEBUG() << "is_compresssed? " << adportable::bzip2::is_a( zml.data(), zml.size() );
     }
     return true;
 }

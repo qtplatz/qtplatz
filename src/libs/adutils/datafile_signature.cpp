@@ -160,7 +160,7 @@ namespace adutils { namespace data_signature {
             adfs::stmt sql( db );
             sql.prepare( "SELECT name FROM sqlite_master WHERE type='table' AND name=?" );
             sql.bind(1) = table;
-            if ( sql.step() <= adfs::sqlite_row )
+            if ( sql.step() == adfs::sqlite_row )
                 return true;
             return false;
         }

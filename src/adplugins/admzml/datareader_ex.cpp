@@ -476,7 +476,7 @@ data_reader::epoch_time( int64_t rowid ) const
 double
 data_reader::time_since_inject( int64_t rowid ) const
 {
-    return elapsed_time( rowid );
+    return double( elapsed_time( rowid ) ) * 1.0e-9; // seconds
 }
 
 int
@@ -523,7 +523,7 @@ data_reader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ====== " << std::make_pair(first->elapsed_time()*1e-9 , last->elapsed_time()*1e-9 );
+    // ADDEBUG() << "## DataReader " << __FUNCTION__ << " ====== " << std::make_pair(first->elapsed_time()*1e-9 , last->elapsed_time()*1e-9 );
 
     auto [beg,end] = impl_->find_index_range_forward( first, last );
 

@@ -87,10 +87,10 @@ rawdata::loadAcquiredConf()
     if ( configLoaded_ )
         return true;
     if ( adutils::v3::AcquiredConf::fetch( dbf_.db(), conf_ ) && !conf_.empty() ) {
-        ADDEBUG() << "\t##### loadAcquiredConf #####";
+        // ADDEBUG() << "\t##### loadAcquiredConf #####";
         for ( const auto& conf: conf_ ) {
             if ( auto reader = adcontrols::DataReader::make_reader( conf.trace_id.c_str() ) ) {
-                ADDEBUG() << "\t###### ";
+                // ADDEBUG() << "\t###### ";
                 if ( reader->initialize( dbf_._ptr(), conf.objid, conf.objtext ) ) {
                     reader->setDescription( adacquire::SignalObserver::eTRACE_METHOD( conf.trace_method )
                                             , conf.trace_id
@@ -109,7 +109,7 @@ rawdata::loadAcquiredConf()
         fcnCount_ = 0;
         for ( auto reader : readers_ )
             fcnCount_ += reader.second; // fcnCount
-        ADDEBUG() << "##### loadAcquiredConf ##### returning ture";
+        // ADDEBUG() << "##### loadAcquiredConf ##### returning ture";
         return true;
     }
     return false;
