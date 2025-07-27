@@ -16,7 +16,7 @@ target_include_directories( ${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pugixml-1.15/src>"
-  "$<INSTALL_INTERFACE:include/pugixml-1.15/src>"
+#  "$<INSTALL_INTERFACE:include/pugixml-1.15/src>"
 )
 
 runtime_install_path( _runtime_destination ${PROJECT_NAME} )
