@@ -60,4 +60,23 @@ else()
 
 endif()
 
+if ( NOT Boost_FOUND )
+  find_package( Boost 1.75 REQUIRED COMPONENTS
+    atomic
+    chrono
+    container
+    date_time
+    iostreams
+    json
+    program_options
+    regex
+    random
+    serialization
+    system
+    thread
+    timer
+    wserialization
+  )
+endif()
+
 remove_definitions( "-DBOOST_NO_AUTO_PTR" )
