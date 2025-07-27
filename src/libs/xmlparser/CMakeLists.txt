@@ -29,3 +29,13 @@ install( TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION ${_library_destination} COMPONENT runtime_libraries
   ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
 )
+
+install( FILES
+  pugiwrapper.hpp
+  xmlencode.hpp
+  xmlhelper.hpp
+  xmlparser_global.h
+  pugixml-1.15/src/pugiconfig.hpp
+  pugixml-1.15/src/pugixml.hpp
+  DESTINATION include/${PROJECT_NAME} COMPONENT headers
+)
