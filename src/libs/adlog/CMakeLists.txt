@@ -21,7 +21,12 @@ if ( MSVC )
   target_compile_definitions( ${PROJECT_NAME} INTERFACE -DBOOST_FILESYSTEM_DYN_LINK )
 endif()
 
-target_include_directories( adlog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+#target_include_directories( adlog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories( adlog PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:include/adlog>"
+)
+
 
 target_link_libraries(
   adlog LINK_PUBLIC

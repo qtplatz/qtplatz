@@ -513,13 +513,18 @@ endif()
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
 set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
 
-include (config_qtplatz_config)
+#include (config_qtplatz_config)
+#config_qtplatz_config( "TRUE" )   # installed
+#config_qtplatz_config( "FALSE" )  # in source tree
 
-config_qtplatz_config( "TRUE" )   # installed
-config_qtplatz_config( "FALSE" )  # in source tree
+#install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
+#  DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
-install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
-  DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
+install(EXPORT ${QTPLATZ_TARGETS}
+  FILE ${QTPLATZ_TARGETS}.cmake
+  NAMESPACE QtPlatz::
+  DESTINATION cmake
+)
 
 if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   install( FILES "${CMAKE_SOURCE_DIR}/qt-creator/src/app/qtcreator.ico"

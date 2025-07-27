@@ -79,9 +79,11 @@ endif()
 
 add_library( QtPlatz::${PROJECT_NAME} ALIAS ${PROJECT_NAME} )
 
-target_include_directories( adportable PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+target_include_directories(adportable
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/adportable>
+)
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   xmlparser

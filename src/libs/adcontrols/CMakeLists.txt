@@ -236,9 +236,12 @@ add_library( adcontrols SHARED
   pugrest.cpp pugrest.hpp
   jstrest.cpp jstrest.hpp
   figsharerest.cpp figsharerest.hpp
-  )
+)
 
-target_include_directories( adcontrols PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories( adcontrols PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:include/adcontrols>"
+)
 
 if ( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS_EQUAL "8.3.0" )
   set (LIBCPPFS "stdc++fs")

@@ -202,8 +202,7 @@ public:
 int main(int argc, char** argv)
 {
     // Check command line arguments.
-    if(argc != 4 && argc != 5)
-    {
+    if(argc != 4 && argc != 5)  {
         std::cerr <<
             "Usage: http <host> <port> <target> [<HTTP version: 1.0 or 1.1(default)>]\n" <<
             "Example:\n" <<

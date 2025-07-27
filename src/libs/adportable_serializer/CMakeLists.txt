@@ -17,7 +17,12 @@ add_library( adportable_serializer
   codecvt.cpp codecvt.hpp
   )
 
-target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+#target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories(adportable
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/adportable>
+)
 
 install( TARGETS ${PROJECT_NAME}
   EXPORT ${QTPLATZ_TARGETS}

@@ -28,8 +28,10 @@ add_library( ${PROJECT_NAME} SHARED ${_sources} )
 
 target_include_directories( ${PROJECT_NAME} PUBLIC
   ${QTPLATZ_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_SORUCE_DIR}/src/libs )
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
+
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adacquire

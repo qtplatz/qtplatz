@@ -16,7 +16,10 @@ add_library(
   iosequence.hpp
   )
 
-target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories( adio PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:include/adio>"
+)
 
 target_link_libraries( ${PROJECT_NAME}
   ${Boost_LIBRARIES}

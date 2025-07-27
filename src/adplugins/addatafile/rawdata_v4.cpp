@@ -52,13 +52,9 @@
 #include <adportable/utf.hpp>
 #include <adutils/mscalibio.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/format.hpp>
 #include <algorithm>
 #include <memory>
 #include <cstdint>
-#include <sstream>
-#include <set>
-#include <regex>
 
 using namespace addatafile;
 using namespace addatafile::v4;

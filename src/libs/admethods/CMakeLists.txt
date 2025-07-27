@@ -19,9 +19,12 @@ add_library( ${PROJECT_NAME} SHARED
   admethods_global.hpp
   controlmethod/adtracemethod.cpp
   controlmethod/adtracemethod.hpp
-  )
+)
 
-target_include_directories( ${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+target_include_directories( ${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+)
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
