@@ -71,13 +71,6 @@ set ( PKG_WITH_DEV                    "@PKG_WITH_DEV@" )
 
 
 include( "${CMAKE_CURRENT_LIST_DIR}/boost.cmake" )
-## include( "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake" )
-if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets-${CMAKE_BUILD_TYPE}.cmake")
-  include("${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets-${CMAKE_BUILD_TYPE}.cmake")
-elseif(EXISTS "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake")
-  include("${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake")
-else()
-  message(FATAL_ERROR "QtPlatzTargets file not found for build type ${CMAKE_BUILD_TYPE}")
-endif()
+include( "${CMAKE_CURRENT_LIST_DIR}/QtPlatzTargets.cmake" )
 
 set ( QtPlatz_FOUND 1 )
