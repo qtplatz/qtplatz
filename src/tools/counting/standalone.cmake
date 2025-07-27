@@ -15,13 +15,13 @@ else()
   set( build_type "release" )
 endif()
 
-find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
-  "${QTPLATZ_BUILD_DIR}"
-  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
-  "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
-  )
-if ( NOT qtplatz_config )
-  message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
-endif()
+#find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
+#  "${QTPLATZ_BUILD_DIR}"
+#  "${CMAKE_BINARY_DIR}/../qtplatz.${build_type}"
+#  "${CMAKE_BINARY_DIR}/../qtplatz.netbeans"
+#  )
+#if ( NOT qtplatz_config )
+#  message( FATAL_ERROR "qtplatz-config.cmake can not be found" )
+#endif()
 
 include( ${qtplatz_config} )

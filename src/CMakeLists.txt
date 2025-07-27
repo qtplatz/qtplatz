@@ -35,9 +35,6 @@ configure_file(
   @ONLY
 )
 
-export( EXPORT QtPlatzTargets
-  FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake )
-
 file( COPY
   ${CMAKE_SOURCE_DIR}/boost.cmake
   DESTINATION ${CMAKE_BINARY_DIR}/cmake

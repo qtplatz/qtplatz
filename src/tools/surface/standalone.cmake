@@ -11,11 +11,11 @@ find_file( qtplatz_config NAME "qtplatz-config.cmake" PATHS
   "$ENV{HOME}/src/build-Linux-x86_64/qtplatz.release"
   "${QTPLATZ_BUILD_DIR}" )
 
-if ( qtplatz_config )
-  include( ${qtplatz_config} )
-else()
-  message( FATAL_ERROR "### ERROR ##### " ${qtplatz_config} )
-endif()
+#if ( qtplatz_config )
+#  include( ${qtplatz_config} )
+#else()
+#  message( FATAL_ERROR "### ERROR ##### " ${qtplatz_config} )
+#endif()
 
 list( APPEND CMAKE_PREFIX_PATH "${QTDIR}/lib/cmake" )
 
