@@ -87,8 +87,7 @@ datafile_factory::access( const std::filesystem::path& path, adcontrols::access_
         if ( db.open( path.string().c_str() ) ) {
             using namespace adutils::data_signature;
             if ( auto value = find( db, "datafile_factory" ) ) {
-                // return to_string( *value ) == std::string( this->iid() );
-                ADDEBUG() << "datafile_factory: " << std::make_pair(to_string( *value ), std::string( this->iid() ));
+                // ADDEBUG() << "datafile_factory: " << std::make_pair(to_string( *value ), std::string( this->iid() ));
                 return true; // workaround until mzML imported data handling to be done.
             }
         }

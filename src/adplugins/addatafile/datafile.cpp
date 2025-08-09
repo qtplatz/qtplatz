@@ -81,8 +81,8 @@ namespace {
                 using namespace adutils::data_signature;
                 if ( auto creator = find( *db, "creator" ) ) {
                     if ( auto factory = find( *db, "datafile_factory" ) ) {
-                        ADDEBUG() << "-------- datafile_signature creator,factory="
-                                  << std::make_pair( to_string(*creator), to_string(*factory) );
+                        // ADDEBUG() << "-------- datafile_signature creator,factory="
+                        //           << std::make_pair( to_string(*creator), to_string(*factory) );
                     }
                 }
                 return std::make_shared< addatafile::v4::rawdata >( db );
@@ -251,10 +251,10 @@ datafile::accept( adcontrols::dataSubscriber& sub )
         } else if ( adutils::AcquiredConf::formatVersion( dbf_.db() ) == adutils::format_v3 ) {
             if ( auto raw = handle_rawdata_v4{}( dbf_._ptr() ) ) {
                 rawdata_ = raw;
-                ADDEBUG() << "============= v4 data ==============";
+                // ADDEBUG() << "============= v4 data ==============";
             } else {
                 rawdata_ = std::make_shared< v3::rawdata >( dbf_, *this );
-                ADDEBUG() << "============= v3 data ==============";
+                // ADDEBUG() << "============= v3 data ==============";
             }
         }
 

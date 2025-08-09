@@ -134,19 +134,13 @@ ActionManager::initialize_actions( const Core::Context& context )
 
 
 	if ( auto * am = Core::ActionManager::instance() ) {
-#if 0
-        if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
-            cmd->action()->setText( tr( "Open data files..." ) );  // override text
-        }
-#else
-        if ( auto p = actions_[ idActOpen ] = create( Constants::ICON_OPEN, tr("Open data files..."), this ) ) {
-            // if ( auto cmd = am->command( Core::Constants::OPEN ) ) {
+        if ( auto p = actions_[ idActOpen ]
+             = create( Constants::ICON_OPEN, tr("Open data files..."), this ) ) {
             auto cmd = am->registerAction( p, Core::Constants::OPEN );
             cmd->action()->setText( tr( "Open data files..." ) );  // override text
             cmd->setDefaultKeySequence(QKeySequence::Open);
             connect( cmd->action(), &QAction::triggered, this, &ActionManager::handleOpen );
         }
-#endif
 
         if ( auto p = actions_[ idActSave ] = create( Constants::ICON_SAVE, tr("Save"), this ) ) {
             am->registerAction( p, Core::Constants::SAVE, context );
@@ -158,22 +152,26 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, this, &ActionManager::handleSaveAs );
         }
 
-        if ( auto p = actions_[ idActMethodOpen ] = create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) ) {
+        if ( auto p = actions_[ idActMethodOpen ]
+             = create( Constants::ICON_METHOD_OPEN, tr("Process method open..."), this ) ) {
             am->registerAction( p, Constants::METHOD_OPEN, context );
             connect( p, &QAction::triggered, this, &ActionManager::actMethodOpen );
         }
 
-        if ( auto p = actions_[ idActMethodSave ] = create( Constants::ICON_METHOD_SAVE, tr("Process method save..."), this ) ) {
+        if ( auto p = actions_[ idActMethodSave ]
+             = create( Constants::ICON_METHOD_SAVE, tr("Process method save..."), this ) ) {
             am->registerAction( p, Constants::METHOD_SAVE, context );
             connect( p, &QAction::triggered, this, &ActionManager::actMethodSave );
         }
 
-        if ( auto p = actions_[ idActMethodApply ] = create( Constants::ICON_METHOD_APPLY, tr("Apply process method"), this ) ) {
+        if ( auto p = actions_[ idActMethodApply ]
+             = create( Constants::ICON_METHOD_APPLY, tr("Apply process method"), this ) ) {
             am->registerAction( p, Constants::METHOD_APPLY, context );
             connect( p, &QAction::triggered, this, &ActionManager::actMethodApply );
         }
 
-        if ( auto p = actions_[ idActPrintCurrentView ] = create( Constants::ICON_PDF, tr("Print current view..."), this ) ) {
+        if ( auto p = actions_[ idActPrintCurrentView ]
+             = create( Constants::ICON_PDF, tr("Print current view..."), this ) ) {
             am->registerAction( p, Constants::PRINT_CURRENT_VIEW, context );
             connect( p, &QAction::triggered, this, &ActionManager::actPrintCurrentView );
         }
@@ -184,26 +182,31 @@ ActionManager::initialize_actions( const Core::Context& context )
             connect( p, &QAction::triggered, this, &ActionManager::actCalibFileApply );
         }
 
-        if ( auto p = actions_[ idActApplyProcessToAllChecked ] = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
+        if ( auto p = actions_[ idActApplyProcessToAllChecked ]
+             = new QAction( tr( "Apply process to all checked spectra" ), this ) ) {
             am->registerAction( p, Constants::PROCESS_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleProcessChecked );
         }
-        if ( auto p = actions_[ idActExportPeakListAllChecked ] = new QAction( tr( "Export peak list on all checked spectra/chromatograms..." ), this ) ) {
+        if ( auto p = actions_[ idActExportPeakListAllChecked ]
+             = new QAction( tr( "Export peak list on all checked spectra/chromatograms..." ), this ) ) {
             am->registerAction( p, Constants::LISTPEAKS_ON_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportPeakList );
         }
 
-        if ( auto p = actions_[ idActExportAllChecked ] = new QAction( tr( "Export all checked data..." ), this ) ) {
+        if ( auto p = actions_[ idActExportAllChecked ]
+             = new QAction( tr( "Export all checked data..." ), this ) ) {
             am->registerAction( p, Constants::EXPORT_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportAllChecked );
         }
 
-        if ( auto p = actions_[ idActExportRMSAllChecked ] = new QAction( tr( "Export RMS for all checked nodes..." ), this ) ) {
+        if ( auto p = actions_[ idActExportRMSAllChecked ]
+             = new QAction( tr( "Export RMS for all checked nodes..." ), this ) ) {
             am->registerAction( p, Constants::EXPORT_RMS_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleExportRMSAllChecked );
         }
 
-        if ( auto p = actions_[ idActImportAllChecked ] = new QAction( tr( "Import and merge all checked spectra/chromatograms..." ), this ) ) {
+        if ( auto p = actions_[ idActImportAllChecked ]
+             = new QAction( tr( "Import and merge all checked spectra/chromatograms..." ), this ) ) {
             am->registerAction( p, Constants::IMPORT_ALL_CHECKED, context );
             connect( p, &QAction::triggered, MainWindow::instance(), &MainWindow::handleImportChecked );
         }

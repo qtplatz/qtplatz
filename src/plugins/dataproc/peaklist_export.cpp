@@ -136,7 +136,7 @@ namespace {
                       ",fileid INTEGER"
                       ",spname TEXT"
                       ",sptype TEXT"
-                      ",UNIQUE( spname )"
+                      ",UNIQUE( spname, id )"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
@@ -181,7 +181,9 @@ namespace {
 
         std::shared_ptr< adcontrols::MassSpectrum > findCentroid( const portfolio::Folium& folium ) {
             auto atts = folium.attachments();
-            auto it = std::find_if( atts.begin(), atts.end(), []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; });
+            auto it = std::find_if( atts.begin()
+                                    , atts.end()
+                                    , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; });
             if ( it != atts.end() )
                 return portfolio::get< std::shared_ptr< adcontrols::MassSpectrum > >( *it );
             return {};
@@ -201,18 +203,27 @@ namespace {
                 ADDEBUG() << sql.errmsg();
             sql.commit();
 
+            //                    proto, index
+            std::map< std::pair< size_t, size_t >, std::string > atext;
+
             // override formua in the peakInfo
             if ( auto ms = findCentroid( f ) ) {
                 int proto(0);
                 for ( const auto& msp: adcontrols::segment_wrapper< const adcontrols::MassSpectrum >(*ms) ) {
                     if ( auto info = t.findProtocol( proto ) ) {
+
                         auto annots = msp.annotations();
                         for ( auto anno: msp.annotations() ) {
-                            // ADDEBUG() << "anno: " << proto << ", text: " << anno.text() << ", index: " << anno.index() << ", fmt: " << anno.dataFormat();
-                            if ( anno.dataFormat() == adcontrols::annotation::dataFormula ) {
-                                if ( anno.index() < info->size() ) {
-                                    ( info->begin() + anno.index() )->formula( anno.text() );
-                                }
+
+                            if ( anno.dataFormat() == adcontrols::annotation::dataText ||
+                                 anno.dataFormat() == adcontrols::annotation::dataFormula ) {
+                                if ( atext.find( std::make_tuple( proto, anno.index() ) ) == atext.end() )
+                                    atext[ std::make_pair( proto, anno.index() ) ] = anno.text();
+                            }
+                            if ( anno.dataFormat() == adcontrols::annotation::dataMOL ) {
+                                // target.id candidate
+                                auto mol = boost::json::value_to< adcontrols::annotation::reference_molecule >( anno.value() );
+                                atext[ std::make_tuple( proto, anno.index() ) ] = mol.display_text_;
                             }
                         }
                         ++proto;
@@ -224,8 +235,8 @@ namespace {
             sql.prepare( "INSERT INTO speak(spid,proto,mode,time,intensity,mass,height,width_m,width_t,formula ) VALUES (?,?,?,?,?,?,?,?,?,?)" );
             uint32_t proto(0);
             for ( const auto& info: adcontrols::segment_wrapper< const adcontrols::MSPeakInfo >( t ) ){
+                size_t index(0);
                 for ( const auto& pk: info ) {
-                    //ADDEBUG() << "spid: " << spid << ", " << pk.formula();
                     sql.reset();
                     uint32_t id(1);
                     sql.bind(id++) = spid;
@@ -237,9 +248,15 @@ namespace {
                     sql.bind(id++) = pk.height();
                     sql.bind(id++) = pk.widthHH();
                     sql.bind(id++) = pk.widthHH( true );
-                    sql.bind(id++) = pk.formula();
+                    auto it = atext.find( std::make_pair( proto, index ) );
+                    if ( it != atext.end() ) {
+                        sql.bind( id++ ) = it->second;
+                    } else {
+                        sql.bind( id++ ) = adfs::null{};
+                    }
                     if ( sql.step() != adfs::sqlite_done )
-                        ADDEBUG() << sql.errmsg();
+                        ADDEBUG() << sql.errmsg() << "\n" << sql.expanded_sql();
+                    ++index;
                 }
                 ++proto;
             }
@@ -258,6 +275,9 @@ namespace {
             else
                 ADDEBUG() << sql.errmsg();
             sql.commit();
+
+            // ADDEBUG() << "-------- exporting MassSpectrum spid=" << spid << ", name: " << f.name();
+
             sql.prepare( "INSERT INTO speak(spid,proto,mode,time,intensity,mass,formula ) VALUES (?,?,?,?,?,?,?)" );
 
             uint32_t proto(0);
@@ -333,6 +353,8 @@ namespace {
                 ADDEBUG() << sql.errmsg();
             sql.commit();
 
+            ADDEBUG() << "-------- exporting Chromatogram chroid=" << chroid << ", name: " << f.name();
+
             using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >;
             for ( auto& a: f.attachments() ) {
                 if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a ) ) ) {
@@ -368,6 +390,8 @@ peaklist_export::sqlite_export( const std::filesystem::path& path )
         sql.exec( "PRAGMA journal_mode = MEMORY" );
         sql.exec( "PRAGMA FOREIGN_KEYS = ON" );
         peaklist_writer::create_table( db );
+
+        ADDEBUG() << "-------- sqlite_export -------";
 
         for ( auto& session : *SessionManager::instance() ) {
             if ( auto processor = session.processor() ) {

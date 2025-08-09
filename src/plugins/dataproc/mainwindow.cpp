@@ -1307,13 +1307,12 @@ MainWindow::handleProcessChecked()
 void
 MainWindow::handleExportPeakList()
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << " ##";
     QFileDialog dlg( this, tr( "Save peak list for all checked spectra/chromatograms") );
-    //dlg.setDirectory( currentDir() );
     dlg.setDirectory( document::instance()->recentFile( Constants::GRP_EXPORT_FILES ) );
 
     dlg.setAcceptMode( QFileDialog::AcceptSave );
     dlg.setFileMode( QFileDialog::AnyFile );
+
     QStringList filter;
     filter << "SQLite(*.db)" << "Text files(*.txt)" << "All files(*)";
     dlg.setNameFilters( filter );

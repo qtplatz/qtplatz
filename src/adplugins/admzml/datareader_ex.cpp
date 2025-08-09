@@ -128,7 +128,7 @@ data_reader::data_reader( const char * traceid ) : adcontrols::DataReader( trace
                                                  , impl_( std::make_unique< impl >() )
 {
     auto jv = boost::json::parse( traceid );
-    ADDEBUG() << __FUNCTION__ << "traceid: " << jv;
+    // ADDEBUG() << __FUNCTION__ << "traceid: " << jv;
 
     impl_->scan_protocol_ = boost::json::value_to< scan_protocol >( jv );
     impl_->protocol_key_ = impl_->scan_protocol_.protocol_key();
@@ -372,7 +372,7 @@ data_reader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 std::shared_ptr< const adcontrols::Chromatogram >
 data_reader::TIC( int fcn ) const
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ##";
+    // ADDEBUG() << "## " << __FUNCTION__ << " ##";
     if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
         // impl_->mzml_->getTIC( fcn, *chro );
         // return chro;
