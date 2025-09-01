@@ -532,7 +532,7 @@ configure_file(
 
 # Export for build-tree usage (e.g., contrib plugins)
 export(EXPORT ${QTPLATZ_TARGETS}
-  FILE ${CMAKE_BINARY_DIR}/QtPlatzTargets.cmake
+  FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake
   NAMESPACE QtPlatz::
 )
 
