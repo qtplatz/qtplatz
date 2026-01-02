@@ -27,12 +27,13 @@
 #include "sdfview.hpp"
 #include "sdfviewerdocument.hpp"
 #include "constants.hpp"
+#include <adportable/debug.hpp>
 #include <adwidgets/tableview.hpp>
 #include <coreplugin/icore.h>
 #include <coreplugin/actionmanager/actionmanager.h>
 #include <coreplugin/actionmanager/command.h>
 #include <coreplugin/coreconstants.h>
-#include <coreplugin/actionmanager/commandbutton.h>
+#include <coreplugin/actionmanager/command.h>
 
 #include <utils/filepath.h>
 #include <utils/qtcassert.h>
@@ -51,6 +52,7 @@
 #include <QSpacerItem>
 #include <QToolBar>
 #include <QWidget>
+#include <QToolButton>
 
 using namespace Core;
 using namespace Utils;
@@ -66,6 +68,7 @@ namespace sdfviewer {
         QWidget *toolbar;
 
         QToolButton *shareButton;
+#if 0
         CommandAction *actionExportImage;
         CommandAction *actionMultiExportImages;
         CommandAction *actionButtonCopyDataUrl;
@@ -76,9 +79,26 @@ namespace sdfviewer {
         CommandAction *actionZoomIn;
         CommandAction *actionZoomOut;
         CommandAction *actionPlayPause;
+#endif
         QLabel *labelImageSize;
         QLabel *labelInfo;
     };
+}
+
+namespace {
+    QToolButton *
+    toolButton( QAction * action, const QString& objectName )    {
+        if ( auto button = new QToolButton ) {
+            button->setDefaultAction( action );
+            if ( !objectName.isEmpty() ) {
+                button->setObjectName( objectName );
+                button->setCheckable( true );
+            }
+            return button;
+        }
+        return {};
+    }
+
 }
 
 using namespace sdfviewer;
@@ -103,13 +123,28 @@ SDFViewer::ctor()
     setContext( Core::Context(constants::SDFVIEWER_ID) );
     setWidget( new adwidgets::TableView );
 
-    // toolbar
-    impl_->toolbar = new StyledBar;
-
+    if ( auto toolBar = new Utils::StyledBar ) {
+        // toolbar
+        toolBar->setProperty( "topBorder", true );
+        if ( auto toolBarLayout = new QHBoxLayout( toolBar ) ) {
+            toolBarLayout->setContentsMargins( {} );
+            toolBarLayout->setSpacing( 2 );
+            if ( auto am = Core::ActionManager::instance() ) {
+                Core::Context ctx( constants::SDFVIEWER_ID );
+                if ( auto p = new QAction(constants::ACTION_EXPORT_IMAGE) ) {
+                    connect( p, &QAction::triggered, [&](){ /* todo */ });
+                    am->registerAction( p, "sdfviewer.exportimage", ctx );
+                    toolBarLayout->addWidget( toolButton( p, "export" ) );
+                }
+            }
+        }
+    }
+#if 0
     impl_->actionExportImage = new CommandAction(constants::ACTION_EXPORT_IMAGE, impl_->toolbar);
     impl_->actionMultiExportImages = new CommandAction(constants::ACTION_EXPORT_MULTI_IMAGES,
                                                    impl_->toolbar);
     impl_->actionButtonCopyDataUrl = new CommandAction(constants::ACTION_COPY_DATA_URL, impl_->toolbar);
+
     impl_->shareButton = new QToolButton;
     impl_->shareButton->setToolTip(QObject::tr("Export"));
     impl_->shareButton->setPopupMode(QToolButton::InstantPopup);
@@ -158,6 +193,7 @@ SDFViewer::ctor()
     horizontalLayout->addWidget(impl_->labelImageSize);
     horizontalLayout->addWidget(new StyledSeparator);
     horizontalLayout->addWidget(impl_->labelInfo);
+#endif
 }
 
 SDFViewer::~SDFViewer()

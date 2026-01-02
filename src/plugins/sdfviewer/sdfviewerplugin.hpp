@@ -39,7 +39,9 @@ namespace sdfviewer {
         ~SDFViewerPlugin();
 
     private:
-        bool initialize(const QStringList &arguments, QString *errorMessage) final;
+        Utils::Result<> initialize(const QStringList &arguments) final;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
         class impl;
         std::unique_ptr< impl > impl_;

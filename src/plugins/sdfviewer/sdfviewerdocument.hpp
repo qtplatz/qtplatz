@@ -15,13 +15,11 @@ namespace sdfviewer {
 
         SDFViewerDocument();
         ~SDFViewerDocument() override;
-
-        OpenResult open(QString *errorString
-                        , const Utils::FilePath &filePath
-                        , const Utils::FilePath &realFilePath) override;
+        Utils::Result<> open( const Utils::FilePath &filePath
+                              , const Utils::FilePath &realFilePath) override;
 
         ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
-        bool reload(QString *errorString, ReloadFlag flag, ChangeType type) override;
+        Utils::Result<> reload(ReloadFlag flag, ChangeType type) override;
 
         void updateVisibility();
 

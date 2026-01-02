@@ -4,7 +4,6 @@
 
 project(SDFViewer)
 
-set( PROVIDER MS-Cheminformatics )
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 set( CMAKE_AUTOMOC ON )
@@ -14,23 +13,27 @@ set( CMAKE_AUTOUIC ON )
 file( GLOB UIs *.ui )
 file( GLOB Resources *.qrc )
 
-#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-#find_package(QtCreator REQUIRED COMPONENTS Core)
-#find_package(Qt5 COMPONENTS SvgWidgets QUIET)
-#if (TARGET Qt5::SvgWidgets)
-#  set(SVG_WIDGETS Qt5::SvgWidgets)
-#endif()
+set ( PROVIDER "MS-Cheminformatics" )
+string( TOLOWER "${PROJECT_NAME}" PLUGIN_ID)
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
 
-########## QtCreator 8 (Qt5/6) plugin.json #############
+set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
+
+########## QtCreator 18 (Qt5/6) plugin.json #############
+
 if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-  find_package( QtCreator REQUIRED COMPONENTS Core )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "\n    ]" )
+
   configure_file(
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_SOURCE_DIR}/src/plugins/servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
-  )
-else()
-  message( FATAL "QtCreator version not matched" )
+    )
 endif()
 ####################### END ##########################
 

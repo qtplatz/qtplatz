@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2023 MS-Cheminformatics LLC
+** Copyright (C) 2023-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2023-2026 MS-Cheminformatics LLC
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -81,10 +81,22 @@ SDFViewerPlugin::SDFViewerPlugin() : impl_( std::make_unique< impl >() )
     // ADDEBUG() << "## SDFViewerPlugin::ctor ##";
 }
 
-bool SDFViewerPlugin::initialize(const QStringList &arguments, QString *errorMessage)
+Utils::Result<>
+SDFViewerPlugin::initialize(const QStringList &arguments)
 {
-    Q_UNUSED(arguments)
-    Q_UNUSED(errorMessage)
+    return Utils::ResultOk;
+}
 
-    return true;
+void
+SDFViewerPlugin::extensionsInitialized()
+{
+}
+
+ExtensionSystem::IPlugin::ShutdownFlag
+SDFViewerPlugin::aboutToShutdown()
+{
+#if ! defined NDEBUG || 1
+    ADDEBUG() << "#### SDFViewerPlugin::" << __FUNCTION__ << " ####";
+#endif
+	return SynchronousShutdown;
 }

@@ -29,14 +29,14 @@
 
 namespace sdfviewer::constants {
 
-    const char SDFVIEWER_ID[]        = "Editors.SDFViewer";
+    const char SDFVIEWER_ID[]               = "Editors.SDFViewer";
 
-    const char ACTION_EXPORT_IMAGE[] = "SDFViewer.ExportImage";
+    const char ACTION_EXPORT_IMAGE[]        = "SDFViewer.ExportImage";
     const char ACTION_EXPORT_MULTI_IMAGES[] = "SDFViewer.ExportMultiImages";
-    const char ACTION_COPY_DATA_URL[] = "SDFViewer.CopyDataUrl";
-    const char ACTION_FIT_TO_SCREEN[] = "SDFViewer.FitToScreen";
-    const char ACTION_BACKGROUND[] = "SDFViewer.Background";
-    const char ACTION_OUTLINE[] = "SDFViewer.Outline";
-    const char ACTION_TOGGLE_ANIMATION[] = "SDFViewer.ToggleAnimation";
+    const char ACTION_COPY_DATA_URL[]       = "SDFViewer.CopyDataUrl";
+    const char ACTION_FIT_TO_SCREEN[]       = "SDFViewer.FitToScreen";
+    const char ACTION_BACKGROUND[]          = "SDFViewer.Background";
+    const char ACTION_OUTLINE[]             = "SDFViewer.Outline";
+    const char ACTION_TOGGLE_ANIMATION[]    = "SDFViewer.ToggleAnimation";
 
 } // SDFViewer::Constants

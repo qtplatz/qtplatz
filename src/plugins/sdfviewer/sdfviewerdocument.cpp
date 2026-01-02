@@ -25,6 +25,7 @@
 
 #include "sdfviewerdocument.hpp"
 #include "constants.hpp"
+#include "utils/result.h"
 #include <adportable/debug.hpp>
 
 #include <coreplugin/editormanager/documentmodel.h>
@@ -53,17 +54,22 @@ namespace sdfviewer {
     {
         cleanUp();
     }
-
+#if QTC_VERSION < 0x10'00'00
     Core::IDocument::OpenResult
     SDFViewerDocument::open(QString *errorString,
                         const Utils::FilePath &filePath,
                         const Utils::FilePath &realfilePath)
+#else
+   Utils::Result<>
+    SDFViewerDocument::open( const Utils::FilePath &filePath
+                             , const Utils::FilePath &realfilePath)
+#endif
     {
-        ADDEBUG() << "############ SDFViewerDocument::open( " << filePath.toString().toStdString() << " )";
+        ADDEBUG() << "############ SDFViewerDocument::open( " << filePath.toUrlishString().toStdString() << " )";
         QTC_CHECK(filePath == realfilePath); // does not support auto save
         // OpenResult success = openImpl(errorString, filePath);
         // emit openFinished(success == OpenResult::Success);
-        return Core::IDocument::OpenResult::Success;
+        return Utils::ResultOk;
     }
 
     Core::IDocument::ReloadBehavior SDFViewerDocument::reloadBehavior(ChangeTrigger state, ChangeType type) const
@@ -75,18 +81,17 @@ namespace sdfviewer {
         return BehaviorAsk;
     }
 
-    bool
-    SDFViewerDocument::reload(QString *errorString,
-                          Core::IDocument::ReloadFlag flag,
-                          Core::IDocument::ChangeType type)
+    Utils::Result<>
+    SDFViewerDocument::reload( Core::IDocument::ReloadFlag flag
+                               , Core::IDocument::ChangeType type)
     {
         Q_UNUSED(type)
             if (flag == FlagIgnore)
-                return true;
+                return Utils::ResultOk;
         // emit aboutToReload();
         // bool success = (openImpl(errorString, filePath()) == OpenResult::Success);
         // emit reloadFinished(success);
-        return true;
+        return Utils::ResultOk;
     }
 
     void
