@@ -10,6 +10,7 @@ import AssetsLibraryBackend
 
 TreeView {
     id: root
+
     clip: true
     interactive: verticalScrollBar.visible && !root.contextMenu.opened && !rootView.isDragging
     reuseItems: false
@@ -45,6 +46,16 @@ TreeView {
     readonly property int lastRow: root.rows - 1
     property var __createdDirectories: []
 
+    onExpanded:(row) => {
+        let index = root.__modelIndex(row)
+        assetsModel.saveExpandState(assetsModel.filePath(index), true)
+    }
+
+    onCollapsed:(row) => {
+        let index = root.__modelIndex(row)
+        assetsModel.saveExpandState(assetsModel.filePath(index), false)
+    }
+
     rowHeightProvider: (row) => {
         if (row <= root.rootPathRow)
             return 0
@@ -70,9 +81,9 @@ TreeView {
     model: assetsModel
 
     onRowsChanged: {
-        if (root.rows > root.rootPathRow + 1 && !assetsModel.haveFiles ||
-            root.rows <= root.rootPathRow + 1 && assetsModel.haveFiles) {
-            assetsModel.syncHaveFiles()
+        if (root.rows > root.rootPathRow + 1 && assetsModel.isEmpty ||
+            root.rows <= root.rootPathRow + 1 && !assetsModel.isEmpty) {
+            assetsModel.syncIsEmpty()
         }
 
         root.updateRows()
@@ -83,9 +94,7 @@ TreeView {
         interval: 200
         repeat: false
 
-        onTriggered: {
-            root.updateRows()
-        }
+        onTriggered: root.updateRows()
     }
 
     Connections {
@@ -94,7 +103,6 @@ TreeView {
         function onDirectoryCreated(path)
         {
             root.__createdDirectories.push(path)
-
             updateRowsTimer.restart()
         }
 
@@ -119,15 +127,7 @@ TreeView {
             // updating rows for safety: the rows might have been created before the
             // directory (esp. the root path) has been loaded, so we must make sure all rows are
             // expanded -- otherwise, the tree may not become visible.
-
             updateRowsTimer.restart()
-
-            let idx = assetsModel.indexForPath(path)
-            let row = root.rowAtIndex(idx)
-            let column = root.columnAtIndex(idx)
-
-            if (row >= root.rootPathRow && !root.isExpanded(row))
-                root.expand(row)
         }
 
         function onRootPathChanged()
@@ -136,8 +136,7 @@ TreeView {
             // view: make sure we will do an "expand all" (otherwise, the whole tree might
             // be collapsed, and with our visible root not being the actual root of the tree,
             // the entire tree would be invisible)
-            root.lastRowCount = -1
-            root.requestedExpandAll = true
+            root.reset()
         }
 
         function onFileChanged(filePath)
@@ -153,6 +152,17 @@ TreeView {
         }
 
     } // Connections
+
+    // Resets everything to its default state before reusing the widget
+    function reset()
+    {
+        root.lastRowCount = -1
+        root.rootPathDepth = 0
+        root.rootPathRow = 0
+        root.requestedExpandAll = true
+        // Attempt to force reload
+        updateRowsTimer.restart()
+    }
 
     function addCreatedFolder(path)
     {
@@ -181,9 +191,9 @@ TreeView {
             let index = assetsModel.indexForPath(dirPath)
             let row = root.rowAtIndex(index)
 
-            if (row > 0)
+            if (row > 0) {
                 root.expand(row)
-            else if (row === -1 && assetsModel.indexIsValid(index)) {
+            } else if (row === -1 && assetsModel.indexIsValid(index)) {
                 // It is possible that this directory, dirPath, was created inside of a parent
                 // directory that was not yet expanded in the TreeView. This can happen with the
                 // bridge plugin. In such a situation, we don't have a "row" for it yet, so we have
@@ -216,10 +226,10 @@ TreeView {
     function __doExpandAll()
     {
         let expandedAny = false
-        for (let nRow = 0; nRow < root.rows; ++nRow) {
-            let index = root.__modelIndex(nRow)
-            if (assetsModel.isDirectory(index) && !root.isExpanded(nRow)) {
-                root.expand(nRow);
+        for (let r = 0; r < root.rows; ++r) {
+            let index = root.__modelIndex(r)
+            if (assetsModel.isDirectory(index) && !root.isExpanded(r)) {
+                root.expand(r)
                 expandedAny = true
             }
         }
@@ -278,36 +288,6 @@ TreeView {
         return ""
     }
 
-    function startDropHoverOver(row)
-    {
-        let index = root.__modelIndex(row)
-        if (assetsModel.isDirectory(index)) {
-            let item = root.__getDelegateItemForIndex(index)
-            if (item)
-                item.isHighlighted = true
-            return
-        }
-
-        let parentItem = root.__getDelegateParentForIndex(index)
-        if (parentItem)
-            parentItem.hasChildWithDropHover = true
-    }
-
-    function endDropHover(row)
-    {
-        let index = root.__modelIndex(row)
-        if (assetsModel.isDirectory(index)) {
-            let item = root.__getDelegateItemForIndex(index)
-            if (item)
-                item.isHighlighted = false
-            return
-        }
-
-        let parentItem = root.__getDelegateParentForIndex(index)
-        if (parentItem)
-            parentItem.hasChildWithDropHover = false
-    }
-
     function isAssetSelected(itemPath)
     {
         return root.selectedAssets[itemPath] ? true : false
@@ -331,12 +311,6 @@ TreeView {
         return root.itemAtCell(parentCell)
     }
 
-    function __getDelegateItemForIndex(index)
-    {
-        let cell = root.cellAtIndex(index)
-        return root.itemAtCell(cell)
-    }
-
     function __modelIndex(row)
     {
         // The modelIndex() function exists since 6.3. In Qt 6.3, this modelIndex() function was a
@@ -354,9 +328,6 @@ TreeView {
     function __selectRow(row: int)
     {
         let index = root.__modelIndex(row)
-        if (assetsModel.isDirectory(index))
-            return
-
         let filePath = assetsModel.filePath(index)
 
         root.clearSelectedAssets()
@@ -366,21 +337,16 @@ TreeView {
 
     function moveSelection(amount)
     {
-        if (!assetsModel.haveFiles || !amount)
+        if (assetsModel.isEmpty || !amount)
             return
 
         let index = root.currentFilePath ? assetsModel.indexForPath(root.currentFilePath)
                                          : root.__modelIndex(root.firstRow)
         let row = root.rowAtIndex(index)
-        let nextRow = row
-        let nextIndex = index
+        let nextRow = row + amount
 
-        do {
-            nextRow = nextRow + amount
-            if ((amount < 0 && nextRow < root.firstRow) || (amount > 0 && nextRow > root.lastRow))
-                return
-            nextIndex = root.__modelIndex(nextRow)
-        } while (assetsModel.isDirectory(nextIndex))
+        if ((amount < 0 && nextRow < root.firstRow) || (amount > 0 && nextRow > root.lastRow))
+            return
 
         root.__selectRow(nextRow)
         root.positionViewAtRow(nextRow, TableView.Contain)
@@ -396,6 +362,29 @@ TreeView {
         moveSelection(1)
     }
 
+    Keys.onRightPressed: {
+        root.expandFolder(true)
+    }
+
+    Keys.onLeftPressed: {
+        root.expandFolder(false)
+    }
+
+    function expandFolder(expand) {
+        let index = root.currentFilePath ? assetsModel.indexForPath(root.currentFilePath)
+                                         : root.__modelIndex(root.firstRow)
+
+        if (!assetsModel.isDirectory(index))
+            return
+
+        let row = root.rowAtIndex(index)
+
+        if (expand)
+            root.expand(row)
+        else
+            root.collapse(row)
+    }
+
     ConfirmDeleteFilesDialog {
         id: confirmDeleteFiles
         parent: root
@@ -405,80 +394,9 @@ TreeView {
         onClosed: confirmDeleteFiles.files = []
     }
 
-    DropArea {
-        id: dropArea
-        enabled: true
-        anchors.fill: parent
-
-        property bool __isHoveringDrop: false
-        property int __rowHoveringOver: -1
-
-        function __rowAndItem(drag)
-        {
-            let pos = dropArea.mapToItem(root, drag.x, drag.y)
-            let cell = root.cellAtPos(pos.x, pos.y, true)
-            let item = root.itemAtCell(cell)
-
-            return [cell.y, item]
-        }
-
-        onEntered: (drag) => {
-            root.assetsRoot.updateDropExtFiles(drag)
-
-            let [row, item] = dropArea.__rowAndItem(drag)
-            dropArea.__isHoveringDrop = drag.accepted && root.assetsRoot.dropSimpleExtFiles.length > 0
-
-            if (item && dropArea.__isHoveringDrop)
-                root.startDropHoverOver(row)
-
-            dropArea.__rowHoveringOver = row
-        }
-
-        onDropped: (drag) => {
-            let [row, item] = dropArea.__rowAndItem(drag)
-
-            if (item) {
-                drag.accept()
-                root.endDropHover(row)
-
-                let dirPath = item.getDirPath()
-
-                rootView.emitExtFilesDrop(root.assetsRoot.dropSimpleExtFiles,
-                                          root.assetsRoot.dropComplexExtFiles,
-                                          dirPath)
-            }
-
-            dropArea.__isHoveringDrop = false
-            dropArea.__rowHoveringOver = -1
-        }
-
-        onPositionChanged: (drag) => {
-            let [row, item] = dropArea.__rowAndItem(drag)
-
-            if (dropArea.__rowHoveringOver !== row && dropArea.__rowHoveringOver > -1) {
-                root.endDropHover(dropArea.__rowHoveringOver)
-
-                if (item)
-                    root.startDropHoverOver(row)
-            }
-
-            dropArea.__rowHoveringOver = row
-        }
-
-        onExited: {
-            if (!dropArea.__isHoveringDrop || dropArea.__rowHoveringOver === -1)
-                return
-
-            root.endDropHover(dropArea.__rowHoveringOver)
-
-            dropArea.__isHoveringDrop = false
-            dropArea.__rowHoveringOver = -1
-        }
-    }
-
     delegate: AssetDelegate {
         assetsView: root
         assetsRoot: root.assetsRoot
-        indentation: 5
+        indentation: 10
     }
 } // TreeView

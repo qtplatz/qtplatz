@@ -22,12 +22,8 @@ StudioControls.ComboBox {
 
     required property Item mainRoot
 
-    property var images: ["images/preview0.png",
-                          "images/preview1.png",
-                          "images/preview2.png",
-                          "images/preview3.png",
-                          "images/preview4.png"]
-    property string selectedImage: images[0]
+    property var images: EffectComposerBackend.effectComposerModel.previewImages
+    property url selectedImage: EffectComposerBackend.effectComposerModel.currentPreviewImage
 
     readonly property int popupHeight: Math.min(800, col.height + 2)
 
@@ -64,6 +60,7 @@ StudioControls.ComboBox {
         target: root.popup
 
         function onAboutToShow() {
+            EffectComposerBackend.effectComposerModel.previewComboAboutToOpen()
             root.calculateWindowGeometry()
 
             window.show()
@@ -108,7 +105,7 @@ StudioControls.ComboBox {
     Window {
         id: window
 
-        flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
 
         onActiveFocusItemChanged: {
             if (!window.activeFocusItem && !root.hovered && root.popup.opened)
@@ -122,45 +119,89 @@ StudioControls.ComboBox {
             border.width: 1
             focus: true
 
-            HelperWidgets.ScrollView {
+            Column {
                 anchors.fill: parent
-                anchors.margins: 1
-                clip: true
 
-                Column {
-                    id: col
+                Item {
+                    id: setCustomItem
+                    width: parent.width
+                    height: 50
 
-                    padding: 10
-                    spacing: 10
+                    HelperWidgets.Button {
+                        anchors.fill: parent
+                        anchors.bottomMargin: 2
+                        anchors.topMargin: col.padding
+                        anchors.leftMargin: col.padding
+                        anchors.rightMargin: col.padding
+                        text: qsTr("Add Custom Image")
+                        onClicked: {
+                            EffectComposerBackend.effectComposerModel.chooseCustomPreviewImage()
+                            root.popup.close()
+                        }
+                    }
+                }
 
-                    Repeater {
-                        model: root.images
 
-                        Rectangle {
-                            required property int index
-                            required property var modelData
+                HelperWidgets.ScrollView {
+                    width: parent.width - 2
+                    height: parent.height - setCustomItem.height
 
-                            color: "transparent"
-                            border.color: root.selectedImage === modelData ? StudioTheme.Values.themeInteraction
-                                                                           : "transparent"
+                    clip: true
 
-                            width: 200
-                            height: 200
+                    Column {
+                        id: col
 
-                            Image {
-                                source: modelData
-                                anchors.fill: parent
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                                anchors.margins: 1
-                            }
+                        padding: 10
+                        spacing: 10
 
-                            MouseArea {
-                                anchors.fill: parent
+                        Repeater {
+                            model: root.images
 
-                                onClicked: {
-                                    root.selectedImage = root.images[index]
-                                    root.popup.close()
+                            Rectangle {
+                                required property int index
+                                required property var modelData
+
+                                color: "transparent"
+                                border.color: root.selectedImage === modelData
+                                              ? StudioTheme.Values.themeInteraction
+                                              : "transparent"
+
+                                width: 200
+                                height: 200
+
+                                Image {
+                                    source: parent.modelData
+                                    anchors.fill: parent
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    anchors.margins: 1
+                                }
+
+                                MouseArea {
+                                    id: imageMouseArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+
+                                    onClicked: {
+                                        EffectComposerBackend.effectComposerModel.currentPreviewImage
+                                                = root.images[index]
+                                        root.popup.close()
+                                    }
+                                }
+
+                                HelperWidgets.IconButton {
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 5
+                                    anchors.top: parent.top
+                                    anchors.topMargin: 5
+
+                                    tooltip: qsTr("Remove custom image.")
+                                    visible: index < EffectComposerBackend.effectComposerModel.customPreviewImageCount
+                                             && (containsMouse || imageMouseArea.containsMouse)
+                                    icon: StudioTheme.Constants.closeCross
+                                    buttonSize: 21
+
+                                    onClicked: EffectComposerBackend.effectComposerModel.removeCustomPreviewImage(root.images[index])
                                 }
                             }
                         }

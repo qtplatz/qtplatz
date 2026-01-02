@@ -6,6 +6,8 @@
 #include "../coreicons.h"
 #include "../coreplugintr.h"
 
+#include <utils/qtcsettings.h>
+
 #include <QApplication>
 #include <QKeySequence>
 #include <QPainter>
@@ -30,7 +32,7 @@ using namespace Utils;
     and \uicontrol {Files in File System} where the user provides a directory and file
     patterns to search.
 
-    \image qtcreator-search-filesystem.png
+    \image qtcreator-search-reg-exp.webp {Search Results view with search criteria}
 
     To make your find scope available to the user, you need to implement this
     class, and register an instance of your subclass in the plugin manager.
@@ -38,7 +40,7 @@ using namespace Utils;
     A common way to present the search results to the user, is to use the
     shared \uicontrol{Search Results} pane.
 
-    \image qtcreator-search-results.webp {Search Results view}
+    \image qtcreator-search-results-reg-exp.webp {Search Results view with search results}
 
     If you want to implement a find filter that is doing a file based text
     search, you should use \l Core::BaseTextFind, which already implements all
@@ -178,18 +180,6 @@ using namespace Utils;
 */
 
 /*!
-    \fn void Core::IFindFilter::writeSettings(QSettings *settings)
-    Called at shutdown to write the state of the additional options
-    for this find filter to the \a settings.
-*/
-
-/*!
-    \fn void Core::IFindFilter::readSettings(QSettings *settings)
-    Called at startup to read the state of the additional options
-    for this find filter from the \a settings.
-*/
-
-/*!
     \fn void Core::IFindFilter::enabledChanged(bool enabled)
 
     This signal is emitted when the \a enabled state of this find filter
@@ -265,6 +255,60 @@ FindFlags IFindFilter::supportedFindFlags() const
 }
 
 /*!
+    Returns a Store with the find filter's settings to store
+    in the session. Default values should not be saved.
+    The default implementation returns an empty store.
+
+    \sa restore()
+*/
+Store IFindFilter::save() const
+{
+    return {};
+}
+
+/*!
+    Restores the find filter's settings from the Store \a s.
+    Settings that are not present in the store should be reset to
+    the default.
+    The default implementation does nothing.
+
+    \sa save()
+*/
+void IFindFilter::restore([[maybe_unused]] const Utils::Store &s) {}
+
+/*!
+    Called at shutdown to write the state of the additional options
+    for this find filter to the \a settings.
+
+    \deprecated [14.0] Implement save() instead.
+*/
+void IFindFilter::writeSettings(Utils::QtcSettings *settings)
+{
+    settings->remove(settingsKey()); // make sure defaults are removed
+    storeToSettings(settingsKey(), settings, save());
+}
+
+/*!
+    Called at startup to read the state of the additional options
+    for this find filter from the \a settings.
+
+    \deprecated [14.0] Implement restore() instead.
+*/
+void IFindFilter::readSettings(Utils::QtcSettings *settings)
+{
+    restore(storeFromSettings(settingsKey(), settings));
+}
+
+/*!
+    \internal
+    \deprecated [14.0]
+*/
+QByteArray IFindFilter::settingsKey() const
+{
+    return id().toUtf8();
+}
+
+/*!
     Returns icons for the find flags \a flags.
 */
 QPixmap IFindFilter::pixmapForFindFlags(FindFlags flags)
@@ -327,7 +371,7 @@ QString IFindFilter::descriptionForFindFlags(FindFlags flags)
         flagStrings.append(Tr::tr("Preserve case"));
     QString description = Tr::tr("Flags: %1");
     if (flagStrings.isEmpty())
-        description = description.arg(Tr::tr("None"));
+        description = description.arg(Tr::tr("None", "No find flags"));
     else
         description = description.arg(flagStrings.join(Tr::tr(", ")));
     return description;

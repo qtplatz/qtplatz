@@ -3,7 +3,6 @@
 
 import QtQuick
 import HelperWidgets as HelperWidgets
-import StudioTheme as StudioTheme
 import EffectComposerBackend
 
 Row {
@@ -11,16 +10,24 @@ Row {
 
     spacing: 5
 
+    signal valueChanged()
+
     HelperWidgets.UrlChooser {
         backendValue: uniformBackendValue
+        resourcesPath: EffectComposerBackend.rootView.imagesPath()
 
         actionIndicatorVisible: false
         comboBox.width: Math.min(parent.width - 70, 300)
 
-        onAbsoluteFilePathChanged: uniformValue = absoluteFilePath
+        onAbsoluteFilePathChanged: {
+            uniformValue = absoluteFilePath
+            itemPane.valueChanged()
+        }
 
-        function defaultAsString() {
-            let urlStr = uniformDefaultValue.toString()
+        function defaultAsString(defaultPath) {
+            if (!defaultPath)
+                return undefined
+            let urlStr = defaultPath.toString()
             urlStr = urlStr.replace(/^(file:\/{3})/, "")
 
             // Prepend slash if there is no drive letter
@@ -30,7 +37,24 @@ Row {
             return urlStr
         }
 
-        defaultItems: uniformDefaultValue ? [uniformDefaultValue.split('/').pop()] : undefined
-        defaultPaths: uniformDefaultValue ? [defaultAsString(uniformDefaultValue)] : undefined
+        Component.onCompleted: {
+            let originalPath = defaultAsString(
+                        EffectComposerBackend.rootView.uniformDefaultImage(nodeName, uniformName))
+            let originalName = originalPath ? originalPath.split('/').pop() : undefined
+            if (originalName) {
+                defaultItems = [originalName]
+                defaultPaths = [originalPath]
+            } else {
+                let currentPath = uniformDefaultValue ? defaultAsString(uniformDefaultValue) : undefined
+                let currentName = currentPath ? currentPath.split('/').pop() : undefined
+                if (currentName) {
+                    defaultItems = [currentName]
+                    defaultPaths = [currentPath]
+                } else {
+                    defaultItems = []
+                    defaultPaths = []
+                }
+            }
+        }
     }
 }

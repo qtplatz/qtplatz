@@ -3,7 +3,10 @@ cmake_policy( SET CMP0028 NEW )
 
 project( accutofacquire )
 
-set( PROVIDER MS-Cheminformatics )
+set ( PROVIDER MS-Cheminformatics )
+set ( PLUGIN_ID "accutofacquire" )
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
 
 set( VERSION        "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 set( COMPAT_VERSION "${VERSION}" )
@@ -28,29 +31,15 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   find_package(QtCreator REQUIRED COMPONENTS Core)
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
-  foreach ( i "Core" )
-    set(_v ${IDE_VERSION})
-    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
-  endforeach()
-  string(APPEND DEPENDENCY_STRING "\n    ]")
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "\n    ]" )
+
   configure_file(
     "${CMAKE_SOURCE_DIR}/src/plugins/servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
     )
 endif()
 ####################### END ##########################
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  configure_file(
-    "${QTPLATZ_SOURCE_DIR}/src/plugins/pluginspec.in"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    )
-  execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-    )
-endif()
 
 add_definitions(
   -DACCUTOFACQUIRE_LIBRARY

@@ -6,6 +6,7 @@
 #include "utils_global.h"
 
 #include "filepath.h"
+#include "id.h"
 #include "infolabel.h"
 #include "wizardpage.h"
 
@@ -33,11 +34,20 @@ public:
 
     bool forceSubProject() const;
     void setForceSubProject(bool force);
-    void setProjectList(const QStringList &projectList);
-    void setProjectDirectories(const FilePaths &directoryList);
-    int projectIndex() const;
 
-    bool validateProjectName(const QString &name, QString *errorMessage);
+    struct ProjectInfo
+    {
+        QString display;
+        FilePath projectDirectory;
+        FilePath projectFile;
+        QString buildSystem;
+        Utils::Id projectId;
+    };
+    void setProjectInfos(const QList<ProjectInfo> &projectInfos);
+    void setProjectIndex(int index);
+    ProjectInfo currentProjectInfo() const;
+
+    Result<> validateProjectName(const QString &name);
 
     // Calls slotChanged() - i.e. tell the page that some of its fields have been updated.
     // This function is useful if you programmatically update the fields of the page (i.e. from
@@ -58,6 +68,7 @@ public slots:
 private:
     void slotChanged();
     void slotActivated();
+    void onCurrentProjectIndexChanged(int index);
 
     bool validate();
     void displayStatusMessage(InfoLabel::InfoType t, const QString &);

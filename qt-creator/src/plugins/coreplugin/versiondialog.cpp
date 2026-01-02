@@ -3,9 +3,9 @@
 
 #include "versiondialog.h"
 
+#include "actionmanager/command.h"
 #include "coreicons.h"
 #include "coreplugintr.h"
-#include "coreicons.h"
 #include "icore.h"
 
 #include <utils/algorithm.h>
@@ -14,8 +14,10 @@
 #include <utils/layoutbuilder.h>
 #include <utils/qtcassert.h>
 #include <utils/stringutils.h>
+#include <utils/stylehelper.h>
 #include <utils/utilsicons.h>
 
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QGuiApplication>
@@ -23,11 +25,18 @@
 #include <QLabel>
 #include <QPushButton>
 
-using namespace Core;
-using namespace Core::Internal;
+namespace Core::Internal {
 
-VersionDialog::VersionDialog(QWidget *parent)
-    : QDialog(parent)
+class VersionDialog final : public QDialog
+{
+public:
+    VersionDialog();
+
+    bool event(QEvent *event) final;
+};
+
+VersionDialog::VersionDialog()
+    : QDialog(ICore::dialogParent())
 {
     // We need to set the window icon explicitly here since for some reason the
     // application icon isn't used when the size of the dialog is fixed (at least not on X11/GNOME)
@@ -38,6 +47,8 @@ VersionDialog::VersionDialog(QWidget *parent)
 
     auto logoLabel = new QLabel;
     logoLabel->setPixmap(Icons::QTCREATORLOGO_BIG.pixmap());
+    const int margin = Utils::StyleHelper::SpacingTokens::PaddingVL;
+    logoLabel->setContentsMargins({margin, margin, margin, margin});
 
     auto copyRightLabel = new QLabel(ICore::aboutInformationHtml());
     copyRightLabel->setWordWrap(true);
@@ -45,8 +56,12 @@ VersionDialog::VersionDialog(QWidget *parent)
     copyRightLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
     auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    QPushButton *copyButton = buttonBox->addButton(Tr::tr("Copy and Close"),
-                                                   QDialogButtonBox::ApplyRole);
+    QPushButton *copyButton
+        = buttonBox->addButton(msgCopyToClipboard(), QDialogButtonBox::ActionRole);
+    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(copyButton, &QPushButton::pressed, this, [] {
+        Utils::setClipboardAndSelection(ICore::aboutInformationCompact());
+    });
 
     using namespace Layouting;
     Column {
@@ -58,13 +73,6 @@ VersionDialog::VersionDialog(QWidget *parent)
     }.attachTo(this);
 
     layout()->setSizeConstraint(QLayout::SetFixedSize);
-
-    connect(copyButton, &QPushButton::pressed, this, [this] {
-        Utils::setClipboardAndSelection(ICore::aboutInformationCompact());
-        accept();
-    });
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 bool VersionDialog::event(QEvent *event)
@@ -78,3 +86,27 @@ bool VersionDialog::event(QEvent *event)
     }
     return QDialog::event(event);
 }
+
+static QDialog *s_versionDialog = nullptr;
+
+static void destroyVersionDialog()
+{
+    if (s_versionDialog) {
+        s_versionDialog->deleteLater();
+        s_versionDialog = nullptr;
+    }
+}
+
+void showAboutQtCreator()
+{
+    if (s_versionDialog) {
+        ICore::raiseWindow(s_versionDialog);
+    } else {
+        s_versionDialog = new VersionDialog;
+        QObject::connect(s_versionDialog, &QDialog::finished, &destroyVersionDialog);
+        ICore::registerWindow(s_versionDialog, Context("Core.VersionDialog"));
+        s_versionDialog->show();
+    }
+}
+
+} // Core::Internal

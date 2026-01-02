@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "commandline.h"
 #include "expected.h"
-#include "fileutils.h"
 #include "utils_global.h"
 
 #include <QHash>
@@ -17,7 +17,6 @@
 
 namespace Utils {
 
-class CommandLine;
 class ProcessResultData;
 class Process;
 
@@ -39,7 +38,7 @@ public:
     DeviceShell(bool forceFailScriptInstallation = false);
     virtual ~DeviceShell();
 
-    expected_str<void> start();
+    Result<> start();
 
     RunResult runInShell(const CommandLine &cmd, const QByteArray &stdInData = {});
 
@@ -49,6 +48,7 @@ public:
 
 signals:
     void done(const ProcessResultData &resultData);
+    void exitedIrregularly();
 
 protected:
     RunResult run(const CommandLine &cmd, const QByteArray &stdInData = {});
@@ -59,12 +59,12 @@ private:
     virtual void setupShellProcess(Process *shellProcess);
     virtual CommandLine createFallbackCommand(const CommandLine &cmdLine);
 
-    expected_str<void> installShellScript();
+    Result<> installShellScript();
     void closeShellProcess();
 
     void onReadyRead();
 
-    expected_str<QByteArray> checkCommand(const QByteArray &command);
+    Result<QByteArray> checkCommand(const QByteArray &command);
 
 private:
     struct CommandRun : public RunResult
@@ -86,5 +86,7 @@ private:
     // Only used for tests
     bool m_forceFailScriptInstallation = false;
 };
+
+QTCREATOR_UTILS_EXPORT QString msgProcessFailedToStart();
 
 } // namespace Utils

@@ -10,10 +10,8 @@ import StudioControls as StudioControls
 import StudioTheme as StudioTheme
 import EffectComposerBackend
 
-ColumnLayout {
+Item {
     id: root
-
-    spacing: 1
 
     readonly property var backendModel: EffectComposerBackend.effectComposerModel
 
@@ -22,6 +20,8 @@ ColumnLayout {
     property int moveFromIdx: 0
     property int moveToIdx: 0
     property bool previewAnimationRunning: false
+    property var expandStates: null
+    property real ensureVisibleY: -1
 
     // Invoked after save changes is done
     property var onSaveChangesCallback: () => {}
@@ -31,6 +31,79 @@ ColumnLayout {
         root.onSaveChangesCallback = () => { EffectComposerBackend.rootView.doOpenComposition() }
 
         saveChangesDialog.open()
+    }
+
+    // Invoked from C++ side before resetting the model to store current expanded state of nodes
+    function storeExpandStates() {
+        root.expandStates = new Map()
+
+        for (let i = 0; i < repeater.count; ++i) {
+            var curItem = repeater.itemAt(i)
+            root.expandStates.set(curItem.caption, curItem.expanded)
+        }
+    }
+
+    // Invoked after model has been reset to restore expanded state for nodes
+    function restoreExpandStates() {
+        if (root.expandStates) {
+            for (let i = 0; i < repeater.count; ++i) {
+                var curItem = repeater.itemAt(i)
+                if (root.expandStates.has(curItem.caption))
+                    curItem.expanded = root.expandStates.get(curItem.caption)
+            }
+            root.expandStates = null
+        }
+    }
+
+    function handleDragMove() {
+        dragTimer.stop()
+        if (root.secsY.length === 0) {
+            for (let i = 0; i < repeater.count; ++i)
+                root.secsY[i] = repeater.itemAt(i).y
+        }
+
+        let oldContentY = scrollView.contentY
+        if (root.draggedSec.y < scrollView.dragScrollMargin + scrollView.contentY
+                && scrollView.contentY > 0) {
+            scrollView.contentY -= scrollView.dragScrollMargin / 2
+        } else if (root.draggedSec.y > scrollView.contentY + scrollView.height - scrollView.dragScrollMargin
+                    && scrollView.contentY < scrollView.contentHeight - scrollView.height) {
+            scrollView.contentY += scrollView.dragScrollMargin / 2
+            if (scrollView.contentY > scrollView.contentHeight - scrollView.height)
+                scrollView.contentY = scrollView.contentHeight - scrollView.height
+        }
+        if (scrollView.contentY < 0)
+            scrollView.contentY = 0
+
+        if (oldContentY !== scrollView.contentY) {
+            // Changing dragged section position in drag handler doesn't seem to stick
+            // when triggered by mouse move, so do it again async
+            dragTimer.targetY = root.draggedSec.y - oldContentY + scrollView.contentY
+            dragTimer.restart()
+            dragConnection.enabled = false
+            root.draggedSec.y = dragTimer.targetY
+            dragConnection.enabled = true
+        }
+
+        root.moveToIdx = root.moveFromIdx
+        for (let i = 0; i < repeater.count; ++i) {
+            let currItem = repeater.itemAt(i)
+            if (i > root.moveFromIdx) {
+                if (root.draggedSec.y > currItem.y) {
+                    currItem.y = root.secsY[i] - root.draggedSec.height - nodesCol.spacing
+                    root.moveToIdx = i
+                } else {
+                    currItem.y = root.secsY[i]
+                }
+            } else if (i < root.moveFromIdx) {
+                if (!repeater.model.isDependencyNode(i) && root.draggedSec.y < currItem.y) {
+                    currItem.y = root.secsY[i] + root.draggedSec.height + nodesCol.spacing
+                    root.moveToIdx = Math.min(root.moveToIdx, i)
+                } else {
+                    currItem.y = root.secsY[i]
+                }
+            }
+        }
     }
 
     Connections {
@@ -65,224 +138,302 @@ ColumnLayout {
         }
     }
 
-    EffectComposerTopBar {
-        Layout.fillWidth: true
+    ConfirmClearAllDialog {
+        id: confirmClearAllDialog
+        anchors.centerIn: parent
+    }
 
-        onAddClicked: {
-            root.onSaveChangesCallback = () => { root.backendModel.clear(true) }
+    Connections {
+        id: dragConnection
+        target: root.draggedSec
+        function onYChanged() { root.handleDragMove() }
+    }
 
-            if (root.backendModel.hasUnsavedChanges)
-                saveChangesDialog.open()
-            else
-                root.backendModel.clear(true)
-        }
+    Timer {
+        id: dragTimer
+        running: false
+        interval: 16
+        repeat: false
 
-        onSaveClicked: {
-            let name = root.backendModel.currentComposition
+        property real targetY: -1
 
-            if (name === "")
-                saveAsDialog.open()
-            else
-                root.backendModel.saveComposition(name)
-        }
-
-        onSaveAsClicked: saveAsDialog.open()
-
-        onAssignToSelectedClicked: {
-            root.backendModel.assignToSelected()
+        onTriggered: {
+            // Ensure we get position change triggers even if user holds mouse still to
+            // make scrolling smooth
+            root.draggedSec.y = targetY
+            root.handleDragMove()
         }
     }
 
-    SplitView {
-        id: splitView
+    ColumnLayout {
+        anchors.fill: parent
+        visible: !EffectComposerBackend.rootView.isMCUProject()
+        spacing: 1
 
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        EffectComposerTopBar {
+            Layout.fillWidth: true
 
-        orientation: root.width > root.height ? Qt.Horizontal : Qt.Vertical
+            onAddClicked: {
+                root.onSaveChangesCallback = () => { root.backendModel.clear(true) }
 
-        handle: Rectangle {
-            implicitWidth: splitView.orientation === Qt.Horizontal ? 6 : splitView.width
-            implicitHeight: splitView.orientation === Qt.Horizontal ? splitView.height : 6
-            color: T.SplitHandle.pressed ? StudioTheme.Values.themeSliderHandleInteraction
-                : (T.SplitHandle.hovered ? StudioTheme.Values.themeSliderHandleHover
-                                         : "transparent")
+                if (root.backendModel.hasUnsavedChanges)
+                    saveChangesDialog.open()
+                else
+                    root.backendModel.clear(true)
+            }
+
+            onSaveClicked: {
+                let name = root.backendModel.currentComposition
+
+                if (name === "")
+                    saveAsDialog.open()
+                else
+                    root.backendModel.saveComposition(name)
+            }
+
+            onSaveAsClicked: saveAsDialog.open()
+
+            onAssignToSelectedClicked: {
+                root.backendModel.assignToSelected()
+            }
         }
 
-        EffectComposerPreview {
-            mainRoot: root
+        SplitView {
+            id: splitView
 
-            SplitView.minimumWidth: 250
-            SplitView.minimumHeight: 200
-            SplitView.preferredWidth: 300
-            SplitView.preferredHeight: 300
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            FrameAnimation {
-                id: previewFrameTimer
-                running: true
-                paused: !previewAnimationRunning
+            orientation: root.width > root.height ? Qt.Horizontal : Qt.Vertical
+
+            handle: Rectangle {
+                implicitWidth: splitView.orientation === Qt.Horizontal ? StudioTheme.Values.splitterThickness : splitView.width
+                implicitHeight: splitView.orientation === Qt.Horizontal ? splitView.height : StudioTheme.Values.splitterThickness
+                color: T.SplitHandle.pressed ? StudioTheme.Values.themeSliderHandleInteraction
+                    : (T.SplitHandle.hovered ? StudioTheme.Values.themeSliderHandleHover
+                                             : "transparent")
             }
-        }
 
-        Column {
-            spacing: 1
+            EffectComposerPreview {
+                id: preview
 
-            SplitView.minimumWidth: 250
-            SplitView.minimumHeight: 100
+                mainRoot: root
 
-            Component.onCompleted: HelperWidgets.Controller.mainScrollView = scrollView
+                SplitView.minimumWidth: preview.minimumWidth
+                SplitView.minimumHeight: 200
+                SplitView.preferredWidth: preview.minimumWidth
+                SplitView.preferredHeight: 300
+                Layout.fillWidth: true
+                Layout.fillHeight: true
 
-            Rectangle {
-                width: parent.width
-                height: StudioTheme.Values.toolbarHeight
-                color: StudioTheme.Values.themeToolbarBackground
-
-                EffectNodesComboBox {
-                    mainRoot: root
-
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: 5
-                    width: parent.width - 50
-                }
-
-                HelperWidgets.AbstractButton {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 5
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    style: StudioTheme.Values.viewBarButtonStyle
-                    buttonIcon: StudioTheme.Constants.clearList_medium
-                    tooltip: qsTr("Remove all effect nodes.")
-                    enabled: !root.backendModel.isEmpty
-
-                    onClicked: root.backendModel.clear()
-                }
-
-                HelperWidgets.AbstractButton {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 5
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    style: StudioTheme.Values.viewBarButtonStyle
-                    buttonIcon: StudioTheme.Constants.code
-                    tooltip: qsTr("Open Shader in Code Editor.")
-                    visible: false // TODO: to be implemented
-
-                    onClicked: {} // TODO
+                FrameAnimation {
+                    id: frameAnimation
+                    running: true
+                    paused: !root.previewAnimationRunning
                 }
             }
 
-            Item {
-                width: parent.width
-                height: parent.height - y
+            Column {
+                spacing: 1
 
-                HelperWidgets.ScrollView {
-                    id: scrollView
+                SplitView.minimumWidth: 400
+                SplitView.minimumHeight: 100
 
-                    anchors.fill: parent
-                    clip: true
-                    interactive: !HelperWidgets.Controller.contextMenuOpened
+                Component.onCompleted: HelperWidgets.Controller.mainScrollView = scrollView
 
-                    onContentHeightChanged: {
-                        if (scrollView.contentItem.height > scrollView.height) {
-                            let lastItemH = repeater.itemAt(repeater.count - 1).height
-                            scrollView.contentY = scrollView.contentItem.height - lastItemH
+                Rectangle {
+                    width: parent.width
+                    height: StudioTheme.Values.toolbarHeight
+                    color: StudioTheme.Values.themeToolbarBackground
+
+                    EffectNodesComboBox {
+                        id: nodesComboBox
+
+                        mainRoot: root
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: 5
+                        width: parent.width - 50
+                    }
+
+                    HelperWidgets.AbstractButton {
+                        objectName: "btnRemoveAllEffects"
+
+                        anchors.right: parent.right
+                        anchors.rightMargin: 5
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        style: StudioTheme.Values.viewBarButtonStyle
+                        buttonIcon: StudioTheme.Constants.clearList_medium
+                        tooltip: qsTr("Remove all effect nodes.")
+                        enabled: root.backendModel ? !root.backendModel.isEmpty : false
+
+                        onClicked: {
+                            if (root.backendModel.hasUnsavedChanges)
+                                confirmClearAllDialog.open()
+                            else
+                                root.backendModel.clear()
                         }
                     }
 
-                    Column {
-                        id: nodesCol
-                        width: scrollView.width
-                        spacing: 1
+                    HelperWidgets.AbstractButton {
+                        objectName: "btnOpenShaderInCodeEditor"
 
-                        Repeater {
-                            id: repeater
+                        anchors.right: parent.right
+                        anchors.rightMargin: 5
+                        anchors.verticalCenter: parent.verticalCenter
 
-                            width: parent.width
-                            model: root.backendModel
+                        style: StudioTheme.Values.viewBarButtonStyle
+                        buttonIcon: StudioTheme.Constants.code
+                        tooltip: qsTr("Open Shader in Code Editor.")
+                        visible: false // TODO: to be implemented
 
-                            onCountChanged: {
-                                HelperWidgets.Controller.setCount("EffectComposer", repeater.count)
-                            }
-
-                            delegate: EffectCompositionNode {
-                                width: parent.width
-                                modelIndex: index
-
-                                Behavior on y {
-                                    PropertyAnimation {
-                                        duration: 300
-                                        easing.type: Easing.InOutQuad
-                                    }
-                                }
-
-                                onStartDrag: (section) => {
-                                    root.draggedSec = section
-                                    root.moveFromIdx = index
-
-                                    highlightBorder = true
-
-                                    root.secsY = []
-                                    for (let i = 0; i < repeater.count; ++i)
-                                        root.secsY[i] = repeater.itemAt(i).y
-                                }
-
-                                onStopDrag: {
-                                    if (root.moveFromIdx === root.moveToIdx)
-                                        root.draggedSec.y = root.secsY[root.moveFromIdx]
-                                    else
-                                        root.backendModel.moveNode(root.moveFromIdx, root.moveToIdx)
-
-                                    highlightBorder = false
-                                    root.draggedSec = null
-                                }
-                            }
-                        } // Repeater
-
-                        Timer {
-                            running: root.draggedSec
-                            interval: 50
-                            repeat: true
-
-                            onTriggered: {
-                                root.moveToIdx = root.moveFromIdx
-                                for (let i = 0; i < repeater.count; ++i) {
-                                    let currItem = repeater.itemAt(i)
-                                    if (i > root.moveFromIdx) {
-                                        if (root.draggedSec.y > currItem.y + (currItem.height - root.draggedSec.height) * .5) {
-                                            currItem.y = root.secsY[i] - root.draggedSec.height - nodesCol.spacing
-                                            root.moveToIdx = i
-                                        } else {
-                                            currItem.y = root.secsY[i]
-                                        }
-                                    } else if (i < root.moveFromIdx) {
-                                        if (!repeater.model.isDependencyNode(i)
-                                                && root.draggedSec.y < currItem.y + (currItem.height - root.draggedSec.height) * .5) {
-                                            currItem.y = root.secsY[i] + root.draggedSec.height + nodesCol.spacing
-                                            root.moveToIdx = Math.min(root.moveToIdx, i)
-                                        } else {
-                                            currItem.y = root.secsY[i]
-                                        }
-                                    }
-                                }
-                            }
-                        } // Timer
-                    } // Column
-                } // ScrollView
-
-                Text {
-                    text: root.backendModel.isEnabled ? qsTr("Add an effect node to start")
-                                                      : qsTr("Effect Composer is disabled on MCU projects")
-                    color: StudioTheme.Values.themeTextColor
-                    font.pixelSize: StudioTheme.Values.baseFontSize
-
-                    anchors.centerIn: parent
-
-                    visible: root.backendModel.isEmpty
+                        onClicked: {} // TODO
+                    }
                 }
-            } // Item
-        } // Column
-    } // SplitView
+
+                Item {
+                    width: parent.width
+                    height: parent.height - y
+
+                    HelperWidgets.ScrollView {
+                        id: scrollView
+
+                        readonly property int dragScrollMargin: 50
+
+                        anchors.fill: parent
+                        clip: true
+                        interactive: !HelperWidgets.Controller.contextMenuOpened
+
+                        onContentHeightChanged: {
+                            // Expand states are stored before full model reset.
+                            // Content height change indicates the model has been updated after full
+                            // reset, so we restore expand states if any are stored.
+                            root.restoreExpandStates()
+
+                            // If content height change was because a recent node addition, we want to
+                            // scroll to the end of the content so the newly added item is visible.
+                            if (nodesComboBox.nodeJustAdded && scrollView.contentItem.height > scrollView.height) {
+                                let lastItemH = repeater.itemAt(repeater.count - 1).height
+                                scrollView.contentY = scrollView.contentItem.height - lastItemH
+                                nodesComboBox.nodeJustAdded = false
+                            }
+
+                            if (root.ensureVisibleY >= 0) {
+                                if (root.ensureVisibleY > scrollView.contentY + scrollView.height)
+                                    scrollView.contentY = root.ensureVisibleY - scrollView.height
+                                root.ensureVisibleY = -1
+                            }
+                        }
+
+                        Column {
+                            id: nodesCol
+                            width: scrollView.width
+                            spacing: 1
+
+                            Repeater {
+                                id: repeater
+
+                                width: parent.width
+                                model: root.backendModel
+
+                                onCountChanged: {
+                                    HelperWidgets.Controller.setCount("EffectComposer", repeater.count)
+                                }
+
+                                delegate: EffectCompositionNode {
+                                    width: parent.width
+                                    modelIndex: index
+
+                                    property bool wasExpanded: false
+
+                                    Behavior on y {
+                                        id: dragAnimation
+                                        PropertyAnimation {
+                                            duration: 300
+                                            easing.type: Easing.InOutQuad
+                                        }
+                                    }
+
+                                    onStartDrag: (section) => {
+                                        root.draggedSec = section
+                                        root.moveFromIdx = index
+                                        // We only need to animate non-dragged sections
+                                        dragAnimation.enabled = false
+                                        wasExpanded = expanded
+                                        expanded = false
+                                        highlightBorder = true
+                                        root.secsY = []
+                                    }
+
+                                    onStopDrag: {
+                                        if (root.secsY.length !== 0) {
+                                            if (root.moveFromIdx === root.moveToIdx)
+                                                root.draggedSec.y = root.secsY[root.moveFromIdx]
+                                            else
+                                                root.backendModel.moveNode(root.moveFromIdx, root.moveToIdx)
+                                        }
+
+                                        highlightBorder = false
+                                        root.draggedSec = null
+                                        expanded = wasExpanded
+                                        dragAnimation.enabled = true
+                                    }
+
+                                    onEnsureVisible: visibleY => root.ensureVisibleY = visibleY
+                                }
+                            } // Repeater
+                        } // Column
+                    } // ScrollView
+
+                    Text {
+                        text: root.backendModel ? root.backendModel.isEnabled
+                                                  ? qsTr("Add an effect node to start")
+                                                  : qsTr("Effect Composer is disabled on MCU projects")
+                                                : ""
+                        color: StudioTheme.Values.themeTextColor
+                        font.pixelSize: StudioTheme.Values.baseFontSize
+
+                        anchors.centerIn: parent
+
+                        visible: root.backendModel ? root.backendModel.isEmpty : false
+                    }
+                } // Item
+            } // Column
+        } // SplitView
+    } // ColumnLayout
+
+    Text {
+        visible: EffectComposerBackend.rootView.isMCUProject()
+        text: qsTr("Effect Composer is not supported in MCU projects.")
+        color: StudioTheme.Values.themeTextColor
+        anchors.centerIn: parent
+    }
+
+    DropArea {
+        id: dropArea
+
+        anchors.fill: parent
+
+        onEntered: (drag) => {
+            let accepted = false
+            if (drag.formats[0] === "application/vnd.qtdesignstudio.assets" && drag.hasUrls) {
+                accepted = EffectComposerBackend.rootView.isEffectAsset(drag.urls[0])
+            } else if (drag.formats[0] === "application/vnd.qtdesignstudio.modelnode.list") {
+                accepted = EffectComposerBackend.rootView.isEffectNode(
+                           drag.getDataAsArrayBuffer("application/vnd.qtdesignstudio.modelnode.list"))
+            }
+            drag.accepted = accepted
+        }
+
+        onDropped: (drop) => {
+            if (drop.formats[0] === "application/vnd.qtdesignstudio.assets" && drop.hasUrls) {
+                EffectComposerBackend.rootView.dropAsset(drop.urls[0])
+            } else if (drop.formats[0] === "application/vnd.qtdesignstudio.modelnode.list") {
+                EffectComposerBackend.rootView.dropNode(
+                           drop.getDataAsArrayBuffer("application/vnd.qtdesignstudio.modelnode.list"))
+            }
+            drop.accept()
+        }
+    }
 }

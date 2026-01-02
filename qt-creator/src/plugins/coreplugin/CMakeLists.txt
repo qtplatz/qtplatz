@@ -1,5 +1,6 @@
 add_qtc_plugin(Core
-  DEPENDS Qt::PrintSupport Qt::Qml Qt::Sql Qt::Gui Qt::GuiPrivate TerminalLib
+  DEPENDS Qt::PrintSupport Qt::Qml Qt::Sql Qt::Gui Qt::GuiPrivate TerminalLib qtkeychain
+  PLUGIN_TEST_DEPENDS TextEditor
   PUBLIC_DEPENDS Aggregation ExtensionSystem Utils
   SOURCES
     actionmanager/actioncontainer.cpp
@@ -13,8 +14,6 @@ add_qtc_plugin(Core
     actionmanager/command_p.h
     actionmanager/commandmappings.cpp
     actionmanager/commandmappings.h
-    actionmanager/commandsfile.cpp
-    actionmanager/commandsfile.h
     actionsfilter.cpp
     actionsfilter.h
     basefilewizard.cpp
@@ -31,6 +30,10 @@ add_qtc_plugin(Core
     coreplugin.cpp
     coreplugin.h
     coreplugintr.h
+    credentialquery.cpp
+    credentialquery.h
+    customlanguagemodels.cpp
+    customlanguagemodels.h
     designmode.cpp
     designmode.h
     dialogs/addtovcsdialog.cpp
@@ -45,8 +48,6 @@ add_qtc_plugin(Core
     dialogs/ioptionspage.h
     dialogs/newdialog.cpp
     dialogs/newdialog.h
-    dialogs/newdialogwidget.cpp
-    dialogs/newdialogwidget.h
     dialogs/openwithdialog.cpp
     dialogs/openwithdialog.h
     dialogs/promptoverwritedialog.cpp
@@ -213,8 +214,6 @@ add_qtc_plugin(Core
     messagebox.h
     messagemanager.cpp
     messagemanager.h
-    messageoutputwindow.cpp
-    messageoutputwindow.h
     mimetypemagicdialog.cpp
     mimetypemagicdialog.h
     mimetypesettings.cpp
@@ -229,7 +228,6 @@ add_qtc_plugin(Core
     navigationwidget.h
     opendocumentstreeview.cpp
     opendocumentstreeview.h
-    outputpane.cpp
     outputpane.h
     outputpanemanager.cpp
     outputpanemanager.h
@@ -256,6 +254,8 @@ add_qtc_plugin(Core
     progressmanager/taskprogress.h
     rightpane.cpp
     rightpane.h
+    secretaspect.cpp
+    secretaspect.h
     session.cpp
     session.h
     sessiondialog.cpp
@@ -288,7 +288,6 @@ add_qtc_plugin(Core
     welcomepagehelper.h
     windowsupport.cpp
     windowsupport.h
-  EXPLICIT_MOC dialogs/filepropertiesdialog.h
 )
 
 extend_qtc_plugin(Core
@@ -299,11 +298,10 @@ extend_qtc_plugin(Core
 extend_qtc_plugin(Core
   CONDITION WITH_TESTS
   SOURCES
+    editormanager/editormanager_test.cpp
     locator/locator_test.cpp
     locator/locatorfiltertest.cpp
     locator/locatorfiltertest.h
-    testdatadir.cpp
-    testdatadir.h
 )
 
 extend_qtc_plugin(Core
@@ -324,8 +322,13 @@ extend_qtc_plugin(Core
 )
 
 extend_qtc_plugin(Core
-  CONDITION BUILD_WITH_CRASHPAD
-  DEFINES ENABLE_CRASHPAD
+  CONDITION BUILD_WITH_CRASHPAD OR BUILD_WITH_SENTRY
+  DEFINES ENABLE_CRASHREPORTING
+)
+
+extend_qtc_plugin(Core
+  CONDITION BUILD_WITH_CRASHPAD OR (BUILD_WITH_SENTRY AND SENTRY_CRASHPAD_PATH)
+  DEFINES CRASHREPORTING_USES_CRASHPAD
 )
 
 set(FONTS_BASE "${QtCreator_SOURCE_DIR}/src/share/3rdparty/studiofonts/")

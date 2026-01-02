@@ -15,6 +15,8 @@ QT_END_NAMESPACE
 
 namespace Utils {
 
+class PlainTextDocumentLayout;
+
 class QTCREATOR_UTILS_EXPORT MultiTextCursor
 {
 public:
@@ -57,10 +59,15 @@ public:
     void mergeCursors();
 
     /// applies the move key event \param e to all cursors in this multi cursor
-    bool handleMoveKeyEvent(QKeyEvent *e, QPlainTextEdit *edit, bool camelCaseNavigationEnabled);
+    bool handleMoveKeyEvent(
+        QKeyEvent *e, bool camelCaseNavigationEnabled, PlainTextDocumentLayout *layout = nullptr);
     /// applies the move \param operation to all cursors in this multi cursor \param n times
     /// with the move \param mode
-    void movePosition(QTextCursor::MoveOperation operation, QTextCursor::MoveMode mode, int n = 1);
+    void movePosition(
+        QTextCursor::MoveOperation operation,
+        QTextCursor::MoveMode mode,
+        int n = 1,
+        PlainTextDocumentLayout *layout = nullptr);
 
     /// Returns whether any cursor has a selection.
     bool hasSelection() const;
@@ -69,6 +76,7 @@ public:
     QString selectedText() const;
     /// removes the selected text of all cursors that have a selection from the document
     void removeSelectedText();
+    void clearSelection();
 
     /// inserts \param text into all cursors, potentially removing correctly selected text
     void insertText(const QString &text, bool selectNewText = false);
@@ -108,7 +116,10 @@ public:
     const_iterator constBegin() const { return m_cursorMap.cbegin(); }
     const_iterator constEnd() const { return m_cursorMap.cend(); }
 
-    static bool multiCursorAddEvent(QKeyEvent *e, QKeySequence::StandardKey matchKey);
+    static bool multiCursorEvent(
+        QKeyEvent *e,
+        QKeySequence::StandardKey matchKey,
+        Qt::KeyboardModifiers additionalFilterModifier = {});
 
 private:
     std::list<QTextCursor> m_cursorList;

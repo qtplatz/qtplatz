@@ -4,7 +4,7 @@
 #include "clangutils.h"
 
 #include "filepath.h"
-#include "process.h"
+#include "qtcprocess.h"
 #include "utilstr.h"
 
 #include <QVersionNumber>
@@ -43,29 +43,25 @@ QVersionNumber clangdVersion(const FilePath &clangd)
     return it->second;
 }
 
-bool checkClangdVersion(const FilePath &clangd, QString *error)
+Result<> checkClangdVersion(const FilePath &clangd)
 {
-    if (clangd.isEmpty()) {
-        *error = Tr::tr("No clangd executable specified.");
-        return false;
-    }
+    if (clangd.isEmpty())
+        return ResultError(Tr::tr("No clangd executable specified."));
 
     const QVersionNumber version = clangdVersion(clangd);
     if (version >= minimumClangdVersion())
-        return true;
-    if (error) {
-        *error = version.isNull()
+        return ResultOk;
+
+    return ResultError(version.isNull()
                      ? Tr::tr("Failed to retrieve clangd version: Unexpected clangd output.")
                      : Tr::tr("The clangd version is %1, but %2 or greater is required.")
                            .arg(version.toString())
-                           .arg(minimumClangdVersion().majorVersion());
-    }
-    return false;
+                           .arg(minimumClangdVersion().majorVersion()));
 }
 
 QVersionNumber minimumClangdVersion()
 {
-    return QVersionNumber(14);
+    return QVersionNumber(17);
 }
 
 } // namespace Utils

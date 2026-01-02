@@ -7,11 +7,10 @@
 
 namespace Core::Internal {
 
-class FileSystemFilter : public ILocatorFilter
+class FileSystemFilter final : public ILocatorFilter
 {
 public:
     FileSystemFilter();
-    void restoreState(const QByteArray &state) final;
     bool openConfigDialog(QWidget *parent, bool &needsRefresh) final;
 
 protected:

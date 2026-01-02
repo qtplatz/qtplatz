@@ -12,7 +12,7 @@ def typeTarget(type):
 
 
 def stripTypeName(value):
-    return typeTarget(value.type).unqualified().name
+    return typeTarget(value.type).name
 
 
 def extractPointerType(d, value):
@@ -53,7 +53,7 @@ def readTemplateName(d, value):
 def readLiteral(d, value):
     if not value.integer():
         return "<null>"
-    type = typeTarget(value.type.unqualified())
+    type = typeTarget(value.type)
     if type and (type.name == "CPlusPlus::TemplateNameId"):
         return readTemplateName(d, value)
     elif type and (type.name == "CPlusPlus::QualifiedNameId"):
@@ -202,6 +202,46 @@ def qdump__CPlusPlus__Internal__Value(d, value):
     d.putPlainChildren(value)
 
 
+def is_windows_drive_letter(ch):
+    return (ch >= ord('A') and ch <= ord('Z')) or (ch >= ord('a') and ch <= ord('z'))
+
+def is_relative_filepath_enc(path_enc):
+    # Note: path is hex-encoded UTF-16 here, i.e. 4 byte per original QChar
+    """
+    This needs to stay in sync with the implementation on the C++ side
+    in filepath.cpp.
+
+    bool isWindowsDriveLetter(QChar ch)
+    {
+       return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+    }
+    bool startsWithWindowsDriveLetterAndSlash(QStringView path)
+    {
+       return path.size() > 2 && path[1] == ':' && path[2] == '/
+           && isWindowsDriveLetter(path[0]);
+    }
+    bool FilePath::isRelativePath() const
+    {
+        const QStringView p = pathView();
+        if (p.startsWith('/'))
+            return false;
+        if (startsWithWindowsDriveLetterAndSlash(p))
+            return false;
+        if (p.startsWith(u":/")) // QRC
+            return false;
+        return true;
+    }
+    """
+    colon = "3A00"
+    slash = "2F00"
+    if path_enc.startswith(slash):
+        return False
+    if path_enc[4:12] == colon + slash and is_windows_drive_letter(int(path_enc[0:2], 16)):
+        return False
+    if path_enc.startswith(colon + slash):
+        return False
+    return True
+
 def qdump__Utils__FilePath(d, value):
     data, path_len, scheme_len, host_len = d.split("{@QString}IHH", value)
     length, enc = d.encodeStringHelper(data, d.displayStringLimit)
@@ -216,8 +256,10 @@ def qdump__Utils__FilePath(d, value):
         dot = "2E00"
         colon = "3A00"
         val = scheme_enc + colon + slash + slash + host_enc
-        if not path_enc.startswith(slash):
+        if is_relative_filepath_enc(path_enc):
             val += slash + dot + slash
+        elif is_windows_drive_letter(int(path_enc[0:2], 16)):
+            val += slash
         val += path_enc
     else:
         val = enc
@@ -369,3 +411,4 @@ def qdump__QmakeProjectManager__QmakePriFileNode(d, value):
 
 def qdump__QmakeProjectManager__QmakeProFileNode(d, value):
     qdump__ProjectExplorer__FolderNode(d, value)
+

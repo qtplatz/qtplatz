@@ -26,7 +26,7 @@ add_subdirectory( test_date )
 #add_subdirectory( test_regex )
 #add_subdirectory( test_numpy )
 if ( APPLE )
-  add_subdirectory( test_pge2 )
+#  add_subdirectory( test_pge2 )
 endif()
 
 if ( NOT CMAKE_CROSSCOMPILING )

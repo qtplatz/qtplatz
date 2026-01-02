@@ -271,12 +271,12 @@ void ScopeChain::update() const
 
 static void addInstantiatingComponents(ContextPtr context, QmlComponentChain *chain)
 {
-    const QRegularExpression importCommentPattern(QLatin1String("@scope\\s+(.*)"));
+    static const QRegularExpression importCommentPattern("@scope\\s+(.*)");
     for (const SourceLocation &commentLoc : chain->document()->engine()->comments()) {
         const QString &comment = chain->document()->source().mid(commentLoc.begin(), commentLoc.length);
 
         // find all @scope annotations
-        QList<Utils::FilePath> additionalScopes;
+        Utils::FilePaths additionalScopes;
         int lastOffset = -1;
         QRegularExpressionMatch match;
         forever {
@@ -332,11 +332,11 @@ void ScopeChain::initializeRootScope()
             for (Document::Ptr otherDoc : snapshot) {
                 for (const ImportInfo &import : otherDoc->bind()->imports()) {
                     if ((import.type() == ImportType::File
-                         && m_document->fileName().toString() == import.path())
+                         && m_document->fileName().path() == import.path())
                         || (import.type() == ImportType::QrcFile
                             && ModelManagerInterface::instance()
                                    ->filesAtQrcPath(import.path())
-                                   .contains(m_document->fileName().path()))) {
+                                   .contains(m_document->fileName()))) {
                         QmlComponentChain *component = new QmlComponentChain(otherDoc);
                         componentScopes.insert(otherDoc.data(), component);
                         chain->addInstantiatingComponent(component);

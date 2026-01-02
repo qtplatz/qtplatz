@@ -42,9 +42,9 @@ namespace quan {
         QuanPlugin();
         ~QuanPlugin();
 
-        bool initialize(const QStringList &arguments, QString *errorString);
-        void extensionsInitialized();
-        ShutdownFlag aboutToShutdown();
+        Utils::Result<> initialize(const QStringList &arguments) override;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
     private:
         class impl;

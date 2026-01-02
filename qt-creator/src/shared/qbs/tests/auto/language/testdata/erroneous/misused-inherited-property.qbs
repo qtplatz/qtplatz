@@ -1,3 +1,0 @@
-ParentItem {
-    cpp.compilerName: "blubb"
-}

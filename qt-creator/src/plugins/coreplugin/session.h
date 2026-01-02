@@ -12,6 +12,7 @@
 
 namespace Utils {
 class FilePath;
+class FilePaths;
 class Key;
 } // Utils
 
@@ -26,6 +27,8 @@ public:
     ~SessionManager() override;
 
     static SessionManager *instance();
+
+    static bool loadsSessionOrFileAtStartup();
 
     // higher level session management
     static QString activeSession();
@@ -70,6 +73,8 @@ public:
 
     static bool loadSession(const QString &session, bool initial = false);
     static bool saveSession();
+
+    static Utils::FilePaths openFilesForSessionName(const QString &session, int max = -1);
 
 signals:
     void startupSessionRestored();

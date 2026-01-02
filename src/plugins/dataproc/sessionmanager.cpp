@@ -93,7 +93,7 @@ SessionManager::removeEditor( Core::IEditor * editor )
         }
         emit onRemoveSession( it->processor() );
         impl_->sessions_.erase( it );
-        emit onSessionRemoved( filePath.toString() );
+        emit onSessionRemoved( filePath.toUrlishString() );
     }
 }
 
@@ -136,7 +136,7 @@ SessionManager::checkStateChanged( Dataprocessor * dataprocessor, portfolio::Fol
 {
     if ( ! impl_->loadInprogress_ ) {
         emit signalCheckStateChanged( dataprocessor, folium, isChecked );
-        emit onCheckStateChanged( this, dataprocessor->filePath().toString(), folium, isChecked );
+        emit onCheckStateChanged( this, dataprocessor->filePath().toUrlishString(), folium, isChecked );
     }
 }
 
@@ -177,11 +177,7 @@ SessionManager::find_processor( const std::string& filename )
 std::shared_ptr< adprocessor::dataprocessor >
 SessionManager::getDataprocessor( const QString& name )
 {
-#if QTC_VERSION >= 0x08'00'00
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toString() == name; } );
-#else
-    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filepath() == name; } );
-#endif
+    auto it = std::find_if( begin(), end(), [&]( const Session& a ){ return a.processor()->filePath().toUrlishString() == name; } );
     if ( it != end() )
         return it->processor()->shared_from_this();
 
@@ -194,11 +190,7 @@ SessionManager::processed( Dataprocessor* dataprocessor, portfolio::Folium& foli
     emit onProcessed( dataprocessor, folium );
 
     // iSessionManager
-#if QTC_VERSION >= 0x08'00'00
-    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath().toString(), folium );
-#else
-    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filepath(), folium );
-#endif
+    emit static_cast< iSessionManager * >(this)->onProcessed( this, dataprocessor->filePath().toUrlishString(), folium );
 }
 
 void
@@ -219,11 +211,7 @@ SessionManager::selectionChanged( Dataprocessor* dataprocessor, portfolio::Foliu
     emit signalSelectionChanged( dataprocessor, folium );
 
     // iSessionManager
-#if QTC_VERSION >= 0x08'00'00
-    emit onSelectionChanged( this, dataprocessor->filePath().toString(), folium );
-#else
-    emit onSelectionChanged( this, dataprocessor->filepath(), folium );
-#endif
+    emit onSelectionChanged( this, dataprocessor->filePath().toUrlishString(), folium );
 }
 
 Dataprocessor *

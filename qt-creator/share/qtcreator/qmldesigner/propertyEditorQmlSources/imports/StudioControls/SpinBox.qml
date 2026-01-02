@@ -3,7 +3,8 @@
 
 import QtQuick
 import QtQuick.Templates as T
-import StudioTheme 1.0 as StudioTheme
+import StudioTheme as StudioTheme
+import StudioQuickUtils
 
 T.SpinBox {
     id: control
@@ -54,6 +55,8 @@ T.SpinBox {
     signal dragEnded
     signal dragging
 
+    locale: Utils.locale
+
     // Use custom wheel handling due to bugs
     property bool __wheelEnabled: false
     wheelEnabled: false
@@ -69,9 +72,14 @@ T.SpinBox {
     editable: true
     validator: control.decimals ? doubleValidator : intValidator
 
+    function checkAndClearFocus() {
+        if (!spinBoxIndicatorUp.activeFocus && !spinBoxIndicatorDown.activeFocus && !spinBoxInput.activeFocus)
+            control.focus = false
+    }
+
     DoubleValidator {
         id: doubleValidator
-        locale: control.locale.name
+        locale: control.locale
         notation: DoubleValidator.StandardNotation
         decimals: control.decimals
         bottom: Math.min(control.from, control.to) / control.factor
@@ -80,7 +88,7 @@ T.SpinBox {
 
     IntValidator {
         id: intValidator
-        locale: control.locale.name
+        locale: control.locale
         bottom: Math.min(control.from, control.to)
         top: Math.max(control.from, control.to)
     }
@@ -132,7 +140,7 @@ T.SpinBox {
         __parentControl: control
 
         function handleEditingFinished() {
-            control.focus = false
+            control.checkAndClearFocus()
 
             // Keep the dirty state before calling setValueFromInput(),
             // it will be set to false (cleared) internally
@@ -146,7 +154,10 @@ T.SpinBox {
                 control.compressedValueModified()
         }
 
-        onEditingFinished: spinBoxInput.handleEditingFinished()
+        onEditingFinished: {
+            spinBoxInput.focus = false
+            spinBoxInput.handleEditingFinished()
+        }
     }
 
     background: Rectangle {

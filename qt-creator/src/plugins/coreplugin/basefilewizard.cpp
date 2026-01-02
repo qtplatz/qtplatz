@@ -5,6 +5,7 @@
 
 #include "basefilewizardfactory.h"
 #include "coreplugintr.h"
+#include "icore.h"
 #include "ifilewizardextension.h"
 
 #include <QMessageBox>
@@ -25,12 +26,8 @@ IFileWizardExtension::~IFileWizardExtension()
     g_fileWizardExtensions.removeOne(this);
 }
 
-BaseFileWizard::BaseFileWizard(const BaseFileWizardFactory *factory,
-                               const QVariantMap &extraValues,
-                               QWidget *parent) :
-    Wizard(parent),
-    m_extraValues(extraValues),
-    m_factory(factory)
+BaseFileWizard::BaseFileWizard(const BaseFileWizardFactory *factory, const QVariantMap &extraValues)
+    : m_extraValues(extraValues), m_factory(factory)
 {
     for (IFileWizardExtension *extension : std::as_const(g_fileWizardExtensions))
         m_extensionPages += extension->extensionPages(factory);
@@ -60,19 +57,19 @@ void BaseFileWizard::accept()
     if (m_files.isEmpty())
         generateFileList();
 
-    QString errorMessage;
-
     // Compile result list and prompt for overwrite
-    switch (BaseFileWizardFactory::promptOverwrite(&m_files, &errorMessage)) {
-    case BaseFileWizardFactory::OverwriteCanceled:
+    Result<BaseFileWizardFactory::OverwriteResult> res =
+        BaseFileWizardFactory::promptOverwrite(&m_files);
+
+    if (!res) {
+        QMessageBox::critical(ICore::dialogParent(), Tr::tr("Existing files"), res.error());
         reject();
         return;
-    case BaseFileWizardFactory::OverwriteError:
-        QMessageBox::critical(nullptr, Tr::tr("Existing files"), errorMessage);
+    }
+
+    if (*res == BaseFileWizardFactory::OverwriteCanceled) {
         reject();
         return;
-    case BaseFileWizardFactory::OverwriteOk:
-        break;
     }
 
     for (IFileWizardExtension *ex : std::as_const(g_fileWizardExtensions)) {
@@ -82,8 +79,8 @@ void BaseFileWizard::accept()
     }
 
     // Write
-    if (!m_factory->writeFiles(m_files, &errorMessage)) {
-        QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), errorMessage);
+    if (const Result<> res = m_factory->writeFiles(m_files); !res) {
+        QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), res.error());
         reject();
         return;
     }
@@ -92,9 +89,9 @@ void BaseFileWizard::accept()
     // Run the extensions
     for (IFileWizardExtension *ex : std::as_const(g_fileWizardExtensions)) {
         bool remove;
-        if (!ex->processFiles(m_files, &remove, &errorMessage)) {
-            if (!errorMessage.isEmpty())
-                QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), errorMessage);
+        if (const Result<> res = ex->processFiles(m_files, &remove); !res) {
+            if (!res.error().isEmpty())
+                QMessageBox::critical(parentWidget(), Tr::tr("File Generation Failure"), res.error());
             reject();
             return;
         }
@@ -109,9 +106,10 @@ void BaseFileWizard::accept()
     }
 
     // Post generation handler
-    if (!m_factory->postGenerateFiles(this, m_files, &errorMessage))
-        if (!errorMessage.isEmpty())
-            QMessageBox::critical(nullptr, Tr::tr("File Generation Failure"), errorMessage);
+    if (const Result<> res = m_factory->postGenerateFiles(this, m_files); !res) {
+        if (!res.error().isEmpty())
+            QMessageBox::critical(nullptr, Tr::tr("File Generation Failure"), res.error());
+    }
 
     Wizard::accept();
 }

@@ -11,9 +11,9 @@ function find_qmake() {
 			;;
 		Darwin*)
 			local hints=(
+				"/Qt/6.10.1/macos"
+				"/Qt/6.9.3/macos"
 				"/Qt/6.7.3/macos"
-				"/Qt/6.7.2/macos"
-				"/Qt/6.5.3/macos"
 				"/Qt5/5.15.2" "/Qt/5.15.2/clang_64" )
 			;;
 	esac

@@ -199,34 +199,34 @@ void TerminalInterface::onStubReadyRead()
     }
 }
 
-expected_str<void> TerminalInterface::startStubServer()
+Result<> TerminalInterface::startStubServer()
 {
     if (HostOsInfo::isWindowsHost()) {
         if (d->stubServer.listen(QString::fromLatin1("creator-%1-%2")
                                      .arg(QCoreApplication::applicationPid())
                                      .arg(rand())))
             return {};
-        return make_unexpected(d->stubServer.errorString());
+        return ResultError(d->stubServer.errorString());
     }
 
     // We need to put the socket in a private directory, as some systems simply do not
     // check the file permissions of sockets.
     if (!QDir(d->tempDir.path())
              .mkdir("socket")) { //  QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner
-        return make_unexpected(msgCannotCreateTempDir(d->tempDir.filePath("socket"),
+        return ResultError(msgCannotCreateTempDir(d->tempDir.filePath("socket"),
                                                       QString::fromLocal8Bit(strerror(errno))));
     }
 
     if (!QFile::setPermissions(d->tempDir.filePath("socket"),
                                QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner)) {
-        return make_unexpected(Tr::tr("Cannot set permissions on temporary directory \"%1\": %2")
+        return ResultError(Tr::tr("Cannot set permissions on temporary directory \"%1\": %2")
                                    .arg(d->tempDir.filePath("socket"))
                                    .arg(QString::fromLocal8Bit(strerror(errno))));
     }
 
     const QString socketPath = d->tempDir.filePath("socket/stub-socket");
     if (!d->stubServer.listen(socketPath)) {
-        return make_unexpected(
+        return ResultError(
             Tr::tr("Cannot create socket \"%1\": %2").arg(socketPath, d->stubServer.errorString()));
     }
     return {};
@@ -310,7 +310,7 @@ void TerminalInterface::start()
         return;
 
     if (m_setup.m_terminalMode == TerminalMode::Detached) {
-        expected_str<qint64> result;
+        Result<qint64> result;
         QMetaObject::invokeMethod(
             d->stubCreator,
             [this, &result] { result = d->stubCreator->startStubProcess(m_setup); },
@@ -326,7 +326,7 @@ void TerminalInterface::start()
         return;
     }
 
-    const expected_str<void> result = startStubServer();
+    const Result<> result = startStubServer();
     if (!result) {
         emitError(QProcess::FailedToStart, msgCommChannelFailed(result.error()));
         return;
@@ -334,22 +334,12 @@ void TerminalInterface::start()
 
     Environment finalEnv = m_setup.m_environment;
 
-    if (HostOsInfo::isWindowsHost()) {
-        if (!finalEnv.hasKey("PATH")) {
-            const QString path = qtcEnvironmentVariable("PATH");
-            if (!path.isEmpty())
-                finalEnv.set("PATH", path);
-        }
-        if (!finalEnv.hasKey("SystemRoot")) {
-            const QString systemRoot = qtcEnvironmentVariable("SystemRoot");
-            if (!systemRoot.isEmpty())
-                finalEnv.set("SystemRoot", systemRoot);
-        }
-    } else if (HostOsInfo::isMacHost()) {
+    if (HostOsInfo::isMacHost())
         finalEnv.set("TERM", "xterm-256color");
-    }
 
     if (finalEnv.hasChanges()) {
+        finalEnv = finalEnv.appliedToEnvironment(Environment::systemEnvironment());
+
         d->envListFile = std::make_unique<QTemporaryFile>(this);
         if (!d->envListFile->open()) {
             cleanupAfterStartFailure(msgCannotCreateTempFile(d->envListFile->errorString()));
@@ -396,13 +386,16 @@ void TerminalInterface::start()
 
     ProcessSetupData stubSetupData;
     stubSetupData.m_commandLine = cmd;
+    stubSetupData.m_environment = Environment::originalSystemEnvironment();
 
     stubSetupData.m_extraData[TERMINAL_SHELL_NAME]
         = m_setup.m_extraData.value(TERMINAL_SHELL_NAME,
                                     m_setup.m_commandLine.executable().fileName());
 
-    if (m_setup.m_runAsRoot && !HostOsInfo::isWindowsHost()) {
-        CommandLine rootCommand("sudo", {});
+    if (!m_setup.m_runAsUser.isEmpty() && !HostOsInfo::isWindowsHost()) {
+        CommandLine rootCommand("sudo");
+        if (m_setup.m_runAsUser != "root")
+            rootCommand.addArgs({"-u", m_setup.m_runAsUser});
         rootCommand.addCommandLineAsArgs(cmd);
         stubSetupData.m_commandLine = rootCommand;
     } else {
@@ -428,7 +421,7 @@ void TerminalInterface::start()
 
 qint64 TerminalInterface::write(const QByteArray &data)
 {
-    Q_UNUSED(data);
+    Q_UNUSED(data)
     QTC_CHECK(false);
     return -1;
 }

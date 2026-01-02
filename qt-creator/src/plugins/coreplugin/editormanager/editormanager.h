@@ -99,6 +99,8 @@ public:
     static void activateEditorForEntry(DocumentModel::Entry *entry, OpenEditorFlags flags = NoFlags);
     static IEditor *activateEditorForDocument(IDocument *document, OpenEditorFlags flags = NoFlags);
 
+    static void addEditor(IEditor *editor, OpenEditorFlags flags = NoFlags);
+
     static bool closeDocuments(const QList<IDocument *> &documents, bool askAboutModifiedEditors = true);
     static bool closeDocuments(const QList<DocumentModel::Entry *> &entries);
     static void closeOtherDocuments(IDocument *document);
@@ -113,7 +115,7 @@ public:
     static bool closeEditors(const QList<IEditor *> &editorsToClose, bool askAboutModifiedEditors = true);
 
     static QByteArray saveState();
-    static bool restoreState(const QByteArray &state);
+    static void restoreState(const QByteArray &state);
     static bool hasSplitter();
 
     static void showEditorStatusBar(const QString &id,
@@ -127,7 +129,7 @@ public:
 
     static bool autoSaveAfterRefactoring();
 
-    static QTextCodec *defaultTextCodec();
+    static Utils::TextEncoding defaultTextEncoding();
 
     static Utils::TextFileFormat::LineTerminationMode defaultLineEnding();
 
@@ -141,6 +143,9 @@ public:
                                              IEditor *editor = nullptr);
     static void addPinEditorActions(QMenu *contextMenu, DocumentModel::Entry *entry);
     static void addNativeDirAndOpenWithActions(QMenu *contextMenu, DocumentModel::Entry *entry);
+    static void addContextMenuActions(
+        QMenu *contextMenu, DocumentModel::Entry *entry, IEditor *editor = nullptr);
+    static void addContextMenuActions(QMenu *contextMenu, const Utils::FilePath &filePath);
     static void populateOpenWithMenu(QMenu *menu, const Utils::FilePath &filePath);
 
     static void runWithTemporaryEditor(const Utils::FilePath &filePath,
@@ -160,10 +165,10 @@ signals:
     void editorAboutToClose(Core::IEditor *editor);
     void editorsClosed(QList<Core::IEditor *> editors);
     void documentClosed(Core::IDocument *document);
-    void findOnFileSystemRequest(const QString &path);
+    void findOnFileSystemRequest(const Utils::FilePath &path);
     void openFileProperties(const Utils::FilePath &path);
-    void aboutToSave(IDocument *document);
-    void saved(IDocument *document);
+    void aboutToSave(Core::IDocument *document, Core::IDocument::SaveOption option);
+    void saved(Core::IDocument *document, Core::IDocument::SaveOption option);
     void autoSaved();
     void currentEditorAboutToChange(Core::IEditor *editor);
 
@@ -174,6 +179,7 @@ signals:
 public slots:
     static void saveDocument();
     static void saveDocumentAs();
+    static void saveDocumentWithoutFormatting();
     static void revertToSaved();
     static bool closeAllEditors(bool askAboutModifiedEditors = true);
     static void slotCloseCurrentEditorOrDocument();

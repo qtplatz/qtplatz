@@ -40,11 +40,11 @@ namespace quan {
         QuanDocument();
 
         // Core::IDocument
-        OpenResult open(QString *errorString, const Utils::FilePath &filePath,
-                        const Utils::FilePath &realFilePath) override;
+        Utils::Result<> open(const Utils::FilePath &filePath,
+                             const Utils::FilePath &realFilePath) override;
         ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
         bool save( QString* errorString, const QString& filename = QString(), bool autoSave = false );
-        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ) override;
+        bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ); // override;
         bool isModified() const override;
         bool isSaveAsAllowed() const override;
         QString defaultPath() const;

@@ -7,6 +7,48 @@ foreach(qtcreator_var
   set(__just_reference_${qtcreator_var} ${${qtcreator_var}})
 endforeach()
 
+option(QT_CREATOR_SOURCE_GROUPS "Qt Creator source groups extensions" ON)
+if (QT_CREATOR_SOURCE_GROUPS)
+  source_group("Resources" REGULAR_EXPRESSION "\\.(pdf|plist|png|jpeg|jpg|storyboard|xcassets|qrc|svg|gif|ico|webp)$")
+  source_group("Forms" REGULAR_EXPRESSION "\\.(ui)$")
+  source_group("State charts" REGULAR_EXPRESSION "\\.(scxml)$")
+  source_group("Source Files" REGULAR_EXPRESSION
+    "\\.(C|F|M|c|c\\+\\+|cc|cpp|mpp|cxx|ixx|cppm|ccm|cxxm|c\\+\\+m|cu|f|f90|for|fpp|ftn|m|mm|rc|def|r|odl|idl|hpj|bat|qml|js)$"
+  )
+endif()
+
+#
+# Set a better default value for CMAKE_INSTALL_PREFIX
+#
+function(qtc_modify_default_install_prefix)
+  # If at configure time the user didn't specify a CMAKE_INSTALL_PREFIX variable
+  # Modules/CMakeGenericSystem.cmake will set a default value
+  # to CMAKE_INSTALL_PREFIX and set CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT to ON
+
+  # In practice there are cases when CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT is
+  # set to ON and a custom CMAKE_INSTALL_PREFIX is set
+
+  # Do the original CMAKE_INSTALL_PREFIX detection
+  if(CMAKE_HOST_UNIX)
+    set(original_cmake_install_prefix "/usr/local")
+  else()
+    GetDefaultWindowsPrefixBase(CMAKE_GENERIC_PROGRAM_FILES)
+    set(original_cmake_install_prefix
+      "${CMAKE_GENERIC_PROGRAM_FILES}/${PROJECT_NAME}")
+    unset(CMAKE_GENERIC_PROGRAM_FILES)
+  endif()
+
+  # When the user code didn't modify the CMake set CMAKE_INSTALL_PREFIX
+  # then set the "/tmp" better value for CMAKE_INSTALL_PREFIX
+  if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND
+      CMAKE_INSTALL_PREFIX STREQUAL "${original_cmake_install_prefix}")
+    set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "/tmp")
+  endif()
+endfunction()
+if (CMAKE_VERSION GREATER_EQUAL "3.19")
+  cmake_language(DEFER CALL qtc_modify_default_install_prefix)
+endif()
+
 if (EXISTS "${CMAKE_SOURCE_DIR}/QtCreatorPackageManager.cmake")
   include("${CMAKE_SOURCE_DIR}/QtCreatorPackageManager.cmake")
 endif()
@@ -56,6 +98,11 @@ macro(qtc_auto_setup_conan)
     option(QT_CREATOR_SKIP_CONAN_SETUP "Skip Qt Creator's conan package manager auto-setup" OFF)
     set(QT_CREATOR_CONAN_BUILD_POLICY "missing" CACHE STRING "Qt Creator's conan package manager auto-setup build policy. This is used for the BUILD property of cmake_conan_run")
 
+    set_property(
+      DIRECTORY "${CMAKE_SOURCE_DIR}"
+      APPEND
+      PROPERTY CMAKE_CONFIGURE_DEPENDS "${conanfile_txt}")
+
     find_program(conan_program conan)
     if (NOT conan_program)
       message(WARNING "Qt Creator: conan executable not found. "
@@ -98,6 +145,14 @@ macro(qtc_auto_setup_conan)
 
       file(COPY "${conanfile_txt}" DESTINATION "${CMAKE_BINARY_DIR}/conan-dependencies/")
 
+      # conanfile should have a generator specified, when both file and conan_install
+      # specifcy the CMakeDeps generator, conan_install will issue an error
+      file(READ "${conanfile_txt}" conanfile_text_content)
+      unset(conan_generator)
+      if (NOT "${conanfile_text_content}" MATCHES ".*CMakeDeps.*")
+        set(conan_generator "-g CMakeDeps")
+      endif()
+
       file(WRITE "${CMAKE_BINARY_DIR}/conan-dependencies/toolchain.cmake" "
         set(CMAKE_C_COMPILER \"${CMAKE_C_COMPILER}\")
         set(CMAKE_CXX_COMPILER \"${CMAKE_CXX_COMPILER}\")
@@ -131,7 +186,7 @@ macro(qtc_auto_setup_conan)
               -pr \"${CMAKE_BINARY_DIR}/conan-dependencies/conan_host_profile\"
               --build=${QT_CREATOR_CONAN_BUILD_POLICY}
               -s build_type=\${type}
-              -g CMakeDeps)
+              ${conan_generator})
           endforeach()
 
           get_property(CONAN_INSTALL_SUCCESS GLOBAL PROPERTY CONAN_INSTALL_SUCCESS)
@@ -199,7 +254,15 @@ macro(qtc_auto_setup_vcpkg)
   if (EXISTS "${CMAKE_SOURCE_DIR}/vcpkg.json" AND NOT QT_CREATOR_SKIP_VCPKG_SETUP)
     option(QT_CREATOR_SKIP_VCPKG_SETUP "Skip Qt Creator's vcpkg package manager auto-setup" OFF)
 
-    find_program(vcpkg_program vcpkg $ENV{VCPKG_ROOT} ${CMAKE_SOURCE_DIR}/vcpkg)
+    set_property(
+      DIRECTORY "${CMAKE_SOURCE_DIR}"
+      APPEND
+      PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/vcpkg.json")
+
+    find_program(vcpkg_program vcpkg
+      PATHS ${CMAKE_SOURCE_DIR}/vcpkg ${CMAKE_SOURCE_DIR}/3rdparty/vcpkg $ENV{VCPKG_ROOT}
+      NO_DEFAULT_PATH
+    )
     if (NOT vcpkg_program)
       message(WARNING "Qt Creator: vcpkg executable not found. "
                       "Package manager auto-setup will be skipped. "
@@ -237,15 +300,54 @@ macro(qtc_auto_setup_vcpkg)
       if (VCPKG_TARGET_TRIPLET)
         set(vcpkg_triplet ${VCPKG_TARGET_TRIPLET})
       else()
-        if (WIN32)
-          set(vcpkg_triplet x64-mingw-static)
+        if (ANDROID_ABI)
+          if (ANDROID_ABI STREQUAL "armeabi-v7a")
+            set(vcpkg_triplet arm-neon-android)
+          elseif (ANDROID_ABI STREQUAL "arm64-v8a")
+            set(vcpkg_triplet arm64-android)
+          elseif (ANDROID_ABI STREQUAL "x86")
+              set(vcpkg_triplet x86-android)
+          elseif (ANDROID_ABI STREQUAL "x86_64")
+              set(vcpkg_triplet x64-android)
+          else()
+              message(FATAL_ERROR "Unsupported Android ABI: ${ANDROID_ABI}")
+          endif()
+          # Needed by vcpkg/scripts/toolchains/android.cmake
+          file(APPEND "${CMAKE_BINARY_DIR}/vcpkg-dependencies/toolchain.cmake" "
+            set(ENV{ANDROID_NDK_HOME} \"${ANDROID_NDK}\")
+          ")
+        elseif (WIN32)
+          if ("$ENV{PROCESSOR_ARCHITECTURE}" STREQUAL "ARM64")
+            set(vcpkg_triplet arm64-mingw-static)
+          else()
+            set(vcpkg_triplet x64-mingw-static)
+          endif()
           if (CMAKE_CXX_COMPILER MATCHES ".*/(.*)/cl.exe")
-            set(vcpkg_triplet ${CMAKE_MATCH_1}-windows)
+            string(TOLOWER ${CMAKE_MATCH_1} host_arch_lowercase)
+            set(vcpkg_triplet ${host_arch_lowercase}-windows)
           endif()
         elseif(APPLE)
-          set(vcpkg_triplet x64-osx)
+          # We're too early to use CMAKE_HOST_SYSTEM_PROCESSOR
+          execute_process(
+            COMMAND uname -m
+            OUTPUT_VARIABLE __apple_host_system_processor
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+          if (__apple_host_system_processor MATCHES "arm64")
+            set(vcpkg_triplet arm64-osx)
+          else()
+            set(vcpkg_triplet x64-osx)
+          endif()
         else()
-          set(vcpkg_triplet x64-linux)
+          # We're too early to use CMAKE_HOST_SYSTEM_PROCESSOR
+          execute_process(
+            COMMAND uname -m
+            OUTPUT_VARIABLE __linux_host_system_processor
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+          if (__linux_host_system_processor MATCHES "aarch64")
+            set(vcpkg_triplet arm64-linux)
+          else()
+            set(vcpkg_triplet x64-linux)
+          endif()
         endif()
       endif()
 
@@ -267,3 +369,37 @@ macro(qtc_auto_setup_vcpkg)
   endif()
 endmacro()
 qtc_auto_setup_vcpkg()
+
+#
+# MaintenanceTool
+#
+if (QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER)
+  return()
+endif()
+
+option(QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER
+       "Skip Qt Creator's MaintenanceTool find_package provider" OFF)
+option(QT_CREATOR_MAINTENANCE_TOOL_PROVIDER_USE_CLI
+       "Use CLI mode for Qt Creator's MaintenanceTool find_package provider" OFF)
+
+function(qtc_maintenance_provider_missing_variable_message variable)
+  message(STATUS "Qt Creator: ${variable} was not set. "
+                 "Qt MaintenanceTool cannot be used to install missing Qt modules that you specify in find_package(). "
+                 "To disable this message set QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER to ON.")
+endfunction()
+
+if (NOT QT_MAINTENANCE_TOOL)
+  qtc_maintenance_provider_missing_variable_message(QT_MAINTENANCE_TOOL)
+  return()
+endif()
+if (NOT QT_QMAKE_EXECUTABLE)
+  qtc_maintenance_provider_missing_variable_message(QT_QMAKE_EXECUTABLE)
+  return()
+endif()
+
+if (CMAKE_VERSION GREATER_EQUAL "3.24")
+  list(APPEND CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/maintenance_tool_provider.cmake)
+else()
+  message(WARNING "Qt Creator: CMake version 3.24 is needed for MaintenanceTool find_package() provider. "
+                  "To disable this warning set QT_CREATOR_SKIP_MAINTENANCE_TOOL_PROVIDER to ON.")
+endif()

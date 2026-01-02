@@ -6,7 +6,9 @@
 #include "core_global.h"
 
 #include <utils/id.h>
+#include <utils/result.h>
 
+#include <QFile>
 #include <QList>
 #include <QSharedDataPointer>
 
@@ -44,6 +46,9 @@ public:
     void setFilePath(const Utils::FilePath &p);
     Utils::FilePath filePath() const;
 
+    void setPermissions(QFile::Permissions permissions);
+    std::optional<QFile::Permissions> permissions() const;
+
     // Contents of the file (UTF8)
     QString contents() const;
     void setContents(const QString &c);
@@ -59,7 +64,7 @@ public:
     Utils::Id editorId() const;
     void setEditorId(Utils::Id id);
 
-    bool write(QString *errorMessage) const;
+    Utils::Result<> write() const;
 
     Attributes attributes() const;
     void setAttributes(Attributes a);

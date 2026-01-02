@@ -10,51 +10,59 @@ import MaterialBrowserBackend
 StudioControls.Menu {
     id: root
 
-    property var targetTexture: null
-    property int copiedTextureInternalId: -1
+    property int textureInternalId: -1
+    property int textureIndex: -1
 
     property var materialBrowserTexturesModel: MaterialBrowserBackend.materialBrowserTexturesModel
 
     function popupMenu(targetTexture = null)
     {
-        this.targetTexture = targetTexture
+        root.textureInternalId = targetTexture ? targetTexture.textureInternalId : -1
+        root.textureIndex = targetTexture ? targetTexture.index : -1
+
         materialBrowserTexturesModel.updateSceneEnvState()
-        materialBrowserTexturesModel.updateModelSelectionState()
+        materialBrowserTexturesModel.updateSelectionState()
+
         popup()
     }
 
     closePolicy: StudioControls.Menu.CloseOnEscape | StudioControls.Menu.CloseOnPressOutside
 
-    StudioControls.MenuItem {
-        text: qsTr("Apply to selected model")
-        enabled: root.targetTexture && materialBrowserTexturesModel.hasSingleModelSelection
-        onTriggered: materialBrowserTexturesModel.applyToSelectedModel(root.targetTexture.textureInternalId)
+    onClosed: {
+        root.textureIndex = -1
+        root.textureInternalId = -1
     }
 
     StudioControls.MenuItem {
-        text: qsTr("Apply to selected material")
-        enabled: root.targetTexture && MaterialBrowserBackend.materialBrowserModel.selectedIndex >= 0
-        onTriggered: materialBrowserTexturesModel.applyToSelectedMaterial(root.targetTexture.textureInternalId)
+        text: qsTr("Apply to selected model")
+        enabled: root.textureInternalId >= 0 && materialBrowserTexturesModel.hasSingleModelSelection
+        onTriggered: materialBrowserTexturesModel.applyToSelectedModel(root.textureInternalId)
+    }
+
+    StudioControls.MenuItem {
+        text: qsTr("Apply to selected material(s)")
+        enabled: root.textureInternalId >= 0 && materialBrowserTexturesModel.onlyMaterialsSelected
+        onTriggered: materialBrowserTexturesModel.applyToSelectedMaterial(root.textureInternalId)
     }
 
     StudioControls.MenuItem {
         text: qsTr("Apply as light probe")
-        enabled: root.targetTexture && materialBrowserTexturesModel.hasSceneEnv
-        onTriggered: materialBrowserTexturesModel.applyAsLightProbe(root.targetTexture.textureInternalId)
+        enabled: root.textureInternalId >= 0 && materialBrowserTexturesModel.hasSceneEnv
+        onTriggered: materialBrowserTexturesModel.applyAsLightProbe(root.textureInternalId)
     }
 
     StudioControls.MenuSeparator {}
 
     StudioControls.MenuItem {
         text: qsTr("Duplicate")
-        enabled: root.targetTexture
-        onTriggered: materialBrowserTexturesModel.duplicateTexture(materialBrowserTexturesModel.selectedIndex)
+        enabled: root.textureInternalId >= 0
+        onTriggered: materialBrowserTexturesModel.duplicateTexture(root.textureIndex)
     }
 
     StudioControls.MenuItem {
         text: qsTr("Delete")
-        enabled: root.targetTexture
-        onTriggered: materialBrowserTexturesModel.deleteTexture(materialBrowserTexturesModel.selectedIndex)
+        enabled: root.textureInternalId >= 0
+        onTriggered: materialBrowserTexturesModel.deleteTexture(root.textureIndex)
     }
 
     StudioControls.MenuSeparator {}

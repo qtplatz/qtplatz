@@ -17,9 +17,10 @@
 #include <utils/commandline.h>
 #include <utils/environment.h>
 #include <utils/hostosinfo.h>
-#include <utils/process.h>
+#include <utils/qtcprocess.h>
 #include <utils/terminalcommand.h>
 #include <utils/terminalhooks.h>
+#include <utils/textcodec.h>
 #include <utils/textfileformat.h>
 #include <utils/unixutils.h>
 
@@ -30,39 +31,50 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QTextStream>
-#include <QTextCodec>
+
+#ifdef Q_OS_WIN
+#ifdef QTCREATOR_PCH_H
+#define CALLBACK WINAPI
+#endif
+#include <qt_windows.h>
+#include <shlobj.h>
+#endif
 
 using namespace Utils;
 
-namespace Core {
+namespace Core::FileUtils {
+
+static FilePath windowsDirectory()
+{
+#ifdef Q_OS_WIN
+    wchar_t str[UNICODE_STRING_MAX_CHARS] = {};
+    if (SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_WINDOWS, nullptr, 0, str)))
+        return FilePath::fromUserInput(QString::fromUtf16(reinterpret_cast<char16_t *>(str)));
+#endif
+    return {};
+}
 
 // Show error with option to open settings.
-static void showGraphicalShellError(QWidget *parent, const QString &app, const QString &error)
+static void showGraphicalShellError(const QString &app, const QString &error)
 {
     const QString title = Tr::tr("Launching a file browser failed");
     const QString msg = Tr::tr("Unable to start the file manager:\n\n%1\n\n").arg(app);
-    QMessageBox mbox(QMessageBox::Warning, title, msg, QMessageBox::Close, parent);
+    QMessageBox mbox(QMessageBox::Warning, title, msg, QMessageBox::Close, ICore::dialogParent());
     if (!error.isEmpty())
         mbox.setDetailedText(Tr::tr("\"%1\" returned the following error:\n\n%2").arg(app, error));
     QAbstractButton *settingsButton = mbox.addButton(Core::ICore::msgShowOptionsDialog(),
                                                      QMessageBox::ActionRole);
     mbox.exec();
     if (mbox.clickedButton() == settingsButton)
-        ICore::showOptionsDialog(Constants::SETTINGS_ID_INTERFACE, parent);
+        ICore::showOptionsDialog(Constants::SETTINGS_ID_INTERFACE, ICore::dialogParent());
 }
 
-void FileUtils::showInGraphicalShell(QWidget *parent, const FilePath &pathIn)
+void showInGraphicalShell(const FilePath &pathIn)
 {
     const QFileInfo fileInfo = pathIn.toFileInfo();
     // Mac, Windows support folder or file.
     if (HostOsInfo::isWindowsHost()) {
-        const FilePath explorer = FilePath("explorer.exe").searchInPath();
-        if (explorer.isEmpty()) {
-            QMessageBox::warning(parent,
-                                 Tr::tr("Launching Windows Explorer Failed"),
-                                 Tr::tr("Could not find explorer.exe in path to launch Windows Explorer."));
-            return;
-        }
+        const FilePath explorer = windowsDirectory().pathAppended("explorer.exe");
         QStringList param;
         if (!pathIn.isDir())
             param += QLatin1String("/select,");
@@ -86,11 +98,11 @@ void FileUtils::showInGraphicalShell(QWidget *parent, const FilePath &pathIn)
                 error = Tr::tr("Error while starting file browser.");
         }
         if (!error.isEmpty())
-            showGraphicalShellError(parent, app, error);
+            showGraphicalShellError(app, error);
     }
 }
 
-void FileUtils::showInFileSystemView(const FilePath &path)
+void showInFileSystemView(const FilePath &path)
 {
     QWidget *widget
         = NavigationWidget::activateSubWidget(FolderNavigationWidgetFactory::instance()->id(),
@@ -99,22 +111,22 @@ void FileUtils::showInFileSystemView(const FilePath &path)
         navWidget->syncWithFilePath(path);
 }
 
-void FileUtils::openTerminal(const FilePath &path, const Environment &env)
+void openTerminal(const FilePath &path, const Environment &env)
 {
     Terminal::Hooks::instance().openTerminal({path, env});
 }
 
-QString FileUtils::msgFindInDirectory()
+QString msgFindInDirectory()
 {
     return Tr::tr("Find in This Directory...");
 }
 
-QString FileUtils::msgFileSystemAction()
+QString msgFileSystemAction()
 {
     return Tr::tr("Show in File System View");
 }
 
-QString FileUtils::msgGraphicalShellAction()
+QString msgGraphicalShellAction()
 {
     if (HostOsInfo::isWindowsHost())
         return Tr::tr("Show in Explorer");
@@ -123,14 +135,14 @@ QString FileUtils::msgGraphicalShellAction()
     return Tr::tr("Show Containing Folder");
 }
 
-QString FileUtils::msgTerminalHereAction()
+QString msgTerminalHereAction()
 {
     if (HostOsInfo::isWindowsHost())
         return Tr::tr("Open Command Prompt Here");
     return Tr::tr("Open Terminal Here");
 }
 
-QString FileUtils::msgTerminalWithAction()
+QString msgTerminalWithAction()
 {
     if (HostOsInfo::isWindowsHost())
         return Tr::tr("Open Command Prompt With",
@@ -139,7 +151,7 @@ QString FileUtils::msgTerminalWithAction()
                   "Opens a submenu for choosing an environment, such as \"Run Environment\"");
 }
 
-void FileUtils::removeFiles(const FilePaths &filePaths, bool deleteFromFS)
+void removeFiles(const FilePaths &filePaths, bool deleteFromFS)
 {
     // remove from version control
     VcsManager::promptToDelete(filePaths);
@@ -149,62 +161,24 @@ void FileUtils::removeFiles(const FilePaths &filePaths, bool deleteFromFS)
 
     // remove from file system
     for (const FilePath &fp : filePaths) {
-        QFile file(fp.toString());
-        if (!file.exists()) // could have been deleted by vc
+        if (!fp.exists()) // could have been deleted by vc
             continue;
-        if (!file.remove()) {
+        Result<> removeResult = fp.removeFile();
+        if (!removeResult) {
             MessageManager::writeDisrupting(
-                Tr::tr("Failed to remove file \"%1\".").arg(fp.toUserOutput()));
+                Tr::tr("Failed to remove file \"%1\": %2").arg(fp.toUserOutput()).arg(removeResult.error()));
         }
     }
 }
 
-bool FileUtils::renameFile(const FilePath &orgFilePath, const FilePath &newFilePath,
-                           HandleIncludeGuards handleGuards)
-{
-    if (orgFilePath == newFilePath)
-        return false;
-
-    const FilePath dir = orgFilePath.absolutePath();
-    IVersionControl *vc = VcsManager::findVersionControlForDirectory(dir);
-    const FilePath newDir = newFilePath.absolutePath();
-    if (newDir != dir && !newDir.ensureWritableDir())
-        return false;
-
-    bool result = false;
-    if (vc && vc->supportsOperation(IVersionControl::MoveOperation))
-        result = vc->vcsMove(orgFilePath, newFilePath);
-    if (!result) // The moving via vcs failed or the vcs does not support moving, fall back
-        result = orgFilePath.renameFile(newFilePath);
-    if (result) {
-        DocumentManager::renamedFile(orgFilePath, newFilePath);
-        updateHeaderFileGuardIfApplicable(orgFilePath, newFilePath, handleGuards);
-    }
-    return result;
-}
-
-void FileUtils::updateHeaderFileGuardIfApplicable(const Utils::FilePath &oldFilePath,
-                                                  const Utils::FilePath &newFilePath,
-                                                  HandleIncludeGuards handleGuards)
-{
-    if (handleGuards == HandleIncludeGuards::No)
-        return;
-    const bool headerUpdateSuccess = updateHeaderFileGuardAfterRename(newFilePath.toString(),
-                                                                      oldFilePath.baseName());
-    if (headerUpdateSuccess)
-        return;
-    MessageManager::writeDisrupting(
-                Tr::tr("Failed to rename the include guard in file \"%1\".")
-                .arg(newFilePath.toUserOutput()));
-}
-
-bool FileUtils::updateHeaderFileGuardAfterRename(const QString &headerPath,
+// This method is used to refactor the include guards in the renamed headers
+static Result<> updateHeaderFileGuardAfterRename(const FilePath &headerPath,
                                                  const QString &oldHeaderBaseName)
 {
-    bool ret = true;
-    QFile headerFile(headerPath);
-    if (!headerFile.open(QFile::ReadOnly | QFile::Text))
-        return false;
+
+    const Result<QByteArray> content = headerPath.fileContents();
+    if (!content)
+        return ResultError(content.error());
 
     QRegularExpression guardConditionRegExp(
                 QString("(#ifndef)(\\s*)(_*)%1_H(_*)(\\s*)").arg(oldHeaderBaseName.toUpper()));
@@ -213,15 +187,15 @@ bool FileUtils::updateHeaderFileGuardAfterRename(const QString &headerPath,
     int guardStartLine = -1;
     int guardCloseLine = -1;
 
-    const QByteArray data = headerFile.readAll();
-    headerFile.close();
+    TextFileFormat headerFileTextFormat;
+    headerFileTextFormat.detectFromData(*content);
+    if (!headerFileTextFormat.encoding().isValid())
+        headerFileTextFormat.setEncoding(EditorManager::defaultTextEncoding());
 
-    auto headerFileTextFormat = Utils::TextFileFormat::detect(data);
-    if (!headerFileTextFormat.codec)
-        headerFileTextFormat.codec = EditorManager::defaultTextCodec();
     QString stringContent;
-    if (!headerFileTextFormat.decode(data, &stringContent))
-        return false;
+    if (!headerFileTextFormat.decode(*content, &stringContent))
+        return ResultError(Tr::tr("Cannot decode contents."));
+
     QTextStream inStream(&stringContent);
     int lineCounter = 0;
     QString line;
@@ -275,72 +249,102 @@ bool FileUtils::updateHeaderFileGuardAfterRename(const QString &headerPath,
         lineCounter++;
     }
 
-    if (guardStartLine != -1) {
-        // At least the guard have been found ->
-        // copy the contents of the header to a temporary file with the updated guard lines
-        inStream.seek(0);
+    if (guardStartLine == -1)
+        return ResultOk;
 
-        QFileInfo fi(headerFile);
-        const auto guardCondition = QString("#ifndef%1%2%3_H%4%5").arg(
-                    guardConditionMatch.captured(2),
-                    guardConditionMatch.captured(3),
-                    fi.baseName().toUpper(),
-                    guardConditionMatch.captured(4),
-                    guardConditionMatch.captured(5));
-        // guardDefineRegexp.setPattern(QString("(#define\\s*%1)%2(_H%3\\s*)")
-        const auto guardDefine = QString("%1%2%3").arg(
-                    guardDefineMatch.captured(1),
-                    fi.baseName().toUpper(),
-                    guardDefineMatch.captured(2));
-        const auto guardClose = QString("%1%2%3%4%5%6").arg(
-                    guardCloseMatch.captured(1),
-                    guardCloseMatch.captured(2),
-                    guardCloseMatch.captured(3),
-                    fi.baseName().toUpper(),
-                    guardCloseMatch.captured(4),
-                    guardCloseMatch.captured(5));
+    const FilePath tmpHeader = headerPath.stringAppended(".tmp");
 
-        QFile tmpHeader(headerPath + ".tmp");
-        if (tmpHeader.open(QFile::WriteOnly)) {
-            const auto lineEnd =
-                    headerFileTextFormat.lineTerminationMode
-                    == Utils::TextFileFormat::LFLineTerminator
-                    ? QStringLiteral("\n") : QStringLiteral("\r\n");
-            // write into temporary string,
-            // after that write with codec into file (QTextStream::setCodec is gone in Qt 6)
-            QString outString;
-            QTextStream outStream(&outString);
-            int lineCounter = 0;
-            while (!inStream.atEnd()) {
-                inStream.readLineInto(&line);
-                if (lineCounter == guardStartLine) {
-                    outStream << guardCondition << lineEnd;
-                    outStream << guardDefine << lineEnd;
-                    inStream.readLine();
-                    lineCounter++;
-                } else if (lineCounter == guardCloseLine) {
-                    outStream << guardClose << lineEnd;
-                } else {
-                    outStream << line << lineEnd;
-                }
-                lineCounter++;
-            }
-            tmpHeader.write(headerFileTextFormat.codec->fromUnicode(outString));
-            tmpHeader.close();
+    // At least the guard have been found ->
+    // copy the contents of the header to a temporary file with the updated guard lines
+    inStream.seek(0);
+
+    const auto guardCondition = QString("#ifndef%1%2%3_H%4%5").arg(
+                guardConditionMatch.captured(2),
+                guardConditionMatch.captured(3),
+                headerPath.baseName().toUpper(),
+                guardConditionMatch.captured(4),
+                guardConditionMatch.captured(5));
+    // guardDefineRegexp.setPattern(QString("(#define\\s*%1)%2(_H%3\\s*)")
+    const auto guardDefine = QString("%1%2%3").arg(
+                guardDefineMatch.captured(1),
+                headerPath.baseName().toUpper(),
+                guardDefineMatch.captured(2));
+    const auto guardClose = QString("%1%2%3%4%5%6").arg(
+                guardCloseMatch.captured(1),
+                guardCloseMatch.captured(2),
+                guardCloseMatch.captured(3),
+                headerPath.baseName().toUpper(),
+                guardCloseMatch.captured(4),
+                guardCloseMatch.captured(5));
+
+    const QString lineEnd =
+            headerFileTextFormat.lineTerminationMode == TextFileFormat::LFLineTerminator
+            ? QStringLiteral("\n") : QStringLiteral("\r\n");
+    // write into temporary string,
+    // after that write with codec into file (QTextStream::setCodec is gone in Qt 6)
+    QString outString;
+    QTextStream outStream(&outString);
+    for (int lineCounter = 0; !inStream.atEnd(); ++lineCounter) {
+        inStream.readLineInto(&line);
+        if (lineCounter == guardStartLine) {
+            outStream << guardCondition << lineEnd;
+            outStream << guardDefine << lineEnd;
+            inStream.readLine();
+            lineCounter++;
+        } else if (lineCounter == guardCloseLine) {
+            outStream << guardClose << lineEnd;
         } else {
-            // if opening the temp file failed report error
-            ret = false;
+            outStream << line << lineEnd;
         }
     }
+    const QByteArray encodedContent = headerFileTextFormat.encoding().encode(outString);
+    if (const Result<qint64> res = tmpHeader.writeFileContents(encodedContent); !res)
+        return ResultError(res.error());
 
-    if (ret && guardStartLine != -1) {
-        // if the guard was found (and updated updated properly) swap the temp and the target file
-        ret = QFile::remove(headerPath);
-        if (ret)
-            ret = QFile::rename(headerPath + ".tmp", headerPath);
-    }
+    // if the guard was found (and updated updated properly) swap the temp and the target file
+    if (const Result<> res = headerPath.removeFile(); !res)
+        return res;
 
-    return ret;
+    return tmpHeader.renameFile(headerPath);
 }
 
-} // namespace Core
+bool renameFile(const FilePath &orgFilePath, const FilePath &newFilePath,
+                HandleIncludeGuards handleGuards)
+{
+    if (orgFilePath.equalsCaseSensitive(newFilePath))
+        return false;
+
+    const FilePath dir = orgFilePath.absolutePath();
+    IVersionControl *vc = VcsManager::findVersionControlForDirectory(dir);
+    const FilePath newDir = newFilePath.absolutePath();
+    if (newDir != dir && !newDir.ensureWritableDir())
+        return false;
+
+    bool result = false;
+    if (vc && vc->supportsOperation(IVersionControl::MoveOperation))
+        result = vc->vcsMove(orgFilePath, newFilePath);
+    if (!result) // The moving via vcs failed or the vcs does not support moving, fall back
+        result = bool(orgFilePath.renameFile(newFilePath));
+    if (result) {
+        DocumentManager::renamedFile(orgFilePath, newFilePath);
+        updateHeaderFileGuardIfApplicable(orgFilePath, newFilePath, handleGuards);
+    }
+    return result;
+}
+
+void updateHeaderFileGuardIfApplicable(const FilePath &oldFilePath,
+                                       const FilePath &newFilePath,
+                                       HandleIncludeGuards handleGuards)
+{
+    if (handleGuards == HandleIncludeGuards::No)
+        return;
+    const Result<> headerUpdateSuccess =
+        updateHeaderFileGuardAfterRename(newFilePath, oldFilePath.baseName());
+    if (headerUpdateSuccess)
+        return;
+    MessageManager::writeDisrupting(
+                Tr::tr("Failed to rename the include guard in file \"%1\": %2")
+                .arg(newFilePath.toUserOutput(), headerUpdateSuccess.error()));
+}
+
+} // namespace Core::FileUtils

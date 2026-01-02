@@ -1,3 +1,0 @@
-Product {
-    Depends { name: "m" }
-}

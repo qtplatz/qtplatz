@@ -8,14 +8,7 @@
 #include <QObject>
 #include <QHash>
 
-QT_BEGIN_NAMESPACE
-class QDir;
-QT_END_NAMESPACE
-
-namespace Utils {
-class FileSystemWatcher;
-class Process;
-}
+namespace Utils { class Process; }
 
 namespace QmlJS {
 
@@ -42,7 +35,7 @@ private:
                                        const QString &importVersion);
     Q_INVOKABLE void dumpAllPlugins();
     void qmlPluginTypeDumpDone(Utils::Process *process);
-    void pluginChanged(const QString &pluginLibrary);
+    void pluginChanged(const Utils::FilePath &pluginLibrary);
 
 private:
     class Plugin {
@@ -76,22 +69,23 @@ private:
     QFuture<QmlTypeDescription> loadQmlTypeDescription(const Utils::FilePaths &path) const;
     Utils::FilePath buildQmltypesPath(const QString &name) const;
 
-    QFuture<PluginDumper::DependencyInfo> loadDependencies(const Utils::FilePaths &dependencies,
-                                                           QSharedPointer<QSet<Utils::FilePath> > visited) const;
+    QFuture<PluginDumper::DependencyInfo> loadDependencies(const QStringList &dependencies,
+                                                           QSharedPointer<QSet<QString>> visited) const;
 
     void loadQmltypesFile(const Utils::FilePaths &qmltypesFilePaths,
                           const Utils::FilePath &libraryPath,
                           QmlJS::LibraryInfo libraryInfo);
     Utils::FilePath resolvePlugin(const Utils::FilePath &qmldirPath,
-                                  const QString &qmldirPluginPath,
+                                  const Utils::FilePath &qmldirPluginPath,
                                   const QString &baseName);
     Utils::FilePath resolvePlugin(const Utils::FilePath &qmldirPath,
-                                  const QString &qmldirPluginPath,
+                                  const Utils::FilePath &qmldirPluginPath,
                                   const QString &baseName, const QStringList &suffixes,
-                                  const QString &prefix = QString());
+                                  const QString &prefix = {});
 
 private:
-    Utils::FileSystemWatcher *pluginWatcher();
+    void watchFilePaths(const Utils::FilePaths &paths);
+    void unwatchFilePath(const Utils::FilePath &path);
     void prepareLibraryInfo(LibraryInfo &libInfo,
                             const Utils::FilePath &libraryPath,
                             const QStringList &deps,
@@ -101,11 +95,10 @@ private:
                             QList<LanguageUtils::FakeMetaObject::ConstPtr> &objects);
 
     ModelManagerInterface *m_modelManager;
-    Utils::FileSystemWatcher *m_pluginWatcher;
+    QMap<Utils::FilePath, std::shared_ptr<Utils::FilePathWatcher>> m_pluginWatcher;
     QHash<Utils::Process *, Utils::FilePath> m_runningQmldumps;
     QList<Plugin> m_plugins;
     QHash<Utils::FilePath, int> m_libraryToPluginIndex;
-    QHash<QString, QmlJS::ModelManagerInterface::ProjectInfo> m_qtToInfo;
 };
 
 } // namespace QmlJS

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utils/store.h>
+
 #include <QList>
 #include <QWidget>
 
@@ -33,6 +35,11 @@ public:
 
     void setFindText(const QString &text);
     void setCurrentFilter(IFindFilter *filter);
+
+    void restore(const Utils::Store &s);
+    Utils::Store save() const;
+
+    // TODO deprecated since QtC 14.0
     void readSettings();
     void writeSettings();
 
@@ -65,6 +72,8 @@ private:
     QWidget *m_optionsWidget;
     QCheckBox *m_matchCase;
     QCheckBox *m_wholeWords;
+    QCheckBox *m_ignoreBinaryFiles;
+    QCheckBox *m_ignoreGeneratedFiles;
     QCheckBox *m_regExp;
     Utils::FancyLineEdit *m_searchTerm;
 };

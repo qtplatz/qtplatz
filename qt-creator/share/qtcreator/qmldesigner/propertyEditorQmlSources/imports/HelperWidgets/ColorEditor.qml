@@ -38,6 +38,10 @@ SecondColumnLayout {
     property alias showHexTextField: hexTextField.visible
 
     property bool shapeGradients: false
+
+    // Gradients on MCUs are limited to Basic and Shape Linear Gradient.
+    property bool mcuGradients: false
+
     property color originalColor
     property bool isVector3D: false
 
@@ -87,9 +91,9 @@ SecondColumnLayout {
 
             if (colorEditor.backendValue !== undefined) {
                 if (colorEditor.isVector3D)
-                    colorEditor.backendValue.value = Qt.vector3d(
-                                colorEditor.color.r, colorEditor.color.g,
-                                colorEditor.color.b)
+                    colorEditor.backendValue.value = Qt.vector3d(colorEditor.color.r,
+                                                                 colorEditor.color.g,
+                                                                 colorEditor.color.b)
                 else
                     colorEditor.backendValue.value = colorEditor.color
             }
@@ -220,6 +224,7 @@ SecondColumnLayout {
             function open() {
                 popupDialog.ensureLoader()
                 popupDialog.show(preview)
+                popupDialog.loaderItem.aboutToBeShown() // need it for now
             }
 
             function determineActiveColorMode() {
@@ -235,9 +240,11 @@ SecondColumnLayout {
 
                 sourceComponent: ColorEditorPopup {
                     shapeGradients: colorEditor.shapeGradients
+                    mcuGradients: colorEditor.mcuGradients
                     supportGradient: colorEditor.supportGradient
                     width: popupDialog.contentWidth
                     visible: popupDialog.visible
+                    parentWindow: popupDialog.window
                 }
 
                 onLoaded: {

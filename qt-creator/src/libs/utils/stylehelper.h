@@ -5,6 +5,7 @@
 
 #include "utils_global.h"
 
+#include <QPen>
 #include <QStyle>
 
 QT_BEGIN_NAMESPACE
@@ -22,6 +23,8 @@ namespace Utils::StyleHelper {
 
 const unsigned int DEFAULT_BASE_COLOR = 0x666666;
 const int progressFadeAnimationDuration = 600;
+const int defaultFadeAnimationDuration = 160;
+constexpr qreal defaultCardBgRounding = 3.75;
 
 constexpr char C_ALIGN_ARROW[] = "alignarrow";
 constexpr char C_DRAW_LEFT_BORDER[] = "drawleftborder";
@@ -38,47 +41,65 @@ constexpr char C_PANEL_WIDGET_SINGLE_ROW[] = "panelwidget_singlerow";
 constexpr char C_SHOW_BORDER[] = "showborder";
 constexpr char C_TOP_BORDER[] = "topBorder";
 constexpr char C_TOOLBAR_ACTIONWIDGET[] = "toolbar_actionWidget";
+constexpr char C_TABBAR_WHEELSCROLLING[] = "tabBarWheelScrolling";
 
 constexpr char C_QT_SCALE_FACTOR_ROUNDING_POLICY[] = "QT_SCALE_FACTOR_ROUNDING_POLICY";
 
 namespace SpacingTokens {
-    constexpr int VPaddingXxs = 4;   // Top and bottom padding within the component
-    constexpr int HPaddingXxs = 4;   // Left and right padding within the component
-    constexpr int VGapXxs = 4;       // Vertical Space between TEXT LINE within the Component
-    constexpr int HGapXxs = 4;       // Horizontal Space between elements within the Component
+    constexpr int PrimitiveXxs = 2;
+    constexpr int PrimitiveXs = 4;
+    constexpr int PrimitiveS = 6;
+    constexpr int PrimitiveM = 8;
+    constexpr int PrimitiveL = 12;
+    constexpr int PrimitiveXl = 16;
+    constexpr int PrimitiveXxl = 24;
 
-    constexpr int VPaddingXs = 8;
-    constexpr int HPaddingXs = 8;
-    constexpr int VGapXs = 4;
-    constexpr int HGapXs = 8;
+    // Top and bottom padding within the component
+    constexpr int PaddingVXxs = PrimitiveXxs;
+    constexpr int PaddingVXs = PrimitiveXs;
+    constexpr int PaddingVS = PrimitiveS;
+    constexpr int PaddingVM = PrimitiveM;
+    constexpr int PaddingVL = PrimitiveL;
+    constexpr int PaddingVXl = PrimitiveXl;
+    constexpr int PaddingVXxl = PrimitiveXxl;
 
-    constexpr int VPaddingS = 8;
-    constexpr int HPaddingS = 16;
-    constexpr int VGapS = 4;
-    constexpr int HGapS = 8;
+    // Left and right padding within the component
+    constexpr int PaddingHXxs = PrimitiveXxs;
+    constexpr int PaddingHXs = PrimitiveXs;
+    constexpr int PaddingHS = PrimitiveS;
+    constexpr int PaddingHM = PrimitiveM;
+    constexpr int PaddingHL = PrimitiveL;
+    constexpr int PaddingHXl = PrimitiveXl;
+    constexpr int PaddingHXxl = PrimitiveXxl;
 
-    constexpr int VPaddingM = 16;
-    constexpr int HPaddingM = 24;
-    constexpr int VGapM = 4;
-    constexpr int HGapM = 16;
+    // Gap between vertically (on top of each other) positioned elements
+    constexpr int GapVXxs = PrimitiveXxs;
+    constexpr int GapVXs = PrimitiveXs;
+    constexpr int GapVS = PrimitiveS;
+    constexpr int GapVM = PrimitiveM;
+    constexpr int GapVL = PrimitiveL;
+    constexpr int GapVXl = PrimitiveXl;
+    constexpr int GapVXxl = PrimitiveXxl;
 
-    constexpr int VPaddingL = 16;
-    constexpr int HPaddingL = 24;
-    constexpr int VGapL = 8;
-    constexpr int HGapL = 16;
-
-    constexpr int ExPaddingGapS = 2;
-    constexpr int ExPaddingGapM = 6;
-    constexpr int ExPaddingGapL = 12;
-    constexpr int ExVPaddingGapXl = 24;
-}
-
-enum ToolbarStyle {
-    ToolbarStyleCompact,
-    ToolbarStyleRelaxed,
+    // Gap between horizontally (from left to right) positioned elements
+    constexpr int GapHXxs = PrimitiveXxs;
+    constexpr int GapHXs = PrimitiveXs;
+    constexpr int GapHS = PrimitiveS;
+    constexpr int GapHM = PrimitiveM;
+    constexpr int GapHL = PrimitiveL;
+    constexpr int GapHXl = PrimitiveXl;
+    constexpr int GapHXxl = PrimitiveXxl;
 };
-constexpr ToolbarStyle defaultToolbarStyle = ToolbarStyleCompact;
 
+constexpr int HighlightThickness = SpacingTokens::PrimitiveXxs;
+
+enum class ToolbarStyle {
+    Compact,
+    Relaxed,
+};
+
+// Keep in sync with:
+// SyleHelper::uiFontMetrics, ICore::uiConfigInformation, tst_manual_widgets_uifonts::main
 enum UiElement {
     UiElementH1,
     UiElementH2,
@@ -91,6 +112,8 @@ enum UiElement {
     UiElementBody2,
     UiElementButtonMedium,
     UiElementButtonSmall,
+    UiElementLabelMedium,
+    UiElementLabelSmall,
     UiElementCaptionStrong,
     UiElementCaption,
     UiElementIconStandard,
@@ -101,6 +124,7 @@ enum UiElement {
 QTCREATOR_UTILS_EXPORT int navigationWidgetHeight();
 QTCREATOR_UTILS_EXPORT void setToolbarStyle(ToolbarStyle style);
 QTCREATOR_UTILS_EXPORT ToolbarStyle toolbarStyle();
+QTCREATOR_UTILS_EXPORT ToolbarStyle defaultToolbarStyle();
 QTCREATOR_UTILS_EXPORT QPalette sidebarFontPalette(const QPalette &original);
 
 // This is our color table, all colors derive from baseColor
@@ -112,7 +136,6 @@ QTCREATOR_UTILS_EXPORT QColor highlightColor(bool lightColored = false);
 QTCREATOR_UTILS_EXPORT QColor shadowColor(bool lightColored = false);
 QTCREATOR_UTILS_EXPORT QColor borderColor(bool lightColored = false);
 QTCREATOR_UTILS_EXPORT QColor toolBarBorderColor();
-QTCREATOR_UTILS_EXPORT QColor buttonTextColor();
 QTCREATOR_UTILS_EXPORT QColor mergedColors(const QColor &colorA, const QColor &colorB,
                                            int factor = 50);
 QTCREATOR_UTILS_EXPORT QColor alphaBlendedColors(const QColor &colorA, const QColor &colorB);
@@ -137,6 +160,9 @@ QTCREATOR_UTILS_EXPORT void drawMinimalArrow(QStyle::PrimitiveElement element, Q
 
 QTCREATOR_UTILS_EXPORT void drawPanelBgRect(QPainter *painter, const QRectF &rect,
                                             const QBrush &brush);
+QTCREATOR_UTILS_EXPORT void drawCardBg(QPainter *painter, const QRectF &rect, const QBrush &fill,
+                                       const QPen &pen = QPen(Qt::NoPen),
+                                       qreal rounding = defaultCardBgRounding);
 
 // Gradients used for panels
 QTCREATOR_UTILS_EXPORT void horizontalGradient(QPainter *painter, const QRect &spanRect,
@@ -149,7 +175,8 @@ QTCREATOR_UTILS_EXPORT bool usePixmapCache();
 
 QTCREATOR_UTILS_EXPORT QPixmap disabledSideBarIcon(const QPixmap &enabledicon);
 QTCREATOR_UTILS_EXPORT void drawIconWithShadow(const QIcon &icon, const QRect &rect, QPainter *p,
-                                               QIcon::Mode iconMode, int dipRadius = 3,
+                                               QIcon::Mode iconMode, QIcon::State iconState,
+                                               int dipRadius = 3,
                                                const QColor &color = QColor(0, 0, 0, 130),
                                                const QPoint &dipOffset = QPoint(1, -2));
 QTCREATOR_UTILS_EXPORT void drawCornerImage(const QImage &img, QPainter *painter, const QRect &rect,
@@ -160,8 +187,6 @@ QTCREATOR_UTILS_EXPORT void tintImage(QImage &img, const QColor &tintColor);
 QTCREATOR_UTILS_EXPORT QLinearGradient statusBarGradient(const QRect &statusBarRect);
 QTCREATOR_UTILS_EXPORT void setPanelWidget(QWidget *widget, bool value = true);
 QTCREATOR_UTILS_EXPORT void setPanelWidgetSingleRow(QWidget *widget, bool value = true);
-
-QTCREATOR_UTILS_EXPORT bool isQDSTheme();
 
 QTCREATOR_UTILS_EXPORT
     Qt::HighDpiScaleFactorRoundingPolicy defaultHighDpiScaleFactorRoundingPolicy();
@@ -217,5 +242,6 @@ QTCREATOR_UTILS_EXPORT bool isReadableOn(const QColor &background, const QColor 
 // returns a foreground color readable on background (desiredForeground if already readable or adaption fails)
 QTCREATOR_UTILS_EXPORT QColor ensureReadableOn(const QColor &background,
                                                const QColor &desiredForeground);
-
+// modifies widget's palette QPalette::Base to color, leaves other colors of palette untouched
+QTCREATOR_UTILS_EXPORT void modifyPaletteBase(QWidget *widget, const QColor &color);
 } // namespace Utils::StyleHelper

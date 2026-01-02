@@ -42,7 +42,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(QString, linkSep, {"::"})
 
 QString OutputLineParser::createLinkTarget(const FilePath &filePath, int line = -1, int column = -1)
 {
-    return *linkPrefix() + filePath.toString() + *linkSep() + QString::number(line)
+    return *linkPrefix() + filePath.toUrlishString() + *linkSep() + QString::number(line)
             + *linkSep() + QString::number(column);
 }
 
@@ -58,7 +58,7 @@ Link OutputLineParser::parseLinkTarget(const QString &target)
         return {};
     return Link(FilePath::fromString(parts.first()),
                 parts.length() > 1 ? parts.at(1).toInt() : 0,
-                parts.length() > 2 ? parts.at(2).toInt() : 0);
+                parts.length() > 2 ? parts.at(2).toInt() - 1 : 0);
 }
 
 // The redirection mechanism is needed for broken build tools (e.g. xcodebuild) that get invoked
@@ -130,7 +130,7 @@ FilePath OutputLineParser::absoluteFilePath(const FilePath &filePath) const
     if (candidates.count() == 1)
         return candidates.first();
 
-    QString fp = filePath.toString();
+    QString fp = filePath.toUrlishString();
     while (fp.startsWith("../"))
         fp.remove(0, 3);
     bool found = false;
@@ -141,26 +141,39 @@ FilePath OutputLineParser::absoluteFilePath(const FilePath &filePath) const
     return filePath;
 }
 
-void OutputLineParser::addLinkSpecForAbsoluteFilePath(OutputLineParser::LinkSpecs &linkSpecs,
-        const FilePath &filePath, int lineNo, int pos, int len)
+void OutputLineParser::addLinkSpecForAbsoluteFilePath(
+    OutputLineParser::LinkSpecs &linkSpecs,
+    const FilePath &filePath,
+    int lineNo,
+    int column,
+    int pos,
+    int len)
 {
-    if (filePath.toFileInfo().isAbsolute())
-        linkSpecs.append({pos, len, createLinkTarget(filePath, lineNo)});
+    if (filePath.isAbsolutePath())
+        linkSpecs.append({pos, len, createLinkTarget(filePath, lineNo, column)});
 }
 
-void OutputLineParser::addLinkSpecForAbsoluteFilePath(OutputLineParser::LinkSpecs &linkSpecs,
-        const FilePath &filePath, int lineNo, const QRegularExpressionMatch &match,
-        int capIndex)
+void OutputLineParser::addLinkSpecForAbsoluteFilePath(
+    OutputLineParser::LinkSpecs &linkSpecs,
+    const FilePath &filePath,
+    int lineNo,
+    int column,
+    const QRegularExpressionMatch &match,
+    int capIndex)
 {
-    addLinkSpecForAbsoluteFilePath(linkSpecs, filePath, lineNo, match.capturedStart(capIndex),
-                                   match.capturedLength(capIndex));
+    addLinkSpecForAbsoluteFilePath(linkSpecs, filePath, lineNo, column,
+                                   match.capturedStart(capIndex), match.capturedLength(capIndex));
 }
-void OutputLineParser::addLinkSpecForAbsoluteFilePath(OutputLineParser::LinkSpecs &linkSpecs,
-        const FilePath &filePath, int lineNo, const QRegularExpressionMatch &match,
-                                                      const QString &capName)
+void OutputLineParser::addLinkSpecForAbsoluteFilePath(
+    OutputLineParser::LinkSpecs &linkSpecs,
+    const FilePath &filePath,
+    int lineNo,
+    int column,
+    const QRegularExpressionMatch &match,
+    const QString &capName)
 {
-    addLinkSpecForAbsoluteFilePath(linkSpecs, filePath, lineNo, match.capturedStart(capName),
-                                   match.capturedLength(capName));
+    addLinkSpecForAbsoluteFilePath(linkSpecs, filePath, lineNo, column,
+                                   match.capturedStart(capName), match.capturedLength(capName));
 }
 
 bool Utils::OutputLineParser::fileExists(const FilePath &fp) const
@@ -205,8 +218,8 @@ public:
     PostPrintAction postPrintAction;
     bool boldFontEnabled = true;
     bool prependCarriageReturn = false;
-    bool prependLineFeed = false;
     bool forwardStdOutToStdError = false;
+    QColor explicitBackground;
 };
 
 OutputFormatter::OutputFormatter() : d(new Private) { }
@@ -274,17 +287,26 @@ void OutputFormatter::overridePostPrintAction(const PostPrintAction &postPrintAc
     d->postPrintAction = postPrintAction;
 }
 
-static void checkAndFineTuneColors(QTextCharFormat *format)
+static void checkAndFineTuneColors(QTextCharFormat *format, const QColor &background)
 {
     QTC_ASSERT(format, return);
-    const QColor fgColor = StyleHelper::ensureReadableOn(format->background().color(),
+    const QColor bgColor = background.isValid()
+            ? background
+            : (format->hasProperty(QTextCharFormat::BackgroundBrush)
+               ? format->background().color()
+               : Utils::creatorColor(Theme::PaletteBase));
+    const QColor fgColor = StyleHelper::ensureReadableOn(bgColor,
                                                          format->foreground().color());
     format->setForeground(fgColor);
 }
 
-void OutputFormatter::doAppendMessage(const QString &text, OutputFormat format)
+void OutputFormatter::doAppendMessage(const QString &text, OutputFormat format, LineStatus lineStatus)
 {
     QTextCharFormat charFmt = charFormat(format);
+    const auto addNewlineIfApplicable = [&] {
+        if (lineStatus == LineStatus::Complete)
+            append("\n", charFmt);
+    };
 
     QList<FormattedText> formattedText = parseAnsi(text, charFmt);
     const QString cleanLine = std::accumulate(formattedText.begin(), formattedText.end(), QString(),
@@ -301,23 +323,24 @@ void OutputFormatter::doAppendMessage(const QString &text, OutputFormat format)
                 ? *res.formatOverride : outputTypeForParser(involvedParsers.last(), format);
         if (formatForParser != format && cleanLine == text && formattedText.length() == 1) {
             charFmt = charFormat(formatForParser);
-            checkAndFineTuneColors(&charFmt);
+            checkAndFineTuneColors(&charFmt, d->explicitBackground);
             formattedText.first().format = charFmt;
         }
     }
 
     if (res.newContent) {
-        append(res.newContent.value(), charFmt);
+        append(*res.newContent, charFmt);
+        addNewlineIfApplicable();
         return;
     }
 
     const QList<FormattedText> linkified = linkifiedText(formattedText, res.linkSpecs);
     for (FormattedText output : linkified) {
-        checkAndFineTuneColors(&output.format);
+        checkAndFineTuneColors(&output.format, d->explicitBackground);
         append(output.text, output.format);
+        charFmt = output.format;
     }
-    if (linkified.isEmpty())
-        append({}, charFmt); // This might cause insertion of a newline character.
+    addNewlineIfApplicable();
 
     for (OutputLineParser * const p : std::as_const(involvedParsers)) {
         if (d->postPrintAction)
@@ -342,6 +365,7 @@ OutputLineParser::Result OutputFormatter::handleMessage(const QString &text, Out
                 = d->nextParser->handleLine(text, outputTypeForParser(d->nextParser, format));
         switch (res.status) {
         case OutputLineParser::Status::Done:
+            d->nextParser->flush();
             d->nextParser = nullptr;
             return res;
         case OutputLineParser::Status::InProgress:
@@ -359,6 +383,7 @@ OutputLineParser::Result OutputFormatter::handleMessage(const QString &text, Out
                 = parser->handleLine(text, outputTypeForParser(parser, format));
         switch (res.status) {
         case OutputLineParser::Status::Done:
+            parser->flush();
             involvedParsers << parser;
             return res;
         case OutputLineParser::Status::InProgress:
@@ -402,23 +427,32 @@ const QList<FormattedText> OutputFormatter::linkifiedText(
         }
 
         for (int nextLocalTextPos = 0; nextLocalTextPos < t.text.size(); ) {
-
-            // There are no more links in this part, so copy the rest of the text as-is.
-            if (nextLinkSpecIndex >= linkSpecs.size()) {
+            const auto copyRestOfSegmentAsIs = [&] {
                 linkified << FormattedText(t.text.mid(nextLocalTextPos), t.format);
                 totalTextLengthSoFar += t.text.length() - nextLocalTextPos;
+            };
+
+            // We are out of links.
+            if (nextLinkSpecIndex >= linkSpecs.size()) {
+                copyRestOfSegmentAsIs();
                 break;
             }
 
             const OutputLineParser::LinkSpec &linkSpec = linkSpecs.at(nextLinkSpecIndex);
             const int localLinkStartPos = linkSpec.startPos - totalPreviousTextLength;
+
+            // There are more links, but not in this segment.
+            if (localLinkStartPos >= t.text.size()) {
+                copyRestOfSegmentAsIs();
+                break;
+            }
+
             ++nextLinkSpecIndex;
 
             // We ignore links that would cross format boundaries.
             if (localLinkStartPos < nextLocalTextPos
                     || localLinkStartPos + linkSpec.length > t.text.length()) {
-                linkified << FormattedText(t.text.mid(nextLocalTextPos), t.format);
-                totalTextLengthSoFar += t.text.length() - nextLocalTextPos;
+                copyRestOfSegmentAsIs();
                 break;
             }
 
@@ -440,7 +474,6 @@ void OutputFormatter::append(const QString &text, const QTextCharFormat &format)
 {
     if (!plainTextEdit())
         return;
-    flushTrailingNewline();
     int startPos = 0;
     int crPos = -1;
     while ((crPos = text.indexOf('\r', startPos)) >= 0)  {
@@ -456,7 +489,7 @@ void OutputFormatter::append(const QString &text, const QTextCharFormat &format)
 QTextCharFormat OutputFormatter::linkFormat(const QTextCharFormat &inputFormat, const QString &href)
 {
     QTextCharFormat result = inputFormat;
-    result.setForeground(creatorTheme()->color(Theme::TextColorLink));
+    result.setForeground(creatorColor(Theme::TextColorLink));
     result.setUnderlineStyle(QTextCharFormat::SingleUnderline);
     result.setAnchor(true);
     result.setAnchorHref(href);
@@ -491,30 +524,21 @@ void OutputFormatter::initFormats()
     if (!plainTextEdit())
         return;
 
-    Theme *theme = creatorTheme();
-    d->formats[NormalMessageFormat].setForeground(theme->color(Theme::OutputPanes_NormalMessageTextColor));
-    d->formats[ErrorMessageFormat].setForeground(theme->color(Theme::OutputPanes_ErrorMessageTextColor));
-    d->formats[LogMessageFormat].setForeground(theme->color(Theme::OutputPanes_WarningMessageTextColor));
-    d->formats[StdOutFormat].setForeground(theme->color(Theme::OutputPanes_StdOutTextColor));
-    d->formats[StdErrFormat].setForeground(theme->color(Theme::OutputPanes_StdErrTextColor));
-    d->formats[DebugFormat].setForeground(theme->color(Theme::OutputPanes_DebugTextColor));
-    d->formats[GeneralMessageFormat].setForeground(theme->color(Theme::OutputPanes_DebugTextColor));
+    d->formats[NormalMessageFormat].setForeground(creatorColor(Theme::OutputPanes_NormalMessageTextColor));
+    d->formats[ErrorMessageFormat].setForeground(creatorColor(Theme::OutputPanes_ErrorMessageTextColor));
+    d->formats[LogMessageFormat].setForeground(creatorColor(Theme::OutputPanes_WarningMessageTextColor));
+    d->formats[StdOutFormat].setForeground(creatorColor(Theme::OutputPanes_StdOutTextColor));
+    d->formats[StdErrFormat].setForeground(creatorColor(Theme::OutputPanes_StdErrTextColor));
+    d->formats[DebugFormat].setForeground(creatorColor(Theme::OutputPanes_DebugTextColor));
+    d->formats[GeneralMessageFormat].setForeground(creatorColor(Theme::OutputPanes_DebugTextColor));
     setBoldFontEnabled(d->boldFontEnabled);
 }
 
 void OutputFormatter::flushIncompleteLine()
 {
     clearLastLine();
-    doAppendMessage(d->incompleteLine.first, d->incompleteLine.second);
+    doAppendMessage(d->incompleteLine.first, d->incompleteLine.second, LineStatus::Incomplete);
     d->incompleteLine.first.clear();
-}
-
-void Utils::OutputFormatter::flushTrailingNewline()
-{
-    if (d->prependLineFeed) {
-        d->cursor.insertText("\n");
-        d->prependLineFeed = false;
-    }
 }
 
 void OutputFormatter::dumpIncompleteLine(const QString &line, OutputFormat format)
@@ -581,11 +605,15 @@ void OutputFormatter::setForwardStdOutToStdError(bool enabled)
     d->forwardStdOutToStdError = enabled;
 }
 
+void Utils::OutputFormatter::setExplicitBackgroundColor(const QColor &color)
+{
+    d->explicitBackground = color;
+}
+
 void OutputFormatter::flush()
 {
     if (!d->incompleteLine.first.isEmpty())
         flushIncompleteLine();
-    flushTrailingNewline();
     d->escapeCodeHandler.endFormatScope();
     for (OutputLineParser * const p : std::as_const(d->lineParsers))
         p->flush();
@@ -667,8 +695,7 @@ void OutputFormatter::appendMessage(const QString &text, OutputFormat format)
             dumpIncompleteLine(out.mid(startPos), format);
             break;
         }
-        doAppendMessage(out.mid(startPos, eolPos - startPos), format);
-        d->prependLineFeed = true;
+        doAppendMessage(out.mid(startPos, eolPos - startPos), format, LineStatus::Complete);
         startPos = eolPos + 1;
     }
 }

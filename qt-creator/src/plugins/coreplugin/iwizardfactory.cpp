@@ -127,6 +127,7 @@ QAction *s_inspectWizardAction = nullptr;
 bool s_areFactoriesLoaded = false;
 bool s_isWizardRunning = false;
 QWidget *s_currentWizard = nullptr;
+static QSet<Id> s_plugins;
 
 // NewItemDialog reopening data:
 class NewItemDialogData
@@ -208,7 +209,7 @@ QList<IWizardFactory*> IWizardFactory::allWizardFactories()
                     .addOnTriggered(newFactory, [newFactory] {
                         if (!ICore::isNewItemDialogRunning()) {
                             FilePath path = newFactory->runPath({});
-                            newFactory->runWizard(path, ICore::dialogParent(), Id(), QVariantMap());
+                            newFactory->runWizard(path, Id(), QVariantMap());
                         }
                     });
 
@@ -246,7 +247,6 @@ FilePath IWizardFactory::runPath(const FilePath &defaultPath) const
     Creates the wizard that the user selected for execution on the operating
     system \a platform with \a variables.
 
-    Any dialogs the wizard opens should use the given \a parent.
     The \a path argument is a suggestion for the location where files should be
     created. The wizard should fill this in its path selection elements as a
     default path.
@@ -254,7 +254,7 @@ FilePath IWizardFactory::runPath(const FilePath &defaultPath) const
     When \a showWizard is \c false, the wizard instance is created and set up
     but not actually shown.
 */
-Wizard *IWizardFactory::runWizard(const FilePath &path, QWidget *parent, Id platform,
+Wizard *IWizardFactory::runWizard(const FilePath &path, Id platform,
                                   const QVariantMap &variables,
                                   bool showWizard)
 {
@@ -263,7 +263,7 @@ Wizard *IWizardFactory::runWizard(const FilePath &path, QWidget *parent, Id plat
     s_isWizardRunning = true;
     ICore::updateNewItemDialogState();
 
-    Utils::Wizard *wizard = runWizardImpl(path, parent, platform, variables, showWizard);
+    Wizard *wizard = runWizardImpl(path, platform, variables, showWizard);
 
 
     if (wizard) {
@@ -385,8 +385,7 @@ void IWizardFactory::destroyFeatureProvider()
 
 void IWizardFactory::clearWizardFactories()
 {
-    if (!s_areFactoriesLoaded)
-        return;
+    s_plugins.clear();
 
     for (IWizardFactory *factory : std::as_const(s_allFactories))
         ActionManager::unregisterAction(factory->m_action, actionId(factory));
@@ -399,16 +398,17 @@ void IWizardFactory::clearWizardFactories()
 
 QSet<Id> IWizardFactory::pluginFeatures()
 {
-    static QSet<Id> plugins;
-    if (plugins.isEmpty()) {
+    if (s_plugins.isEmpty()) {
         // Implicitly create a feature for each plugin loaded:
-        const QVector<ExtensionSystem::PluginSpec *> pluginVector = ExtensionSystem::PluginManager::plugins();
+        const ExtensionSystem::PluginSpecs pluginVector = ExtensionSystem::PluginManager::plugins();
         for (const ExtensionSystem::PluginSpec *s : pluginVector) {
-            if (s->state() == ExtensionSystem::PluginSpec::Running)
-                plugins.insert(Id::fromString(s->name()));
+            if (s->state() == ExtensionSystem::PluginSpec::Running) {
+                s_plugins.insert(Id::fromString(s->id()));
+                s_plugins.insert(Id::fromString(s->name())); // Avoid breaking existing user wizards
+            }
         }
     }
-    return plugins;
+    return s_plugins;
 }
 
 QSet<Id> IWizardFactory::availableFeatures(Id platformId)
@@ -465,7 +465,7 @@ static QIcon iconWithText(const QIcon &icon, const QString &text)
         font.setPixelSize(fontSize);
         font.setStretch(85);
         QPainter p(&pixmap);
-        p.setPen(Utils::creatorTheme()->color(Theme::PanelTextColorDark));
+        p.setPen(Utils::creatorColor(Theme::PanelTextColorDark));
         p.setFont(font);
         QTextOption textOption(Qt::AlignHCenter | Qt::AlignBottom);
         textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
@@ -495,4 +495,14 @@ void IWizardFactory::setDetailsPageQmlPath(const QString &filePath)
     } else {
         m_detailsPageQmlPath = QUrl::fromLocalFile(filePath);
     }
+}
+
+QString Core::msgWizardDisplayCategoryQt()
+{
+    return Tr::tr("Qt");
+}
+
+QString Core::msgWizardDisplayCategoryOther()
+{
+    return Tr::tr("Other");
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+-->
+<externaltool id="notepad">
+    <description>Opens the current file in Notepad</description>
+    <displayname>Edit with Notepad</displayname>
+    <category>Text</category>
+    <executable>
+        <path>notepad</path>
+        <arguments>"%{CurrentDocument:FilePath}"</arguments>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

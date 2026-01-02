@@ -1,3 +1,0 @@
-Product {
-    property nonsense esnesnon
-}

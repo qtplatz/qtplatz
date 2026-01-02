@@ -55,6 +55,8 @@ public:
 
     void setFont(const QFont &font);
 
+    void enableMouseTracking(bool enable);
+
     void copyToClipboard();
     void pasteFromClipboard();
     void copyLinkToClipboard();
@@ -110,7 +112,7 @@ public:
 
     virtual qint64 writeToPty(const QByteArray &data)
     {
-        Q_UNUSED(data);
+        Q_UNUSED(data)
         return 0;
     }
     void writeToTerminal(const QByteArray &data, bool forceFlush);
@@ -123,20 +125,27 @@ public:
         return noHits;
     }
 
-    virtual void resizePty(QSize newSize) { Q_UNUSED(newSize); }
-    virtual void setClipboard(const QString &text) { Q_UNUSED(text); }
+    virtual bool resizePty(QSize newSize)
+    {
+        Q_UNUSED(newSize)
+        return true;
+    }
+
+    virtual void setClipboard(const QString &text) { Q_UNUSED(text) }
     virtual std::optional<Link> toLink(const QString &text)
     {
-        Q_UNUSED(text);
+        Q_UNUSED(text)
         return std::nullopt;
     }
 
     virtual void selectionChanged(const std::optional<Selection> &newSelection)
     {
-        Q_UNUSED(newSelection);
+        Q_UNUSED(newSelection)
     }
-    virtual void linkActivated(const Link &link) { Q_UNUSED(link); }
-    virtual void contextMenuRequested(const QPoint &pos) { Q_UNUSED(pos); }
+
+    virtual void linkActivated(const Link &link) { Q_UNUSED(link) }
+
+    virtual void contextMenuRequested(const QPoint &pos) { Q_UNUSED(pos) }
 
     virtual void surfaceChanged(){};
 
@@ -220,6 +229,12 @@ protected:
     void configBlinkTimer();
 
     QColor toQColor(std::variant<int, QColor> color) const;
+
+private:
+    void scheduleViewportUpdate();
+
+signals:
+    void cleared();
 
 private:
     std::unique_ptr<TerminalViewPrivate> d;

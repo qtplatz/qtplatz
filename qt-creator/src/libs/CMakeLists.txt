@@ -1,5 +1,6 @@
 add_subdirectory(3rdparty)
 
+#add_subdirectory(devcontainer)
 #add_subdirectory(nanotrace)
 #add_subdirectory(advanceddockingsystem)
 add_subdirectory(aggregation)
@@ -13,11 +14,14 @@ add_subdirectory(extensionsystem)
 #add_subdirectory(qmleditorwidgets)
 #add_subdirectory(qmljs)
 #add_subdirectory(qtcreatorcdbext)
-add_subdirectory(utils)
 add_subdirectory(solutions)
 #add_subdirectory(tracing)
+add_subdirectory(utils)
+if(Qt6_VERSION VERSION_LESS 6.11.0)
+  add_subdirectory(QtTaskTree)
+endif()
 
-if ( FALSE )
+if ( FALSE )  #  <-- deleted for qtplatz
 if (WITH_QMLDESIGNER)
   add_subdirectory(sqlite)
   add_subdirectory(qmlpuppetcommunication)
@@ -26,6 +30,8 @@ endif()
 if (WITH_TESTS)
  add_subdirectory(googletest)
 endif()
+
+# add_subdirectory(gocmdbridge)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qlitehtml/src/CMakeLists.txt)
   option(BUILD_LIBRARY_QLITEHTML "Build library qlitehtml." ${BUILD_LIBRARIES_BY_DEFAULT})
@@ -61,4 +67,4 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qlitehtml/src/CMakeLists.txt)
     )
   endif()
 endif()
-endif() # if FALSE
+endif()  #  <-- deleted for qtplatz

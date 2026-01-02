@@ -11,13 +11,14 @@
 #include <utils/algorithm.h>
 #include <utils/environment.h>
 #include <utils/macroexpander.h>
-#include <utils/process.h>
+#include <utils/qtcprocess.h>
 #include <utils/qtcassert.h>
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMessageBox>
 
+using namespace QtTaskTree;
 using namespace Utils;
 
 namespace Core::Internal {
@@ -40,12 +41,9 @@ ExecuteFilter::~ExecuteFilter()
 
 LocatorMatcherTasks ExecuteFilter::matchers()
 {
-    using namespace Tasking;
-
-    Storage<LocatorStorage> storage;
-
-    const auto onSetup = [this, storage] {
-        const QString input = storage->input();
+    const auto onSetup = [this] {
+        const LocatorStorage &storage = *LocatorStorage::storage();
+        const QString input = storage.input();
         LocatorFilterEntries entries;
         if (!input.isEmpty()) { // avoid empty entry
             LocatorFilterEntry entry;
@@ -69,9 +67,9 @@ LocatorMatcherTasks ExecuteFilter::matchers()
                 others.append(entry);
             }
         }
-        storage->reportOutput(entries + others);
+        storage.reportOutput(entries + others);
     };
-    return {{Sync(onSetup), storage}};
+    return {QSyncTask(onSetup)};
 }
 
 void ExecuteFilter::acceptCommand(const QString &cmd)
@@ -125,17 +123,13 @@ void ExecuteFilter::done()
 void ExecuteFilter::readStdOutput()
 {
     QTC_ASSERT(m_process, return);
-    const QByteArray data = m_process->readAllRawStandardOutput();
-    MessageManager::writeSilently(
-        QTextCodec::codecForLocale()->toUnicode(data.constData(), data.size(), &m_stdoutState));
+    MessageManager::writeSilently(m_process->readAllStandardOutput());
 }
 
 void ExecuteFilter::readStdError()
 {
     QTC_ASSERT(m_process, return);
-    const QByteArray data = m_process->readAllRawStandardError();
-    MessageManager::writeSilently(
-        QTextCodec::codecForLocale()->toUnicode(data.constData(), data.size(), &m_stderrState));
+    MessageManager::writeSilently(m_process->readAllStandardError());
 }
 
 void ExecuteFilter::runHeadCommand()

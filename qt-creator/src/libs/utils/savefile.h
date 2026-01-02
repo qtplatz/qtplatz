@@ -6,12 +6,9 @@
 #include "utils_global.h"
 
 #include "filepath.h"
+#include "temporaryfile.h"
 
 #include <QFile>
-
-QT_BEGIN_NAMESPACE
-class QTemporaryFile;
-QT_END_NAMESPACE
 
 #include <memory>
 
@@ -32,7 +29,7 @@ public:
 
 private:
     const FilePath m_finalFilePath;
-    std::unique_ptr<QTemporaryFile> m_tempFile;
+    std::unique_ptr<TemporaryFilePath> m_tempFile;
     bool m_finalized = true;
 };
 

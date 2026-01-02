@@ -3,6 +3,7 @@
 
 #include "passworddialog.h"
 
+#include "guiutils.h"
 #include "layoutbuilder.h"
 #include "stylehelper.h"
 #include "utilsicons.h"
@@ -27,17 +28,16 @@ ShowPasswordButton::ShowPasswordButton(QWidget *parent)
 
 void ShowPasswordButton::paintEvent(QPaintEvent *e)
 {
-    Q_UNUSED(e);
+    Q_UNUSED(e)
     QIcon icon = isChecked() ? Utils::Icons::EYE_OPEN_TOOLBAR.icon()
                              : Utils::Icons::EYE_CLOSED_TOOLBAR.icon();
     QPainter p(this);
     QRect r(QPoint(), size());
 
     if (m_containsMouse && isEnabled())
-        StyleHelper::drawPanelBgRect(&p, r, creatorTheme()->color(Theme::FancyToolButtonHoverColor));
+        StyleHelper::drawPanelBgRect(&p, r, creatorColor(Theme::FancyToolButtonHoverColor));
 
-    QWindow *window = this->window()->windowHandle();
-    QSize s = icon.actualSize(window, QSize(32, 16));
+    QSize s = icon.actualSize(QSize(32, 16));
 
     QPixmap px = icon.pixmap(s);
     QRect iRect(QPoint(), s);
@@ -61,10 +61,9 @@ void ShowPasswordButton::leaveEvent(QEvent *e)
 
 QSize ShowPasswordButton::sizeHint() const
 {
-    QWindow *window = this->window()->windowHandle();
-    QSize s = Utils::Icons::EYE_OPEN_TOOLBAR.icon().actualSize(window, QSize(32, 16)) + QSize(8, 8);
+    QSize s = Utils::Icons::EYE_OPEN_TOOLBAR.icon().actualSize(QSize(32, 16)) + QSize(8, 8);
 
-    if (StyleHelper::toolbarStyle() == StyleHelper::ToolbarStyleRelaxed)
+    if (StyleHelper::toolbarStyle() == StyleHelper::ToolbarStyle::Relaxed)
         s += QSize(5, 5);
 
     return s;
@@ -82,9 +81,8 @@ public:
 PasswordDialog::PasswordDialog(const QString &title,
                                const QString &prompt,
                                const QString &doNotAskAgainLabel,
-                               bool withUsername,
-                               QWidget *parent)
-    : QDialog(parent)
+                               bool withUsername)
+    : QDialog(dialogParent())
     , d(new PasswordDialogPrivate)
 {
     setWindowTitle(title);
@@ -115,17 +113,15 @@ PasswordDialog::PasswordDialog(const QString &title,
     // clang-format off
     Column {
         prompt,
-        If {
-            withUsername, {
-                Form {
-                    Tr::tr("User:"), d->m_userNameLineEdit, br,
-                    Tr::tr("Password:"), Row { d->m_passwordLineEdit, showPasswordButton }, br,
-                }
-            }, {
-                Row {
-                    d->m_passwordLineEdit, showPasswordButton,
-                },
+        If (withUsername) >> Then {
+            Form {
+                Tr::tr("User:"), d->m_userNameLineEdit, br,
+                Tr::tr("Password:"), Row { d->m_passwordLineEdit, showPasswordButton }, br,
             }
+        } >> Else {
+            Row {
+                d->m_passwordLineEdit, showPasswordButton,
+            },
         },
         Row {
             d->m_checkBox,
@@ -162,13 +158,12 @@ std::optional<QPair<QString, QString>> PasswordDialog::getUserAndPassword(
     const QString &prompt,
     const QString &doNotAskAgainLabel,
     const QString &userName,
-    const CheckableDecider &decider,
-    QWidget *parent)
+    const CheckableDecider &decider)
 {
     if (!decider.shouldAskAgain())
         return std::nullopt;
 
-    PasswordDialog dialog(title, prompt, doNotAskAgainLabel, true, parent);
+    PasswordDialog dialog(title, prompt, doNotAskAgainLabel, true);
 
     dialog.setUser(userName);
 
@@ -184,13 +179,12 @@ std::optional<QPair<QString, QString>> PasswordDialog::getUserAndPassword(
 std::optional<QString> PasswordDialog::getPassword(const QString &title,
                                                    const QString &prompt,
                                                    const QString &doNotAskAgainLabel,
-                                                   const CheckableDecider &decider,
-                                                   QWidget *parent)
+                                                   const CheckableDecider &decider)
 {
     if (!decider.shouldAskAgain())
         return std::nullopt;
 
-    PasswordDialog dialog(title, prompt, doNotAskAgainLabel, false, parent);
+    PasswordDialog dialog(title, prompt, doNotAskAgainLabel, false);
 
     if (dialog.exec() == QDialog::Accepted)
         return dialog.password();

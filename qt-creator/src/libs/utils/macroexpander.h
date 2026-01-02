@@ -5,8 +5,10 @@
 
 #include "utils_global.h"
 
-#include <QCoreApplication>
+#include "hostosinfo.h"
+
 #include <QList>
+#include <QPointer>
 
 #include <functional>
 
@@ -16,7 +18,24 @@ namespace Internal { class MacroExpanderPrivate; }
 
 class FilePath;
 class MacroExpander;
-using MacroExpanderProvider = std::function<MacroExpander *()>;
+
+class QTCREATOR_UTILS_EXPORT MacroExpanderProvider
+{
+public:
+    MacroExpanderProvider(QObject *guard, const std::function<MacroExpander *()> &creator);
+    MacroExpanderProvider(QObject *guard, MacroExpander *expander);
+    explicit MacroExpanderProvider(MacroExpander *expander); // Guarded by qApp.
+
+    MacroExpander *operator()() const;
+
+    bool operator!() const { return !m_creator; }
+    explicit operator bool() const { return !!m_creator; }
+
+private:
+    QPointer<QObject> m_guard;
+    std::function<MacroExpander *()> m_creator;
+};
+
 using MacroExpanderProviders = QList<MacroExpanderProvider>;
 
 class QTCREATOR_UTILS_EXPORT MacroExpander
@@ -24,7 +43,7 @@ class QTCREATOR_UTILS_EXPORT MacroExpander
     Q_DISABLE_COPY(MacroExpander)
 
 public:
-    explicit MacroExpander();
+    MacroExpander();
     ~MacroExpander();
 
     bool resolveMacro(const QString &name, QString *ret) const;
@@ -36,7 +55,8 @@ public:
     QByteArray expand(const QByteArray &stringWithVariables) const;
     QVariant expandVariant(const QVariant &v) const;
 
-    QString expandProcessArgs(const QString &argsWithVariables) const;
+    Result<QString> expandProcessArgs(
+        const QString &argsWithVariables, Utils::OsType osType = Utils::HostOsInfo::hostOs()) const;
 
     using PrefixFunction = std::function<QString(QString)>;
     using ResolverFunction = std::function<bool(QString, QString *)>;
@@ -44,24 +64,30 @@ public:
     using FileFunction = std::function<FilePath()>;
     using IntFunction = std::function<int()>;
 
-    void registerPrefix(const QByteArray &prefix,
-        const QString &description, const PrefixFunction &value, bool visible = true);
+    void registerPrefix(
+        const QByteArray &prefix,
+        const QByteArray &examplePostfix,
+        const QString &description,
+        const PrefixFunction &value,
+        bool visible = true,
+        bool availableForExpansion = true);
 
     void registerVariable(const QByteArray &variable,
         const QString &description, const StringFunction &value,
-        bool visibleInChooser = true);
+        bool visibleInChooser = true, bool availableForExpansion = true);
 
     void registerIntVariable(const QByteArray &variable,
         const QString &description, const IntFunction &value);
 
     void registerFileVariables(const QByteArray &prefix,
         const QString &heading, const FileFunction &value,
-        bool visibleInChooser = true);
+        bool visibleInChooser = true, bool availableForExpansion = true);
 
     void registerExtraResolver(const ResolverFunction &value);
 
     QList<QByteArray> visibleVariables() const;
     QString variableDescription(const QByteArray &variable) const;
+    QByteArray variableExampleUsage(const QByteArray &variable) const;
     bool isPrefixVariable(const QByteArray &variable) const;
 
     MacroExpanderProviders subProviders() const;
@@ -70,6 +96,7 @@ public:
     void setDisplayName(const QString &displayName);
 
     void registerSubProvider(const MacroExpanderProvider &provider);
+    void clearSubProviders();
 
     bool isAccumulating() const;
     void setAccumulating(bool on);

@@ -9,6 +9,7 @@
 #include <utils/algorithm.h>
 #include <utils/hostosinfo.h>
 #include <utils/qtcassert.h>
+#include <utils/theme/theme.h>
 
 #include <QDir>
 #include <QRegularExpression>
@@ -61,6 +62,24 @@ QString IVersionControl::vcsMakeWritableText() const
 FilePaths IVersionControl::additionalToolsPath() const
 {
     return {};
+}
+
+IVersionControl::FileState IVersionControl::modificationState(
+    const FilePath &path, const FilePath &topLevelDir) const
+{
+    Q_UNUSED(path)
+    Q_UNUSED(topLevelDir)
+    return IVersionControl::FileState::Unknown;
+}
+
+void IVersionControl::monitorDirectory(const Utils::FilePath &path)
+{
+    Q_UNUSED(path)
+}
+
+void IVersionControl::stopMonitoringDirectory(const Utils::FilePath &path)
+{
+    Q_UNUSED(path)
 }
 
 IVersionControl::RepoUrl::RepoUrl(const QString &location)
@@ -143,7 +162,7 @@ QString IVersionControl::refreshTopic(const FilePath &repository)
     it will be used. Otherwise it will be refreshed using the items provided by
     \c setTopicFileTracker() and \c setTopicRefresher().
 
-    \sa setTopicFileTracker(), setTopicRefresher().
+    \sa setTopicFileTracker(), setTopicRefresher()
  */
 
 QString IVersionControl::vcsTopic(const FilePath &topLevel)
@@ -207,6 +226,49 @@ bool IVersionControl::handleLink(const FilePath &workingDirectory, const QString
     QTC_ASSERT(!reference.isEmpty(), return false);
     vcsDescribe(workingDirectory, reference);
     return true;
+}
+
+QColor IVersionControl::vcStateToColor(const IVersionControl::FileState &state)
+{
+    using IVCF = Core::IVersionControl::FileState;
+    using UT = Utils::Theme;
+    switch (state) {
+    case IVCF::Modified:
+        return Utils::creatorColor(UT::VcsBase_FileModified_TextColor);
+    case IVCF::Added:
+        return Utils::creatorColor(UT::VcsBase_FileAdded_TextColor);
+    case IVCF::Renamed:
+        return Utils::creatorColor(UT::VcsBase_FileRenamed_TextColor);
+    case IVCF::Deleted:
+        return Utils::creatorColor(UT::VcsBase_FileDeleted_TextColor);
+    case IVCF::Untracked:
+        return Utils::creatorColor(UT::VcsBase_FileUntracked_TextColor);
+    case IVCF::Unmerged:
+        return Utils::creatorColor(UT::VcsBase_FileUnmerged_TextColor);
+    default:
+        return Utils::creatorColor(UT::PaletteText);
+    }
+}
+
+QString IVersionControl::modificationToText(const IVersionControl::FileState &state)
+{
+    using IVCF = Core::IVersionControl::FileState;
+    switch (state) {
+    case IVCF::Added:
+        return Tr::tr("Version control state: added.");
+    case IVCF::Modified:
+        return Tr::tr("Version control state: modified.");
+    case IVCF::Deleted:
+        return Tr::tr("Version control state: deleted.");
+    case IVCF::Renamed:
+        return Tr::tr("Version control state: renamed.");
+    case IVCF::Untracked:
+        return Tr::tr("Version control state: untracked.");
+    case IVCF::Unmerged:
+        return Tr::tr("Version control state: unmerged.");
+    default:
+        return {};
+    }
 }
 
 } // namespace Core

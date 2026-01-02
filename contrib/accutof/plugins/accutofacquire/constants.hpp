@@ -44,20 +44,20 @@ namespace accutof { namespace acquire {
             // common actions
             const char * const FILE_OPEN            = "accutof.acquire.FileOpen";
             ////////////////////////
-            const char * const ACTION_CONNECT       = "accutof.acquire.Connect";
-            const char * const ACTION_RUN           = "accutof.acquire.Run";
-            const char * const ACTION_STOP          = "accutof.acquire.Stop";
-            const char * const ACTION_REC           = "accutof.acquire.Rec";
-            const char * const ACTION_SNAPSHOT      = "accutof.acquire.Snapshot";
-            const char * const ACTION_SYNC          = "accutof.acquire.SyncTrig";
-            const char * const ACTION_INJECT        = "accutof.acquire.Inject";
-            const char * const ACTION_DARK          = "accutof.acquire.Dark";
-            const char * const ACTION_XIC_ZERO      = "accutof.acquire.XIC_ZERO";
-            const char * const ACTION_XIC_CLEAR     = "accutof.acquire.XIC_CLEAR";
-            const char * const ACTION_SEL_CALIBFILE = "accutof.acquire.sel_calibfile";
-            const char * const PRINT_CURRENT_VIEW   = "accutof.acquire.print_current_view";
-            const char * const SAVE_CURRENT_IMAGE   = "accutof.acquire.save_current_image";
-            const char * const HIDE_DOCK            = "accutof.acquire.HideDock";
+            const char ACTION_CONNECT []      = "accutof.acquire.Connect";
+            const char ACTION_RUN []          = "accutof.acquire.Run";
+            const char ACTION_STOP []         = "accutof.acquire.Stop";
+            const char ACTION_REC []          = "accutof.acquire.Rec";
+            const char ACTION_SNAPSHOT []     = "accutof.acquire.Snapshot";
+            const char ACTION_SYNC []         = "accutof.acquire.SyncTrig";
+            const char ACTION_INJECT []       = "accutof.acquire.Inject";
+            const char ACTION_DARK []         = "accutof.acquire.Dark";
+            const char ACTION_XIC_ZERO []     = "accutof.acquire.XIC_ZERO";
+            const char ACTION_XIC_CLEAR []    = "accutof.acquire.XIC_CLEAR";
+            const char ACTION_SEL_CALIBFILE[] = "accutof.acquire.sel_calibfile";
+            const char PRINT_CURRENT_VIEW []  = "accutof.acquire.print_current_view";
+            const char SAVE_CURRENT_IMAGE []  = "accutof.acquire.save_current_image";
+            const char HIDE_DOCK []           = "accutof.acquire.HideDock";
 
             const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
             const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";

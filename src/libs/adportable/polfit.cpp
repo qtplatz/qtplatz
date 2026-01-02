@@ -27,11 +27,15 @@
 #include "float.hpp"
 
 #include <adportable/debug.hpp>
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+#pragma clang diagnostic pop
 #include <cmath>
 #include <cstring>
 #include <limits>
+
 
 namespace adportable {
 

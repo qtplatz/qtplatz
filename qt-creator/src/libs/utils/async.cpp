@@ -3,6 +3,9 @@
 
 #include "async.h"
 
+#include <QApplication>
+#include <qapplicationstatic.h>
+
 namespace Utils {
 
 static int s_maxThreadCount = INT_MAX;
@@ -17,25 +20,14 @@ public:
     }
 };
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 3, 0)
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_idle,         (QThread::IdlePriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_lowest,       (QThread::LowestPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_low,          (QThread::LowPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_normal,       (QThread::NormalPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_high,         (QThread::HighPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_highest,      (QThread::HighestPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_timeCritical, (QThread::TimeCriticalPriority));
-Q_GLOBAL_STATIC_WITH_ARGS(AsyncThreadPool, s_inherit,      (QThread::InheritPriority));
-#else
-Q_GLOBAL_STATIC(AsyncThreadPool, s_idle,         QThread::IdlePriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_lowest,       QThread::LowestPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_low,          QThread::LowPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_normal,       QThread::NormalPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_high,         QThread::HighPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_highest,      QThread::HighestPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_timeCritical, QThread::TimeCriticalPriority);
-Q_GLOBAL_STATIC(AsyncThreadPool, s_inherit,      QThread::InheritPriority);
-#endif
+Q_APPLICATION_STATIC(AsyncThreadPool, s_idle,         QThread::IdlePriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_lowest,       QThread::LowestPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_low,          QThread::LowPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_normal,       QThread::NormalPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_high,         QThread::HighPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_highest,      QThread::HighestPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_timeCritical, QThread::TimeCriticalPriority);
+Q_APPLICATION_STATIC(AsyncThreadPool, s_inherit,      QThread::InheritPriority);
 
 QThreadPool *asyncThreadPool(QThread::Priority priority)
 {

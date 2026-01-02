@@ -15,12 +15,14 @@
 #include <QJSEngine>
 #include <QPair>
 #include <QPointer>
+#include <QTimer>
+#include <QWaitCondition>
 
 #include <chrono>
 
 using namespace Core;
 using namespace Core::Internal;
-using namespace Tasking;
+using namespace QtTaskTree;
 using namespace Utils;
 
 using namespace std::chrono;
@@ -342,15 +344,7 @@ private:
     JavaScriptOutput m_output;
 };
 
-class JavaScriptRequestAdapter : public TaskAdapter<JavaScriptRequest>
-{
-public:
-    JavaScriptRequestAdapter() { connect(task(), &JavaScriptRequest::done,
-                                         this, &TaskInterface::done); }
-    void start() final { task()->start(); }
-};
-
-using JavaScriptRequestTask = CustomTask<JavaScriptRequestAdapter>;
+using JavaScriptRequestTask = QCustomTask<JavaScriptRequest>;
 
 namespace Core::Internal {
 
@@ -366,17 +360,18 @@ JavaScriptFilter::~JavaScriptFilter() = default;
 
 LocatorMatcherTasks JavaScriptFilter::matchers()
 {
-    Storage<LocatorStorage> storage;
     if (!m_javaScriptEngine)
         m_javaScriptEngine.reset(new JavaScriptEngine);
     QPointer<JavaScriptEngine> engine = m_javaScriptEngine.get();
 
-    const auto onSetup = [storage, engine] {
+    const auto onSetup = [engine] {
+        const LocatorStorage &storage = *LocatorStorage::storage();
         if (!engine)
             return SetupResult::StopWithError;
-        if (storage->input().trimmed().isEmpty()) {
+        if (storage.input().trimmed().isEmpty()) {
             LocatorFilterEntry entry;
             entry.displayName = Tr::tr("Reset Engine");
+            entry.completer = [] { return AcceptResult(); }; // do not complete
             entry.acceptor = [engine] {
                 if (engine) {
                     JavaScriptInput request;
@@ -385,21 +380,22 @@ LocatorMatcherTasks JavaScriptFilter::matchers()
                 }
                 return AcceptResult();
             };
-            storage->reportOutput({entry});
+            storage.reportOutput({entry});
             return SetupResult::StopWithSuccess;
         }
         return SetupResult::Continue;
     };
 
-    const auto onJavaScriptSetup = [storage, engine](JavaScriptRequest &request) {
+    const auto onJavaScriptSetup = [engine](JavaScriptRequest &request) {
         request.setEngine(engine);
-        request.setEvaluateData(storage->input());
+        request.setEvaluateData(LocatorStorage::storage()->input());
     };
-    const auto onJavaScriptDone = [storage](const JavaScriptRequest &request, DoneWith result) {
+    const auto onJavaScriptDone = [](const JavaScriptRequest &request, DoneWith result) {
+        const LocatorStorage &storage = *LocatorStorage::storage();
         if (result != DoneWith::Success) {
             LocatorFilterEntry entry;
             entry.displayName = request.output().m_output;
-            storage->reportOutput({entry});
+            storage.reportOutput({entry});
             return;
         }
         const auto acceptor = [](const QString &clipboardContents) {
@@ -408,22 +404,25 @@ LocatorMatcherTasks JavaScriptFilter::matchers()
                 return AcceptResult();
             };
         };
-        const QString input = storage->input();
+        const QString input = storage.input();
         const QString output = request.output().m_output;
         const QString expression = input + " = " + output;
 
         LocatorFilterEntry entry;
         entry.displayName = expression;
+        entry.completer = [] { return AcceptResult(); }; // do not complete
 
         LocatorFilterEntry copyResultEntry;
         copyResultEntry.displayName = Tr::tr("Copy to clipboard: %1").arg(output);
+        copyResultEntry.completer = [] { return AcceptResult(); }; // do not complete
         copyResultEntry.acceptor = acceptor(output);
 
         LocatorFilterEntry copyExpressionEntry;
         copyExpressionEntry.displayName = Tr::tr("Copy to clipboard: %1").arg(expression);
+        copyExpressionEntry.completer = [] { return AcceptResult(); }; // do not complete
         copyExpressionEntry.acceptor = acceptor(expression);
 
-        storage->reportOutput({entry, copyResultEntry, copyExpressionEntry});
+        storage.reportOutput({entry, copyResultEntry, copyExpressionEntry});
     };
 
     const Group root {
@@ -431,7 +430,7 @@ LocatorMatcherTasks JavaScriptFilter::matchers()
         JavaScriptRequestTask(onJavaScriptSetup, onJavaScriptDone)
     };
 
-    return {{root, storage}};
+    return {root};
 }
 
 } // namespace Core::Internal

@@ -1,3 +1,0 @@
-CppApplication {
-    Depends { name: "mymodule" }
-}

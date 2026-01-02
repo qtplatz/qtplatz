@@ -10,6 +10,7 @@
 #include "coreconstants.h"
 #include "coreplugin.h"
 #include "editormanager/editormanager.h"
+#include "editormanager/editormanager_p.h"
 #include "icore.h"
 #include "modemanager.h"
 #include "progressmanager/progressmanager.h"
@@ -19,19 +20,23 @@
 
 #include <utils/algorithm.h>
 #include <utils/filepath.h>
+#include <utils/guard.h>
 #include <utils/macroexpander.h>
 #include <utils/persistentsettings.h>
 #include <utils/qtcassert.h>
+#include <utils/shutdownguard.h>
 #include <utils/store.h>
 #include <utils/stringutils.h>
 #include <utils/stylehelper.h>
+#include <utils/threadutils.h>
 
 #include <nanotrace/nanotrace.h>
 
 #include <QAction>
 #include <QActionGroup>
-#include <QFutureInterface>
+#include <QCoreApplication>
 #include <QDebug>
+#include <QFutureInterface>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
@@ -91,7 +96,7 @@ public:
     QString m_sessionName = "default";
     bool m_isAutoRestoreLastSession = false;
     bool m_virginSession = true;
-    bool m_loadingSession = false;
+    Guard m_loadingSession;
 
     mutable QStringList m_sessions;
     mutable QHash<QString, QDateTime> m_sessionDateTimes;
@@ -100,18 +105,23 @@ public:
     QMap<Utils::Key, QVariant> m_values;
     QMap<Utils::Key, QVariant> m_sessionValues;
     QFutureInterface<void> m_future;
-    PersistentSettingsWriter *m_writer = nullptr;
+    std::unique_ptr<PersistentSettingsWriter> m_writer;
 
     QMenu *m_sessionMenu;
     QAction *m_sessionManagerAction;
 };
 
-static SessionManager *m_instance = nullptr;
 static SessionManagerPrivate *d = nullptr;
+
+SessionManager *sessionManager()
+{
+    static GuardedObject<SessionManager> theSessionManager;
+    return theSessionManager.get();
+}
 
 SessionManager::SessionManager()
 {
-    m_instance = this;
+    QTC_ASSERT(isMainThread(), return);
     d = new SessionManagerPrivate;
 
     connect(PluginManager::instance(), &PluginManager::initializationDone, this, [] {
@@ -141,6 +151,7 @@ SessionManager::SessionManager()
     // session menu
     ActionContainer *mfile = ActionManager::actionContainer(Core::Constants::M_FILE);
     ActionContainer *msession = ActionManager::createMenu(M_SESSION);
+
     msession->menu()->setTitle(PE::Tr::tr("S&essions"));
     msession->setOnAllDisabledBehavior(ActionContainer::Show);
     mfile->addMenu(msession, Core::Constants::G_FILE_SESSION);
@@ -151,13 +162,13 @@ SessionManager::SessionManager()
     d->m_sessionManagerAction = new QAction(PE::Tr::tr("&Manage..."), this);
     d->m_sessionMenu->addAction(d->m_sessionManagerAction);
     d->m_sessionMenu->addSeparator();
-    Command *cmd = ActionManager::registerAction(d->m_sessionManagerAction,
-                                                 "ProjectExplorer.ManageSessions");
+    Command *cmd = ActionManager::registerAction(
+        d->m_sessionManagerAction, "ProjectExplorer.ManageSessions");
     cmd->setDefaultKeySequence(QKeySequence());
     connect(d->m_sessionManagerAction,
-            &QAction::triggered,
-            SessionManager::instance(),
-            &SessionManager::showSessionManager);
+        &QAction::triggered,
+        this,
+        &SessionManager::showSessionManager);
 
     MacroExpander *expander = Utils::globalMacroExpander();
     expander->registerFileVariables("Session",
@@ -175,15 +186,13 @@ SessionManager::SessionManager()
 
 SessionManager::~SessionManager()
 {
-    emit m_instance->aboutToUnloadSession(d->m_sessionName);
-    delete d->m_writer;
     delete d;
     d = nullptr;
 }
 
 SessionManager *SessionManager::instance()
 {
-   return m_instance;
+   return sessionManager();
 }
 
 bool SessionManager::isDefaultVirgin()
@@ -198,7 +207,7 @@ bool SessionManager::isDefaultSession(const QString &session)
 
 bool SessionManager::isLoadingSession()
 {
-    return d->m_loadingSession;
+    return d->m_loadingSession.isLocked();
 }
 
 /*!
@@ -308,7 +317,7 @@ bool SessionManager::renameSession(const QString &original, const QString &newNa
 void SessionManager::showSessionManager()
 {
     saveSession();
-    Internal::SessionDialog sessionDialog(ICore::dialogParent());
+    Internal::SessionDialog sessionDialog;
     sessionDialog.setAutoLoadSession(d->isAutoRestoreLastSession());
     sessionDialog.exec();
     d->setAutoRestoreLastSession(sessionDialog.autoLoadSession());
@@ -347,9 +356,11 @@ bool SessionManager::deleteSession(const QString &session)
     d->m_lastActiveTimes.remove(session);
     emit instance()->sessionRemoved(session);
     FilePath sessionFile = sessionNameToFileName(session);
-    if (sessionFile.exists())
-        return sessionFile.removeFile();
-    return false;
+    if (!sessionFile.exists())
+        return false;
+    Result<> result = sessionFile.removeFile();
+    QTC_CHECK_RESULT(result);
+    return bool(result);
 }
 
 void SessionManager::deleteSessions(const QStringList &sessions)
@@ -398,6 +409,12 @@ static QString determineSessionToRestoreAtStartup()
     if (d->m_isAutoRestoreLastSession)
         return SessionManager::startupSession();
     return {};
+}
+
+bool SessionManager::loadsSessionOrFileAtStartup()
+{
+    // "left-over arguments" usually mean a session or files
+    return !PluginManager::arguments().isEmpty() || !determineSessionToRestoreAtStartup().isEmpty();
 }
 
 void SessionManagerPrivate::restoreStartupSession()
@@ -451,7 +468,7 @@ void SessionManagerPrivate::restoreStartupSession()
     ICore::openFiles(Utils::transform(arguments, &FilePath::fromUserInput),
                      ICore::OpenFilesFlags(ICore::CanContainLineAndColumnNumbers
                                            | ICore::SwitchMode));
-    emit m_instance->startupSessionRestored();
+    emit sessionManager()->startupSessionRestored();
 }
 
 void SessionManagerPrivate::saveSettings()
@@ -555,6 +572,18 @@ void SessionManagerPrivate::restoreEditors()
     }
 }
 
+FilePaths SessionManager::openFilesForSessionName(const QString &session, int max)
+{
+    const FilePath fileName = sessionNameToFileName(session);
+    PersistentSettingsReader reader;
+    if (fileName.exists()) {
+        if (!reader.load(fileName))
+            return {};
+    }
+    return Internal::EditorManagerPrivate::openFilesForState(
+        QByteArray::fromBase64(reader.restoreValue("EditorSettings").toByteArray()), max);
+}
+
 /*!
     Returns the last session that was opened by the user.
 */
@@ -652,29 +681,24 @@ bool SessionManager::loadSession(const QString &session, bool initial)
         return true;
     }
 
-    d->m_loadingSession = true;
+    GuardLocker sessionLoadingGuard(d->m_loadingSession);
 
     // Allow everyone to set something in the session and before saving
     emit SessionManager::instance()->aboutToUnloadSession(d->m_sessionName);
 
-    if (!saveSession()) {
-        d->m_loadingSession = false;
+    if (!saveSession())
         return false;
-    }
 
     // Clean up
-    if (!EditorManager::closeAllEditors()) {
-        d->m_loadingSession = false;
+    if (!EditorManager::closeAllEditors())
         return false;
-    }
 
     if (!switchFromImplicitToExplicitDefault)
         d->m_values.clear();
     d->m_sessionValues.clear();
 
     d->m_sessionName = session;
-    delete d->m_writer;
-    d->m_writer = nullptr;
+    d->m_writer.reset();
     EditorManager::updateWindowTitles();
 
     d->m_virginSession = false;
@@ -710,7 +734,6 @@ bool SessionManager::loadSession(const QString &session, bool initial)
 
     emit SessionManager::instance()->sessionLoaded(session);
 
-    d->m_loadingSession = false;
     return true;
 }
 
@@ -758,11 +781,10 @@ bool SessionManager::saveSession()
     }
     data.insert("valueKeys", stringsFromKeys(keys));
 
-    if (!d->m_writer || d->m_writer->fileName() != filePath) {
-        delete d->m_writer;
-        d->m_writer = new PersistentSettingsWriter(filePath, "QtCreatorSession");
-    }
-    const bool result = d->m_writer->save(data, ICore::dialogParent());
+    if (!d->m_writer || d->m_writer->fileName() != filePath)
+        d->m_writer.reset(new PersistentSettingsWriter(filePath, "QtCreatorSession"));
+
+    const Result<> result = d->m_writer->save(data);
     if (result) {
         if (!SessionManager::isDefaultVirgin())
             d->m_sessionDateTimes.insert(SessionManager::activeSession(),
@@ -774,7 +796,7 @@ bool SessionManager::saveSession()
                                  .arg(d->m_writer->fileName().toUserOutput()));
     }
 
-    return result;
+    return result.has_value();
 }
 
 } // namespace Core

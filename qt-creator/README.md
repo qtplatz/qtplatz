@@ -16,9 +16,11 @@ https://doc.qt.io/qtcreator/creator-overview.html
 
 The standalone binary packages support the following platforms:
 
-* Windows 10 (64-bit) or later
-* (K)Ubuntu Linux 22.04 (64-bit) or later
-* macOS 11 or later
+* Windows 10 (x86_64) or later
+* Windows 11 (ARM64) or later
+* (K)Ubuntu Linux 22.04 (x86_64) or later
+* (K)Ubuntu Linux 24.04 (arm64) or later
+* macOS 13 or later
 
 When you compile Qt Creator yourself, the Qt version that you build with
 determines the supported platforms.
@@ -38,16 +40,16 @@ https://doc.qt.io/qtcreator-extending/coding-style.html
 
 Prerequisites:
 
-* Qt 6.2 or later. The Qt version that you use to build Qt Creator defines the
+* Qt 6.5.3 or later. The Qt version that you use to build Qt Creator defines the
   minimum platform versions that the result supports
-  (Windows 10, RHEL/CentOS 8.4, Ubuntu 20.04, macOS 10.15 for Qt 6.2).
+  (Windows 10, RHEL/CentOS 8.8, Ubuntu 22.04, macOS 11 for Qt 6.5.3).
 * Qt WebEngine module for QtWebEngine based help viewer
 * On Windows:
-    * MinGW with GCC 9 or Visual Studio 2019 or later
+    * MinGW with GCC 11.2 or Visual Studio 2022 or later
     * Python 3.8 or later (optional, needed for the python enabled debug helper)
     * Debugging Tools for Windows (optional, for MSVC debugging support with CDB)
-* On Mac OS X: latest Xcode
-* On Linux: GCC 9 or later
+* On macOS: latest Xcode
+* On Linux: GCC 10 or later
 * LLVM/Clang 14 or later (optional, LLVM/Clang 17 is recommended.
   See [instructions](#getting-llvmclang-for-the-clang-code-model) on how to
   get LLVM.
@@ -56,6 +58,8 @@ Prerequisites:
   if later versions don't compile we don't support that version.)
 * CMake
 * Ninja (recommended)
+* [Go compiler](#installing-the-go-compiler), required for the CmdBridge
+  (BUILD_EXECUTABLE_CMDBRIDGE) for fast container and remote device support.
 
 The used toolchain has to be compatible with the one Qt was compiled with.
 
@@ -96,7 +100,7 @@ include the version number and compiler ABI. The path to the online installer
 content is not enough.
 
 Note that `/path/to/Qt` doesn't imply the full path depth like:
-`$USER/Qt/6.2.4/gcc_64/lib/cmake/Qt6`, but only `$USER/Qt/6.2.4/gcc_64`.
+`$USER/Qt/6.8.3/gcc_64/lib/cmake/Qt6`, but only `$USER/Qt/6.8.3/gcc_64`.
 
 See [instructions](#getting-llvmclang-for-the-clang-code-model) on how to
 get LLVM.
@@ -106,6 +110,33 @@ get LLVM.
 
     cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja "-DCMAKE_PREFIX_PATH=/path/to/Qt;/path/to/llvm" /path/to/qtcreator_sources
     cmake --build .
+
+#### Troubleshooting: libxcb plugin not found while using Qt libraries built locally from source
+
+Ensure all prerequisites for building Qt are installed:
+https://doc.qt.io/qt-6/linux.html
+https://doc.qt.io/qt-6/linux-requirements.html
+
+If they were installed before building Qt and xcb plugin is missing try reinstall them with
+
+```sh
+    sudo apt-get --reinstall <package_name>
+```
+
+Reset building configuration for Qt libraries at '/path/to/qt_sources'
+
+```sh
+    cmake --build . --target=clean
+```
+
+and remove CMakeCache.txt
+
+```sh
+    rm CMakeCache.txt
+```
+
+Try building Qt source again.
+
 
 ### Windows
 
@@ -118,7 +149,7 @@ include the version number and compiler ABI. The path to the online installer
 content is not enough.
 
 Note that `\path\to\Qt` doesn't imply the full path depth like:
-`c:\Qt\6.2.4\msvc2019_64\lib\cmake\Qt6`, but only `c:/Qt/6.2.4/msvc2019_64`.
+`c:\Qt\6.8.3\msvc2022_64\lib\cmake\Qt6`, but only `c:/Qt/6.8.3/msvc2022_64`.
 The usage of slashes `/` is intentional, since CMake has issues with backslashes `\`
 in `CMAKE_PREFX_PATH`, they are interpreted as escape codes.
 
@@ -198,7 +229,7 @@ CLion...etc) locally:
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_PREFIX_PATH": "c:/Qt/6.2.4/msvc2019_64"
+        "CMAKE_PREFIX_PATH": "c:/Qt/6.8.3/msvc2022_64"
       }
     }
   ]
@@ -239,6 +270,12 @@ available to the installed Qt Creator, run
 
     cmake --install . --prefix /path/to/qtcreator_install --component DebugInfo
 
+### QML Designer
+
+To disable the build of the experimental QML Designer plugins and their dependencies,
+use the CMake option `-DWITH_QMLDESIGNER=OFF`. The QML Designer plugin requires additional
+testing for specific Qt versions. If that can not be provided we suggest to disable it.
+
 ### Perf Profiler Support
 
 Support for the [perf](https://perf.wiki.kernel.org/index.php/Main_Page) profiler
@@ -255,6 +292,23 @@ You can also point Qt Creator to a separate installation of `perfparser` by
 setting the `PERFPROFILER_PARSER_FILEPATH` environment variable to the full
 path to the executable.
 
+### Build with AddressSanitizer
+
+Set the following CMake definitions to configure and build Qt Creator with AddressSanitizer.
+```
+-DWITH_SANITIZE:BOOL=ON
+-DSANITIZE_FLAGS:STRING=address
+```
+### Partial building of executables and plugins
+
+Set the following CMake definitions in order to configure and build only
+parts of Qt Creator. Note that dependencies are not automatically handled.
+```
+-DBUILD_EXECUTABLES:STRING=QtCreator;ClangBackend;qtcreator_processlauncher
+```
+```
+-DBUILD_PLUGINS:STRING=Core;TextEditor;ProjectExplorer;CppTools;CppEditor;QmakeProjectManager;CMakeProjectManager;Debugger;ResourceEditor;QtSupport;LanguageClient
+```
 ## Getting LLVM/Clang for the Clang Code Model
 
 The Clang code model uses `Clangd` and the ClangFormat plugin depends on the
@@ -286,7 +340,7 @@ http://llvm.org/docs/GettingStarted.html#git-mirror:
 
    1. Clone LLVM/Clang and checkout a suitable branch
 
-          git clone -b release_130-based --recursive https://code.qt.io/clang/llvm-project.git
+          git clone -b release_17.0.6-based --recursive https://code.qt.io/clang/llvm-project.git
 
    2. Build and install LLVM/Clang
 
@@ -314,22 +368,45 @@ http://llvm.org/docs/GettingStarted.html#git-mirror:
             ..\llvm-project\llvm
           cmake --build . --target install
 
-### Clang-Format
+### Installing the Go Compiler
 
-The ClangFormat plugin depends on the additional patch
+The CmdBridge requires the Go compiler.
 
-    https://code.qt.io/cgit/clang/llvm-project.git/commit/?h=release_130-based&id=42879d1f355fde391ef46b96a659afeb4ad7814a
+On macOS, run
 
-While the plugin builds without it, it might not be fully functional.
+    brew install golang
 
-Note that the plugin is disabled by default.
+On Linux with apt, run
+
+    sudo apt install golang
+
+On Windows, run
+
+    winget install golang.go
+
+Alternatively, the Go compiler can be obtained from https://go.dev/dl
+
+#### Vendor mode
+
+Normally go will download dependencies from the internet while building the CmdBridge.
+
+To build without access to the internet, you can use vendor mode.
+
+To build the CmdBridge in vendor mode, make sure to have the `CMDBRIDGE_BUILD_VENDOR_MODE`
+CMake option set to `ON`. You will also need to have the Go modules vendored
+in the `src/libs/gocmdbridge/server/vendor` directory. To vendor the Go modules,
+run the following commands in the `src/libs/gocmdbridge/server` directory:
+
+```
+go mod vendor
+```
 
 # Licenses and Attributions
 
 Qt Creator is available under commercial licenses from The Qt Company,
 and under the GNU General Public License version 3,
 annotated with The Qt Company GPL Exception 1.0.
-See [LICENSE.GPL3-EXCEPT](LICENSE.GPL3-EXCEPT) for the details.
+See [LICENSE.GPL3-EXCEPT](LICENSES/LICENSE.GPL3-EXCEPT) for the details.
 
 For more information about the third-party components that Qt Creator
 includes, see the

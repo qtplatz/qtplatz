@@ -105,12 +105,18 @@ void FileWizardPage::setFilePath(const FilePath &filePath)
 
 QString FileWizardPage::path() const
 {
-    return d->m_pathChooser->filePath().toString();
+    return d->m_pathChooser->filePath().toUrlishString();
 }
 
 void FileWizardPage::setPath(const QString &path)
 {
     d->m_pathChooser->setFilePath(FilePath::fromString(path));
+}
+
+void FileWizardPage::setPathVisible(bool visible)
+{
+    d->m_pathLabel->setVisible(visible);
+    d->m_pathChooser->setVisible(visible);
 }
 
 void FileWizardPage::setFileName(const QString &name)
@@ -176,9 +182,9 @@ void FileWizardPage::slotActivated()
         emit activated();
 }
 
-bool FileWizardPage::validateBaseName(const QString &name, QString *errorMessage /* = 0*/)
+Result<> FileWizardPage::validateBaseName(const QString &name)
 {
-    return FileNameValidatingLineEdit::validateFileName(name, false, errorMessage);
+    return FileNameValidatingLineEdit::validateFileName(name, false);
 }
 
 } // namespace Utils

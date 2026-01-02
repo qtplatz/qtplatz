@@ -5,6 +5,8 @@
 
 #include "camelcasecursor.h"
 #include "execmenu.h"
+#include "futuresynchronizer.h"
+#include "fancyiconbutton.h"
 #include "historycompleter.h"
 #include "hostosinfo.h"
 #include "icon.h"
@@ -14,6 +16,7 @@
 #include <solutions/spinner/spinner.h>
 
 #include <QApplication>
+#include <qapplicationstatic.h>
 #include <QFutureWatcher>
 #include <QKeyEvent>
 #include <QKeySequence>
@@ -63,9 +66,6 @@
 
 enum { margin = 6 };
 
-#define ICONBUTTON_HEIGHT 18
-#define FADE_TIME 160
-
 namespace Utils {
 
 static bool camelCaseNavigation = false;
@@ -88,9 +88,9 @@ signals:
     void keyChanged(const QKeySequence &key);
 
 private:
-    QKeySequence m_key = Qt::Key_Space + HostOsInfo::controlModifier();
+    QKeySequence m_key = Qt::Key_Space | HostOsInfo::controlModifier();
 };
-Q_GLOBAL_STATIC(CompletionShortcut, completionShortcut)
+Q_APPLICATION_STATIC(CompletionShortcut, completionShortcut)
 
 
 // --------- FancyLineEditPrivate
@@ -98,6 +98,7 @@ class FancyLineEditPrivate : public QObject
 {
 public:
     explicit FancyLineEditPrivate(FancyLineEdit *parent);
+    ~FancyLineEditPrivate();
 
     bool eventFilter(QObject *obj, QEvent *event) override;
 
@@ -134,8 +135,8 @@ FancyLineEditPrivate::FancyLineEditPrivate(FancyLineEdit *parent)
     : QObject(parent)
     , m_lineEdit(parent)
     , m_completionShortcut(completionShortcut()->key(), parent)
-    , m_okTextColor(creatorTheme()->color(Theme::TextColorNormal))
-    , m_errorTextColor(creatorTheme()->color(Theme::TextColorError))
+    , m_okTextColor(creatorColor(Theme::TextColorNormal))
+    , m_errorTextColor(creatorColor(Theme::TextColorError))
     , m_placeholderTextColor(QApplication::palette().color(QPalette::PlaceholderText))
     , m_spinner(new SpinnerSolution::Spinner(SpinnerSolution::SpinnerSize::Small, m_lineEdit))
 {
@@ -161,6 +162,12 @@ FancyLineEditPrivate::FancyLineEditPrivate(FancyLineEdit *parent)
         m_menuTabFocusTrigger[i] = false;
         m_iconEnabled[i] = false;
     }
+}
+
+FancyLineEditPrivate::~FancyLineEditPrivate()
+{
+    if (m_validatorWatcher)
+        m_validatorWatcher->cancel();
 }
 
 bool FancyLineEditPrivate::eventFilter(QObject *obj, QEvent *event)
@@ -346,10 +353,11 @@ bool FancyLineEdit::hasAutoHideButton(Side side) const
     return d->m_iconbutton[side]->hasAutoHide();
 }
 
-void FancyLineEdit::setHistoryCompleter(const Key &historyKey, bool restoreLastItemFromHistory)
+void FancyLineEdit::setHistoryCompleter(
+    const Key &historyKey, bool restoreLastItemFromHistory, int maxLines)
 {
     QTC_ASSERT(!d->m_historyCompleter, return);
-    d->m_historyCompleter = new HistoryCompleter(historyKey, this);
+    d->m_historyCompleter = new HistoryCompleter(historyKey, maxLines, this);
     if (restoreLastItemFromHistory && d->m_historyCompleter->hasHistory())
         setText(d->m_historyCompleter->historyItem());
     QLineEdit::setCompleter(d->m_historyCompleter);
@@ -393,6 +401,12 @@ void FancyLineEdit::setCamelCaseNavigationEnabled(bool enabled)
 void FancyLineEdit::setCompletionShortcut(const QKeySequence &shortcut)
 {
     completionShortcut()->setKeySequence(shortcut);
+}
+
+void FancyLineEdit::setValueAlternatives(const QStringList &values)
+{
+    for (const QString &value : values)
+        d->m_historyCompleter->addEntry(value);
 }
 
 void FancyLineEdit::setSpecialCompleter(QCompleter *completer)
@@ -446,26 +460,41 @@ void FancyLineEdit::setFiltering(bool on)
     }
 }
 
+/*!
+    Set a synchronous or asynchronous validation function \a fn.
+    Asynchronous validation functions can continue to run after destruction of the
+    FancyLineEdit instance. During shutdown asynchronous validation functions can continue
+    to run until before the plugin instances are deleted (at that point the plugin manager
+    waits for them to finish before continuing).
+
+    \sa defaultValidationFunction()
+ */
 void FancyLineEdit::setValidationFunction(const FancyLineEdit::ValidationFunction &fn)
 {
     d->m_validationFunction = fn;
     validate();
 }
 
+/*!
+    Returns the default validation function, which synchonously executes the line edit's
+    validator.
+
+    \sa setValidationFunction()
+*/
 FancyLineEdit::ValidationFunction FancyLineEdit::defaultValidationFunction()
 {
     return &FancyLineEdit::validateWithValidator;
 }
 
-bool FancyLineEdit::validateWithValidator(FancyLineEdit *edit, QString *errorMessage)
+Result<> FancyLineEdit::validateWithValidator(FancyLineEdit &edit)
 {
-    Q_UNUSED(errorMessage)
-    if (const QValidator *v = edit->validator()) {
-        QString tmp = edit->text();
-        int pos = edit->cursorPosition();
-        return v->validate(tmp, pos) == QValidator::Acceptable;
+    if (const QValidator *v = edit.validator()) {
+        QString tmp = edit.text();
+        int pos = edit.cursorPosition();
+        if (v->validate(tmp, pos) != QValidator::Acceptable)
+            return ResultError(QString());
     }
-    return true;
+    return ResultOk;
 }
 
 FancyLineEdit::State FancyLineEdit::state() const
@@ -581,12 +610,13 @@ void FancyLineEdit::validate()
 
         AsyncValidationFuture future = validationFunction(text());
         d->m_validatorWatcher->setFuture(future);
+        Utils::futureSynchronizer()->addFuture(future);
 
         return;
     }
 
     if (d->m_validationFunction.index() == 1) {
-        auto &validationFunction = std::get<1>(d->m_validationFunction);
+        SynchronousValidationFunction &validationFunction = std::get<1>(d->m_validationFunction);
         if (!validationFunction)
             return;
 
@@ -599,14 +629,36 @@ void FancyLineEdit::validate()
             }
         }
 
-        QString error;
-        const bool validates = validationFunction(this, &error);
-        expected_str<QString> result;
+        Result<QString> result;
 
-        if (validates)
+        if (const Result<> validates = validationFunction(*this))
             result = t;
         else
-            result = make_unexpected(error);
+            result = ResultError(validates.error());
+
+        handleValidationResult(result, t);
+    }
+
+    if (d->m_validationFunction.index() == 2) {
+        SimpleSynchronousValidationFunction &validationFunction = std::get<2>(d->m_validationFunction);
+        if (!validationFunction)
+            return;
+
+        const QString t = text();
+
+        if (d->m_isFiltering) {
+            if (t != d->m_lastFilterText) {
+                d->m_lastFilterText = t;
+                emit filterChanged(t);
+            }
+        }
+
+        Result<QString> result;
+
+        if (const Result<> validates = validationFunction(t))
+            result = t;
+        else
+            result = ResultError(validates.error());
 
         handleValidationResult(result, t);
     }
@@ -615,74 +667,6 @@ void FancyLineEdit::validate()
 QString FancyLineEdit::fixInputString(const QString &string)
 {
     return string;
-}
-
-//
-// IconButton - helper class to represent a clickable icon
-//
-
-FancyIconButton::FancyIconButton(QWidget *parent)
-    : QAbstractButton(parent)
-{
-    setCursor(Qt::ArrowCursor);
-    setFocusPolicy(Qt::NoFocus);
-}
-
-void FancyIconButton::paintEvent(QPaintEvent *)
-{
-    const qreal pixelRatio = window()->windowHandle()->devicePixelRatio();
-    const QPixmap iconPixmap = icon().pixmap(sizeHint(), pixelRatio,
-                                             isEnabled() ? QIcon::Normal : QIcon::Disabled);
-    QStylePainter painter(this);
-    QRect pixmapRect(QPoint(), iconPixmap.size() / iconPixmap.devicePixelRatio());
-    pixmapRect.moveCenter(rect().center());
-
-    if (m_autoHide)
-        painter.setOpacity(m_iconOpacity);
-
-    painter.drawPixmap(pixmapRect, iconPixmap);
-
-    if (hasFocus()) {
-        QStyleOptionFocusRect focusOption;
-        focusOption.initFrom(this);
-        focusOption.rect = pixmapRect;
-        if (HostOsInfo::isMacHost()) {
-            focusOption.rect.adjust(-4, -4, 4, 4);
-            painter.drawControl(QStyle::CE_FocusFrame, focusOption);
-        } else {
-            painter.drawPrimitive(QStyle::PE_FrameFocusRect, focusOption);
-        }
-    }
-}
-
-void FancyIconButton::animateShow(bool visible)
-{
-    QPropertyAnimation *animation = new QPropertyAnimation(this, "iconOpacity");
-    animation->setDuration(FADE_TIME);
-    animation->setEndValue(visible ? 1.0 : 0.0);
-    animation->start(QAbstractAnimation::DeleteWhenStopped);
-}
-
-QSize FancyIconButton::sizeHint() const
-{
-    QWindow *window = this->window()->windowHandle();
-    return icon().actualSize(window, QSize(32, 16)); // Find flags icon can be wider than 16px
-}
-
-void FancyIconButton::keyPressEvent(QKeyEvent *ke)
-{
-    QAbstractButton::keyPressEvent(ke);
-    if (!ke->modifiers() && (ke->key() == Qt::Key_Enter || ke->key() == Qt::Key_Return))
-        click();
-    // do not forward to line edit
-    ke->accept();
-}
-
-void FancyIconButton::keyReleaseEvent(QKeyEvent *ke)
-{
-    QAbstractButton::keyReleaseEvent(ke);
-    // do not forward to line edit
-    ke->accept();
 }
 
 } // namespace Utils

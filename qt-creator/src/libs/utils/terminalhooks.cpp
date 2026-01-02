@@ -5,21 +5,21 @@
 
 #include "externalterminalprocessimpl.h"
 #include "filepath.h"
-#include "process.h"
+#include "qtcprocess.h"
 #include "utilstr.h"
 
 #include <QMutex>
 
 namespace Utils::Terminal {
 
-expected_str<FilePath> defaultShellForDevice(const FilePath &deviceRoot)
+Result<FilePath> defaultShellForDevice(const FilePath &deviceRoot)
 {
     if (deviceRoot.osType() == OsTypeWindows)
         return deviceRoot.withNewPath("cmd.exe").searchInPath();
 
-    const expected_str<Environment> env = deviceRoot.deviceEnvironmentWithError();
+    const Result<Environment> env = deviceRoot.deviceEnvironmentWithError();
     if (!env)
-        return make_unexpected(env.error());
+        return ResultError(env.error());
 
     FilePath shell = FilePath::fromUserInput(env->value_or("SHELL", "/bin/sh"));
 
@@ -27,7 +27,7 @@ expected_str<FilePath> defaultShellForDevice(const FilePath &deviceRoot)
         shell = env->searchInPath(shell.nativePath());
 
     if (shell.isEmpty())
-        return make_unexpected(Tr::tr("Could not find any shell."));
+        return ResultError(Tr::tr("Could not find any shell."));
 
     return deviceRoot.withNewMappedPath(shell);
 }
@@ -38,9 +38,8 @@ public:
     HooksPrivate()
     {
         auto openTerminal = [](const OpenTerminalParameters &parameters) {
-            DeviceFileHooks::instance().openTerminal(parameters.workingDirectory.value_or(
-                                                         FilePath{}),
-                                                     parameters.environment.value_or(Environment{}));
+            parameters.workingDirectory.value_or(FilePath{})
+                    .openTerminal(parameters.environment.value_or(Environment{}));
         };
         auto createProcessInterface = [] { return new ExternalTerminalProcessImpl; };
 

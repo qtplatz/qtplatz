@@ -65,6 +65,8 @@ Item {
 
     property int internalNodeId
 
+    property color backgroundColor: "transparent"
+
     signal focusSignal
     signal defaultClicked
     signal clone
@@ -166,7 +168,7 @@ Item {
                     height: stateBackground.controlHeight
                     checkedInverted: true
                     buttonIcon: qsTr("Default")
-                    iconFont: StudioTheme.Constants.font
+                    iconFontFamily: StudioTheme.Constants.font.family
                     tooltip: qsTr("Set State as default")
                     onClicked: {
                         root.defaultClicked()
@@ -241,7 +243,7 @@ Item {
                            (stateBackground.innerHeight - thumbnailImage.paintedHeight) / 2) - StudioTheme.Values.border
                     width: Math.round(thumbnailImage.paintedWidth) + 2 * StudioTheme.Values.border
                     height: Math.round(thumbnailImage.paintedHeight) + 2 * StudioTheme.Values.border
-                    color: "transparent"
+                    color: root.backgroundColor
                     border.width: StudioTheme.Values.border
                     border.color: StudioTheme.Values.themeStatePreviewOutline
                 }
@@ -339,7 +341,7 @@ Item {
                         spacing: stateBackground.thumbSpacing
 
                         Repeater {
-                            model: propertyChangesModel
+                            model: root.propertyChangesVisible ? propertyChangesModel : 0
 
                             delegate: Rectangle {
                                 id: propertyChanges

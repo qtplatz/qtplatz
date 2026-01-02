@@ -6,6 +6,7 @@
 #include "algorithm.h"
 #include "camelcasecursor.h"
 #include "hostosinfo.h"
+#include "plaintextedit/plaintextedit.h"
 #include "qtcassert.h"
 
 #include <QKeyEvent>
@@ -164,7 +165,19 @@ QTextCursor MultiTextCursor::takeMainCursor()
     QTextCursor cursor = m_cursorList.back();
     auto it = m_cursorList.end();
     --it;
-    m_cursorMap.erase(it->selectionStart());
+
+    auto mapIt = m_cursorMap.find(it->selectionStart());
+    if (mapIt == m_cursorMap.end()) {
+        // If the QTextCursor has been moved, we cannot find it by selectionStart in the map.
+        // We need to find it by comparing the cursor pointers.
+        mapIt = std::find_if(m_cursorMap.begin(), m_cursorMap.end(), [&it](const auto &pair) {
+            return pair.second == it;
+        });
+    }
+
+    QTC_ASSERT(mapIt != m_cursorMap.end(), return QTextCursor());
+
+    m_cursorMap.erase(mapIt);
     m_cursorList.erase(it);
 
     return cursor;
@@ -199,10 +212,14 @@ int MultiTextCursor::cursorCount() const
 
 void MultiTextCursor::movePosition(QTextCursor::MoveOperation operation,
                                    QTextCursor::MoveMode mode,
-                                   int n)
+                                   int n, PlainTextDocumentLayout *layout)
 {
-    for (auto &cursor : m_cursorList)
-        cursor.movePosition(operation, mode, n);
+    for (auto &cursor : m_cursorList) {
+        if (layout)
+            layout->moveCursor(cursor, operation, mode, n);
+        else
+            cursor.movePosition(operation, mode, n);
+    }
 
     mergeCursors();
 }
@@ -237,6 +254,12 @@ void MultiTextCursor::removeSelectedText()
         cursor->removeSelectedText();
     endEditBlock();
     mergeCursors();
+}
+
+void MultiTextCursor::clearSelection()
+{
+    for (auto cursor = m_cursorList.begin(); cursor != m_cursorList.end(); ++cursor)
+        cursor->clearSelection();
 }
 
 static void insertAndSelect(QTextCursor &cursor, const QString &text, bool selectNewText)
@@ -279,7 +302,8 @@ void MultiTextCursor::insertText(const QString &text, bool selectNewText)
 
 bool equalCursors(const QTextCursor &lhs, const QTextCursor &rhs)
 {
-    return lhs == rhs && lhs.anchor() == rhs.anchor();
+    return lhs == rhs && lhs.anchor() == rhs.anchor()
+           && lhs.verticalMovementX() == rhs.verticalMovementX();
 }
 
 bool MultiTextCursor::operator==(const MultiTextCursor &other) const
@@ -315,75 +339,57 @@ void MultiTextCursor::mergeCursors()
     setCursors(cursors);
 }
 
-// could go into QTextCursor...
-static QTextLine currentTextLine(const QTextCursor &cursor)
+bool MultiTextCursor::multiCursorEvent(
+    QKeyEvent *e, QKeySequence::StandardKey matchKey, Qt::KeyboardModifiers filterModifiers)
 {
-    const QTextBlock block = cursor.block();
-    if (!block.isValid())
-        return {};
-
-    const QTextLayout *layout = block.layout();
-    if (!layout)
-        return {};
-
-    const int relativePos = cursor.position() - block.position();
-    return layout->lineForTextPosition(relativePos);
-}
-
-bool MultiTextCursor::multiCursorAddEvent(QKeyEvent *e, QKeySequence::StandardKey matchKey)
-{
-    uint searchkey = (e->modifiers() | e->key())
-                     & ~(Qt::KeypadModifier
-                         | Qt::GroupSwitchModifier
-                         | Qt::AltModifier
-                         | Qt::ShiftModifier);
+    filterModifiers |= (Utils::HostOsInfo::isMacHost() ? Qt::KeypadModifier : Qt::AltModifier);
+    uint searchkey = (e->modifiers() | e->key()) & ~filterModifiers;
 
     const QList<QKeySequence> bindings = QKeySequence::keyBindings(matchKey);
     return bindings.contains(QKeySequence(searchkey));
 }
 
-bool MultiTextCursor::handleMoveKeyEvent(QKeyEvent *e,
-                                         QPlainTextEdit *edit,
-                                         bool camelCaseNavigationEnabled)
+bool MultiTextCursor::handleMoveKeyEvent(
+    QKeyEvent *e, bool camelCaseNavigationEnabled, PlainTextDocumentLayout *layout)
 {
     if (e->modifiers() & Qt::AltModifier && !Utils::HostOsInfo::isMacHost()) {
         QTextCursor::MoveOperation op = QTextCursor::NoMove;
-        if (multiCursorAddEvent(e, QKeySequence::MoveToNextWord)) {
+        if (multiCursorEvent(e, QKeySequence::MoveToNextWord)) {
             op = QTextCursor::WordRight;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToPreviousWord)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToPreviousWord)) {
             op = QTextCursor::WordLeft;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToEndOfBlock)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToEndOfBlock)) {
             op = QTextCursor::EndOfBlock;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToStartOfBlock)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToStartOfBlock)) {
             op = QTextCursor::StartOfBlock;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToNextLine)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToNextLine, Qt::ShiftModifier)) {
             op = QTextCursor::Down;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToPreviousLine)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToPreviousLine, Qt::ShiftModifier)) {
             op = QTextCursor::Up;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToStartOfLine)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToStartOfLine)) {
             op = QTextCursor::StartOfLine;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToEndOfLine)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToEndOfLine)) {
             op = QTextCursor::EndOfLine;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToStartOfDocument)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToStartOfDocument)) {
             op = QTextCursor::Start;
-        } else if (multiCursorAddEvent(e, QKeySequence::MoveToEndOfDocument)) {
+        } else if (multiCursorEvent(e, QKeySequence::MoveToEndOfDocument)) {
             op = QTextCursor::End;
-        } else {
-            return false;
         }
 
-        const std::list<QTextCursor> cursors = m_cursorList;
-        for (QTextCursor cursor : cursors) {
-            if (camelCaseNavigationEnabled && op == QTextCursor::WordRight)
-                CamelCaseCursor::right(&cursor, edit, QTextCursor::MoveAnchor);
-            else if (camelCaseNavigationEnabled && op == QTextCursor::WordLeft)
-                CamelCaseCursor::left(&cursor, edit, QTextCursor::MoveAnchor);
-            else
-                cursor.movePosition(op, QTextCursor::MoveAnchor);
+        if (op != QTextCursor::NoMove) {
+            const std::list<QTextCursor> cursors = m_cursorList;
+            for (QTextCursor cursor : cursors) {
+                if (camelCaseNavigationEnabled && op == QTextCursor::WordRight)
+                    CamelCaseCursor::right(&cursor, QTextCursor::MoveAnchor);
+                else if (camelCaseNavigationEnabled && op == QTextCursor::WordLeft)
+                    CamelCaseCursor::left(&cursor, QTextCursor::MoveAnchor);
+                else
+                    cursor.movePosition(op, QTextCursor::MoveAnchor);
 
-            addCursor(cursor);
+                addCursor(cursor);
+            }
+            return true;
         }
-        return true;
     }
 
     for (auto it = m_cursorList.begin(); it != m_cursorList.end(); ++it) {
@@ -395,28 +401,28 @@ bool MultiTextCursor::handleMoveKeyEvent(QKeyEvent *e,
             op = QTextCursor::Right;
         } else if (e == QKeySequence::MoveToPreviousChar) {
             op = QTextCursor::Left;
-        } else if (e == QKeySequence::SelectNextChar) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectNextChar)) {
             op = QTextCursor::Right;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectPreviousChar) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectPreviousChar)) {
             op = QTextCursor::Left;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectNextWord) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectNextWord)) {
             op = QTextCursor::WordRight;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectPreviousWord) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectPreviousWord)) {
             op = QTextCursor::WordLeft;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectStartOfLine) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectStartOfLine)) {
             op = QTextCursor::StartOfLine;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectEndOfLine) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectEndOfLine)) {
             op = QTextCursor::EndOfLine;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectStartOfBlock) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectStartOfBlock)) {
             op = QTextCursor::StartOfBlock;
             mode = QTextCursor::KeepAnchor;
-        } else if (e == QKeySequence::SelectEndOfBlock) {
+        } else if (multiCursorEvent(e, QKeySequence::SelectEndOfBlock)) {
             op = QTextCursor::EndOfBlock;
             mode = QTextCursor::KeepAnchor;
         } else if (e == QKeySequence::SelectStartOfDocument) {
@@ -431,13 +437,6 @@ bool MultiTextCursor::handleMoveKeyEvent(QKeyEvent *e,
         } else if (e == QKeySequence::SelectNextLine) {
             op = QTextCursor::Down;
             mode = QTextCursor::KeepAnchor;
-            {
-                QTextBlock block = cursor.block();
-                QTextLine line = currentTextLine(cursor);
-                if (!block.next().isValid() && line.isValid()
-                    && line.lineNumber() == block.layout()->lineCount() - 1)
-                    op = QTextCursor::End;
-            }
         } else if (e == QKeySequence::MoveToNextWord) {
             op = QTextCursor::WordRight;
         } else if (e == QKeySequence::MoveToPreviousWord) {
@@ -475,12 +474,16 @@ bool MultiTextCursor::handleMoveKeyEvent(QKeyEvent *e,
         bool visualNavigation = cursor.visualNavigation();
         cursor.setVisualNavigation(true);
 
-        if (camelCaseNavigationEnabled && op == QTextCursor::WordRight)
-            CamelCaseCursor::right(&cursor, edit, mode);
-        else if (camelCaseNavigationEnabled && op == QTextCursor::WordLeft)
-            CamelCaseCursor::left(&cursor, edit, mode);
-        else if (!cursor.movePosition(op, mode) && mode == QTextCursor::MoveAnchor)
+        if (camelCaseNavigationEnabled && op == QTextCursor::WordRight) {
+            CamelCaseCursor::right(&cursor, mode);
+        } else if (camelCaseNavigationEnabled && op == QTextCursor::WordLeft) {
+            CamelCaseCursor::left(&cursor, mode);
+        } else if (layout) {
+            if (!layout->moveCursor(cursor, op, mode))
+                cursor.clearSelection();
+        } else if (!cursor.movePosition(op, mode) && mode == QTextCursor::MoveAnchor) {
             cursor.clearSelection();
+        }
         cursor.setVisualNavigation(visualNavigation);
     }
     mergeCursors();

@@ -1,7 +1,7 @@
 type: Group
 instructions:
   - type: InstallBinaryArchive
-    relativeStoragePath: "{{.Env.MODULE_ARTIFACTS_RELATIVE_STORAGE_PATH}}/artifacts.tar.gz"
+    relativeStoragePath: "{{.Env.MODULE_ARTIFACTS_RELATIVE_STORAGE_PATH}}/artifacts.tar.zst"
     directory: "qt-creator/qt-creator_build/build"
     maxTimeInSeconds: 1800
     maxTimeBetweenOutput: 1800
@@ -13,7 +13,3 @@ instructions:
     maxTimeInSeconds: 600
     maxTimeBetweenOutput: 600
     userMessageOnFailure: "Failed to run tests, check logs"
-enable_if:
-  condition: property
-  property: features
-  not_contains_value: "Qt5"

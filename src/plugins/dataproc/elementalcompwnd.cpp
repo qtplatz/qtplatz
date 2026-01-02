@@ -339,7 +339,7 @@ ElementalCompWnd::handlePrintCurrentView( const QString& pdfname )
 #if QTC_VERSION <= 0x03'02'81
         fullpath = processor->filePath();
 #else
-        fullpath = processor->filePath().toString(); // Utils::FilePath
+        fullpath = processor->filePath().toUrlishString(); // Utils::FilePath
 #endif
     }
 

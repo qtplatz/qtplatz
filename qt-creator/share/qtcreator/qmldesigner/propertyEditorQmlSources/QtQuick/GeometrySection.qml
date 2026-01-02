@@ -15,6 +15,7 @@ Section {
     anchors.right: parent.right
 
     readonly property string disabledTooltip: qsTr("This property is defined by an anchor or a layout.")
+    readonly property string disabledAnchoredTooltip: qsTr("Adjust this property manually from the 2D view or by changing margins from Layout.")
 
     function positionDisabled() {
         return anchorBackend.isFilled || anchorBackend.isInLayout
@@ -67,7 +68,7 @@ Section {
 
             ControlLabel {
                 text: "X"
-                tooltip: xSpinBox.enabled ? qsTr("X-coordinate") : root.disabledTooltip
+                tooltip: xSpinBox.enabled ? qsTr("X-coordinate") : root.disabledAnchoredTooltip
                 enabled: xSpinBox.enabled
             }
 
@@ -88,7 +89,7 @@ Section {
 
             ControlLabel {
                 text: "Y"
-                tooltip: xSpinBox.enabled ? qsTr("Y-coordinate") : root.disabledTooltip
+                tooltip: ySpinBox.enabled ? qsTr("Y-coordinate") : root.disabledAnchoredTooltip
                 enabled: ySpinBox.enabled
             }
 /*
@@ -123,7 +124,7 @@ Section {
             ControlLabel {
                 //: The width of the object
                 text: qsTr("W", "width")
-                tooltip: widthSpinBox.enabled ? qsTr("Width") : root.disabledTooltip
+                tooltip: widthSpinBox.enabled ? qsTr("Width") : root.disabledAnchoredTooltip
                 enabled: widthSpinBox.enabled
             }
 
@@ -145,7 +146,7 @@ Section {
             ControlLabel {
                 //: The height of the object
                 text: qsTr("H", "height")
-                tooltip: heightSpinBox.enabled ? qsTr("Height") : root.disabledTooltip
+                tooltip: heightSpinBox.enabled ? qsTr("Height") : root.disabledAnchoredTooltip
                 enabled: heightSpinBox.enabled
             }
 /*
@@ -160,7 +161,7 @@ Section {
         PropertyLabel {
             text: qsTr("Rotation")
             tooltip: qsTr("Rotate the component at an angle.")
-            blockedByTemplate: !backendValues.rotation.isAvailable
+            blockedByTemplate: !backendValues.rotation?.isAvailable ?? false
         }
 
         SecondColumnLayout {
@@ -172,7 +173,7 @@ Section {
                 decimals: 2
                 minimumValue: -360
                 maximumValue: 360
-                enabled: backendValues.rotation.isAvailable
+                enabled: backendValues.rotation?.isAvailable ?? false
             }
 
             Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
@@ -180,7 +181,7 @@ Section {
             ControlLabel {
                 text: "°"
                 tooltip: rotationSpinBox.enabled ? qsTr("Angle (in degree)") : root.disabledTooltip
-                enabled: backendValues.rotation.isAvailable
+                enabled: backendValues.rotation?.isAvailable ?? false
             }
 /*
             TODO QDS-4835
@@ -216,7 +217,7 @@ Section {
         PropertyLabel {
             text: qsTr("Scale")
             tooltip: qsTr("Sets the scale of the component by percentage.")
-            blockedByTemplate: !backendValues.scale.isAvailable
+            blockedByTemplate: !backendValues.scale?.isAvailable ?? false
         }
 
         SecondColumnLayout {
@@ -230,7 +231,7 @@ Section {
                 stepSize: 0.1
                 minimumValue: -10
                 maximumValue: 10
-                enabled: backendValues.scale.isAvailable
+                enabled: backendValues.scale?.isAvailable ?? false
             }
 
             Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
@@ -238,7 +239,7 @@ Section {
             ControlLabel {
                 text: "%"
                 tooltip: scaleSpinBox.enabled ? qsTr("Percentage") : root.disabledTooltip
-                enabled: backendValues.scale.isAvailable
+                enabled: backendValues.scale?.isAvailable ?? false
             }
 
             ExpandingSpacer {}
@@ -264,13 +265,13 @@ Section {
         PropertyLabel {
             text: qsTr("Origin")
             tooltip: qsTr("Sets the modification point of the component.")
-            blockedByTemplate: !backendValues.transformOrigin.isAvailable
+            blockedByTemplate: !backendValues.transformOrigin?.isAvailable
         }
 
         SecondColumnLayout {
             OriginControl {
                 backendValue: backendValues.transformOrigin
-                enabled: backendValues.transformOrigin.isAvailable
+                enabled: backendValues.transformOrigin?.isAvailable ?? false
             }
 
             ExpandingSpacer {}

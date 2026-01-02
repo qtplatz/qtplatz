@@ -7,6 +7,11 @@
 
 namespace Utils {
 
+Link::Link(const FilePath &filePath, int line, int column)
+    : targetFilePath(filePath)
+    , target(Text::Position{line, column})
+{}
+
 /*!
     Returns the Link to \a filePath.
     If \a canContainLineNumber is true the line number, and column number components
@@ -24,12 +29,43 @@ Link Link::fromString(const QString &filePathWithNumbers, bool canContainLineNum
         link.targetFilePath = FilePath::fromUserInput(filePathWithNumbers);
     } else {
         int postfixPos = -1;
-        const Text::Position pos = Text::Position::fromFileName(filePathWithNumbers, postfixPos);
+        link.target = Text::Position::fromFileName(filePathWithNumbers, postfixPos);
         link.targetFilePath = FilePath::fromUserInput(filePathWithNumbers.left(postfixPos));
-        link.targetLine = pos.line;
-        link.targetColumn = pos.column;
     }
     return link;
+}
+
+bool Link::hasValidTarget() const
+{
+    if (!targetFilePath.isEmpty())
+        return true;
+    return !targetFilePath.scheme().isEmpty() || !targetFilePath.host().isEmpty();
+}
+
+bool Link::hasSameLocation(const Link &other) const
+{
+    return targetFilePath == other.targetFilePath && target == other.target;
+}
+
+bool operator==(const Link &lhs, const Link &rhs)
+{
+    return lhs.hasSameLocation(rhs)
+        && lhs.linkTextStart == rhs.linkTextStart
+        && lhs.linkTextEnd == rhs.linkTextEnd;
+}
+
+bool operator<(const Link &first, const Link &second)
+{
+    return std::tie(first.targetFilePath, first.target)
+           < std::tie(second.targetFilePath, second.target);
+}
+
+QDebug operator<<(QDebug dbg, const Link &link)
+{
+    dbg.nospace() << "Link(" << link.targetFilePath << ", "
+                  << link.target.line << ", "
+                  << link.target.column << ')';
+    return dbg.space();
 }
 
 } // namespace Utils

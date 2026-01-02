@@ -23,15 +23,18 @@
 #include <QUrl>
 
 #include <algorithm>
+#include <queue>
 
 const int kDragDistance = 5;
 
 using Font = QFont;
 using Context = QPainter;
 
-namespace {
+#ifdef Q_STATIC_LOGGING_CATEGORY
+Q_STATIC_LOGGING_CATEGORY(log, "qlitehtml", QtCriticalMsg)
+#else
 static Q_LOGGING_CATEGORY(log, "qlitehtml", QtCriticalMsg)
-}
+#endif
 
 static QFont toQFont(litehtml::uint_ptr hFont)
 {
@@ -198,8 +201,8 @@ static bool deepest_child_at_point(const litehtml::element::ptr &element,
     // Do not continue down elements that do not cover the position. Exceptions:
     // - elements with 0 size (includes anchors and other weird elements)
     // - html and body, which for some reason have size == viewport size
-    if (!placement.size().isEmpty() && element->tag() != litehtml::_html_
-        && element->tag() != litehtml::_body_ && !placement.contains(pos)) {
+    if (!placement.size().isEmpty() && element->tag() != litehtml::string_id::_html_
+        && element->tag() != litehtml::string_id::_body_ && !placement.contains(pos)) {
         return false /*continue iterating*/;
     }
     // qDebug() << qPrintable(QString(level * 2, ' ')) << element->dump_get_name() << placement << pos;
@@ -212,6 +215,27 @@ static bool deepest_child_at_point(const litehtml::element::ptr &element,
     if (placement.contains(pos))
         return action(element);
     return false /*continue iterating*/;
+}
+
+static litehtml::element::ptr element_with_id_or_name(const litehtml::element::ptr &root,
+                                                      const std::string &id)
+{
+    std::queue<litehtml::element::ptr> pending;
+    pending.push(root);
+    while (!pending.empty()) {
+        const litehtml::element::ptr element = pending.front();
+        pending.pop();
+        if (_s(element->id()) == id)
+            return element;
+        const char *nameAttr = element->get_attr("name");
+        if (nameAttr && nameAttr == id)
+            return element;
+        const litehtml::elements_list &children = element->children();
+        for (const auto &child : children) {
+            pending.push(child);
+        }
+    }
+    return {};
 }
 
 static Selection::Element selection_element_at_point(const litehtml::element::ptr &element,
@@ -571,7 +595,7 @@ void DocumentContainerPrivate::draw_list_marker(litehtml::uint_ptr hdc,
         }
     } else {
         const QPixmap pixmap = getPixmap(QString::fromStdString(marker.image),
-                                         QString::fromStdString(marker.baseurl));
+                                         QString::fromUtf8(marker.baseurl));
         painter->drawPixmap(toQRect(marker.pos), pixmap);
     }
 }
@@ -619,12 +643,12 @@ void DocumentContainerPrivate::drawSelection(QPainter *painter, const QRect &cli
     painter->restore();
 }
 
-static QString tagName(const litehtml::element::ptr &e)
+static bool isInBody(const litehtml::element::ptr &e)
 {
     litehtml::element::ptr current = e;
-    while (current && std::strlen(current->get_tagName()) == 0)
+    while (current && current->tag() != litehtml::string_id::_body_)
         current = current->parent();
-    return current ? QString::fromUtf8(current->get_tagName()) : QString();
+    return current.get() != nullptr;
 }
 
 void DocumentContainerPrivate::buildIndex()
@@ -639,7 +663,7 @@ void DocumentContainerPrivate::buildIndex()
     while (current != m_document->root()) {
         m_index.elementToIndex.insert({current, index});
         if (!inBody)
-            inBody = tagName(current).toLower() == "body";
+            inBody = isInBody(current);
         if (inBody && isVisible(current)) {
             std::string text;
             current->get_text(text);
@@ -683,13 +707,18 @@ void DocumentContainerPrivate::draw_background(litehtml::uint_ptr hdc,
                                                const std::vector<litehtml::background_paint> &bgs)
 {
     auto painter = toQPainter(hdc);
+    const QRegion initialClipRegion = painter->clipRegion();
+    const Qt::ClipOperation initialClipOperation
+        = initialClipRegion.isEmpty() ? Qt::ReplaceClip : Qt::IntersectClip;
     painter->save();
     for (const litehtml::background_paint &bg : bgs) {
         if (bg.is_root) {
             // TODO ?
             break;
         }
-        painter->setClipRect(toQRect(bg.clip_box));
+        if (!initialClipRegion.isEmpty())
+            painter->setClipRegion(initialClipRegion);
+        painter->setClipRect(toQRect(bg.clip_box), initialClipOperation);
         const QRegion horizontalMiddle(QRect(bg.border_box.x,
                                              bg.border_box.y + bg.border_radius.top_left_y,
                                              bg.border_box.width,
@@ -918,8 +947,7 @@ std::shared_ptr<litehtml::element> DocumentContainerPrivate::create_element(
 
 void DocumentContainerPrivate::get_media_features(litehtml::media_features &media) const
 {
-    media.type = litehtml::media_type_screen;
-    // TODO
+    media.type = mediaType;
     qDebug(log) << "get_media_features";
 }
 
@@ -961,6 +989,11 @@ void DocumentContainer::setBaseUrl(const QString &url)
     d->set_base_url(url.toUtf8().constData());
 }
 
+QString DocumentContainer::baseUrl() const
+{
+    return d->m_baseUrl;
+}
+
 void DocumentContainer::render(int width, int height)
 {
     d->m_clientRect = {0, 0, width, height};
@@ -990,19 +1023,62 @@ int DocumentContainer::documentHeight() const
 
 int DocumentContainer::anchorY(const QString &anchorName) const
 {
-    litehtml::element::ptr element = d->m_document->root()->select_one(
-        QString("#%1").arg(anchorName).toStdString());
+    // do manual recursive search instead of using litehtml's select_one css selector method,
+    // since we can have '.' in our IDs which has special meaning (class selector) for css selectors
+    // and litehtml doesn't support escaping them
+    litehtml::element::ptr element = element_with_id_or_name(d->m_document->root(),
+                                                             anchorName.toStdString());
     if (!element) {
-        element = d->m_document->root()->select_one(QString("[name=%1]").arg(anchorName).toStdString());
+        // Convert the anchor name to lowercase, as the current litehtml implementation
+        // converts all IDs to lowercase when parsing the HTML. This will change in future
+        // versions of litehtml, see https://github.com/litehtml/litehtml/pull/347)
+        const QString lowerAnchorName = anchorName.toLower();
+        element = element_with_id_or_name(d->m_document->root(), lowerAnchorName.toStdString());
+        if (!element)
+            return -1;
     }
-    if (!element)
-        return -1;
     while (element) {
         if (element->get_placement().y > 0)
             return element->get_placement().y;
         element = element->parent();
     }
     return 0;
+}
+
+static litehtml::media_type fromQt(const DocumentContainer::MediaType mt)
+{
+    using MT = DocumentContainer::MediaType;
+    switch (mt)
+    {
+    case MT::None:
+        return litehtml::media_type_none;
+    case MT::All:
+        return litehtml::media_type_all;
+    case MT::Screen:
+        return litehtml::media_type_screen;
+    case MT::Print:
+        return litehtml::media_type_print;
+    case MT::Braille:
+        return litehtml::media_type_braille;
+    case MT::Embossed:
+        return litehtml::media_type_embossed;
+    case MT::Handheld:
+        return litehtml::media_type_handheld;
+    case MT::Projection:
+        return litehtml::media_type_projection;
+    case MT::Speech:
+        return litehtml::media_type_speech;
+    case MT::TTY:
+        return litehtml::media_type_tty;
+    case MT::TV:
+        return litehtml::media_type_tv;
+    }
+    Q_UNREACHABLE();
+}
+
+void DocumentContainer::setMediaType(MediaType mt)
+{
+    d->mediaType = fromQt(mt);
 }
 
 QVector<QRect> DocumentContainer::mousePressEvent(const QPoint &documentPos,
@@ -1291,6 +1367,11 @@ void DocumentContainer::setDataCallback(const DocumentContainer::DataCallback &c
     d->m_dataCallback = callback;
 }
 
+DocumentContainer::DataCallback DocumentContainer::dataCallback() const
+{
+    return d->m_dataCallback;
+}
+
 void DocumentContainer::setCursorCallback(const DocumentContainer::CursorCallback &callback)
 {
     d->m_cursorCallback = callback;
@@ -1304,6 +1385,11 @@ void DocumentContainer::setLinkCallback(const DocumentContainer::LinkCallback &c
 void DocumentContainer::setPaletteCallback(const DocumentContainer::PaletteCallback &callback)
 {
     d->m_paletteCallback = callback;
+}
+
+DocumentContainer::PaletteCallback DocumentContainer::paletteCallback() const
+{
+    return d->m_paletteCallback;
 }
 
 void DocumentContainer::setClipboardCallback(const DocumentContainer::ClipboardCallback &callback)

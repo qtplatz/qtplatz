@@ -1,25 +1,29 @@
 [General]
-Includes=light.figmatokens
-ThemeName=Flat Light
+Includes=light.figmatokens, ds.tokenmapping, light-palette.inc
+ThemeName=Light (2016)
 PreferredStyles=
 
 [Palette]
-shadowBackground=ffe4e4e4
-text=ff000000
-textDisabled=55000000
+shadowBackground=PaletteDark
+text=PaletteWindowText
+textDisabled=PaletteTextDisabled
 toolBarItem=a0010508
 toolBarItemDisabled=38000000
 fancyBarsNormalTextColor=ff000000
 fancyBarsBoldTextColor=a0010508
 hoverBackground=1a000000
 selectedBackground=a8ffffff
-normalBackground=ffffffff
-alternateBackground=ff515151
+normalBackground=PaletteWindow
+alternateBackground=PaletteAlternateBase
 stop_error=ffec7373
 run_success=ff52c23b
 splitter=ffbdbebf
 error=ffdf4f4f
 warning=ffecbc1c
+info=ff4f8df0
+textColorLink=PaletteLink
+textColorLinkVisited=PaletteLinkVisited
+backgroundColorDisabled=PaletteWindowDisabled
 qmlDesignerButtonColor=fff8f8f8
 
 ;DS Theme Palette START
@@ -54,6 +58,8 @@ splitterBlue=ff64daff
 rgbBlue=ff64daff
 highlightBlue=ff57b9fc
 highlightHover=ff74CBFC
+ds300=ff71d1ef
+ds800=ff08475B
 ;DS Theme Palette END
 
 [Colors]
@@ -208,13 +214,13 @@ DSactionKeyframe=ffe0e01b
 DSactionJIT=ff2db543
 
 DStableHeaderBackground=ffff0000
+DStableCellCurrent=ds300
 DStableHeaderText=ff00ff00
 
 DSdockContainerBackground=ff323232
 DSdockContainerSplitter=ff323232
-DSdockAreaBackground=ff262728
-
-DSdockWidgetBackground=ff00ff00
+DSdockAreaBackground=ffeaeaea
+DSdockWidgetBackground=ffeaeaea
 DSdockWidgetSplitter=ff595959
 DSdockWidgetTitleBar=ffeaeaea
 
@@ -273,7 +279,6 @@ DSBackgroundColorNormal=ffd8d8d8
 
 ;DS controls theme END
 
-BackgroundColorAlternate=alternateBackground
 BackgroundColorDark=shadowBackground
 BackgroundColorHover=hoverBackground
 BackgroundColorNormal=normalBackground
@@ -283,23 +288,11 @@ BadgeLabelBackgroundColorChecked=ffe0e0e0
 BadgeLabelBackgroundColorUnchecked=ff808080
 BadgeLabelTextColorChecked=ff606060
 BadgeLabelTextColorUnchecked=ffffffff
-ComboBoxArrowColor=toolBarItem
-ComboBoxArrowColorDisabled=toolBarItemDisabled
 ComboBoxTextColor=fancyBarsNormalTextColor
-DetailsButtonBackgroundColorHover=b4ffffff
 DetailsWidgetBackgroundColor=28ffffff
 DockWidgetResizeHandleColor=splitter
-DoubleTabWidget1stSeparatorColor=ffff0000
-DoubleTabWidget1stTabActiveTextColor=ff000000
-DoubleTabWidget1stTabBackgroundColor=ffff0000
-DoubleTabWidget1stTabInactiveTextColor=ff555555
-DoubleTabWidget2ndSeparatorColor=ffff0000
-DoubleTabWidget2ndTabActiveTextColor=ffffffff
-DoubleTabWidget2ndTabBackgroundColor=ffff0000
-DoubleTabWidget2ndTabInactiveTextColor=ff000000
 EditorPlaceholderColor=fff4f4f4
 FancyToolBarSeparatorColor=toolBarItemDisabled
-FancyTabBarBackgroundColor=shadowBackground
 FancyTabBarSelectedBackgroundColor=selectedBackground
 FancyTabWidgetDisabledSelectedTextColor=toolBarItemDisabled
 FancyTabWidgetDisabledUnselectedTextColor=toolBarItemDisabled
@@ -307,7 +300,7 @@ FancyTabWidgetEnabledSelectedTextColor=fancyBarsBoldTextColor
 FancyTabWidgetEnabledUnselectedTextColor=fancyBarsBoldTextColor
 FancyToolButtonHoverColor=hoverBackground
 FancyToolButtonSelectedColor=selectedBackground
-FutureProgressBackgroundColor=shadowBackground
+FancyToolButtonHighlightColor=toolBarItem
 IconsBaseColor=toolBarItem
 IconsDisabledColor=toolBarItemDisabled
 IconsInfoColor=ff3099dc
@@ -326,13 +319,6 @@ IconsDebugColor=toolBarItem
 IconsNavigationArrowsColor=ff3dabe6
 IconsBuildHammerHandleColor=ffc26b14
 IconsBuildHammerHeadColor=ff868687
-IconsModeWelcomeActiveColor=ff5caa15
-IconsModeEditActiveColor=ff6a6add
-IconsModeDesignActiveColor=ffbb6000
-IconsModeDebugActiveColor=ff6a6add
-IconsModeProjectActiveColor=ff5caa15
-IconsModeAnalyzeActiveColor=ff43adee
-IconsModeHelpActiveColor=fffaa838
 IconsCodeModelKeywordColor=ff777777
 IconsCodeModelClassColor=ffc0b550
 IconsCodeModelStructColor=ff53b053
@@ -347,18 +333,14 @@ IconsCodeModelOverlayBackgroundColor=70ffffff
 IconsCodeModelOverlayForegroundColor=ff232425
 InfoBarBackground=ffffffe1
 InfoBarText=text
-MenuBarEmptyAreaBackgroundColor=shadowBackground
-MenuBarItemBackgroundColor=shadowBackground
 MenuBarItemTextColorDisabled=textDisabled
 MenuBarItemTextColorNormal=text
 MenuItemTextColorDisabled=textDisabled
 MenuItemTextColorNormal=text
 MiniProjectTargetSelectorBackgroundColor=shadowBackground
 MiniProjectTargetSelectorBorderColor=shadowBackground
-MiniProjectTargetSelectorSummaryBackgroundColor=shadowBackground
 MiniProjectTargetSelectorTextColor=fancyBarsNormalTextColor
 PanelStatusBarBackgroundColor=shadowBackground
-PanelsWidgetSeparatorLineColor=000000
 PanelTextColorDark=text
 PanelTextColorMid=ff666666
 PanelTextColorLight=fancyBarsNormalTextColor
@@ -372,12 +354,7 @@ TextColorDisabled=textDisabled
 TextColorError=ffff4040
 TextColorHighlightBackground=ffef0b
 TextColorLink=ff007af4
-TextColorLinkVisited=ffa57aff
 TextColorNormal=text
-ToggleButtonBackgroundColor=shadowBackground
-ToolBarBackgroundColor=shadowBackground
-TreeViewArrowColorNormal=hoverBackground
-TreeViewArrowColorSelected=text
 
 OutputPanes_DebugTextColor=text
 OutputPanes_ErrorMessageTextColor=ffaa0000
@@ -419,7 +396,8 @@ Timeline_HandleColor=ff888888
 Timeline_RangeColor=selectedBackground
 
 VcsBase_FileStatusUnknown_TextColor=ff000000
-VcsBase_FileAdded_TextColor=ff00aa00
+VcsBase_FileUntracked_TextColor=ff00aa00
+VcsBase_FileAdded_TextColor=ff006400
 VcsBase_FileModified_TextColor=ff0000ee
 VcsBase_FileDeleted_TextColor=ff800000
 VcsBase_FileRenamed_TextColor=ffd77d00
@@ -436,6 +414,7 @@ ProjectExplorer_TaskWarn_TextMarkColor=warning
 
 CodeModel_Error_TextMarkColor=error
 CodeModel_Warning_TextMarkColor=warning
+CodeModel_Info_TextMarkColor=info
 
 QmlDesigner_BackgroundColor=qmlDesignerButtonColor
 QmlDesigner_HighlightColor=ff46a2da
@@ -474,13 +453,12 @@ TerminalAnsi15=e5e5e6
 
 [Flags]
 ComboBoxDrawTextShadow=false
-DerivePaletteFromTheme=false
+DerivePaletteFromThemeIfNeeded=true
 DrawIndicatorBranch=true
 DrawSearchResultWidgetFrame=false
 DrawTargetSelectorBottom=false
 DrawToolBarHighlights=false
 DrawToolBarBorders=true
-ApplyThemePaletteGlobally=false
 FlatToolBars=true
 FlatSideBarIcons=true
 FlatProjectsMode=false

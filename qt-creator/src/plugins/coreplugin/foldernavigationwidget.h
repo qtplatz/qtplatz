@@ -29,7 +29,10 @@ QT_END_NAMESPACE
 
 namespace Core {
 
-namespace Internal { class DelayedFileCrumbLabel; }
+namespace Internal {
+class DelayedFileCrumbLabel;
+class FolderNavigationModel;
+}
 
 class CORE_EXPORT FolderNavigationWidgetFactory : public Core::INavigationWidgetFactory
 {
@@ -53,9 +56,10 @@ public:
     void restoreSettings(Utils::QtcSettings *settings, int position, QWidget *widget) override;
 
     void addRootPath(Utils::Id id, const QString &displayName, const QIcon &icon, const Utils::FilePath &path) override;
-    void removeRootPath(Utils::Id path) override;
+    void removeRootPath(Utils::Id id) override;
 
-    static void insertRootDirectory(const RootDirectory &directory);
+    static void insertRootDirectory(const RootDirectory &directory, bool isProjectDirectory = true);
+    static bool hasRootDirectory(const QString &id);
     static void removeRootDirectory(const QString &id);
 
     static void setFallbackSyncFilePath(const Utils::FilePath &filePath);
@@ -63,7 +67,7 @@ public:
     static const Utils::FilePath &fallbackSyncFilePath();
 
 signals:
-    void rootDirectoryAdded(const RootDirectory &directory);
+    void rootDirectoryAdded(const RootDirectory &directory, bool isProjectDirectory);
     void rootDirectoryRemoved(const QString &id);
 
     void aboutToShowContextMenu(QMenu *menu, const Utils::FilePath &filePath, bool isDir);
@@ -93,7 +97,9 @@ public:
     void setShowBreadCrumbs(bool show);
     void setShowFoldersOnTop(bool onTop);
 
-    void insertRootDirectory(const FolderNavigationWidgetFactory::RootDirectory &directory);
+    void insertRootDirectory(
+        const FolderNavigationWidgetFactory::RootDirectory &directory,
+        bool isProjectDirectory = true);
     void removeRootDirectory(const QString &id);
 
     void addNewItem();
@@ -122,7 +128,7 @@ private:
     void createNewFolder(const QModelIndex &parent);
 
     Utils::NavigationTreeView *m_listView = nullptr;
-    QFileSystemModel *m_fileSystemModel = nullptr;
+    Internal::FolderNavigationModel *m_fileSystemModel = nullptr;
     QSortFilterProxyModel *m_sortProxyModel = nullptr;
     QAction *m_filterHiddenFilesAction = nullptr;
     QAction *m_showBreadCrumbsAction = nullptr;

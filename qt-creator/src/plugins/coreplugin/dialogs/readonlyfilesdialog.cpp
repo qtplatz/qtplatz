@@ -129,7 +129,7 @@ using namespace Internal;
  * name.
  */
 
-/*! \enum ReadOnlyFilesDialog::ReadOnlyResult
+/*! \enum Core::ReadOnlyFilesDialog::ReadOnlyResult
     This enum holds the operations that are allowed to make the file writable.
 
      \value RO_Cancel
@@ -255,7 +255,7 @@ void ReadOnlyFilesDialogPrivate::promptFailWarning(const FilePaths &files, ReadO
         title = Tr::tr("Could Not Change Permissions on Some Files");
         message = failWarning + QLatin1Char('\n')
                 + Tr::tr("See details for a complete list of files.");
-        details = Utils::transform(files, &FilePath::toString).join('\n');
+        details = files.toUserOutput("\n");
     }
     QMessageBox msgBox(QMessageBox::Warning, title, message,
                        QMessageBox::Ok, ICore::dialogParent());
@@ -285,7 +285,7 @@ int ReadOnlyFilesDialog::exec()
         result = static_cast<ReadOnlyResult>(buttongroup.group->checkedId());
         switch (result) {
         case RO_MakeWritable:
-            if (!Utils::FileUtils::makeWritable(buttongroup.filePath)) {
+            if (!buttongroup.filePath.makeWritable()) {
                 failedToMakeWritable << buttongroup.filePath;
                 continue;
             }

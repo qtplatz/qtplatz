@@ -1,3 +1,0 @@
-Checks: '-*,misc-definitions-in-headers'
-
-InheritParentConfig: true

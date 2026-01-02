@@ -5,7 +5,6 @@
 
 #include <qmljs/parser/qmljsast_p.h>
 
-#include <utils/fileutils.h>
 #include <utils/qtcassert.h>
 
 #include <QDebug>
@@ -447,7 +446,7 @@ JsonValue *JsonValue::build(const QVariant &variant, JsonMemoryPool *pool)
 {
     switch (variant.typeId()) {
 
-    case QVariant::List: {
+    case QMetaType::QVariantList: {
         auto newValue = new (pool) JsonArrayValue;
         const QList<QVariant> list = variant.toList();
         for (const QVariant &element : list)
@@ -455,7 +454,7 @@ JsonValue *JsonValue::build(const QVariant &variant, JsonMemoryPool *pool)
         return newValue;
     }
 
-    case QVariant::Map: {
+    case QMetaType::QVariantMap: {
         auto newValue = new (pool) JsonObjectValue;
         const QVariantMap variantMap = variant.toMap();
         for (QVariantMap::const_iterator it = variantMap.begin(); it != variantMap.end(); ++it)
@@ -463,19 +462,19 @@ JsonValue *JsonValue::build(const QVariant &variant, JsonMemoryPool *pool)
         return newValue;
     }
 
-    case QVariant::String:
+    case QMetaType::QString:
         return new (pool) JsonStringValue(variant.toString());
 
-    case QVariant::Int:
+    case QMetaType::Int:
         return new (pool) JsonIntValue(variant.toInt());
 
-    case QVariant::Double:
+    case QMetaType::Double:
         return new (pool) JsonDoubleValue(variant.toDouble());
 
-    case QVariant::Bool:
+    case QMetaType::Bool:
         return new (pool) JsonBooleanValue(variant.toBool());
 
-    case QVariant::Invalid:
+    case QMetaType::UnknownType:
         return new (pool) JsonNullValue;
 
     default:
@@ -1021,17 +1020,15 @@ JsonDoubleValue *JsonSchema::getDoubleValue(const QString &name, JsonObjectValue
 
 ///////////////////////////////////////////////////////////////////////////////
 
-JsonSchemaManager::JsonSchemaManager(const QStringList &searchPaths)
+JsonSchemaManager::JsonSchemaManager(const FilePaths &searchPaths)
     : m_searchPaths(searchPaths)
 {
-    for (const QString &path : searchPaths) {
-        QDir dir(path);
-        if (!dir.exists())
+    for (const FilePath &path : searchPaths) {
+        if (!path.isReadableDir())
             continue;
-        dir.setNameFilters(QStringList(QLatin1String("*.json")));
-        const QList<QFileInfo> entries = dir.entryInfoList();
-        for (const QFileInfo &fi : entries)
-            m_schemas.insert(fi.baseName(), JsonSchemaData(fi.absoluteFilePath()));
+        const FilePaths entries = path.dirEntries(QStringList{QLatin1String("*.json")});
+        for (const FilePath &entry : entries)
+            m_schemas.insert(entry.baseName(), JsonSchemaData(entry.absoluteFilePath()));
     }
 }
 
@@ -1050,19 +1047,17 @@ JsonSchemaManager::~JsonSchemaManager()
  *
  * Returns a valid schema or 0.
  */
-JsonSchema *JsonSchemaManager::schemaForFile(const QString &fileName) const
+JsonSchema *JsonSchemaManager::schemaForFile(const FilePath &filePath) const
 {
-    QString baseName(QFileInfo(fileName).baseName());
-
-    return schemaByName(baseName);
+    return schemaByName(filePath.baseName());
 }
 
 JsonSchema *JsonSchemaManager::schemaByName(const QString &baseName) const
 {
     QHash<QString, JsonSchemaData>::iterator it = m_schemas.find(baseName);
     if (it == m_schemas.end()) {
-        for (const QString &path : m_searchPaths) {
-            QFileInfo candidate(path + baseName + ".json");
+        for (const FilePath &path : m_searchPaths) {
+            const FilePath candidate = path.pathAppended(baseName + ".json");
             if (candidate.exists()) {
                 m_schemas.insert(baseName, candidate.absoluteFilePath());
                 break;
@@ -1077,8 +1072,7 @@ JsonSchema *JsonSchemaManager::schemaByName(const QString &baseName) const
     JsonSchemaData *schemaData = &it.value();
     if (!schemaData->m_schema) {
          // Schemas are built on-demand.
-        QFileInfo currentSchema(schemaData->m_absoluteFileName);
-        Q_ASSERT(currentSchema.exists());
+        const FilePath currentSchema = schemaData->m_absoluteFilePath;
         if (schemaData->m_lastParseAttempt.isNull()
                 || schemaData->m_lastParseAttempt < currentSchema.lastModified()) {
             schemaData->m_schema = parseSchema(currentSchema.absoluteFilePath());
@@ -1088,12 +1082,10 @@ JsonSchema *JsonSchemaManager::schemaByName(const QString &baseName) const
     return schemaData->m_schema;
 }
 
-JsonSchema *JsonSchemaManager::parseSchema(const QString &schemaFileName) const
+JsonSchema *JsonSchemaManager::parseSchema(const FilePath &schemaFileName) const
 {
-    FileReader reader;
-    if (reader.fetch(FilePath::fromString(schemaFileName), QIODevice::Text)) {
-        const QString &contents = QString::fromUtf8(reader.data());
-        JsonValue *json = JsonValue::create(contents, &m_pool);
+    if (Result<QByteArray> contents = schemaFileName.fileContents()) {
+        JsonValue *json = JsonValue::create(QString::fromUtf8(*contents), &m_pool);
         if (json && json->kind() == JsonValue::Object)
             return new JsonSchema(json->toObject(), this);
     }

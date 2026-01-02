@@ -6,11 +6,7 @@
 #include "utils_global.h"
 
 #include "filepath.h"
-
-#include <QMetaType>
-#include <QString>
-
-#include <functional>
+#include "textutils.h"
 
 namespace Utils {
 
@@ -18,48 +14,30 @@ class QTCREATOR_UTILS_EXPORT Link
 {
 public:
     Link() = default;
-    Link(const FilePath &filePath, int line = 0, int column = 0)
-        : targetFilePath(filePath)
-        , targetLine(line)
-        , targetColumn(column)
-    {}
+    Link(const FilePath &filePath, int line = 0, int column = 0);
 
     static Link fromString(const QString &filePathWithNumbers, bool canContainLineNumber = false);
 
-    bool hasValidTarget() const
-    {
-        if (!targetFilePath.isEmpty())
-            return true;
-        return !targetFilePath.scheme().isEmpty() || !targetFilePath.host().isEmpty();
-    }
+    bool hasValidTarget() const;
+    bool hasValidLinkText() const { return linkTextStart != linkTextEnd; }
 
-    bool hasValidLinkText() const
-    { return linkTextStart != linkTextEnd; }
-
-    bool operator==(const Link &other) const
-    {
-        return hasSameLocation(other)
-               && linkTextStart == other.linkTextStart
-               && linkTextEnd == other.linkTextEnd;
-    }
-    bool operator!=(const Link &other) const { return !(*this == other); }
-
-    bool hasSameLocation(const Link &other) const
-    {
-        return targetFilePath == other.targetFilePath
-               && targetLine == other.targetLine
-               && targetColumn == other.targetColumn;
-    }
-
-    friend size_t qHash(const Link &l, uint seed = 0)
-    { return qHashMulti(seed, l.targetFilePath, l.targetLine, l.targetColumn); }
+    bool hasSameLocation(const Link &other) const;
 
     int linkTextStart = -1;
     int linkTextEnd = -1;
 
     FilePath targetFilePath;
-    int targetLine = 0;
-    int targetColumn = 0;
+    Text::Position target;
+
+private:
+    QTCREATOR_UTILS_EXPORT friend bool operator<(const Link &first, const Link &second);
+    QTCREATOR_UTILS_EXPORT friend bool operator==(const Link &lhs, const Link &rhs);
+    friend bool operator!=(const Link &lhs, const Link &rhs) { return !(lhs == rhs); }
+
+    QTCREATOR_UTILS_EXPORT friend QDebug operator<<(QDebug dbg, const Link &link);
+
+    friend size_t qHash(const Link &l, uint seed = 0)
+    { return qHashMulti(seed, l.targetFilePath, l.target.line, l.target.column); }
 };
 
 using LinkHandler = std::function<void(const Link &)>;

@@ -48,18 +48,19 @@ signals:
 
 public slots:
     void resetSessions();
-    void newSession(QWidget *parent);
-    void cloneSession(QWidget *parent, const QString &session);
+    void newSession();
+    void cloneSession(const QString &session);
     void deleteSessions(const QStringList &sessions);
-    void renameSession(QWidget *parent, const QString &session);
+    void renameSession(const QString &session);
     void switchToSession(const QString &session);
 
 private:
     void runSessionNameInputDialog(Internal::SessionNameInputDialog *sessionInputDialog,
                                    std::function<void(const QString &)> createSession);
+    void sortImpl(int column, Qt::SortOrder order);
 
     QStringList m_sortedSessions;
-    int m_currentSortColumn = 0;
+    int m_currentSortColumn = -1;
     Qt::SortOrder m_currentSortOrder = Qt::AscendingOrder;
 };
 

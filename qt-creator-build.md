@@ -24,7 +24,53 @@ cmake -DCMAKE_PREFIX_PATH=/opt/Qt/6.4.2/gcc_64/lib/cmake/ ~/src/
 
 Change IDE output name
 ----------------------
-Change name in ./qt-creator/cmake/QtCreatorIDEBranding.cmake as following:
+Change name in ./qt-creator/cmake/QtCreatorIDEBranding.cmake as following: (2026-01-02 update)
+
+```
+diff --git a/qt-creator/cmake/QtCreatorIDEBranding.cmake b/qt-creator/cmake/QtCreatorIDEBranding.cmake
+index 5fc8a3ab1..89fe23d43 100644
+--- a/qt-creator/cmake/QtCreatorIDEBranding.cmake
++++ b/qt-creator/cmake/QtCreatorIDEBranding.cmake
+@@ -1,21 +1,24 @@
+-set(IDE_VERSION "13.0.0")                             # The IDE version.
+-set(IDE_VERSION_COMPAT "13.0.0")                      # The IDE Compatibility version.
+-set(IDE_VERSION_DISPLAY "13.0.0")                     # The IDE display version.
+-set(IDE_COPYRIGHT_YEAR "2024")                        # The IDE current copyright year.
++set(IDE_VERSION "18.0.82")                            # The IDE version.
++set(IDE_VERSION_COMPAT "18.0.82")                     # The IDE Compatibility version.
++set(IDE_VERSION_DISPLAY "19.0.0-beta1")               # The IDE display version.
+
+ set(IDE_SETTINGSVARIANT "QtProject")                  # The IDE settings variation.
+-set(IDE_DISPLAY_NAME "qtplatz")                     # The IDE display name.
+-set(IDE_ID "qtplatz")                               # The IDE id (no spaces, lowercase!)
+-set(IDE_CASED_ID "QtPlatz")                         # The cased IDE id (no spaces!)
+-set(IDE_BUNDLE_IDENTIFIER "com.ms-cheminfo.${IDE_ID}") # The macOS application bundle identifier.
++set(IDE_DISPLAY_NAME "QtPlatz")                       # The IDE display name.
++set(IDE_ID "qtcreator")                               # The IDE id (no spaces, lowercase!)
++set(IDE_CASED_ID "QtPlatz")                           # The cased IDE id (no spaces!)
++set(IDE_BUNDLE_IDENTIFIER "com.ms-cheminfo.${IDE_ID}")# The macOS application bundle identifier.
++set(IDE_APP_ID "com.ms-cheminfo.${IDE_ID}")           # The free desktop application identifier.
++set(IDE_PUBLISHER "MS-Cheminfomatics LLC")
++set(IDE_AUTHOR "${IDE_PUBLISHER} and other contributors.")
++set(IDE_COPYRIGHT "Copyright (C) ${IDE_AUTHOR}")
+
+ set(PROJECT_USER_FILE_EXTENSION .user)
+-set(IDE_DOC_FILE "qtplatz/qtplatz.qdocconf")
+-set(IDE_DOC_FILE_ONLINE "qtplatz/qtplatz-online.qdocconf")
++set(IDE_DOC_FILE "qtcreator/qtcreator.qdocconf")
++set(IDE_DOC_FILE_ONLINE "qtcreator/qtcreator-online.qdocconf")
+
+ # Absolute, or relative to <qtcreator>/src/app
+ # Should contain qtcreator.ico, qtcreator.xcassets
+ set(IDE_ICON_PATH "")
+ # Absolute, or relative to <qtcreator>/src/app
+-# Should contain images/logo/(16|24|32|48|64|128|256|512)/QtProject-qtcreator.png
++# Should contain images/logo/(16|24|32|48|64|128|256|512)/QtProject-${IDE_ID}.png
+ set(IDE_LOGO_PATH "")
+```
+
+Previous Version (8 and 9)
+----
 
 ```
 diff --git a/cmake/QtCreatorIDEBranding.cmake b/cmake/QtCreatorIDEBranding.cmake
@@ -55,7 +101,161 @@ index e7f7b39cad..25bc4e71bf 100644
 ```
 
 
-Exclude unused modules
+0. List of directories/files
+======================
+```
+ % find . -name "*.deleted"
+./doc.deleted
+./tests.deleted
+./packaging.deleted
+./src/tools/qtcreatorwidgets.deleted
+./src/tools/valgrindfake.deleted
+./src/tools/icons.deleted
+./src/tools/qtcdebugger.deleted
+./src/tools/sqlitetester.deleted
+./src/tools/qmlpuppet.deleted
+./src/tools/qtc-askpass.deleted
+./src/tools/sdktool.deleted
+./src/tools/3rdparty.deleted
+./src/tools/cplusplus-update-frontend.deleted
+./src/tools/buildoutputparser.deleted
+./src/tools/cplusplustools.qbs.deleted
+./src/tools/qtcrashhandler.deleted
+./src/tools/iostool.deleted
+./src/tools/process_stub.deleted
+./src/tools/tools.qbs.deleted
+./src/tools/cplusplus-frontend.deleted
+./src/tools/perfparser.deleted
+./src/tools/disclaim.deleted
+./src/tools/cplusplus-shared.deleted
+./src/tools/qtpromaker.deleted
+./src/tools/cplusplus-mkvisitor.deleted
+./src/tools/cplusplus-ast2png.deleted
+./src/plugins/ctfvisualizer.deleted
+./src/plugins/learning.deleted
+./src/plugins/silversearcher.deleted
+./src/plugins/perforce.deleted
+./src/plugins/bineditor.deleted
+./src/plugins/modeleditor.deleted
+./src/plugins/qmlprojectmanager.deleted
+./src/plugins/qmlprofiler.deleted
+./src/plugins/saferenderer.deleted
+./src/plugins/extensionmanager.deleted
+./src/plugins/designer.deleted
+./src/plugins/compilerexplorer.deleted
+./src/plugins/boot2qt.deleted
+./src/plugins/classview.deleted
+./src/plugins/qbsprojectmanager.deleted
+./src/plugins/vcsbase.deleted
+./src/plugins/emacskeys.deleted
+./src/plugins/genericprojectmanager.deleted
+./src/plugins/baremetal.deleted
+./src/plugins/qmakeprojectmanager.deleted
+./src/plugins/terminal.deleted
+./src/plugins/clangformat.deleted
+./src/plugins/cppcheck.deleted
+./src/plugins/cpaster.deleted
+./src/plugins/extrapropertyeditormanager.deleted
+./src/plugins/effectcomposer.deleted
+./src/plugins/updateinfo.deleted
+./src/plugins/qmldesignerbase.deleted
+./src/plugins/lua.deleted
+./src/plugins/languageclient.deleted
+./src/plugins/conan.deleted
+./src/plugins/clangcodemodel.deleted
+./src/plugins/perfprofiler.deleted
+./src/plugins/todo.deleted
+./src/plugins/debugger.deleted
+./src/plugins/glsleditor.deleted
+./src/plugins/axivion.deleted
+./src/plugins/screenrecorder.deleted
+./src/plugins/clangtools.deleted
+./src/plugins/squish.deleted
+./src/plugins/cppeditor.deleted
+./src/plugins/plugins.qbs.deleted
+./src/plugins/nim.deleted
+./src/plugins/vcpkg.deleted
+./src/plugins/gitlab.deleted
+./src/plugins/remotelinux.deleted
+./src/plugins/qmljseditor.deleted
+./src/plugins/coco.deleted
+./src/plugins/qnx.deleted
+./src/plugins/mesonprojectmanager.deleted
+./src/plugins/qmljstools.deleted
+./src/plugins/webassembly.deleted
+./src/plugins/copilot.deleted
+./src/plugins/mercurial.deleted
+./src/plugins/scxmleditor.deleted
+./src/plugins/mcusupport.deleted
+./src/plugins/beautifier.deleted
+./src/plugins/help.deleted
+./src/plugins/cmakeprojectmanager.deleted
+./src/plugins/compilationdatabaseprojectmanager.deleted
+./src/plugins/appstatisticsmonitor.deleted
+./src/plugins/resourceeditor.deleted
+./src/plugins/subversion.deleted
+./src/plugins/welcome.deleted
+./src/plugins/docker.deleted
+./src/plugins/clearcase.deleted
+./src/plugins/imageviewer.deleted
+./src/plugins/fossil.deleted
+./src/plugins/texteditor.deleted
+./src/plugins/valgrind.deleted
+./src/plugins/git.deleted
+./src/plugins/cvs.deleted
+./src/plugins/bazaar.deleted
+./src/plugins/qtapplicationmanager.deleted
+./src/plugins/qmldesigner.deleted
+./src/plugins/devcontainer.deleted
+./src/plugins/autotest.deleted
+./src/plugins/android.deleted
+./src/plugins/python.deleted
+./src/plugins/fakevim.deleted
+./src/plugins/helloworld.deleted
+./src/plugins/projectexplorer.deleted
+./src/plugins/incredibuild.deleted
+./src/plugins/qmlpreview.deleted
+./src/plugins/diffeditor.deleted
+./src/plugins/macros.deleted
+./src/plugins/autotoolsprojectmanager.deleted
+./src/plugins/ios.deleted
+./src/plugins/qtsupport.deleted
+./src/plugins/serialterminal.deleted
+./src/shared/designerintegrationv2.deleted
+./src/shared/proparser.deleted
+./src/shared/qtcreator_pch.h.deleted
+./src/shared/cpaster.deleted
+./src/shared/qtcreator_gui_pch.h.deleted
+./src/shared/registryaccess.deleted
+./src/shared/modeltest.deleted
+./src/shared/qbs.deleted
+./src/shared/help.deleted
+./src/shared/json.deleted
+./src/libs/qmleditorwidgets.deleted
+./src/libs/qmldebug.deleted
+./src/libs/modelinglib.deleted
+./src/libs/qmlpuppetcommunication.deleted
+./src/libs/advanceddockingsystem.deleted
+./src/libs/tracing.deleted
+./src/libs/glsl.deleted
+./src/libs/languageutils.deleted
+./src/libs/languageserverprotocol.deleted
+./src/libs/sqlite.deleted
+./src/libs/cplusplus.deleted
+./src/libs/3rdparty/toml11.deleted
+./src/libs/3rdparty/sol2.deleted
+./src/libs/3rdparty/syntax-highlighting.deleted
+./src/libs/3rdparty/sqlite.deleted
+./src/libs/3rdparty/cplusplus.deleted
+./src/libs/3rdparty/googletest.deleted
+./src/libs/3rdparty/yaml-cpp.deleted
+./src/libs/3rdparty/json.deleted
+./src/libs/devcontainer.deleted
+./src/libs/googletest.deleted
+./src/libs/qtcreatorcdbext.deleted
+```
+
+Exclude unused modules (Previous Version (8 and 9))
 ======================
 
 1. qt-creator/CMakeLists.txt

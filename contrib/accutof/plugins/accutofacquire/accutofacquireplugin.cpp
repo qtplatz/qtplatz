@@ -29,6 +29,7 @@
 #include "mainwindow.hpp"
 #include "iu5303afacade.hpp"
 #include "document.hpp"
+#include "utils/result.h"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -73,11 +74,12 @@ acquirePlugin::~acquirePlugin()
 {
 }
 
-bool
-acquirePlugin::initialize( const QStringList &arguments, QString *errorString )
+Utils::Result<>
+acquirePlugin::initialize( const QStringList &arguments )
 {
     Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
+
+    ADDEBUG() << "#### acquirePlugin::" << __FUNCTION__ << " ####";
 
     mainWindow_->activateWindow();
     mainWindow_->createActions();
@@ -109,8 +111,9 @@ acquirePlugin::initialize( const QStringList &arguments, QString *errorString )
     menu->menu()->setTitle(tr("AccuTOF"));
     menu->addAction(cmd);
     am->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
+    ADDEBUG() << "#### acquirePlugin::" << __FUNCTION__ << " #### done.";
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void
@@ -118,6 +121,8 @@ acquirePlugin::extensionsInitialized()
 {
     document::instance()->initialSetup(); // load default control method
 	mainWindow_->OnInitialUpdate();
+
+    ADDEBUG() << "#### acquirePlugin::" << __FUNCTION__ << " ####";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
@@ -134,7 +139,7 @@ acquirePlugin::aboutToShutdown()
     if ( mode_ )
         ExtensionSystem::PluginManager::removeObject( mode_.get() );
 
-#if ! defined NDEBUG && 0
+#if ! defined NDEBUG && 1
     ADDEBUG() << "## Shutdown "
               << boost::dll::this_line_location().stem()  << "\n\t" << boost::dll::this_line_location();
 #endif

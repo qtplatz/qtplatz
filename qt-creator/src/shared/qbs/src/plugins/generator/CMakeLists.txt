@@ -1,5 +1,0 @@
-add_subdirectory(clangcompilationdb)
-add_subdirectory(iarew)
-add_subdirectory(keiluv)
-add_subdirectory(makefilegenerator)
-add_subdirectory(visualstudio)

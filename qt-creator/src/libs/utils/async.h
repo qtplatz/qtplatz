@@ -7,11 +7,12 @@
 
 #include "futuresynchronizer.h"
 #include "qtcassert.h"
+#include "threadutils.h"
 
-#include <solutions/tasking/tasktree.h>
+#include <QtTaskTree/QTaskTree>
 
 #include <QFutureWatcher>
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 
 namespace Utils {
 
@@ -56,8 +57,9 @@ const QFuture<T> &onResultReady(const QFuture<T> &future, R *receiver, void(R::*
 {
     auto watcher = new QFutureWatcher<T>(receiver);
     QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, &QObject::deleteLater);
-    QObject::connect(watcher, &QFutureWatcherBase::resultReadyAt, receiver, [=](int index) {
-        (receiver->*member)(watcher->future().resultAt(index));
+    QObject::connect(watcher, &QFutureWatcherBase::resultReadyAt, receiver,
+                     [future, receiver, member](int index) {
+        (receiver->*member)(future.resultAt(index));
     });
     watcher->setFuture(future);
     return future;
@@ -93,7 +95,7 @@ const QFuture<T> &onFinished(const QFuture<T> &future,
     auto watcher = new QFutureWatcher<T>(receiver);
     QObject::connect(watcher, &QFutureWatcherBase::finished, watcher, &QObject::deleteLater);
     QObject::connect(watcher, &QFutureWatcherBase::finished, receiver,
-                     [=] { (receiver->*member)(watcher->future()); });
+                     [future, receiver, member] { (receiver->*member)(future); });
     watcher->setFuture(future);
     return future;
 }
@@ -124,15 +126,28 @@ signals:
     void started();
     void done();
     void resultReadyAt(int index);
+    void resultsReadyAt(int beginIndex, int endIndex);
+    void progressRangeChanged(int min, int max);
+    void progressValueChanged(int value);
+    void progressTextChanged(const QString &text);
 };
 
 template <typename ResultType>
 class Async : public AsyncBase
 {
 public:
-    Async() {
+    Async()
+        : m_synchronizer(isMainThread() ? futureSynchronizer() : nullptr)
+    {
         connect(&m_watcher, &QFutureWatcherBase::finished, this, &AsyncBase::done);
         connect(&m_watcher, &QFutureWatcherBase::resultReadyAt, this, &AsyncBase::resultReadyAt);
+        connect(&m_watcher, &QFutureWatcherBase::resultsReadyAt, this, &AsyncBase::resultsReadyAt);
+        connect(&m_watcher, &QFutureWatcherBase::progressValueChanged,
+                this, &AsyncBase::progressValueChanged);
+        connect(&m_watcher, &QFutureWatcherBase::progressRangeChanged,
+                this, &AsyncBase::progressRangeChanged);
+        connect(&m_watcher, &QFutureWatcherBase::progressTextChanged,
+                this, &AsyncBase::progressTextChanged);
     }
     ~Async()
     {
@@ -147,10 +162,10 @@ public:
     template <typename Function, typename ...Args>
     void setConcurrentCallData(Function &&function, Args &&...args)
     {
-        return wrapConcurrent(std::forward<Function>(function), std::forward<Args>(args)...);
+        wrapConcurrent(std::forward<Function>(function), std::forward<Args>(args)...);
     }
 
-    void setFutureSynchronizer(FutureSynchronizer *synchorizer) { m_synchronizer = synchorizer; }
+    void setFutureSynchronizer(FutureSynchronizer *synchronizer) { m_synchronizer = synchronizer; }
     void setThreadPool(QThreadPool *pool) { m_threadPool = pool; }
     void setPriority(QThread::Priority priority) { m_priority = priority; }
 
@@ -168,6 +183,7 @@ public:
 
     QFuture<ResultType> future() const { return m_watcher.future(); }
     ResultType result() const { return m_watcher.result(); }
+    ResultType takeResult() const { return m_watcher.future().takeResult(); }
     ResultType resultAt(int index) const { return m_watcher.resultAt(index); }
     QList<ResultType> results() const { return future().results(); }
     bool isResultAvailable() const { return future().resultCount(); }
@@ -199,18 +215,18 @@ private:
 };
 
 template <typename ResultType>
-class AsyncTaskAdapter : public Tasking::TaskAdapter<Async<ResultType>>
+class AsyncTaskAdapter final
 {
 public:
-    AsyncTaskAdapter() {
-        this->connect(this->task(), &AsyncBase::done, this, [this] {
-            emit this->done(Tasking::toDoneResult(!this->task()->isCanceled()));
-        });
+    void operator()(Async<ResultType> *task, QTaskInterface *iface) {
+        QObject::connect(task, &AsyncBase::done, iface, [iface, task] {
+            iface->reportDone(QtTaskTree::toDoneResult(!task->isCanceled()));
+        }, Qt::SingleShotConnection);
+        task->start();
     }
-    void start() final { this->task()->start(); }
 };
 
 template <typename T>
-using AsyncTask = Tasking::CustomTask<AsyncTaskAdapter<T>>;
+using AsyncTask = QCustomTask<Async<T>, AsyncTaskAdapter<T>>;
 
 } // namespace Utils

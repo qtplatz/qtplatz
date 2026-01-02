@@ -50,11 +50,6 @@ SessionView::SessionView(QWidget *parent)
     // Ensure that the full session name is visible.
     header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 
-    QItemSelection firstRow(m_sessionModel.index(0,0), m_sessionModel.index(
-        0, m_sessionModel.columnCount() - 1));
-    selectionModel()->select(firstRow, QItemSelectionModel::QItemSelectionModel::
-        SelectCurrent);
-
     connect(this, &Utils::TreeView::activated, this, [this](const QModelIndex &index){
         emit sessionActivated(m_sessionModel.sessionAt(index.row()));
     });
@@ -72,7 +67,7 @@ SessionView::SessionView(QWidget *parent)
 
 void SessionView::createNewSession()
 {
-    m_sessionModel.newSession(this);
+    m_sessionModel.newSession();
 }
 
 void SessionView::deleteSelectedSessions()
@@ -87,12 +82,12 @@ void SessionView::deleteSessions(const QStringList &sessions)
 
 void SessionView::cloneCurrentSession()
 {
-    m_sessionModel.cloneSession(this, currentSession());
+    m_sessionModel.cloneSession(currentSession());
 }
 
 void SessionView::renameCurrentSession()
 {
-    m_sessionModel.renameSession(this, currentSession());
+    m_sessionModel.renameSession(currentSession());
 }
 
 void SessionView::switchToCurrentSession()

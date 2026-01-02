@@ -1,3 +1,0 @@
-Product {
-    name: "MyApp"
-}

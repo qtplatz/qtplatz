@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "quandocument.hpp"
+#include "utils/result.h"
 
 using namespace quan;
 
@@ -35,13 +36,11 @@ QuanDocument::QuanDocument()
 {
 }
 
-Core::IDocument::OpenResult
-QuanDocument::open(QString *errorString, const Utils::FilePath &filePath,
-                    const Utils::FilePath &realFilePath)
+Utils::Result<> // Core::IDocument::OpenResult
+QuanDocument::open(const Utils::FilePath &filePath,
+                   const Utils::FilePath &realFilePath)
 {
-
-
-    return Core::IDocument::OpenResult::ReadError;
+    return Utils::ResultError( Utils::ResultUnimplemented ); // Core::IDocument::OpenResult::ReadError;
 }
 
 Core::IDocument::ReloadBehavior

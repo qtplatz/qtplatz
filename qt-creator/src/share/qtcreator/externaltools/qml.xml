@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
+
+-->
+<externaltool id="qml">
+    <description>Runs the current QML file with QML utility.</description>
+    <displayname>QML utility</displayname>
+    <category>Qt Quick</category>
+    <order>1</order>
+    <executable>
+        <path>%{CurrentDocument:Project:QT_INSTALL_BINS}/qml</path>
+        <path>%{ActiveProject:QT_INSTALL_BINS}/qml</path>
+        <path>qml</path>
+        <arguments>%{CurrentDocument:FilePath}</arguments>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+        <environment>QT_LOGGING_TO_CONSOLE%3D1</environment>
+    </executable>
+</externaltool>

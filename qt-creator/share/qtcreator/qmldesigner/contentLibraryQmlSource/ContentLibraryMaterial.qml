@@ -3,8 +3,7 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
-import HelperWidgets
+import HelperWidgets as HelperWidgets
 import StudioTheme as StudioTheme
 import ContentLibraryBackend
 import WebFetcher
@@ -12,29 +11,28 @@ import WebFetcher
 Item {
     id: root
 
-    signal showContextMenu()
+    // Download states: "" (exists not downloaded), "unavailable", "downloading", "downloaded", "failed"
+    property string downloadState: ContentLibraryBackend.materialsModel.isMaterialDownloaded(modelData)
+                                   ? "downloaded" : ""
 
-    // Download states: "" (ie default, not downloaded), "unavailable", "downloading", "downloaded",
-    //                  "failed"
-    property string downloadState: modelData.isDownloaded() ? "downloaded" : ""
+    signal showContextMenu()
+    signal addToProject()
 
     visible: modelData.bundleMaterialVisible
 
     MouseArea {
         id: mouseArea
 
-        enabled: root.downloadState !== "downloading"
+        enabled: !ContentLibraryBackend.rootView.importerRunning && root.downloadState == "downloaded"
         hoverEnabled: true
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         onPressed: (mouse) => {
-            if (mouse.button === Qt.LeftButton && !materialsModel.importerRunning) {
-                if (root.downloadState === "downloaded")
-                    ContentLibraryBackend.rootView.startDragMaterial(modelData, mapToGlobal(mouse.x, mouse.y))
-            } else if (mouse.button === Qt.RightButton && root.downloadState === "downloaded") {
+            if (mouse.button === Qt.LeftButton)
+                ContentLibraryBackend.rootView.startDragMaterial(modelData, mapToGlobal(mouse.x, mouse.y))
+            else if (mouse.button === Qt.RightButton)
                 root.showContextMenu()
-            }
         }
     }
 
@@ -71,7 +69,7 @@ Item {
                 color: "#00ff00"
                 border.color: "#555555"
                 border.width: 1
-                visible: modelData.bundleMaterialImported
+                visible: modelData.bundleItemImported
 
                 ToolTip {
                     visible: indicatorMouseArea.containsMouse
@@ -86,7 +84,7 @@ Item {
                 }
             }
 
-            IconButton {
+            HelperWidgets.IconButton {
                 icon: StudioTheme.Constants.plus
                 tooltip: qsTr("Add an instance to project")
                 buttonSize: 22
@@ -96,16 +94,16 @@ Item {
                 pressColor: Qt.hsla(c.hslHue, c.hslSaturation, c.hslLightness, .4)
                 anchors.right: img.right
                 anchors.bottom: img.bottom
-                enabled: !ContentLibraryBackend.materialsModel.importerRunning
+                enabled: !ContentLibraryBackend.rootView.importerRunning
                 visible: root.downloadState === "downloaded"
                          && (containsMouse || mouseArea.containsMouse)
 
                 onClicked: {
-                    ContentLibraryBackend.materialsModel.addToProject(modelData)
+                    root.addToProject()
                 }
             }
 
-            IconButton {
+            HelperWidgets.IconButton {
                 id: downloadIcon
                 icon: root.downloadState === "unavailable"
                       ? StudioTheme.Constants.downloadUnavailable
@@ -180,10 +178,10 @@ Item {
     MultiFileDownloader {
         id: downloader
 
-        baseUrl: modelData.bundleMaterialBaseWebUrl
+        baseUrl: ContentLibraryBackend.materialsModel.baseWebUrl
         files: modelData.bundleMaterialFiles
 
-        targetDirPath: modelData.bundleMaterialParentPath
+        targetDirPath: ContentLibraryBackend.materialsModel.bundlePath
 
         onDownloadStarting: {
             root.downloadState = "downloading"

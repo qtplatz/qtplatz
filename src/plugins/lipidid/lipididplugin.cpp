@@ -28,6 +28,7 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "mode.hpp"
+#include "utils/result.h"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/modemanager.h>
@@ -119,14 +120,14 @@ LipididPlugin::LipididPlugin() : mainWindow_( new MainWindow )
 {
 }
 
-bool
-LipididPlugin::initialize( const QStringList& arguments, QString* error_message )
+Utils::Result<>
+LipididPlugin::initialize( const QStringList& arguments )
 {
     Q_UNUSED( arguments );
 
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
-        return false;
+        return Utils::ResultError( "Core instance is null" );
 
     if (( mode_ = std::make_unique< lipidid::Mode >( this ) )) {
         mainWindow_->activateLayout();
@@ -136,9 +137,9 @@ LipididPlugin::initialize( const QStringList& arguments, QString* error_message 
         mode_->setWidget( widget );
     } else {
         ADWARN() << "lipidid::Mode allocation failed.";
-        return false;
+        return Utils::ResultError( "LipidId::Mode allocation failed" );
     }
-    return true;
+    return Utils::ResultOk;
 }
 
 void

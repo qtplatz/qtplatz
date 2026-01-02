@@ -126,7 +126,7 @@ void Document::setLanguage(Dialect l)
 
 QString Document::importId() const
 {
-    return _fileName.toString();
+    return _fileName.toUrlishString();
 }
 
 QByteArray Document::fingerprint() const
@@ -370,7 +370,7 @@ QByteArray LibraryInfo::calculateFingerprint() const
 {
     QCryptographicHash hash(QCryptographicHash::Sha1);
     auto addData = [&hash](auto p, size_t len) {
-        hash.addData(reinterpret_cast<const char *>(p), len);
+        hash.addData(QByteArrayView(reinterpret_cast<const char *>(p), len));
     };
 
     addData(&_status, sizeof(_status));
@@ -458,7 +458,7 @@ void Snapshot::insert(const Document::Ptr &document, bool allowInvalid)
         cImport.importId = document->importId();
         cImport.language = document->language();
         cImport.addPossibleExport(
-            Export(ImportKey(ImportType::File, fileName.toString()), {}, true, fileName.baseName()));
+            Export(ImportKey(ImportType::File, fileName.toUrlishString()), {}, true, fileName.baseName()));
         cImport.fingerprint = document->fingerprint();
         _dependencies.addCoreImport(cImport);
     }
@@ -471,7 +471,7 @@ void Snapshot::insertLibraryInfo(const Utils::FilePath &path, const LibraryInfo 
     _libraries.insert(path.cleanPath(), info);
     if (!info.wasFound()) return;
     CoreImport cImport;
-    cImport.importId = path.toString();
+    cImport.importId = path.toUrlishString();
     cImport.language = Dialect::AnyLanguage;
     QSet<ImportKey> packages;
     for (const ModuleApiInfo &moduleInfo : info.moduleApis()) {
@@ -489,8 +489,8 @@ void Snapshot::insertLibraryInfo(const Utils::FilePath &path, const LibraryInfo 
     }
 
     QStringList splitPath = path.path().split(QLatin1Char('/'));
-    const QRegularExpression vNr(QLatin1String("^(.+)\\.([0-9]+)(?:\\.([0-9]+))?$"));
-    const QRegularExpression safeName(QLatin1String("^[a-zA-Z_][[a-zA-Z0-9_]*$"));
+    static const QRegularExpression vNr(QLatin1String("^(.+)\\.([0-9]+)(?:\\.([0-9]+))?$"));
+    static const QRegularExpression safeName(QLatin1String("^[a-zA-Z_][[a-zA-Z0-9_]*$"));
     for (const ImportKey &importKey : std::as_const(packages)) {
         if (importKey.splitPath.size() == 1 && importKey.splitPath.at(0).isEmpty() && splitPath.length() > 0) {
             // relocatable
@@ -519,8 +519,6 @@ void Snapshot::insertLibraryInfo(const Utils::FilePath &path, const LibraryInfo 
         }
     }
     if (cImport.possibleExports.isEmpty() && splitPath.size() > 0) {
-        const QRegularExpression vNr(QLatin1String("^(.+)\\.([0-9]+)(?:\\.([0-9]+))?$"));
-        const QRegularExpression safeName(QLatin1String("^[a-zA-Z_][[a-zA-Z0-9_]*$"));
         int majorVersion = LanguageUtils::ComponentVersion::NoVersion;
         int minorVersion = LanguageUtils::ComponentVersion::NoVersion;
 
@@ -621,10 +619,10 @@ LibraryInfo Snapshot::libraryInfo(const Utils::FilePath &path) const
 void ModuleApiInfo::addToHash(QCryptographicHash &hash) const
 {
     int len = uri.length();
-    hash.addData(reinterpret_cast<const char *>(&len), sizeof(len));
-    hash.addData(reinterpret_cast<const char *>(uri.constData()), len * sizeofQChar);
+    hash.addData(QByteArrayView(reinterpret_cast<const char *>(&len), sizeof(len)));
+    hash.addData(QByteArrayView(reinterpret_cast<const char *>(uri.constData()), len * sizeofQChar));
     version.addToHash(hash);
     len = cppName.length();
-    hash.addData(reinterpret_cast<const char *>(&len), sizeof(len));
-    hash.addData(reinterpret_cast<const char *>(cppName.constData()), len * sizeofQChar);
+    hash.addData(QByteArrayView(reinterpret_cast<const char *>(&len), sizeof(len)));
+    hash.addData(QByteArrayView(reinterpret_cast<const char *>(cppName.constData()), len * sizeofQChar));
 }

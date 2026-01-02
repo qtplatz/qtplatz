@@ -9,16 +9,26 @@ if (NOT IS_ABSOLUTE ${IDE_LOGO_PATH})
 endif()
 configure_file(app_logo.qrc.cmakein app_logo_cmake.qrc)
 
+# This needs to be explicit like this, to avoid issues with the path
+# to the binary in generated SBOMs.
+set(qtcreator_props "")
+if(APPLE)
+  list(APPEND qtcreator_props MACOSX_BUNDLE ON)
+endif()
+if(WIN32)
+  list(APPEND qtcreator_props WIN32_EXECUTABLE ON)
+endif()
 add_qtc_executable(qtcreator
-  DEFINES IDE_LIBRARY_BASENAME=\"${IDE_LIBRARY_BASE_PATH}\"
+  DEFINES
+    IDE_LIBRARY_BASENAME=\"${IDE_LIBRARY_BASE_PATH}\"
+    IDE_APP_ID=\"${IDE_APP_ID}\"
   DEPENDS Aggregation ExtensionSystem Qt::Core Qt::Widgets Utils shared_qtsingleapplication app_version
   SOURCES
     main.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/app_logo_cmake.qrc
     ../tools/qtcreatorcrashhandler/crashhandlersetup.cpp ../tools/qtcreatorcrashhandler/crashhandlersetup.h
   PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
+    ${qtcreator_props}
     OUTPUT_NAME "${IDE_APP_TARGET}"
   DESTINATION "${IDE_APP_PATH}"
   QTC_RUNNABLE
@@ -76,13 +86,16 @@ if (WIN32)
   set(RC_APPLICATION_NAME "${IDE_DISPLAY_NAME}")
   set(RC_VERSION "${IDE_VERSION}.0")
   set(RC_VERSION_STRING "${IDE_VERSION_DISPLAY}")
-  set(RC_COPYRIGHT "2008-${IDE_COPYRIGHT_YEAR} The Qt Company Ltd")
+  set(RC_COPYRIGHT "${IDE_COPYRIGHT}")
+  set(RC_PUBLISHER "${IDE_PUBLISHER}")
 
   string(REPLACE " " "\\x20" RC_APPLICATION_NAME "${RC_APPLICATION_NAME}")
+  string(REPLACE " " "\\x20" RC_PUBLISHER "${RC_PUBLISHER}")
   string(REPLACE " " "\\x20" RC_COPYRIGHT "${RC_COPYRIGHT}")
   string(REPLACE "." "," RC_VERSION "${RC_VERSION}")
 
   target_compile_definitions(qtcreator PRIVATE
+    RC_PUBLISHER=${RC_PUBLISHER}
     RC_APPLICATION_NAME=${RC_APPLICATION_NAME}
     RC_VERSION=${RC_VERSION}
     RC_VERSION_STRING=${RC_VERSION_STRING}
@@ -109,6 +122,28 @@ if (APPLE)
       "${IDE_ICON_PATH}/qtcreator.xcassets"
       > /dev/null
     BYPRODUCTS qtcreator.Info.plist
+    DEPENDS
+      qtcreator.xcassets/qtcreator.appiconset/Contents.json
+      qtcreator.xcassets/qtcreator.appiconset/icon_128x128.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_128x128@2x.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_16x16.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_16x16@2x.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_256x256.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_256x256@2x.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_32x32.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_32x32@2x.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_512x512.png
+      qtcreator.xcassets/qtcreator.appiconset/icon_512x512@2x.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_128x128.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_128x128@2x.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_16x16.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_16x16@2x.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_256x256.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_256x256@2x.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_32x32.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_32x32@2x.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_512x512.png
+      qtcreator.xcassets/qtcreator-project.iconset/icon_512x512@2x.png
     VERBATIM
   )
   target_sources(qtcreator
@@ -152,11 +187,25 @@ if(BUILD_WITH_CRASHPAD)
   )
 endif()
 
+extend_qtc_executable(qtcreator
+  CONDITION BUILD_WITH_SENTRY
+  DEFINES
+    SENTRY_DSN="${SENTRY_DSN}"
+    SENTRY_PROJECT="${SENTRY_PROJECT}"
+    ENABLE_SENTRY
+  DEPENDS sentry::sentry
+)
+extend_qtc_executable(qtcreator
+  CONDITION DEFINED SENTRY_CRASHPAD_PATH
+  DEFINES
+    SENTRY_CRASHPAD_PATH="${SENTRY_CRASHPAD_PATH}"
+)
+
 if ((NOT WIN32) AND (NOT APPLE))
   # install logo
   foreach(size 16 24 32 48 64 128 256 512)
     install(
-      FILES ${IDE_LOGO_PATH}/images/logo/${size}/QtProject-qtcreator.png
+      FILES ${IDE_LOGO_PATH}/images/logo/${size}/QtProject-${IDE_ID}.png
       DESTINATION share/icons/hicolor/${size}x${size}/apps
     )
   endforeach()

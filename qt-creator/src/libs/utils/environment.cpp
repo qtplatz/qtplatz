@@ -47,6 +47,7 @@ Environment::Environment(const NameValuePairs &nameValues)
 
 Environment::Environment(const NameValueDictionary &dict)
 {
+    m_dict.m_osType = dict.osType();
     m_changeItems.append(dict);
 }
 
@@ -60,10 +61,10 @@ EnvironmentItems Environment::diff(const Environment &other, bool checkAppendPre
 Environment::FindResult Environment::find(const QString &name) const
 {
     const NameValueDictionary &dict = resolved();
-    const auto it = dict.constFind(name);
-    if (it == dict.constEnd())
+    const auto it = dict.find(name);
+    if (it == dict.end())
         return {};
-     return Entry{it.key().name, it.value().first, it.value().second};
+    return Entry{it.key(), it.value(), it.enabled()};
 }
 
 void Environment::forEachEntry(const std::function<void(const QString &, const QString &, bool)> &callBack) const
@@ -124,11 +125,10 @@ QStringList Environment::toStringList() const
 
 QProcessEnvironment Environment::toProcessEnvironment() const
 {
-    const NameValueDictionary &dict = resolved();
     QProcessEnvironment result;
-    for (auto it = dict.m_values.constBegin(); it != dict.m_values.constEnd(); ++it) {
-        if (it.value().second)
-            result.insert(it.key().name, expandedValueForKey(dict.key(it)));
+    for (const auto &[key, _, enabled] : resolved()) {
+        if (enabled)
+            result.insert(key, expandedValueForKey(key));
     }
     return result;
 }
@@ -201,12 +201,31 @@ void Environment::prependOrSetLibrarySearchPaths(const FilePaths &values)
     This can be different from the system environment that \QC started in if the
     user changed it in \uicontrol Preferences > \uicontrol Environment >
     \uicontrol System > \uicontrol Environment.
+
+    \sa originalSystemEnvironment()
 */
 
 Environment Environment::systemEnvironment()
 {
     QReadLocker lock(&s_envMutex);
     return *staticSystemEnvironment();
+}
+
+/*!
+    Returns \QC's original system environment.
+
+    This is the full, unmodified environment that \QC was started with.
+    Use this environment to start processes that are built alongside \QC
+    and thus have the same library dependencies. This is particularly
+    relevant if \QC was started via Squish or another instance of \QC,
+    i.e. in testing or development contexts.
+    For all other processes, use \l systemEnvironment() or more specialized
+    variants such as the build environment, if applicable.
+*/
+const Environment &Environment::originalSystemEnvironment()
+{
+    static const Environment env(QProcessEnvironment::systemEnvironment().toStringList());
+    return env;
 }
 
 void Environment::setupEnglishOutput()
@@ -239,8 +258,23 @@ FilePaths Environment::path() const
 
 FilePaths Environment::pathListValue(const QString &varName) const
 {
-    const QStringList pathComponents = expandedValueForKey(varName).split(
-        OsSpecificAspects::pathListSeparator(osType()), Qt::SkipEmptyParts);
+    return pathListFromValue(expandedValueForKey(varName), osType());
+}
+
+void Environment::setPathListValue(const QString &varName, const FilePaths &paths)
+{
+    set(varName, valueFromPathList(paths, osType()));
+}
+
+QString Environment::valueFromPathList(const FilePaths &paths, OsType osType)
+{
+    return paths.toUserOutput(OsSpecificAspects::pathListSeparator(osType));
+}
+
+FilePaths Environment::pathListFromValue(const QString &value, OsType osType)
+{
+    const QStringList pathComponents
+        = value.split(OsSpecificAspects::pathListSeparator(osType), Qt::SkipEmptyParts);
     return transform(pathComponents, &FilePath::fromUserInput);
 }
 
@@ -338,7 +372,7 @@ QString Environment::expandVariables(const QString &input) const
 
 FilePath Environment::expandVariables(const FilePath &variables) const
 {
-    return FilePath::fromString(expandVariables(variables.toString()));
+    return FilePath::fromUserInput(expandVariables(variables.toUrlishString()));
 }
 
 QStringList Environment::expandVariables(const QStringList &variables) const
@@ -427,70 +461,92 @@ const NameValueDictionary &Environment::resolved() const
         return m_dict;
 
     m_fullDict = false;
-    for (const Item &item : m_changeItems) {
+    for (const Item &item : std::as_const(m_changeItems)) {
         switch (item.index()) {
         case SetSystemEnvironment:
             m_dict = Environment::systemEnvironment().toDictionary();
             m_fullDict = true;
             break;
-        case SetFixedDictionary:
-            m_dict = std::get<SetFixedDictionary>(item);
-            m_fullDict = true;
-            break;
-        case SetValue: {
-            auto [key, value, enabled] = std::get<SetValue>(item);
-            m_dict.set(key, value, enabled);
-            break;
-        }
-        case SetFallbackValue: {
-            auto [key, value] = std::get<SetFallbackValue>(item);
-            if (m_fullDict) {
-                if (m_dict.value(key).isEmpty())
-                    m_dict.set(key, value, true);
-            } else {
-                QTC_ASSERT(false, qDebug() << "operating on partial dictionary");
-                m_dict.set(key, value, true);
+        case SetFixedDictionary: {
+            const auto dict = std::get_if<SetFixedDictionary>(&item);
+            if (QTC_GUARD(dict)) {
+                m_dict = *dict;
+                m_fullDict = true;
             }
             break;
         }
-        case UnsetValue:
-            m_dict.unset(std::get<UnsetValue>(item));
+        case SetValue: {
+            const auto setvalue = std::get_if<SetValue>(&item);
+            if (QTC_GUARD(setvalue)) {
+                auto [key, value, enabled] = *setvalue;
+                m_dict.set(key, value, enabled);
+            }
             break;
+        }
+        case SetFallbackValue: {
+            const auto fallbackvalue = std::get_if<SetFallbackValue>(&item);
+            if (QTC_GUARD(fallbackvalue)) {
+                auto [key, value] = *fallbackvalue;
+                if (m_fullDict) {
+                    if (m_dict.value(key).isEmpty())
+                        m_dict.set(key, value, true);
+                } else {
+                    QTC_ASSERT(false, qDebug() << "operating on partial dictionary");
+                    m_dict.set(key, value, true);
+                }
+            }
+            break;
+        }
+        case UnsetValue: {
+            const auto unsetvalue = std::get_if<UnsetValue>(&item);
+            if (QTC_GUARD(unsetvalue))
+                m_dict.unset(*unsetvalue);
+            break;
+        }
         case PrependOrSet: {
-            auto [key, value, sep] = std::get<PrependOrSet>(item);
-            QTC_ASSERT(!key.contains('='), return m_dict);
-            const auto it = m_dict.findKey(key);
-            if (it == m_dict.m_values.end()) {
-                m_dict.m_values.insert(DictKey(key, m_dict.nameCaseSensitivity()), {value, true});
-            } else {
-                // Prepend unless it is already there
-                const QString toPrepend = value + pathListSeparator(sep);
-                if (!it.value().first.startsWith(toPrepend))
-                    it.value().first.prepend(toPrepend);
+            const auto prependorset = std::get_if<PrependOrSet>(&item);
+            if (QTC_GUARD(prependorset)) {
+                auto [key, value, sep] = *prependorset;
+                QTC_ASSERT(!key.contains('='), return m_dict);
+                const auto it = m_dict.findKey(key);
+                if (it == m_dict.m_values.end()) {
+                    m_dict.m_values.insert(DictKey(key, m_dict.nameCaseSensitivity()), {value, true});
+                } else {
+                    // Prepend unless it is already there
+                    const QString toPrepend = value + pathListSeparator(sep);
+                    if (!it.value().first.startsWith(toPrepend))
+                        it.value().first.prepend(toPrepend);
+                }
             }
             break;
         }
         case AppendOrSet: {
-            auto [key, value, sep] = std::get<AppendOrSet>(item);
-            QTC_ASSERT(!key.contains('='), return m_dict);
-            const auto it = m_dict.findKey(key);
-            if (it == m_dict.m_values.end()) {
-                m_dict.m_values.insert(DictKey(key, m_dict.nameCaseSensitivity()), {value, true});
-            } else {
-                // Prepend unless it is already there
-                const QString toAppend = pathListSeparator(sep) + value;
-                if (!it.value().first.endsWith(toAppend))
-                    it.value().first.append(toAppend);
+            const auto appendorset = std::get_if<AppendOrSet>(&item);
+            if (QTC_GUARD(appendorset)) {
+                auto [key, value, sep] = *appendorset;
+                QTC_ASSERT(!key.contains('='), return m_dict);
+                const auto it = m_dict.findKey(key);
+                if (it == m_dict.m_values.end()) {
+                    m_dict.m_values.insert(DictKey(key, m_dict.nameCaseSensitivity()), {value, true});
+                } else {
+                    // Prepend unless it is already there
+                    const QString toAppend = pathListSeparator(sep) + value;
+                    if (!it.value().first.endsWith(toAppend))
+                        it.value().first.append(toAppend);
+                }
             }
             break;
         }
         case Modify: {
-            EnvironmentItems items = std::get<Modify>(item);
-            m_dict.modify(items);
+            const auto modify = std::get_if<Modify>(&item);
+            if (QTC_GUARD(modify)) {
+                EnvironmentItems items = *modify;
+                m_dict.modify(items);
+            }
             break;
         }
         case SetupEnglishOutput:
-            m_dict.set("LC_MESSAGES", "en_US.utf8");
+            m_dict.set("LC_MESSAGES", "en_US.UTF-8");
             m_dict.set("LANGUAGE", "en_US:en");
             break;
         }

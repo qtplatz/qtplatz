@@ -5,7 +5,7 @@
 
 #include "../core_global.h"
 
-#include <solutions/tasking/tasktree.h>
+#include <QtTaskTree/QTaskTree>
 
 #include <utils/filepath.h>
 #include <utils/id.h>
@@ -98,6 +98,9 @@ public:
     /* called by locator widget on accept. By default, when acceptor is empty,
        EditorManager::openEditor(LocatorFilterEntry) will be used instead. */
     Acceptor acceptor;
+    /* Called by locator widget on completion request. By default, when completer is empty,
+       sets the text to the current filter shortcut + the displayName. */
+    Acceptor completer;
     /* icon to display along with the entry */
     std::optional<QIcon> displayIcon;
     /* file path, if the entry is related to a file, is used e.g. for resolving a file icon */
@@ -126,6 +129,8 @@ public:
     LocatorStorage() = default;
     QString input() const;
     void reportOutput(const LocatorFilterEntries &outputData) const;
+    // Only use it from inside the bodies of Task handlers.
+    static QtTaskTree::Storage<LocatorStorage> &storage();
 
 private:
     friend class LocatorMatcher;
@@ -134,18 +139,7 @@ private:
     std::shared_ptr<LocatorStoragePrivate> d;
 };
 
-class CORE_EXPORT LocatorMatcherTask final
-{
-public:
-    // The main task. Initial data (searchTerm) should be taken from storage.input().
-    // Results reporting is done via the storage.reportOutput().
-    Tasking::GroupItem task = Tasking::Group{};
-
-    // When constructing the task, don't place the storage inside the task above.
-    Tasking::Storage<LocatorStorage> storage;
-};
-
-using LocatorMatcherTasks = QList<LocatorMatcherTask>;
+using LocatorMatcherTasks = QList<QtTaskTree::ExecutableItem>;
 using LocatorMatcherTaskCreator = std::function<LocatorMatcherTasks()>;
 class LocatorMatcherPrivate;
 
@@ -226,8 +220,8 @@ public:
     std::optional<QString> defaultSearchText() const;
     void setDefaultSearchText(const QString &defaultSearchText);
 
-    virtual QByteArray saveState() const;
-    virtual void restoreState(const QByteArray &state);
+    QByteArray saveState() const;
+    void restoreState(const QByteArray &state);
 
     virtual bool openConfigDialog(QWidget *parent, bool &needsRefresh);
     bool isConfigurable() const;
@@ -269,10 +263,8 @@ protected:
     virtual void saveState(QJsonObject &object) const;
     virtual void restoreState(const QJsonObject &object);
 
-    void setRefreshRecipe(const std::optional<Tasking::GroupItem> &recipe);
-    std::optional<Tasking::GroupItem> refreshRecipe() const;
-
-    static bool isOldSetting(const QByteArray &state);
+    void setRefreshRecipe(const std::optional<QtTaskTree::GroupItem> &recipe);
+    std::optional<QtTaskTree::GroupItem> refreshRecipe() const;
 
 private:
     virtual LocatorMatcherTasks matchers() = 0;
@@ -288,7 +280,7 @@ private:
     QString m_description;
     QString m_defaultShortcut;
     std::optional<QString> m_defaultSearchText;
-    std::optional<Tasking::GroupItem> m_refreshRecipe;
+    std::optional<QtTaskTree::GroupItem> m_refreshRecipe;
     QKeySequence m_defaultKeySequence;
     bool m_defaultIncludedByDefault = false;
     bool m_includedByDefault = m_defaultIncludedByDefault;
@@ -317,7 +309,7 @@ public:
     std::optional<Utils::FilePaths> filePaths() const;
 
     static FilePathsGenerator filePathsGenerator(const Utils::FilePaths &filePaths);
-    LocatorMatcherTask matcher() const;
+    QtTaskTree::ExecutableItem matcher() const;
 
     using MatchedEntries = std::array<LocatorFilterEntries, int(ILocatorFilter::MatchLevel::Count)>;
     static Utils::FilePaths processFilePaths(const QFuture<void> &future,

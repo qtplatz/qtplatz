@@ -161,8 +161,9 @@ void
 MainWindow::createDockWidgets()
 {
     QFile file( ":/accutof/stylesheet/tabbar.qss" );
-    file.open( QFile::ReadOnly );
-    QString tabStyle( file.readAll() );
+    if ( file.open( QFile::ReadOnly ) ) {
+        QString tabStyle( file.readAll() );
+    }
 
     ///////// U5303A /////////
     if ( auto widget = qtwrapper::make_widget< acqrswidgets::u5303AWidget>( "U5303A" ) ) {
@@ -300,7 +301,10 @@ MainWindow::OnInitialUpdate()
 
     connect( document::instance(), &document::on_reply, this, &MainWindow::handle_reply );
 
-    for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+    for ( auto id : { Utils::Id(Constants::ACTION_RUN)
+                      , Utils::Id(Constants::ACTION_STOP)
+                      , Utils::Id(Constants::ACTION_REC)
+                      , Utils::Id(Constants::ACTION_SNAPSHOT) } ) {
         if ( auto action = Core::ActionManager::command( id )->action() )
             action->setEnabled( false );
     }
@@ -598,7 +602,7 @@ MainWindow::toolButton( QAction * action )
 
 // static
 QToolButton *
-MainWindow::toolButton( const char * id )
+MainWindow::toolButton( Utils::Id id )
 {
     return toolButton( Core::ActionManager::instance()->command( id )->action() );
 }
@@ -957,7 +961,10 @@ MainWindow::handleInstState( int status )
         if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( true  );
 
-        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+        for ( auto id : { Utils::Id(Constants::ACTION_RUN)
+                          , Utils::Id(Constants::ACTION_STOP)
+                          , Utils::Id(Constants::ACTION_REC)
+                          , Utils::Id(Constants::ACTION_SNAPSHOT) } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( false );
         }
@@ -967,12 +974,12 @@ MainWindow::handleInstState( int status )
         if ( auto action = Core::ActionManager::command( Constants::ACTION_CONNECT )->action() )
             action->setEnabled( false );
 
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Constants::ACTION_RUN), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_STOP), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_REC), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_INJECT), false ) // <== false
+                           , std::make_pair( Utils::Id(Constants::ACTION_SNAPSHOT), true)
+                           , std::make_pair( Utils::Id(Constants::ACTION_SYNC), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() )
                 action->setEnabled( pair.second );
         }
@@ -980,47 +987,47 @@ MainWindow::handleInstState( int status )
     } else if ( status == adacquire::Instrument::ePreparingForRun ||
                 status == adacquire::Instrument::eReadyForRun ) {
 
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+        for ( auto pair: { std::make_pair( Utils::Id(Constants::ACTION_RUN), false )
+                           , std::make_pair( Utils::Id(Constants::ACTION_STOP), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_REC), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_INJECT), false ) // <== false
+                           , std::make_pair( Utils::Id(Constants::ACTION_SNAPSHOT), true)
+                           , std::make_pair( Utils::Id(Constants::ACTION_SYNC), true) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() )
                 action->setEnabled( pair.second );
         }
 
     } else if ( status == adacquire::Instrument::eWaitingForContactClosure ) {
 
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, true )  // <== true
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Constants::ACTION_RUN), false )
+                           , std::make_pair( Utils::Id(Constants::ACTION_STOP), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_REC), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_INJECT), true )  // <== true
+                           , std::make_pair( Utils::Id(Constants::ACTION_SNAPSHOT), true)
+                           , std::make_pair( Utils::Id(Constants::ACTION_SYNC), true) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() )
                 action->setEnabled( pair.second );
         }
 
     } else if ( status == adacquire::Instrument::eRunning ) {
 
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair( Utils::Id(Constants::ACTION_RUN), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_STOP), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_REC), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_INJECT), false ) // <== false
+                           , std::make_pair( Utils::Id(Constants::ACTION_SNAPSHOT), true)
+                           , std::make_pair( Utils::Id(Constants::ACTION_SYNC), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() )
                 action->setEnabled( pair.second );
         }
 
     } else if ( status == adacquire::Instrument::eStop ) {
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, false )
-                    , std::make_pair( Constants::ACTION_REC, false )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Constants::ACTION_RUN), true )
+                           , std::make_pair( Utils::Id(Constants::ACTION_STOP), false )
+                           , std::make_pair( Utils::Id(Constants::ACTION_REC), false )
+                           , std::make_pair( Utils::Id(Constants::ACTION_INJECT), false ) // <== false
+                           , std::make_pair( Utils::Id(Constants::ACTION_SNAPSHOT), true)
+                           , std::make_pair( Utils::Id(Constants::ACTION_SYNC), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() )
                 action->setEnabled( pair.second );
         }

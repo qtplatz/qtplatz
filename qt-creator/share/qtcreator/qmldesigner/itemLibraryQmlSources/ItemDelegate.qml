@@ -38,6 +38,7 @@ Item {
             width: ItemLibraryBackend.itemLibraryIconWidth  // to be set in Qml context
             height: ItemLibraryBackend.itemLibraryIconHeight   // to be set in Qml context
             source: itemLibraryIconPath     // to be set by model
+            fillMode: Image.PreserveAspectFit
 
             // Icons generated for components can change if the component is edited,
             // so don't cache them locally at Image level.
@@ -47,7 +48,7 @@ Item {
         Text {
             id: text
             font.pixelSize: Theme.smallFontPixelSize()
-            elide: Text.ElideMiddle
+            elide:  fontMetric.elide ? Text.ElideMiddle : Text.ElideNone
             wrapMode: Text.WordWrap
             anchors.top: itemIcon.bottom
             anchors.topMargin: styleConstants.cellVerticalSpacing
@@ -56,13 +57,25 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: styleConstants.cellHorizontalMargin
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: styleConstants.cellHorizontalMargin
+            anchors.bottomMargin: styleConstants.cellVerticalSpacing
 
-            verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             text: itemName  // to be set by model
             color: StudioTheme.Values.themeTextColor
             renderType: Text.NativeRendering
+
+            maximumLineCount: 2
+
+            Text {
+                visible: false
+                font: parent.font
+                text: parent.text
+                id: fontMetric
+                anchors.fill: parent
+                wrapMode: Text.WordWrap
+                property bool elide: (fontMetric.implicitWidth > fontMetric.width && fontMetric.lineCount !== 2) || fontMetric.lineCount === 3
+                horizontalAlignment: Qt.AlignHCenter
+            }
         }
 
         ImagePreviewTooltipArea {

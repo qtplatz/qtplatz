@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -31,6 +31,7 @@
 #include <functional>
 #include <memory>
 #include <adwidgets/mspeaktable.hpp> // callback type
+#include <utils/id.h>
 
 namespace adportable { class Configuration; }
 namespace adcontrols { class datafile; class ProcessMethod; class MSAssignedMasses; class MSPeaks; class MassSpectrum; }
@@ -72,7 +73,7 @@ namespace dataproc {
         void activateLayout();
         void setSimpleDockWidgetArrangement();
 
-        static QToolButton * toolButton( const char * );
+        static QToolButton * toolButton( Utils::Id );
         static QToolButton * toolButton( QAction *, const QString& objectName = QString() );
 
         std::shared_ptr< adcontrols::ProcessMethod > processMethod() const;

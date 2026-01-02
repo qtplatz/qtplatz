@@ -16,6 +16,7 @@ if ( NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS )
   set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 endif()
 
+set ( QT_NO_PRIVATE_MODULE_WARNING ON ) # 2025-11-04
 set ( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 set ( VERBOSE OFF )
 set ( CMAKE_ECLIPSE_VERSION 4.5 )
@@ -31,7 +32,7 @@ if ( APPLE )
   # set( CMAKE_OSX_ARCHITECTURES "arm64;x86_64" )
   #
   #set( CMAKE_OSX_DEPLOYMENT_TARGET "12.1" CACHE STRING "Minimum OS X deployment version" FORCE )
-  add_definitions( -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION )
+  #add_definitions( -D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION )
   set ( CMAKE_MACOSX_BUNDLE OFF )
 endif()
 if ( MSVC )
@@ -104,7 +105,8 @@ if ( WITH_QT5 )
       set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../../lib:\${ORIGIN}/../.." )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator
-      include_directories( BEFORE  "${CMAKE_BINARY_DIR}/qtplatz/src" ) # app/app_version.h
+      include_directories( BEFORE  "${CMAKE_BINARY_DIR}/qtplatz/src" )    # app/app_version.h
+      #include_directories( BEFORE  "${CMAKE_BINARY_DIR}/qt-creator/src" ) # app/app_version.h
     endif()
     list( APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
     include_directories( BEFORE
@@ -275,6 +277,12 @@ else()
 endif()
 
 ##############################################
+find_package( Eigen3 REQUIRED )
+if ( Eigen3_FOUND )
+  link_libraries( Eigen3::Eigen )
+endif()
+
+##############################################
 ### find rdkit will include rdkit-config.cmake that removes Boost_LIBRARIES,
 ### so find rdkit must be invoked before find boost
 ##############################################
@@ -284,7 +292,6 @@ if ( WITH_RDKIT )
   if ( rdkit_FOUND )
     add_definitions( -DHAVE_RDKit=1 )
     get_filename_component ( RDBASE ${RDKit_LIBRARY_DIRS} DIRECTORY )
-    find_package( Eigen3 REQUIRED )
   else()
     add_definitions( -DHAVE_RDKit=0 )
     message( STATUS "No RDKit found" )

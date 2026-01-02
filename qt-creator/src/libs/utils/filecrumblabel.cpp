@@ -27,19 +27,17 @@ static QString linkForPath(const FilePath &path, const QString &display)
 void FileCrumbLabel::setPath(const FilePath &path)
 {
     QStringList links;
-    FilePath current = path;
-    while (!current.isEmpty()) {
+    for (const FilePath &current : PathAndParents(path)) {
         const QString fileName = current.fileName();
         if (!fileName.isEmpty()) {
             links.prepend(linkForPath(current, fileName));
         } else if (HostOsInfo::isWindowsHost() && current.isRootPath()) {
             // Only on Windows add the drive letter, without the '/' at the end
-            QString display = current.toString();
+            QString display = current.toUrlishString();
             if (display.endsWith('/'))
                 display.chop(1);
             links.prepend(linkForPath(current, display));
         }
-        current = current.parentDir();
     }
     const auto pathSeparator = HostOsInfo::isWindowsHost() ? QLatin1String("&nbsp;\\ ")
                                                            : QLatin1String("&nbsp;/ ");

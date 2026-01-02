@@ -40,12 +40,12 @@ ap240HorizontalForm::ap240HorizontalForm(QWidget *parent) :
     connect( ui->doubleSpinBox_2, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), [this](double d){
             emit valueChanged( idWidth, QVariant(d) );
         });
-    
+
     connect( ui->comboBox, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
             emit valueChanged( idSampInterval, QVariant(index) );
         } );
 
-    connect( ui->checkBox, &QCheckBox::stateChanged, [this] ( int state ) {
+    connect( ui->checkBox, &QCheckBox::checkStateChanged, [this] ( int state ) {
             emit valueChanged( idMode, QVariant( state == Qt::Checked ) );
         });
 
@@ -63,7 +63,7 @@ void
 ap240HorizontalForm::set( const acqrscontrols::ap240::method& m )
 {
     const QSignalBlocker blocker( this );
-    
+
     ui->doubleSpinBox->setValue( m.hor_.delayTime * 1.0e6 );   // us in ui
     ui->doubleSpinBox_2->setValue( m.hor_.width() * 1.0e6 ); // us in ui
 
@@ -84,7 +84,7 @@ ap240HorizontalForm::get( acqrscontrols::ap240::method& m ) const
     m.hor_.delayTime = ui->doubleSpinBox->value() * 1.0e-6; // us -> s
     // m.hor_.width = ui->doubleSpinBox_2->value() * 1.0e-6; // us -> s
     switch ( ui->comboBox->currentIndex() ) {
-    case 0: 
+    case 0:
         m.hor_.sampInterval = 0.5e-9;
         break;
     case 1:

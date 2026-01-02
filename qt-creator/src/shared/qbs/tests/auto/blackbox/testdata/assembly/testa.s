@@ -1,3 +1,0 @@
-.globl symbola
-symbola:
-    nop

@@ -91,11 +91,12 @@ HelperWidgets.ScrollView {
                         id: repeater
                         model: bundleCategoryItems
 
-                        delegate: ContentLibraryEffect {
+                        delegate: ContentLibraryItem {
                             width: root.cellWidth
                             height: root.cellHeight
 
                             onShowContextMenu: ctxMenu.popupMenu(modelData)
+                            onAddToProject: ContentLibraryBackend.effectsModel.addInstance(modelData)
                         }
 
                         onCountChanged: root.assignMaxCount()
@@ -106,27 +107,43 @@ HelperWidgets.ScrollView {
 
         Text {
             id: infoText
+
             text: {
-                if (!ContentLibraryBackend.effectsModel.bundleExists)
-                    qsTr("No effects available.")
-                else if (!ContentLibraryBackend.rootView.isQt6Project)
+                if (!ContentLibraryBackend.rootView.isQt6Project) {
                     qsTr("<b>Content Library</b> effects are not supported in Qt5 projects.")
-                else if (!ContentLibraryBackend.rootView.hasQuick3DImport)
-                    qsTr("To use <b>Content Library</b>, first add the QtQuick3D module in the <b>Components</b> view.")
-                else if (!ContentLibraryBackend.effectsModel.hasRequiredQuick3DImport)
+                } else if (!ContentLibraryBackend.rootView.hasQuick3DImport) {
+                    qsTr('To use <b>Content Library</b> effects, add the <b>QtQuick3D</b> module and the <b>View3D</b>
+                         component in the <b>Components</b> view, or click
+                         <a href=\"#add_import\"><span style=\"text-decoration:none;color:%1\">
+                         here</span></a>.').arg(StudioTheme.Values.themeInteraction)
+                } else if (!ContentLibraryBackend.effectsModel.hasRequiredQuick3DImport) {
                     qsTr("To use <b>Content Library</b>, version 6.4 or later of the QtQuick3D module is required.")
-                else if (!ContentLibraryBackend.rootView.hasMaterialLibrary)
+                } else if (!ContentLibraryBackend.rootView.hasMaterialLibrary) {
                     qsTr("<b>Content Library</b> is disabled inside a non-visual component.")
-                else if (!searchBox.isEmpty())
+                } else if (!ContentLibraryBackend.effectsModel.bundleExists) {
+                    qsTr("No effects available.")
+                } else if (!searchBox.isEmpty()) {
                     qsTr("No match found.")
-                else
+                } else {
                     ""
+                }
             }
+            textFormat: Text.RichText
             color: StudioTheme.Values.themeTextColor
             font.pixelSize: StudioTheme.Values.baseFontSize
             topPadding: 10
             leftPadding: 10
+            rightPadding: 10
             visible: ContentLibraryBackend.effectsModel.isEmpty
+            wrapMode: Text.WordWrap
+            width: root.width
+
+            onLinkActivated: ContentLibraryBackend.rootView.addQtQuick3D()
+
+            HoverHandler {
+                enabled: infoText.hoveredLink
+                cursorShape: Qt.PointingHandCursor
+            }
         }
     }
 }

@@ -10,8 +10,6 @@
 #include "../vcsmanager.h"
 #include "locatormanager.h"
 
-#include <extensionsystem/pluginmanager.h>
-
 #include <utils/algorithm.h>
 #include <utils/async.h>
 #include <utils/checkablemessagebox.h>
@@ -33,6 +31,7 @@
 #include <QRegularExpression>
 #include <QStyle>
 
+using namespace QtTaskTree;
 using namespace Utils;
 
 namespace Core::Internal {
@@ -60,8 +59,7 @@ static ILocatorFilter::MatchLevel matchLevelFor(const QRegularExpressionMatch &m
 static bool askForCreating(const QString &title, const FilePath &filePath)
 {
     QMessageBox::StandardButton selected
-        = CheckableMessageBox::question(ICore::dialogParent(),
-                                        title,
+        = CheckableMessageBox::question(title,
                                         Tr::tr("Create \"%1\"?").arg(filePath.shortNativePath()),
                                         Key(kAlwaysCreate),
                                         QMessageBox::Yes | QMessageBox::Cancel,
@@ -142,7 +140,7 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                                            ? expandedEntryPath
                                            : currentDocumentDir.resolvePath(expandedEntryPath);
     // The case of e.g. "ssh://", "ssh://*p", etc
-    const bool isPartOfDeviceRoot = expandedEntryPath.needsDevice()
+    const bool isPartOfDeviceRoot = !expandedEntryPath.isLocal()
                                     && expandedEntryPath.path().isEmpty();
 
     // Consider the entered path a directory if it ends with slash/backslash.
@@ -193,6 +191,7 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                           + dir.absoluteFilePath().cleanPath().pathAppended("/").toUserOutput();
                     return AcceptResult{value, int(value.length())};
                 };
+                filterEntry.completer = filterEntry.acceptor;
                 filterEntry.filePath = dir;
                 filterEntry.highlightInfo = ILocatorFilter::highlightInfo(match);
 
@@ -202,7 +201,7 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
     }
     // file names can match with +linenumber or :linenumber
     const Link link = Link::fromString(entryFileName, true);
-    regExp = ILocatorFilter::createRegExp(link.targetFilePath.toString(), caseSensitivity);
+    regExp = ILocatorFilter::createRegExp(link.targetFilePath.toUrlishString(), caseSensitivity);
     if (regExp.isValid()) {
         for (const FilePath &file : files) {
             if (promise.isCanceled())
@@ -217,8 +216,13 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                 filterEntry.filePath = file;
                 filterEntry.highlightInfo = ILocatorFilter::highlightInfo(match);
                 filterEntry.linkForEditor = Link(filterEntry.filePath,
-                                                 link.targetLine,
-                                                 link.targetColumn);
+                                                 link.target.line,
+                                                 link.target.column);
+                filterEntry.completer = [shortcutString, file] {
+                    const QString value = shortcutString + ' '
+                                          + file.absoluteFilePath().cleanPath().toUserOutput();
+                    return AcceptResult{value, int(value.length())};
+                };
                 entries[int(level)].append(filterEntry);
             }
         }
@@ -243,6 +247,7 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                           + root.absoluteFilePath().cleanPath().pathAppended("/").toUserOutput();
                     return AcceptResult{value, int(value.length())};
                 };
+                filterEntry.completer = filterEntry.acceptor;
                 filterEntry.filePath = root;
                 filterEntry.displayIcon = *sDeviceRootIcon;
                 filterEntry.highlightInfo = ILocatorFilter::highlightInfo(match);
@@ -268,6 +273,7 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                     Qt::QueuedConnection);
                 return AcceptResult();
             };
+            filterEntry.completer = [] { return AcceptResult(); };
             filterEntry.filePath = fullFilePath;
             filterEntry.extraInfo = directory.absoluteFilePath().shortNativePath();
             entries[int(ILocatorFilter::MatchLevel::Normal)].append(filterEntry);
@@ -294,30 +300,26 @@ static void matches(QPromise<void> &promise, const LocatorStorage &storage,
                     Qt::QueuedConnection);
                 return AcceptResult();
             };
+            filterEntry.completer = [] { return AcceptResult(); };
             filterEntry.filePath = fullFilePath;
             filterEntry.extraInfo = directory.absoluteFilePath().shortNativePath();
             entries[int(ILocatorFilter::MatchLevel::Normal)].append(filterEntry);
         }
     }
 
-    storage.reportOutput(std::accumulate(std::begin(entries), std::end(entries),
-                                         LocatorFilterEntries()));
+    storage.reportOutput(
+        std::accumulate(std::begin(entries), std::end(entries), LocatorFilterEntries()));
 }
 
 LocatorMatcherTasks FileSystemFilter::matchers()
 {
-    using namespace Tasking;
-
-    Storage<LocatorStorage> storage;
-
-    const auto onSetup = [storage, includeHidden = m_includeHidden, shortcut = shortcutString()]
+    const auto onSetup = [includeHidden = m_includeHidden, shortcut = shortcutString()]
         (Async<void> &async) {
-        async.setFutureSynchronizer(ExtensionSystem::PluginManager::futureSynchronizer());
-        async.setConcurrentCallData(matches, *storage, shortcut,
+        async.setConcurrentCallData(matches, *LocatorStorage::storage(), shortcut,
                                     DocumentManager::fileDialogInitialDirectory(), includeHidden);
     };
 
-    return {{AsyncTask<void>(onSetup), storage}};
+    return {AsyncTask<void>(onSetup)};
 }
 
 class FileSystemFilterOptions : public QDialog
@@ -390,27 +392,6 @@ void FileSystemFilter::saveState(QJsonObject &object) const
 void FileSystemFilter::restoreState(const QJsonObject &object)
 {
     m_includeHidden = object.value(kIncludeHiddenKey).toBool(s_includeHiddenDefault);
-}
-
-void FileSystemFilter::restoreState(const QByteArray &state)
-{
-    if (isOldSetting(state)) {
-        // TODO read old settings, remove some time after Qt Creator 4.15
-        QDataStream in(state);
-        in >> m_includeHidden;
-
-        // An attempt to prevent setting this on old configuration
-        if (!in.atEnd()) {
-            QString shortcut;
-            bool defaultFilter;
-            in >> shortcut;
-            in >> defaultFilter;
-            setShortcutString(shortcut);
-            setIncludedByDefault(defaultFilter);
-        }
-    } else {
-        ILocatorFilter::restoreState(state);
-    }
 }
 
 } // namespace Core::Internal

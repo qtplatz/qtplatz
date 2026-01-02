@@ -5,6 +5,7 @@
 
 #include "utils_global.h"
 
+#include <QFuture>
 #include <QMetaType>
 #include <QString>
 
@@ -22,22 +23,22 @@ public:
     int line = 0; // 1-based
     int column = -1; // 0-based
 
-    bool operator<(const Position &other) const
-    { return line < other.line || (line == other.line && column < other.column); }
-    bool operator==(const Position &other) const;
-
-    bool operator!=(const Position &other) const { return !(operator==(other)); }
-
     bool isValid() const { return line > 0 && column >= 0; }
 
-    int positionInDocument(QTextDocument *doc) const;
+    int toPositionInDocument(const QTextDocument *doc) const;
+    QTextCursor toTextCursor(QTextDocument *doc) const;
 
     static Position fromFileName(QStringView fileName, int &postfixPos);
     static Position fromPositionInDocument(const QTextDocument *document, int pos);
     static Position fromCursor(const QTextCursor &cursor);
-
-    int toPositionInDocument(const QTextDocument *document) const;
 };
+
+QTCREATOR_UTILS_EXPORT bool operator<(const Position &left, const Position &right);
+QTCREATOR_UTILS_EXPORT bool operator<=(const Position &left, const Position &right);
+QTCREATOR_UTILS_EXPORT bool operator>(const Position &left, const Position &right);
+QTCREATOR_UTILS_EXPORT bool operator>=(const Position &left, const Position &right);
+QTCREATOR_UTILS_EXPORT bool operator==(const Position &left, const Position &right);
+QTCREATOR_UTILS_EXPORT bool operator!=(const Position &left, const Position &right);
 
 class QTCREATOR_UTILS_EXPORT Range
 {
@@ -52,7 +53,10 @@ public:
 
     bool operator!=(const Range &other) const { return !(operator==(other)); }
 
+    bool contains(const Position &pos) const;
+
     QTextCursor toTextCursor(QTextDocument *doc) const;
+    QString text(QTextDocument *doc) const;
 };
 
 // line is 1-based, column is 0-based
@@ -60,10 +64,10 @@ QTCREATOR_UTILS_EXPORT bool convertPosition(const QTextDocument *document,
                                             int pos,
                                             int *line, int *column);
 
-// line and column are 1-based
+// line is 1-based, column is 0-based
 QTCREATOR_UTILS_EXPORT int positionInText(const QTextDocument *textDocument, int line, int column);
 
-QTCREATOR_UTILS_EXPORT QString textAt(QTextCursor tc, int pos, int length);
+QTCREATOR_UTILS_EXPORT QString textAt(QTextDocument *textDocument, int pos, int length);
 
 // line is 1-based, column is 0-based
 QTCREATOR_UTILS_EXPORT QTextCursor selectAt(QTextCursor textCursor, int line, int column, uint length);
@@ -82,6 +86,12 @@ QTCREATOR_UTILS_EXPORT QString utf16LineTextInUtf8Buffer(const QByteArray &utf8B
                                                          int currentUtf8Offset);
 
 QTCREATOR_UTILS_EXPORT QDebug &operator<<(QDebug &stream, const Position &pos);
+
+using HighlightCallback = std::function<QFuture<QTextDocument *>(const QString &, const QString &)>;
+QTCREATOR_UTILS_EXPORT QFuture<QTextDocument *> highlightCode(
+    const QString &code, const QString &mimeType);
+QTCREATOR_UTILS_EXPORT void setCodeHighlighter(const HighlightCallback &highlighter);
+QTCREATOR_UTILS_EXPORT HighlightCallback &codeHighlighter();
 
 } // Text
 } // Utils

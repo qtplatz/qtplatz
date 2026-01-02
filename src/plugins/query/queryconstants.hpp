@@ -27,21 +27,21 @@
 namespace query {
 namespace Constants {
 
-    const char ACTION_ID[]                 = "Query.Action";
-    const char MENU_ID[]                   = "Query.Menu";
-    const char M_FILE_RECENTFILES []       = "Query.Menu.RecentFiles";
-    const char * const C_QUERY = "Query";
-    const char * const C_QUERY_MODE         = "Query.Mode";
-    const char * const FILE_OPEN           = "Query.FileOpen";
-    const char * const QUERY_METHOD_OPEN    = "Query.MethodOpen";
-    const char * const QUERY_METHOD_SAVE    = "Query.MethodSave";
-    const char * const QUERY_SEQUENCE_OPEN  = "Query.SequenceOpen";
-    const char * const QUERY_SEQUENCE_SAVE  = "Query.SequenceSave";
-    const char * const QUERY_RECENTFILES    = "Query.RecentFiles";
+    const char ACTION_ID[]            = "Query.Action";
+    const char MENU_ID[]              = "Query.Menu";
+    const char M_FILE_RECENTFILES []  = "Query.Menu.RecentFiles";
+    const char C_QUERY []             = "Query";
+    const char C_QUERY_MODE []        = "Query.Mode";
+    const char FILE_OPEN []           = "Query.FileOpen";
+    const char QUERY_METHOD_OPEN []   = "Query.MethodOpen";
+    const char QUERY_METHOD_SAVE []   = "Query.MethodSave";
+    const char QUERY_SEQUENCE_OPEN [] = "Query.SequenceOpen";
+    const char QUERY_SEQUENCE_SAVE [] = "Query.SequenceSave";
+    const char QUERY_RECENTFILES []   = "Query.RecentFiles";
 
-    const char * const PUBLISHER_FILE_MENU = "Query.Publisher.FileMenu";
-    const char * const PUBLISHER_EDIT_MENU = "Query.Publisher.EditMenu";
-    const char * const PUBLISHER_TEXT_MENU = "Query.Publisher.TextMenu";
+    const char PUBLISHER_FILE_MENU [] = "Query.Publisher.FileMenu";
+    const char PUBLISHER_EDIT_MENU [] = "Query.Publisher.EditMenu";
+    const char PUBLISHER_TEXT_MENU [] = "Query.Publisher.TextMenu";
 
     // actions
     const char * const QUERY_SEQUENCE_RUN   = "Query.Run";
@@ -52,7 +52,7 @@ namespace Constants {
     const char * const QUERY_TASK_PROC      = "Query.Task.SampleProc";
 
     const int ICON_SIZE(64);
-    
+
     const int ABOVE_HEADING_MARGIN(10);
     const int ABOVE_CONTENTS_MARGIN(4);
     const int BELOW_CONTENTS_MARGIN(16);
@@ -82,4 +82,3 @@ namespace Constants {
 } // namespace Constants
 
 #endif // QUERYCONSTANTS_HPP
-

@@ -42,17 +42,17 @@ ap240VerticalForm::ap240VerticalForm(QWidget *parent) :  QWidget(parent)
     connect( ui->comboBox_3, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
             if ( index < fullScaleList.size() )
                 emit valueChanged( idFullScale, channel_, QVariant( fullScaleList[ index ] ) );
-        });    
-    
+        });
+
     connect( ui->comboBox_2, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
             emit valueChanged( idCoupling, channel_, QVariant(index) );
-        });    
+        });
     connect( ui->comboBox, static_cast<void( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), [this] ( int index ) {
             emit valueChanged( idBandWidth, channel_, QVariant(index) );
         } );
-    connect( ui->checkBox, &QCheckBox::stateChanged, [this] ( int state ) {
+    connect( ui->checkBox, &QCheckBox::checkStateChanged, [this] ( int state ) {
             emit valueChanged( idInvertData, channel_, QVariant( state == Qt::Checked ) );
-        });    
+        });
 }
 
 ap240VerticalForm::~ap240VerticalForm()

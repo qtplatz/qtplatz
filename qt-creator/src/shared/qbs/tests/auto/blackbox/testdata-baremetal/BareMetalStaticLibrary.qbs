@@ -1,3 +1,0 @@
-BareMetalProduct {
-    type: "staticlibrary"
-}

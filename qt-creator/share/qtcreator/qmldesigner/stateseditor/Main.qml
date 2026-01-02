@@ -26,8 +26,8 @@
 import QtQuick
 import QtQuick.Controls.Basic as Basic
 import StatesEditor
-import HelperWidgets 2.0 as HelperWidgets
-import StudioControls 1.0 as StudioControls
+import HelperWidgets as HelperWidgets
+import StudioControls as StudioControls
 import StudioTheme as StudioTheme
 import StatesEditorBackend
 
@@ -313,7 +313,7 @@ Rectangle {
     StudioControls.Dialog {
         id: editDialog
         title: qsTr("Rename state group")
-        standardButtons: Dialog.Apply | Dialog.Cancel
+        standardButtons: Basic.Dialog.Apply | Basic.Dialog.Cancel
         x: editButton.x - Math.max(0, editButton.x + editDialog.width - root.width)
         y: toolBar.height
         width: Math.min(300, root.width)
@@ -328,15 +328,11 @@ Rectangle {
             anchors.fill: parent
 
             onTextChanged: {
-                let btn = editDialog.standardButton(Dialog.Apply)
+                let btn = editDialog.standardButton(Basic.Dialog.Apply)
                 if (!btn)
                     return
 
-                if (editDialog.previousString !== editTextField.text) {
-                    btn.enabled = true
-                } else {
-                    btn.enabled = false
-                }
+                btn.enabled = (editDialog.previousString !== editTextField.text)
             }
 
             onAccepted: editDialog.accept()
@@ -355,7 +351,7 @@ Rectangle {
             editTextField.text = StatesEditorBackend.statesEditorModel.activeStateGroup
             editDialog.previousString = StatesEditorBackend.statesEditorModel.activeStateGroup
 
-            let btn = editDialog.standardButton(Dialog.Apply)
+            let btn = editDialog.standardButton(Basic.Dialog.Apply)
             btn.enabled = false
         }
     }
@@ -470,7 +466,7 @@ Rectangle {
                         tooltip: StatesEditorBackend.statesEditorModel.isMCUs
                                     ? qsTr("State Groups are not supported with Qt for MCUs")
                                     : qsTr("Create State Group")
-                        onClicked: StatesEditorBackend.statesEditorModel.addStateGroup("stateGroup")
+                        onClicked: StatesEditorBackend.statesEditorModel.addStateGroup("newStateGroup")
                         enabled: !StatesEditorBackend.statesEditorModel.isMCUs
                     }
 
@@ -562,6 +558,7 @@ Rectangle {
                 isChecked: root.currentStateInternalId === 0
                 thumbnailImageSource: StatesEditorBackend.statesEditorModel.baseState.stateImageSource ?? "" // TODO Get rid of the QVariantMap
                 isTiny: root.tinyMode
+                backgroundColor: StatesEditorBackend.statesEditorModel.backgroundColor
 
                 onFocusSignal: root.currentStateInternalId = 0
                 onDefaultClicked: StatesEditorBackend.statesEditorModel.resetDefaultState()
@@ -830,6 +827,7 @@ Rectangle {
                                     visualIndex: delegateRoot.visualIndex
                                     internalNodeId: delegateRoot.internalNodeId
                                     isTiny: root.tinyMode
+                                    backgroundColor: StatesEditorBackend.statesEditorModel.backgroundColor
 
                                     hasExtend: delegateRoot.hasExtend
                                     extendString: delegateRoot.extendString

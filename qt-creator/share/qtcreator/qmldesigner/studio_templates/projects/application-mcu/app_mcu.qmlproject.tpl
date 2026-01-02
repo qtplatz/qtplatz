@@ -19,6 +19,14 @@ Project {
         directory: "."
     }
 
+    ImageFiles {
+        directory: "images"
+    }
+
+    ImageFiles {
+        directory: "assets"
+    }
+
     Files {
        filter: "*.conf"
        files: ["qtquickcontrols2.conf"]
@@ -29,8 +37,12 @@ Project {
         directory: "."
     }
 
-    Files {
+    FontFiles {
         filter: "*.ttf;*.otf"
+    }
+
+    FontFiles {
+        directory: "fonts"
     }
 
     ModuleFiles {
@@ -42,7 +54,10 @@ Project {
             "Controls",
             "ControlsTemplates",
             "Timeline",
-            "Shapes"
+            "Shapes",
+            "Profiling",
+            "StudioComponents",
+            "Layouts"
         ]
     }
 
@@ -55,8 +70,8 @@ Project {
     QDS.qtForMCUs: true
     QDS.qt6Project: true
 
-    QDS.qdsVersion: "4.3"
-    QDS.quickVersion: "6.5"
+    QDS.qdsVersion: "4.5"
+    QDS.quickVersion: "6.7"
 
     /* List of plugin directories passed to QML runtime */
     importPaths: [ "imports" ]

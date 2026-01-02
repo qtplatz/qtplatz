@@ -36,6 +36,8 @@ T.ComboBox {
 
     property string preFocusText: ""
 
+    property string tooltipRole: ""
+
     signal compressedActivated(int index, int reason)
 
     enum ActivatedReason { EditingFinished, Other }
@@ -129,23 +131,23 @@ T.ComboBox {
     delegate: ItemDelegate {
         id: itemDelegate
 
+        required property var model
+        required property int index
+
         width: comboBoxPopup.width - comboBoxPopup.leftPadding - comboBoxPopup.rightPadding
         height: control.style.controlSize.height - 2 * control.style.borderWidth
         padding: 0
-        enabled: model.enabled === undefined ? true : model.enabled
+        enabled: itemDelegate.model["enabled"] === undefined ? true : itemDelegate.model["enabled"]
 
         contentItem: Text {
             leftPadding: 8
             rightPadding: verticalScrollBar.style.scrollBarThicknessHover
-            text: control.textRole ? (Array.isArray(control.model)
-                                      ? modelData[control.textRole]
-                                      : model[control.textRole])
-                                   : modelData
+            text: itemDelegate.model[control.textRole]
             color: {
                 if (!itemDelegate.enabled)
                     return control.style.text.disabled
 
-                if (control.currentIndex === index)
+                if (control.currentIndex === itemDelegate.index)
                     return control.style.text.selectedText
 
                 return control.style.text.idle
@@ -153,6 +155,14 @@ T.ComboBox {
             font: control.font
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
+
+            ToolTipArea {
+                anchors.fill: parent
+                text: control.tooltipRole ? itemDelegate.model[control.tooltipRole] : ""
+                enabled: text
+                onClicked: itemDelegate.clicked()
+                onDoubleClicked: itemDelegate.doubleClicked()
+            }
         }
 
         highlighted: control.highlightedIndex === index

@@ -6,6 +6,7 @@
 
 #include "spinner_global.h"
 
+#include <QPointer>
 #include <QWidget>
 
 namespace SpinnerSolution {
@@ -20,20 +21,24 @@ Q_ENUM_NS(SpinnerState)
 
 // TODO: SpinnerOverlay and SpinnerWidget?
 
+class SpinnerOverlay;
+
 class SPINNER_EXPORT Spinner : public QObject
 {
     Q_OBJECT
 
 public:
     explicit Spinner(SpinnerSize size, QWidget *parent = nullptr);
+    ~Spinner() override;
     void setSize(SpinnerSize size);
+    void setColor(const QColor &color);
     void show();
     void hide();
     bool isVisible() const;
     void setVisible(bool visible);
 
 private:
-    class SpinnerOverlay *m_widget = nullptr;
+    QPointer<SpinnerOverlay> m_widget;
 };
 
 class SPINNER_EXPORT SpinnerWidget : public QWidget

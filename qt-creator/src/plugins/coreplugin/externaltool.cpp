@@ -14,12 +14,11 @@
 #include <utils/algorithm.h>
 #include <utils/fileutils.h>
 #include <utils/macroexpander.h>
-#include <utils/process.h>
+#include <utils/qtcprocess.h>
 #include <utils/qtcassert.h>
 
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QFileInfo>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -158,7 +157,7 @@ Environment ExternalTool::baseEnvironment() const
 {
     if (m_baseEnvironmentProviderId.isValid()) {
         const std::optional<EnvironmentProvider> provider = EnvironmentProvider::provider(
-            m_baseEnvironmentProviderId.name());
+            m_baseEnvironmentProviderId.toByteArray());
         if (provider && provider->environment)
             return provider->environment();
     }
@@ -331,7 +330,7 @@ static bool parseOutputAttribute(const QString &attribute, QXmlStreamReader *rea
     return true;
 }
 
-ExternalTool * ExternalTool::createFromXml(const QByteArray &xml, QString *errorMessage, const QString &locale)
+Result<ExternalTool *> ExternalTool::createFromXml(const QByteArray &xml, const QString &locale)
 {
     int descriptionLocale = -1;
     int nameLocale = -1;
@@ -428,25 +427,22 @@ ExternalTool * ExternalTool::createFromXml(const QByteArray &xml, QString *error
         }
     }
     if (reader.hasError()) {
-        if (errorMessage)
-            *errorMessage = reader.errorString();
         delete tool;
-        return nullptr;
+        return ResultError(reader.errorString());
     }
     return tool;
 }
 
-ExternalTool * ExternalTool::createFromFile(const FilePath &fileName, QString *errorMessage,
-                                            const QString &locale)
+Result<ExternalTool *> ExternalTool::createFromFile(const FilePath &filePath, const QString &locale)
 {
-    FilePath absFileName = fileName.absoluteFilePath();
-    FileReader reader;
-    if (!reader.fetch(absFileName, errorMessage))
-        return nullptr;
-    ExternalTool *tool = ExternalTool::createFromXml(reader.data(), errorMessage, locale);
-    if (!tool)
-        return nullptr;
-    tool->m_filePath = absFileName;
+    const Result<QByteArray> contents = filePath.fileContents();
+    if (!contents)
+        return ResultError(contents.error());
+    Result<ExternalTool *> res = ExternalTool::createFromXml(contents.value(), locale);
+    if (!res)
+        return ResultError(res.error());
+    ExternalTool *tool = *res;
+    tool->m_filePath = filePath.absoluteFilePath();
     return tool;
 }
 
@@ -463,10 +459,10 @@ static QString stringForOutputHandling(ExternalTool::OutputHandling handling)
     return QString();
 }
 
-bool ExternalTool::save(QString *errorMessage) const
+Result<> ExternalTool::save() const
 {
     if (m_filePath.isEmpty())
-        return false;
+        return ResultError(ResultAssert); // FIXME: Find something better
     FileSaver saver(m_filePath);
     if (!saver.hasError()) {
         QXmlStreamWriter out(saver.file());
@@ -487,13 +483,13 @@ bool ExternalTool::save(QString *errorMessage) const
         out.writeAttribute(kError, stringForOutputHandling(m_errorHandling));
         out.writeAttribute(kModifiesDocument, QLatin1String(m_modifiesCurrentDocument ? kYes : kNo));
         for (const FilePath &executable : m_executables)
-            out.writeTextElement(kPath, executable.toString());
+            out.writeTextElement(kPath, executable.toUrlishString());
         if (!m_arguments.isEmpty())
             out.writeTextElement(kArguments, m_arguments);
         if (!m_input.isEmpty())
             out.writeTextElement(kInput, m_input);
         if (!m_workingDirectory.isEmpty())
-            out.writeTextElement(kWorkingDirectory, m_workingDirectory.toString());
+            out.writeTextElement(kWorkingDirectory, m_workingDirectory.toUrlishString());
         if (m_baseEnvironmentProviderId.isValid())
             out.writeTextElement(kBaseEnvironmentId, m_baseEnvironmentProviderId.toString());
         if (!m_environment.isEmpty()) {
@@ -508,7 +504,7 @@ bool ExternalTool::save(QString *errorMessage) const
 
         saver.setResult(&out);
     }
-    return saver.finalize(errorMessage);
+    return saver.finalize();
 }
 
 bool ExternalTool::operator==(const ExternalTool &other) const
@@ -535,7 +531,6 @@ bool ExternalTool::operator==(const ExternalTool &other) const
 ExternalToolRunner::ExternalToolRunner(const ExternalTool *tool)
     : m_tool(new ExternalTool(tool)),
       m_process(nullptr),
-      m_outputCodec(QTextCodec::codecForLocale()),
       m_hasError(false)
 {
     run();
@@ -598,7 +593,10 @@ bool ExternalToolRunner::resolve()
         }
     }
 
-    m_resolvedArguments = expander->expandProcessArgs(m_tool->arguments());
+    const Result<QString> args = expander->expandProcessArgs(m_tool->arguments());
+    QTC_ASSERT_RESULT(args, return false);
+
+    m_resolvedArguments = *args;
     m_resolvedInput = expander->expand(m_tool->input());
     m_resolvedWorkingDirectory = expander->expand(m_tool->workingDirectory());
 

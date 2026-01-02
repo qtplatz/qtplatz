@@ -6,11 +6,11 @@ namespace peptide {
     namespace Constants {
 
         const char ACTION_ID[]        = "peptide.Action";
-        const char * const MENU_ID          = "peptide.Menu";
-        const char * const C_PEPTIDE_MODE   = "peptide.Mode";
+        const char MENU_ID[]          = "peptide.Menu";
+        const char C_PEPTIDE_MODE[]   = "peptide.Mode";
 
         // common actions
-        const char * const FILE_OPEN          = "peptide.FileOpen";
+        const char FILE_OPEN[]          = "peptide.FileOpen";
         //const char * const METHOD_SAVE          = "peptide.MethodSave";
         //const char * const METHOD_APPLY         = "peptide.MethodApply";
         //const char * const PRINT_CURRENT_VIEW   = "peptide.PrintCurrentView";
@@ -28,7 +28,6 @@ namespace peptide {
 
     } // namespace Constants
 
-} 
+}
 
 #endif // PEPTIDECONSTANTS_HPP
-

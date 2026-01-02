@@ -418,7 +418,7 @@ ActionManager::handleContextAboutToChange( const QList<Core::IContext *>& t1 )
 {
     for ( auto& context : t1 ) {
         if ( Core::IEditor * editor = qobject_cast<Core::IEditor *>(context) ) {
-            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toString() );
+            QString text = QString( tr( "Save '%1' As..." ) ).arg( editor->document()->filePath().toUrlishString() );
             actions_[ idActSaveAs ]->setText( text );
         }
     }

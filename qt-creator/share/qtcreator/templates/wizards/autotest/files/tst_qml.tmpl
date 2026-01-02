@@ -1,14 +1,30 @@
+@if "%{QtCompatibility}" == "Qt5+"
 import QtQuick 2.15
 import QtTest 1.0
+@endif
+@if "%{QtCompatibility}" == "Qt6+"
+import QtQuick
+import QtTest
+@endif
 
 TestCase {
     name: "%{TestCaseName}"
 
 @if "%{GenerateInitAndCleanup}" == "true"
     function initTestCase() {
+        // code to be executed before the first test function
+    }
+
+    function init() {
+        // code to be executed before each test function
     }
 
     function cleanupTestCase() {
+        // code to be executed after the last test function
+    }
+
+    function cleanup() {
+        // code to be executed after each test function
     }
 
 @endif

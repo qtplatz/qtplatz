@@ -3,6 +3,9 @@ set(resource_directories
   cplusplus
   glsl
   indexer_preincludes
+  jsonschemas
+  lua-plugins
+  lua-lupdate
   modeleditor
   qmldesigner
   qmlicons
@@ -18,6 +21,7 @@ set(resource_files
   debugger/.pylintrc
   debugger/boosttypes.py
   debugger/cdbbridge.py
+  debugger/cdbext.pyi
   debugger/creatortypes.py
   debugger/dumper.py
   debugger/gdbbridge.py
@@ -35,7 +39,27 @@ set(resource_files
   debugger/libcpp_stdtypes.py
   debugger/stdtypes.py
   debugger/utils.py
-  debugger/loadorder.txt
+  debugger/loadorder_gdbbridge.txt
+  debugger/loadorder_lldbbridge.txt
+  debugger/visualize.py
+
+  debugger-with-python2/qttypes.py
+  debugger-with-python2/personaltypes.py
+  debugger-with-python2/android_stdtypes.py
+  debugger-with-python2/README.txt
+  debugger-with-python2/gdbbridge.py
+  debugger-with-python2/cdbbridge.py
+  debugger-with-python2/lldbbridge.py
+  debugger-with-python2/misctypes.py
+  debugger-with-python2/opencvtypes.py
+  debugger-with-python2/libcpp_stdtypes.py
+  debugger-with-python2/creatortypes.py
+  debugger-with-python2/stdtypes.py
+  debugger-with-python2/gdbtracepoint.py
+  debugger-with-python2/utils.py
+  debugger-with-python2/boosttypes.py
+  debugger-with-python2/dumper.py
+  debugger-with-python2/pdbbridge.py
 )
 
 # copy resource directories during build
@@ -58,14 +82,35 @@ install(
   USE_SOURCE_PERMISSIONS
 )
 
+qtc_add_sbom(CreatorShareResources
+  TYPE RESOURCES
+  USE_ATTRIBUTION_FILES
+  CREATE_SBOM_FOR_EACH_ATTRIBUTION
+  ATTRIBUTION_FILE_PATHS
+    "${QtCreator_SOURCE_DIR}/qt_attributions.json"
+  ATTRIBUTION_IDS
+    pyprof2calltree
+)
+
 # create install rule for resource files
 foreach(file ${resource_files})
   get_filename_component(path "${file}" DIRECTORY)
+  set(dest "${IDE_DATA_PATH}/${path}")
   install(
     FILES "${file}"
-    DESTINATION "${IDE_DATA_PATH}/${path}"
+    DESTINATION "${dest}"
+  )
+  qtc_sbom_add_files(CreatorShareResources
+    FILES "${file}"
+    FILE_TYPE "RESOURCES"
+    INSTALL_PATH "${dest}"
   )
 endforeach()
 
+qtc_sbom_add_files(CreatorShareResources
+  DIRECTORIES "${resource_directories}"
+  FILE_TYPE "RESOURCES"
+  INSTALL_PATH "${IDE_DATA_PATH}"
+)
 
 add_subdirectory(translations)

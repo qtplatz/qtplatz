@@ -21,10 +21,21 @@ Item {
 
     readonly property int qtVersion: rootView.qtVersion()
     property bool __searchBoxEmpty: true
+    property bool highlightCanvas: false
 
     AssetsContextMenu {
         id: contextMenu
         assetsView: assetsView
+
+        onOpenNewFolderDialog: function(dirPath) {
+            newFolderDialog.openDialog(dirPath)
+        }
+    }
+
+    NewFolderDialog {
+        id: newFolderDialog
+
+        onAccepted: assetsView.addCreatedFolder(newFolderDialog.createdDirPath)
     }
 
     function clearSearchFilter() {
@@ -58,14 +69,21 @@ Item {
         height: parent.height - y
 
         onEntered: (drag) => {
-            root.updateDropExtFiles(drag)
+            if (drag.formats[0] === "application/vnd.qtdesignstudio.assets")
+               drag.accepted = drag.urls.length > 0
+            else
+               root.updateDropExtFiles(drag)
         }
 
         onDropped: (drag) => {
             drag.accept()
-            rootView.handleExtFilesDrop(root.dropSimpleExtFiles,
-                                        root.dropComplexExtFiles,
-                                        assetsModel.rootPath())
+            if (drag.formats[0] === "application/vnd.qtdesignstudio.assets") {
+               root.rootView.handleAssetsDrop(drag.urls, assetsModel.rootPath())
+            } else {
+               root.rootView.handleExtFilesDrop(root.dropSimpleExtFiles,
+                                           root.dropComplexExtFiles,
+                                           assetsModel.rootPath())
+            }
         }
 
         Canvas { // marker for the drop area
@@ -73,8 +91,7 @@ Item {
             y: 5
             width: parent.width
             height: parent.height - y
-            visible: dropArea.containsDrag && root.dropSimpleExtFiles.length > 0
-
+            visible: dropArea.containsDrag || root.highlightCanvas
             onWidthChanged: dropCanvas.requestPaint()
             onHeightChanged: dropCanvas.requestPaint()
 
@@ -94,7 +111,7 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         onClicked: {
-            if (assetsModel.haveFiles) {
+            if (!assetsModel.isEmpty) {
                 function onFolderCreated(path) {
                     assetsView.addCreatedFolder(path)
                 }
@@ -182,13 +199,13 @@ Item {
             leftPadding: 10
             color: StudioTheme.Values.themeTextColor
             font.pixelSize: StudioTheme.Values.baseFont
-            visible: !assetsModel.haveFiles && !root.__searchBoxEmpty
+            visible: assetsModel.isEmpty && !root.__searchBoxEmpty
         }
 
         Item { // placeholder when the assets library is empty
             width: parent.width
             height: parent.height - toolbar.height - column.spacing
-            visible: !assetsModel.haveFiles && root.__searchBoxEmpty
+            visible: assetsModel.isEmpty && root.__searchBoxEmpty
             clip: true
 
             MouseArea { // right clicking the empty area of the view
@@ -261,6 +278,7 @@ Item {
         AssetsView {
             id: assetsView
 
+            visible: !assetsModel.isEmpty
             width: parent.width
             height: parent.height - assetsView.y
 

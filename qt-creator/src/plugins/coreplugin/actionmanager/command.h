@@ -61,6 +61,7 @@ public:
 
     Context context() const;
 
+    void setAttributes(CommandAttributes attributes);
     void setAttribute(CommandAttribute attr);
     void removeAttribute(CommandAttribute attr);
     bool hasAttribute(CommandAttribute attr) const;
@@ -98,6 +99,13 @@ private:
 
     Internal::CommandPrivate *d;
 };
+
+CORE_EXPORT QString msgClearMenu();
+CORE_EXPORT QString msgShowLeftSideBar();
+CORE_EXPORT QString msgHideLeftSideBar();
+CORE_EXPORT QString msgShowRightSideBar();
+CORE_EXPORT QString msgHideRightSideBar();
+CORE_EXPORT QString msgCopyToClipboard();
 
 } // namespace Core
 

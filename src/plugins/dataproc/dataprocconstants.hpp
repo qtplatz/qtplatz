@@ -9,34 +9,34 @@ namespace Constants {
     const char ACTION_ID[] = "Dataproc.Action";
     const char MENU_ID[]   = "Dataproc.Menu";
 
-    const char * const C_DATAPROCESSOR        = "Dataprocessor";
-    const char * const C_DATAPROC_MODE        = "Dataproc.Mode";
-    const char * const C_DATAPROC_NAVI        = "Dataproc.Navigator";
-    const char * const ABOUT_QTPLATZ          = "Dataproc.AboutQtPlatz";
-    const char * const C_DATA_TEXT_MIMETYPE   = "application/txt";
-    const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
+    const char C_DATAPROCESSOR []       = "Dataprocessor";
+    const char C_DATAPROC_MODE []       = "Dataproc.Mode";
+    const char C_DATAPROC_NAVI []       = "Dataproc.Navigator";
+    const char ABOUT_QTPLATZ   []       = "Dataproc.AboutQtPlatz";
+    const char C_DATA_TEXT_MIMETYPE[]   = "application/txt";
+    const char C_DATA_NATIVE_MIMETYPE[] = "application/adfs";
 
     // common actions
-    const char * const METHOD_OPEN          = "dataproc.MethodOpen";
-    const char * const METHOD_SAVE          = "dataproc.MethodSave";
-    const char * const METHOD_APPLY         = "dataproc.MethodApply";
-    const char * const PRINT_CURRENT_VIEW   = "dataproc.PrintCurrentView";
-    const char * const CALIBFILE_APPLY      = "dataproc.ApplyCalibration";
-    const char * const PROCESS_ALL_CHECKED  = "dataproc.ProcessAllCheckedSpectra";
-    const char * const IMPORT_ALL_CHECKED   = "dataproc.ImportAllCheckedSpectra";
-    const char * const LISTPEAKS_ON_CHECKED = "dataproc.PeakListAllChecked";
-    const char * const EXPORT_ALL_CHECKED   = "dataproc.ExportAllChecked";
-    const char * const EXPORT_RMS_CHECKED   = "dataproc.ExportRMSAllChecked";
-    const char * const HIDE_DOCK            = "dataproc.HideDock";
+    const char METHOD_OPEN[]          = "dataproc.MethodOpen";
+    const char METHOD_SAVE[]          = "dataproc.MethodSave";
+    const char METHOD_APPLY[]         = "dataproc.MethodApply";
+    const char PRINT_CURRENT_VIEW[]   = "dataproc.PrintCurrentView";
+    const char CALIBFILE_APPLY[]      = "dataproc.ApplyCalibration";
+    const char PROCESS_ALL_CHECKED[]  = "dataproc.ProcessAllCheckedSpectra";
+    const char IMPORT_ALL_CHECKED[]   = "dataproc.ImportAllCheckedSpectra";
+    const char LISTPEAKS_ON_CHECKED[] = "dataproc.PeakListAllChecked";
+    const char EXPORT_ALL_CHECKED[]   = "dataproc.ExportAllChecked";
+    const char EXPORT_RMS_CHECKED[]   = "dataproc.ExportRMSAllChecked";
+    const char HIDE_DOCK[]            = "dataproc.HideDock";
 
-    const char * const CREATE_SPECTROGRAM   = "dataproc.Spectrogram";
-    const char * const CLUSTER_SPECTROGRAM  = "dataproc.ClusterSpectrogram";
+    const char CREATE_SPECTROGRAM[]   = "dataproc.Spectrogram";
+    const char CLUSTER_SPECTROGRAM[]  = "dataproc.ClusterSpectrogram";
 
     // edit
-    const char * const CHECK_ALL_SPECTRA   = "dataproc.Edit.CheckAllSpectra";
-    const char * const UNCHECK_ALL_SPECTRA = "dataproc.Edit.UncheckAllSpectra";
-    const char * const CHECK_ALL_XICs      = "dataproc.CheckAllXICs";
-    const char * const UNCHECK_ALL_XICs    = "dataproc.UncheckAllXICs";
+    const char CHECK_ALL_SPECTRA[]   = "dataproc.Edit.CheckAllSpectra";
+    const char UNCHECK_ALL_SPECTRA[] = "dataproc.Edit.UncheckAllSpectra";
+    const char CHECK_ALL_XICs[]      = "dataproc.CheckAllXICs";
+    const char UNCHECK_ALL_XICs[]    = "dataproc.UncheckAllXICs";
 
     // icon
     const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";

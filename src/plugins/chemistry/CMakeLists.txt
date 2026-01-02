@@ -2,7 +2,10 @@
 # chemistry/CMakeLists.txt
 project( Chemistry )
 
-set( PROVIDER MS-Cheminformatics )
+set ( PROVIDER MS-Cheminformatics )
+set ( PLUGIN_ID "chemistry" )
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -24,11 +27,8 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   find_package( QtCreator REQUIRED COMPONENTS Core )
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
-  foreach ( i "Core" )
-    set(_v ${IDE_VERSION})
-    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
-  endforeach()
-  string(APPEND DEPENDENCY_STRING "\n    ]")
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "\n    ]" )
 
   configure_file(
     "${PROJECT_SOURCE_DIR}/../servant/plugin.json.in"

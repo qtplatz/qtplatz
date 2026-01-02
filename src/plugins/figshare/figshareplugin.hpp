@@ -19,9 +19,9 @@ namespace figshare {
         FigsharePlugin();
         ~FigsharePlugin() override;
 
-        bool initialize(const QStringList &arguments, QString *errorMessage) override;
-
+        Utils::Result<> initialize(const QStringList &arguments) override;
         void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
     private:
         void sayHello();

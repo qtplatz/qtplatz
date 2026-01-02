@@ -3,6 +3,8 @@
 
 #include "changeset.h"
 
+#include "algorithm.h"
+
 #include <QTextCursor>
 
 namespace Utils {
@@ -98,6 +100,41 @@ void ChangeSet::clear()
     m_cursor = nullptr;
     m_operationList.clear();
     m_error = false;
+}
+
+ChangeSet ChangeSet::makeReplace(const Range &range, const QString &replacement)
+{
+    ChangeSet c;
+    c.replace(range, replacement);
+    return c;
+}
+
+ChangeSet ChangeSet::makeReplace(int start, int end, const QString &replacement)
+{
+    ChangeSet c;
+    c.replace(start, end, replacement);
+    return c;
+}
+
+ChangeSet ChangeSet::makeRemove(const Range &range)
+{
+    ChangeSet c;
+    c.remove(range);
+    return c;
+}
+
+ChangeSet ChangeSet::makeFlip(int start1, int end1, int start2, int end2)
+{
+    ChangeSet c;
+    c.flip(start1, end1, start2, end2);
+    return c;
+}
+
+ChangeSet ChangeSet::makeInsert(int pos, const QString &text)
+{
+    ChangeSet c;
+    c.insert(pos, text);
+    return c;
 }
 
 bool ChangeSet::replace_helper(int pos, int length, const QString &replacement)
@@ -222,18 +259,9 @@ bool ChangeSet::copy_helper(int pos, int length, int to)
     return !m_error;
 }
 
-void ChangeSet::doReplace(const EditOp &op, QList<EditOp> *replaceList)
+void ChangeSet::doReplace(const EditOp &op)
 {
     Q_ASSERT(op.type() == EditOp::Replace);
-
-    {
-        for (EditOp &c : *replaceList) {
-            if (op.pos1 <= c.pos1)
-                c.pos1 += op.text().size();
-            if (op.pos1 < c.pos1)
-                c.pos1 -= op.length1;
-        }
-    }
 
     if (m_string) {
         m_string->replace(op.pos1, op.length1, op.text());
@@ -354,12 +382,31 @@ void ChangeSet::apply_helper()
     while (!m_operationList.isEmpty())
         convertToReplace(m_operationList.takeFirst(), &replaceList);
 
-    // execute replaces
     if (m_cursor)
         m_cursor->beginEditBlock();
 
-    while (!replaceList.isEmpty())
-        doReplace(replaceList.takeFirst(), &replaceList);
+    // Sort operations by position and apply back-to-front.
+    // However, operations with the same position need to be applied in order,
+    // which the funky looking loop below takes care of.
+    sort(replaceList, [](const EditOp &op1, const EditOp &op2) {
+        return op1.pos1 < op2.pos1;
+    });
+    for (qsizetype i = replaceList.size() - 1; i >= 0; --i) {
+        qsizetype equalRangeStart = i;
+        for (qsizetype j = i - 1; j >= 0 && replaceList.at(j).pos1 == replaceList.at(i).pos1; --j)
+            equalRangeStart = j;
+        for (qsizetype j = equalRangeStart; j <= i; ++j) {
+            const EditOp &curOp = replaceList.at(j);
+            for (qsizetype k = j + 1; k <= i; ++k) {
+                EditOp &laterOp = replaceList[k];
+                laterOp.pos1 += curOp.text().size();
+                if (curOp.pos1 < laterOp.pos1)
+                    laterOp.pos1 -= curOp.length1;
+            }
+            doReplace(curOp);
+        }
+        i = equalRangeStart;
+    }
 
     if (m_cursor)
         m_cursor->endEditBlock();

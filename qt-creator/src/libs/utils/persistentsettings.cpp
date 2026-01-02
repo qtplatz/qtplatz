@@ -19,6 +19,7 @@
 #include <QXmlStreamWriter>
 
 #ifdef QT_GUI_LIB
+#include "guiutils.h"
 #include <QMessageBox>
 #endif
 
@@ -39,7 +40,7 @@ static QString rectangleToString(const QRect &r)
 
 static QRect stringToRectangle(const QString &v)
 {
-    static QRegularExpression pattern("^(\\d+)x(\\d+)([-+]\\d+)([-+]\\d+)$");
+    static const QRegularExpression pattern("^(\\d+)x(\\d+)([-+]\\d+)([-+]\\d+)$");
     Q_ASSERT(pattern.isValid());
     const QRegularExpressionMatch match = pattern.match(v);
     return match.hasMatch() ?
@@ -106,13 +107,13 @@ const QString keyAttribute("key");
 
 struct ParseValueStackEntry
 {
-    explicit ParseValueStackEntry(QVariant::Type t = QVariant::Invalid, const QString &k = {}) : type(t), key(k) {}
+    explicit ParseValueStackEntry(QMetaType::Type t = QMetaType::UnknownType, const QString &k = {}) : typeId(t), key(k) {}
     explicit ParseValueStackEntry(const QVariant &aSimpleValue, const QString &k);
 
     QVariant value() const;
     void addChild(const QString &key, const QVariant &v);
 
-    QVariant::Type type;
+    QMetaType::Type typeId;
     QString key;
     QVariant simpleValue;
     QVariantList listValue;
@@ -120,19 +121,19 @@ struct ParseValueStackEntry
 };
 
 ParseValueStackEntry::ParseValueStackEntry(const QVariant &aSimpleValue, const QString &k)
-    : type(aSimpleValue.type()), key(k), simpleValue(aSimpleValue)
+    : typeId(QMetaType::Type(aSimpleValue.typeId())), key(k), simpleValue(aSimpleValue)
 {
     QTC_ASSERT(simpleValue.isValid(), return);
 }
 
 QVariant ParseValueStackEntry::value() const
 {
-    switch (type) {
-    case QVariant::Invalid:
+    switch (typeId) {
+    case QMetaType::UnknownType:
         return QVariant();
-    case QVariant::Map:
+    case QMetaType::QVariantMap:
         return QVariant(mapValue);
-    case QVariant::List:
+    case QMetaType::QVariantList:
         return QVariant(listValue);
     default:
         break;
@@ -142,16 +143,16 @@ QVariant ParseValueStackEntry::value() const
 
 void ParseValueStackEntry::addChild(const QString &key, const QVariant &v)
 {
-    switch (type) {
-    case QVariant::Map:
+    switch (typeId) {
+    case QMetaType::QVariantMap:
         mapValue.insert(key, v);
         break;
-    case QVariant::List:
+    case QMetaType::QVariantList:
         listValue.push_back(v);
         break;
     default:
         qWarning() << "ParseValueStackEntry::Internal error adding " << key << v << " to "
-                 << QVariant::typeToName(type) << value();
+                 << QMetaType(typeId).name() << value();
         break;
     }
 }
@@ -226,14 +227,14 @@ bool ParseContext::handleStartElement(QXmlStreamReader &r)
         const QXmlStreamAttributes attributes = r.attributes();
         const QString key = attributes.hasAttribute(keyAttribute) ?
                     attributes.value(keyAttribute).toString() : QString();
-        m_valueStack.push_back(ParseValueStackEntry(QVariant::List, key));
+        m_valueStack.push_back(ParseValueStackEntry(QMetaType::QVariantList, key));
         return false;
     }
     if (name == valueMapElement) {
         const QXmlStreamAttributes attributes = r.attributes();
         const QString key = attributes.hasAttribute(keyAttribute) ?
                     attributes.value(keyAttribute).toString() : QString();
-        m_valueStack.push_back(ParseValueStackEntry(QVariant::Map, key));
+        m_valueStack.push_back(ParseValueStackEntry(QMetaType::QVariantMap, key));
         return false;
     }
     return false;
@@ -283,7 +284,7 @@ QVariant ParseContext::readSimpleValue(QXmlStreamReader &r, const QXmlStreamAttr
     }
     QVariant value;
     value.setValue(text);
-    value.convert(QMetaType::type(type.toLatin1().constData()));
+    value.convert(QMetaType::fromName(type.toLatin1().constData()));
     return value;
 }
 
@@ -330,11 +331,7 @@ FilePath PersistentSettingsReader::filePath()
     \sa Utils::PersistentSettingsReader
 */
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 static QString xmlAttrFromKey(const QString &key) { return key; }
-#else
-static QString xmlAttrFromKey(const QString &key) { return key; }
-#endif
 
 static void writeVariantValue(QXmlStreamWriter &w, const QVariant &variant, const QString &key = {})
 {
@@ -369,8 +366,8 @@ static void writeVariantValue(QXmlStreamWriter &w, const QVariant &variant, cons
         w.writeAttribute(typeAttribute, QLatin1String(variant.typeName()));
         if (!key.isEmpty())
             w.writeAttribute(keyAttribute, xmlAttrFromKey(key));
-        switch (variant.type()) {
-        case QVariant::Rect:
+        switch (variant.typeId()) {
+        case QMetaType::QRect:
             w.writeCharacters(rectangleToString(variant.toRect()));
             break;
         default:
@@ -385,23 +382,20 @@ PersistentSettingsWriter::PersistentSettingsWriter(const FilePath &fileName, con
     m_fileName(fileName), m_docType(docType)
 { }
 
-bool PersistentSettingsWriter::save(const Store &data, QString *errorString) const
+Result<> PersistentSettingsWriter::save(const Store &data, [[maybe_unused]] bool showErrorInMessageBox) const
 {
     if (data == m_savedData)
-        return true;
-    return write(data, errorString);
-}
+        return ResultOk;
+
+    const Result<> res = write(data);
 
 #ifdef QT_GUI_LIB
-bool PersistentSettingsWriter::save(const Store &data, QWidget *parent) const
-{
-    QString errorString;
-    const bool success = save(data, &errorString);
-    if (!success)
-        QMessageBox::critical(parent, Tr::tr("File Error"), errorString);
-    return success;
-}
+    if (showErrorInMessageBox && !res)
+        QMessageBox::critical(dialogParent(), Tr::tr("File Error"), res.error());
 #endif // QT_GUI_LIB
+
+    return res;
+}
 
 FilePath PersistentSettingsWriter::fileName() const
 { return m_fileName; }
@@ -412,9 +406,11 @@ void PersistentSettingsWriter::setContents(const Store &data)
     m_savedData = data;
 }
 
-bool PersistentSettingsWriter::write(const Store &data, QString *errorString) const
+Result<> PersistentSettingsWriter::write(const Store &data) const
 {
-    m_fileName.parentDir().ensureWritableDir();
+    const Result<> result = m_fileName.parentDir().ensureWritableDir();
+    if (!result)
+        return result;
     FileSaver saver(m_fileName, QIODevice::Text);
     if (!saver.hasError()) {
         QXmlStreamWriter w(saver.file());
@@ -438,15 +434,14 @@ bool PersistentSettingsWriter::write(const Store &data, QString *errorString) co
 
         saver.setResult(&w);
     }
-    bool ok = saver.finalize();
-    if (ok) {
-        m_savedData = data;
-    } else if (errorString) {
+
+    if (const Result<> res = saver.finalize(); !res) {
         m_savedData.clear();
-        *errorString = saver.errorString();
+        return res;
     }
 
-    return ok;
+    m_savedData = data;
+    return ResultOk;
 }
 
 } // namespace Utils

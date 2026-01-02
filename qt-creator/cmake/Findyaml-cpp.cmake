@@ -6,22 +6,27 @@
 # If that fails, build and use our copy of it.
 #
 
+if (TARGET yaml-cpp::yaml-cpp)
+  return()
+endif()
+
 find_package(yaml-cpp 0.5 QUIET NO_MODULE)
 if (yaml-cpp_FOUND)
   # target doesn't set include directory for some reason
   get_filename_component(yaml_cpp_include_dir "${YAML_CPP_INCLUDE_DIR}" ABSOLUTE)
-  if (NOT EXISTS yaml_cpp_include_dir)
+  if (NOT YAML_CPP_INCLUDE_DIR OR NOT EXISTS ${yaml_cpp_include_dir})
     unset(yaml_cpp_include_dir)
     unset(yaml_cpp_include_dir CACHE)
     find_path(yaml_cpp_include_dir yaml-cpp/yaml.h)
   endif()
-  if(TARGET yaml-cpp::yaml-cpp)
-    # yaml-cpp >= 0.8
-    set_property(TARGET yaml-cpp::yaml-cpp PROPERTY IMPORTED_GLOBAL TRUE)
-    add_library(yaml-cpp ALIAS yaml-cpp::yaml-cpp)
-    set(yaml-cpp_TARGET yaml-cpp::yaml-cpp)
-  else()
+  if(NOT TARGET yaml-cpp::yaml-cpp)
+    # yaml-cpp < 0.8
+    set_property(TARGET yaml-cpp PROPERTY IMPORTED_GLOBAL TRUE)
+    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
     set(yaml-cpp_TARGET yaml-cpp)
+  else()
+    # yaml-cpp >= 0.8
+    set(yaml-cpp_TARGET yaml-cpp::yaml-cpp)
   endif()
   set_target_properties(${yaml-cpp_TARGET} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${yaml_cpp_include_dir}")
 else()
@@ -122,6 +127,13 @@ else()
       ${YAML_SOURCE_DIR}/src/tag.cpp
       ${YAML_SOURCE_DIR}/src/tag.h
       ${YAML_SOURCE_DIR}/src/token.h
+    SBOM_ARGS
+      SBOM_ENTITY_TYPE THIRD_PARTY_LIBRARY_WITH_FILES
+      USE_ATTRIBUTION_FILES
+      ATTRIBUTION_FILE_PATHS
+        "${QtCreator_SOURCE_DIR}/qt_attributions.json"
+      ATTRIBUTION_IDS
+        yaml-cpp
     )
     if (QTC_STATIC_BUILD)
       extend_qtc_target(yaml-cpp
@@ -138,6 +150,7 @@ else()
       if(MSVC)
         target_compile_options(yaml-cpp PUBLIC /wd4251 /wd4275 /EHsc)
       endif()
+      add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
     endif()
     unset(YAML_SOURCE_DIR)
 endif()

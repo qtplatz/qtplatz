@@ -1,3 +1,0 @@
-QtApplication {
-    files: ["main.cpp"]
-}

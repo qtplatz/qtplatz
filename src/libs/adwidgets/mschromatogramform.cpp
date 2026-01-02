@@ -78,7 +78,7 @@ MSChromatogramForm::MSChromatogramForm( QWidget *parent ) : QWidget( parent )
     ui->setupUi(this);
 
     // ui->comboBox->addItems( QStringList() << tr( "pkd.1.u5303a" ) << tr( "1.u5303a" ) );
-    connect( ui->checkBox, &QCheckBox::stateChanged, this, [this] ( int state ) { emit onEnableLockMass( state == Qt::Checked ); } );
+    connect( ui->checkBox, &QCheckBox::checkStateChanged, this, [this] ( int state ) { emit onEnableLockMass( state == Qt::Checked ); } );
     connect( ui->buttonBox, &QDialogButtonBox::clicked, [this] () { emit triggerProcess(); } );
 }
 

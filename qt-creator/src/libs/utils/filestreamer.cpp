@@ -4,19 +4,23 @@
 #include "filestreamer.h"
 
 #include "async.h"
-#include "process.h"
+#include "qtcprocess.h"
 
-#include <solutions/tasking/barrier.h>
-#include <solutions/tasking/tasktreerunner.h>
+#include <QtTaskTree/QBarrier>
+#include <QtTaskTree/QNetworkReplyWrapper>
+#include <QtTaskTree/QSingleTaskTreeRunner>
 
 #include <QFile>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QPointer>
 #include <QWaitCondition>
 
 namespace Utils {
 
-using namespace Tasking;
+using namespace QtTaskTree;
 
 // TODO: Adjust according to time spent on single buffer read so that it's not more than ~50 ms
 // in case of local read / write. Should it be adjusted dynamically / automatically?
@@ -29,14 +33,14 @@ class FileStreamBase : public QObject
 public:
     FileStreamBase()
     {
-        connect(&m_taskTreeRunner, &TaskTreeRunner::done, this, [this](DoneWith result) {
+        connect(&m_taskTreeRunner, &QSingleTaskTreeRunner::done, this, [this](DoneWith result) {
             emit done(toDoneResult(result == DoneWith::Success));
         });
     }
     void setFilePath(const FilePath &filePath) { m_filePath = filePath; }
     void start() {
         QTC_ASSERT(!m_taskTreeRunner.isRunning(), return);
-        m_taskTreeRunner.start({m_filePath.needsDevice() ? remoteTask() : localTask()});
+        m_taskTreeRunner.start({m_filePath.isLocal() ? localTask() : remoteTask()});
     }
 
 signals:
@@ -44,7 +48,7 @@ signals:
 
 protected:
     FilePath m_filePath;
-    TaskTreeRunner m_taskTreeRunner;
+    QSingleTaskTreeRunner m_taskTreeRunner;
 
 private:
     virtual GroupItem remoteTask() = 0;
@@ -82,7 +86,24 @@ signals:
     void readyRead(const QByteArray &newData);
 
 private:
-    GroupItem remoteTask() final {
+    GroupItem remoteTask() final
+    {
+        const QStringView scheme = m_filePath.scheme();
+        if (scheme == u"http" || scheme == u"https") {
+            const auto onQuerySetup = [this](QNetworkReplyWrapper &query) {
+                const QUrl url = m_filePath.toUrl();
+                query.setRequest(QNetworkRequest(url));
+                query.setNetworkAccessManager(new QNetworkAccessManager(&query));
+                connect(&query, &QNetworkReplyWrapper::started, this, [this, &query] {
+                    connect(query.reply(), &QNetworkReply::readyRead, this, [this, &query] {
+                        const QByteArray response = query.reply()->readAll();
+                        emit readyRead(response);
+                    });
+                });
+            };
+            return QNetworkReplyWrapperTask{onQuerySetup};
+        }
+
         const auto setup = [this](Process &process) {
             const QStringList args = {"if=" + m_filePath.path()};
             const FilePath dd = m_filePath.withNewPath("dd");
@@ -94,7 +115,9 @@ private:
         };
         return ProcessTask(setup);
     }
-    GroupItem localTask() final {
+
+    GroupItem localTask() final
+    {
         const auto setup = [this](Async<QByteArray> &async) {
             async.setConcurrentCallData(localRead, m_filePath);
             Async<QByteArray> *asyncPtr = &async;
@@ -222,7 +245,7 @@ public:
         if (m_writeBuffer && isBuffered())
             m_writeBuffer->cancel();
         // m_writeBuffer is a child of either Process or Async<void>. So, if m_writeBuffer
-        // is still alive now (in case when TaskTree::stop() was called), the FileStreamBase
+        // is still alive now (in case when QTaskTree::stop() was called), the FileStreamBase
         // d'tor is going to delete m_writeBuffer later. In case of Async<void>, coming from
         // localTask(), the d'tor of Async<void>, run by FileStreamBase, busy waits for the
         // already canceled here WriteBuffer to finish before deleting WriteBuffer child.
@@ -249,7 +272,8 @@ signals:
     void started();
 
 private:
-    GroupItem remoteTask() final {
+    GroupItem remoteTask() final
+    {
         const auto onSetup = [this](Process &process) {
             m_writeBuffer = new WriteBuffer(false, &process);
             connect(m_writeBuffer, &WriteBuffer::writeRequested, &process, &Process::writeRaw);
@@ -288,27 +312,13 @@ private:
     WriteBuffer *m_writeBuffer = nullptr;
 };
 
-class FileStreamReaderAdapter : public TaskAdapter<FileStreamReader>
-{
-public:
-    FileStreamReaderAdapter() { connect(task(), &FileStreamBase::done, this, &TaskInterface::done); }
-    void start() override { task()->start(); }
-};
-
-class FileStreamWriterAdapter : public TaskAdapter<FileStreamWriter>
-{
-public:
-    FileStreamWriterAdapter() { connect(task(), &FileStreamBase::done, this, &TaskInterface::done); }
-    void start() override { task()->start(); }
-};
-
-using FileStreamReaderTask = CustomTask<FileStreamReaderAdapter>;
-using FileStreamWriterTask = CustomTask<FileStreamWriterAdapter>;
+using FileStreamReaderTask = QCustomTask<FileStreamReader>;
+using FileStreamWriterTask = QCustomTask<FileStreamWriter>;
 
 static Group sameRemoteDeviceTransferTask(const FilePath &source, const FilePath &destination)
 {
-    QTC_CHECK(source.needsDevice());
-    QTC_CHECK(destination.needsDevice());
+    QTC_CHECK(!source.isLocal());
+    QTC_CHECK(!destination.isLocal());
     QTC_CHECK(source.isSameDevice(destination));
 
     const auto setup = [source, destination](Process &process) {
@@ -322,8 +332,13 @@ static Group sameRemoteDeviceTransferTask(const FilePath &source, const FilePath
 static Group interDeviceTransferTask(const FilePath &source, const FilePath &destination)
 {
     struct TransferStorage { QPointer<FileStreamWriter> writer; };
-    SingleBarrier writerReadyBarrier;
     Storage<TransferStorage> storage;
+
+    const auto onWriterSetup = [storage, destination](FileStreamWriter &writer) {
+        writer.setFilePath(destination);
+        QTC_CHECK(storage->writer == nullptr);
+        storage->writer = &writer;
+    };
 
     const auto onReaderSetup = [storage, source](FileStreamReader &reader) {
         reader.setFilePath(source);
@@ -332,34 +347,21 @@ static Group interDeviceTransferTask(const FilePath &source, const FilePath &des
                          storage->writer, &FileStreamWriter::write);
     };
     const auto onReaderDone = [storage] {
-        if (storage->writer) // writer may be deleted before the reader on TaskTree::stop().
+        if (storage->writer) // writer may be deleted before the reader on QTaskTree::stop().
             storage->writer->closeWriteChannel();
     };
-    const auto onWriterSetup = [writerReadyBarrier, storage, destination](FileStreamWriter &writer) {
-        writer.setFilePath(destination);
-        QObject::connect(&writer, &FileStreamWriter::started,
-                         writerReadyBarrier->barrier(), &Barrier::advance);
-        QTC_CHECK(storage->writer == nullptr);
-        storage->writer = &writer;
-    };
 
-    const Group root {
-        writerReadyBarrier,
-        parallel,
+    return {
         storage,
-        FileStreamWriterTask(onWriterSetup),
-        Group {
-            waitForBarrierTask(writerReadyBarrier),
+        When (FileStreamWriterTask(onWriterSetup), &FileStreamWriter::started) >> Do {
             FileStreamReaderTask(onReaderSetup, onReaderDone)
         }
     };
-
-    return root;
 }
 
 static Group transferTask(const FilePath &source, const FilePath &destination)
 {
-    if (source.needsDevice() && destination.needsDevice() && source.isSameDevice(destination))
+    if (!source.isLocal() && !destination.isLocal() && source.isSameDevice(destination))
         return sameRemoteDeviceTransferTask(source, destination);
     return interDeviceTransferTask(source, destination);
 }
@@ -369,7 +371,7 @@ static void transfer(QPromise<void> &promise, const FilePath &source, const File
     if (promise.isCanceled())
         return;
 
-    if (TaskTree::runBlocking(transferTask(source, destination), promise.future()) != DoneWith::Success)
+    if (QTaskTree::runBlocking(transferTask(source, destination), promise.future()) != DoneWith::Success)
         promise.future().cancel(); // TODO: Is this needed?
 }
 
@@ -382,7 +384,7 @@ public:
     QByteArray m_readBuffer;
     QByteArray m_writeBuffer;
     DoneResult m_streamResult = DoneResult::Error;
-    TaskTreeRunner m_taskTreeRunner;
+    QSingleTaskTreeRunner m_taskTreeRunner;
 
     GroupItem task() {
         if (m_streamerMode == StreamMode::Reader)
@@ -422,9 +424,9 @@ FileStreamer::FileStreamer(QObject *parent)
     : QObject(parent)
     , d(new FileStreamerPrivate)
 {
-    connect(&d->m_taskTreeRunner, &TaskTreeRunner::done, this, [this](DoneWith result) {
+    connect(&d->m_taskTreeRunner, &QSingleTaskTreeRunner::done, this, [this](DoneWith result) {
         d->m_streamResult = toDoneResult(result == DoneWith::Success);
-        emit done();
+        emit done(d->m_streamResult);
     });
 }
 

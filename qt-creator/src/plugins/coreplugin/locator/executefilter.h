@@ -8,13 +8,12 @@
 #include <utils/commandline.h>
 
 #include <QStringList>
-#include <QTextCodec>
 
 namespace Utils { class Process; }
 
 namespace Core::Internal {
 
-class ExecuteFilter : public Core::ILocatorFilter
+class ExecuteFilter final : public Core::ILocatorFilter
 {
     struct ExecuteData
     {
@@ -24,7 +23,7 @@ class ExecuteFilter : public Core::ILocatorFilter
 
 public:
     ExecuteFilter();
-    ~ExecuteFilter() override;
+    ~ExecuteFilter() final;
 
 private:
     LocatorMatcherTasks matchers() final;
@@ -45,8 +44,6 @@ private:
     QList<ExecuteData> m_taskQueue;
     QStringList m_commandHistory;
     Utils::Process *m_process = nullptr;
-    QTextCodec::ConverterState m_stdoutState;
-    QTextCodec::ConverterState m_stderrState;
 };
 
 } // namespace Core::Internal

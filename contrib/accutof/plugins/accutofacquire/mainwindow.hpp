@@ -41,7 +41,7 @@ namespace acqrscontrols { class method; }
 namespace adextension { class iController; class iSequenceImpl; }
 
 namespace Core { class IMode; class Context; }
-namespace Utils { class StyledBar; }
+namespace Utils { class StyledBar; class Id; }
 
 namespace accutof {
     namespace acquire {
@@ -64,7 +64,7 @@ namespace accutof {
 
             void createActions();
 
-            static QToolButton * toolButton( const char * );
+            static QToolButton * toolButton( Utils::Id );
             static QToolButton * toolButton( QAction * );
 
             static MainWindow * instance();

@@ -1,7 +1,0 @@
-#include "../dllexport.h"
-#include <cstdio>
-
-DLL_EXPORT void helper2_hello()
-{
-    std::puts("Hello from helper2!");
-}

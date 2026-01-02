@@ -12,12 +12,15 @@ StudioControls.Menu {
 
     property var targetTexture: null
     property bool hasSceneEnv: false
+    property bool showRemoveAction: false // true: adds an option to remove targetTexture
+    property bool showInGraphicalShellVisible: false
 
     property bool canUse3D: targetTexture && ContentLibraryBackend.rootView.hasQuick3DImport && ContentLibraryBackend.rootView.hasMaterialLibrary
 
-    function popupMenu(targetTexture = null)
+    function popupMenu(targetTexture = null, showInGraphicalShellItemVisible = false)
     {
         this.targetTexture = targetTexture
+        root.showInGraphicalShellVisible = showInGraphicalShellItemVisible
         ContentLibraryBackend.rootView.updateSceneEnvState();
         popup()
     }
@@ -32,13 +35,36 @@ StudioControls.Menu {
 
     StudioControls.MenuItem {
         text: qsTr("Add texture")
-        enabled: canUse3D
+        enabled: root.canUse3D
         onTriggered: ContentLibraryBackend.rootView.addTexture(root.targetTexture)
     }
 
     StudioControls.MenuItem {
         text: qsTr("Add light probe")
-        enabled: root.hasSceneEnv && canUse3D
+        enabled: root.hasSceneEnv && root.canUse3D
         onTriggered: ContentLibraryBackend.rootView.addLightProbe(root.targetTexture)
+    }
+
+    StudioControls.MenuItem {
+        text: qsTr("Remove from Content Library")
+        visible: root.targetTexture && root.showRemoveAction
+        height: visible ? implicitHeight : 0
+        onTriggered: ContentLibraryBackend.userModel.removeTexture(root.targetTexture)
+    }
+
+    StudioControls.MenuSeparator {
+        visible: root.showInGraphicalShellVisible
+        height: visible ? StudioTheme.Values.border : 0
+    }
+
+    StudioControls.MenuItem {
+        text: ContentLibraryBackend.rootView.showInGraphicalShellMsg
+
+        visible: root.showInGraphicalShellVisible
+        height: visible ? implicitHeight : 0
+
+        onTriggered: {
+            ContentLibraryBackend.rootView.showInGraphicalShell(root.targetTexture.textureParentPath)
+        }
     }
 }

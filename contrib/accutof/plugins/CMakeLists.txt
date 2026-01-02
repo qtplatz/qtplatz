@@ -1,4 +1,5 @@
+include( ${CMAKE_SOURCE_DIR}/pluginconfig.cmake )
 
-if (NOT WIN32)
+if ( QTPLATZ_CONFIG_AccutofAcquire AND NOT WIN32 )
   add_subdirectory( accutofacquire )
 endif()

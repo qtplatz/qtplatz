@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 #include "algorithm.h"
+#include "hostosinfo.h"
 #include "icon.h"
 #include "qtcassert.h"
-#include "theme/theme.h"
 #include "stylehelper.h"
+#include "theme/theme.h"
 #include "utilsicons.h"
 
 #include <QApplication>
@@ -41,9 +42,9 @@ static MasksAndColors masksAndColors(const QList<IconMaskAndColor> &icon, int dp
 {
     MasksAndColors result;
     for (const IconMaskAndColor &i: icon) {
-        const QString &fileName = i.first.toString();
-        const QColor color = creatorTheme()->color(i.second);
-        const QString dprFileName = StyleHelper::availableImageResolutions(i.first.toString())
+        const QString &fileName = i.first.toFSPathString();
+        const QColor color = creatorColor(i.second);
+        const QString dprFileName = StyleHelper::availableImageResolutions(i.first.toFSPathString())
                                             .contains(dpr)
                                         ? StyleHelper::imageFileWithResolution(fileName, dpr)
                                         : fileName;
@@ -146,13 +147,32 @@ Icon::Icon(const FilePath &imageFileName)
 {
 }
 
+using OptMasksAndColors = std::optional<MasksAndColors>;
+OptMasksAndColors highlightMasksAndColors(const MasksAndColors &defaultState,
+                                          const QList<IconMaskAndColor> &masks)
+{
+    MasksAndColors highlighted = defaultState;
+    bool colorsReplaced = false;
+    int index = 0;
+    for (const IconMaskAndColor &mask : masks) {
+        const Theme::Color highlight = Theme::highlightFor(mask.second);
+        if (highlight != mask.second) {
+            highlighted[index].second = creatorColor(highlight);
+            colorsReplaced = true;
+            continue;
+        }
+        ++index;
+    }
+    return colorsReplaced ? std::make_optional(highlighted) : std::nullopt;
+}
+
 QIcon Icon::icon() const
 {
     if (m_iconSourceList.isEmpty())
         return QIcon();
 
     if (m_style == None)
-        return QIcon(m_iconSourceList.constFirst().first.toString());
+        return QIcon(m_iconSourceList.constFirst().first.toFSPathString());
 
     const int maxDpr = qRound(qApp->devicePixelRatio());
     if (maxDpr == m_lastDevicePixelRatio)
@@ -163,10 +183,19 @@ QIcon Icon::icon() const
     for (int dpr = 1; dpr <= maxDpr; dpr++) {
         const MasksAndColors masks = masksAndColors(m_iconSourceList, dpr);
         const QPixmap combinedMask = Utils::combinedMask(masks, m_style);
-        m_lastIcon.addPixmap(masksToIcon(masks, combinedMask, m_style));
-
-        const QColor disabledColor = creatorTheme()->color(Theme::IconsDisabledColor);
-        m_lastIcon.addPixmap(maskToColorAndAlpha(combinedMask, disabledColor), QIcon::Disabled);
+        m_lastIcon.addPixmap(masksToIcon(masks, combinedMask, m_style), QIcon::Normal, QIcon::Off);
+        const QColor disabledColor = creatorColor(Theme::IconsDisabledColor);
+        const QPixmap disabledIcon = maskToColorAndAlpha(combinedMask, disabledColor);
+        if (const OptMasksAndColors activeMasks =
+            highlightMasksAndColors(masks, m_iconSourceList);
+            activeMasks.has_value()) {
+            const QPixmap activePixmap = masksToIcon(*activeMasks, combinedMask, m_style);
+            m_lastIcon.addPixmap(activePixmap, QIcon::Active, QIcon::On);
+            m_lastIcon.addPixmap(disabledIcon, QIcon::Disabled, QIcon::On);
+            m_lastIcon.addPixmap(disabledIcon, QIcon::Disabled, QIcon::Off);
+        } else {
+            m_lastIcon.addPixmap(disabledIcon, QIcon::Disabled);
+        }
     }
     return m_lastIcon;
 }
@@ -176,13 +205,13 @@ QPixmap Icon::pixmap(QIcon::Mode iconMode) const
     if (m_iconSourceList.isEmpty()) {
         return QPixmap();
     } else if (m_style == None) {
-        return QPixmap(StyleHelper::dpiSpecificImageFile(m_iconSourceList.constFirst().first.toString()));
+        return QPixmap(StyleHelper::dpiSpecificImageFile(m_iconSourceList.constFirst().first.toFSPathString()));
     } else {
         const MasksAndColors masks =
                 masksAndColors(m_iconSourceList, qRound(qApp->devicePixelRatio()));
         const QPixmap combinedMask = Utils::combinedMask(masks, m_style);
         return iconMode == QIcon::Disabled
-                ? maskToColorAndAlpha(combinedMask, creatorTheme()->color(Theme::IconsDisabledColor))
+                ? maskToColorAndAlpha(combinedMask, creatorColor(Theme::IconsDisabledColor))
                 : masksToIcon(masks, combinedMask, m_style);
     }
 }
@@ -210,22 +239,14 @@ QIcon Icon::sideBarIcon(const Icon &classic, const Icon &flat)
     return result;
 }
 
-QIcon Icon::modeIcon(const Icon &classic, const Icon &flat, const Icon &flatActive)
-{
-    QIcon result = sideBarIcon(classic, flat);
-    if (creatorTheme()->flag(Theme::FlatSideBarIcons))
-        result.addPixmap(flatActive.pixmap(), QIcon::Active);
-    return result;
-}
-
 QIcon Icon::combinedIcon(const QList<QIcon> &icons)
 {
     QIcon result;
-    QWindow *window = QApplication::allWidgets().constFirst()->windowHandle();
+    const qreal devicePixelRatio = QApplication::allWidgets().constFirst()->devicePixelRatio();
     for (const QIcon &icon: icons)
         for (const QIcon::Mode mode: {QIcon::Disabled, QIcon::Normal})
             for (const QSize &size: icon.availableSizes(mode))
-                result.addPixmap(icon.pixmap(window, size, mode), mode);
+                result.addPixmap(icon.pixmap(size, devicePixelRatio, mode), mode);
     return result;
 }
 
@@ -243,39 +264,44 @@ QIcon Icon::fromTheme(const QString &name)
     if (found != cache.end())
         return *found;
 
-    QIcon icon = QIcon::fromTheme(name);
+    QIcon icon;
+    const bool avoidIconFromTheme = HostOsInfo::isLinuxHost() &&
+                                    creatorTheme()->colorScheme() != Theme::systemColorScheme();
+    if (!avoidIconFromTheme)
+        icon = QIcon::fromTheme(name);
+    const bool useIconFromTheme = !avoidIconFromTheme && !icon.isNull();
     if (name == "go-next") {
-        cache.insert(name, !icon.isNull() ? icon : QIcon(":/utils/images/arrow.png"));
+        cache.insert(name, useIconFromTheme ? icon : QIcon(":/utils/images/arrow.png"));
     } else if (name == "document-open") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::OPENFILE.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::OPENFILE.icon());
     } else if (name == "edit-copy") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::COPY.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::COPY.icon());
     } else if (name == "document-new") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::NEWFILE.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::NEWFILE.icon());
     } else if (name == "document-save") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::SAVEFILE.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::SAVEFILE.icon());
     } else if (name == "edit-undo") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::UNDO.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::UNDO.icon());
     } else if (name == "edit-redo") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::REDO.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::REDO.icon());
     } else if (name == "edit-cut") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::CUT.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::CUT.icon());
     } else if (name == "edit-paste") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::PASTE.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::PASTE.icon());
     } else if (name == "zoom-in") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::ZOOMIN_TOOLBAR.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::ZOOMIN_TOOLBAR.icon());
     } else if (name == "zoom-out") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::ZOOMOUT_TOOLBAR.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::ZOOMOUT_TOOLBAR.icon());
     } else if (name == "zoom-original") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::EYE_OPEN_TOOLBAR.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::EYE_OPEN_TOOLBAR.icon());
     } else if (name == "edit-clear") {
-        cache.insert(name, !icon.isNull() ? icon : Icons::EDIT_CLEAR.icon());
+        cache.insert(name, useIconFromTheme ? icon : Icons::EDIT_CLEAR.icon());
     } else if (name == "edit-clear-locationbar-rtl") {
         // KDE has custom icons for this. If these icons are not available we use the freedesktop
         // standard name "edit-clear" before falling back to a bundled resource.
-        cache.insert(name, !icon.isNull() ? icon : fromTheme("edit-clear"));
+        cache.insert(name, useIconFromTheme ? icon : fromTheme("edit-clear"));
     } else if (name == "edit-clear-locationbar-ltr") {
-        cache.insert(name, !icon.isNull() ? icon : fromTheme("edit-clear"));
+        cache.insert(name, useIconFromTheme ? icon : fromTheme("edit-clear"));
     } else {
         cache.insert(name, icon);
     }

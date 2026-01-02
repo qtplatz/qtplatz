@@ -39,18 +39,18 @@ namespace acquire {
         const char ACQUIRE_MODE[] = "acquire.Mode";
 
         // common actions
-        const char * const FILE_OPEN          = "acquire.FileOpen";
+        const char FILE_OPEN[]            = "acquire.FileOpen";
         ////////////////////////
-        const char * const ACTION_CONNECT       = "acquire.Connect";
-        const char * const ACTION_RUN           = "acquire.Run";
-        const char * const ACTION_STOP          = "acquire.Stop";
-        const char * const ACTION_REC           = "acquire.Rec";
-        const char * const ACTION_SNAPSHOT      = "acquire.Snapshot";
-        const char * const ACTION_SYNC          = "acquire.SyncTrig";
-        const char * const ACTION_INJECT        = "acquire.Inject";
-        const char * const PRINT_CURRENT_VIEW   = "acquire.print_current_view";
-        const char * const SAVE_CURRENT_IMAGE   = "acquire.save_current_image";
-        const char * const HIDE_DOCK            = "acquire.HideDock";
+        const char ACTION_CONNECT[]       = "acquire.Connect";
+        const char ACTION_RUN[]           = "acquire.Run";
+        const char ACTION_STOP[]          = "acquire.Stop";
+        const char ACTION_REC[]           = "acquire.Rec";
+        const char ACTION_SNAPSHOT[]      = "acquire.Snapshot";
+        const char ACTION_SYNC[]          = "acquire.SyncTrig";
+        const char ACTION_INJECT[]        = "acquire.Inject";
+        const char PRINT_CURRENT_VIEW[]   = "acquire.print_current_view";
+        const char SAVE_CURRENT_IMAGE[]   = "acquire.save_current_image";
+        const char HIDE_DOCK[]            = "acquire.HideDock";
 
         const char * const ICON_DOCKHIDE        = ":/dataproc/image/button_close.png";
         const char * const ICON_DOCKSHOW        = ":/dataproc/image/control-090-small.png";

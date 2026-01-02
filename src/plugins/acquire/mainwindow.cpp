@@ -123,9 +123,11 @@ void
 MainWindow::createDockWidgets()
 {
     QFile file( ":/acquire/stylesheet/tabbar.qss" );
-    file.open( QFile::ReadOnly );
-    QString tabStyle( file.readAll() );
-
+    QString tabStyle;
+    if ( file.open( QFile::ReadOnly ) ) {
+        QString style( file.readAll() );
+        tabStyle = style;
+    }
 
     if ( auto widget = new adwidgets::SampleRunWidget ) {
         createDockWidget( widget, "Sample Run", "SampleRunWidget" );
@@ -264,7 +266,7 @@ MainWindow::OnInitialUpdate()
 
     connect( document::instance(), &document::on_reply, this, &MainWindow::handle_reply );
 
-    for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+    for ( auto id : { Utils::Id(Constants::ACTION_RUN), Utils::Id(Constants::ACTION_STOP), Utils::Id(Constants::ACTION_REC), Utils::Id(Constants::ACTION_SNAPSHOT) } ) {
         if ( auto action = Core::ActionManager::command( id )->action() )
             action->setEnabled( false );
     }
@@ -505,7 +507,7 @@ MainWindow::toolButton( QAction * action )
 
 // static
 QToolButton *
-MainWindow::toolButton( const char * id )
+MainWindow::toolButton( Utils::Id id )
 {
     return toolButton( Core::ActionManager::instance()->command( id )->action() );
 }
@@ -520,22 +522,22 @@ MainWindow::createTopStyledToolbar()
         toolBarLayout->setContentsMargins( {} );
         toolBarLayout->setSpacing( 0 );
         if ( auto am = Core::ActionManager::instance() ) {
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_CONNECT)->action()));
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_RUN)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_CONNECT))->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_RUN))->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //---
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_INJECT)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_INJECT))->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
 
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_STOP)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_STOP))->action()));
 
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_REC)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_REC))->action()));
 
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SYNC)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_SYNC))->action()));
 
-            toolBarLayout->addWidget(toolButton(am->command(Constants::ACTION_SNAPSHOT)->action()));
+            toolBarLayout->addWidget(toolButton(am->command(Utils::Id(Constants::ACTION_SNAPSHOT))->action()));
             //-- separator --
             toolBarLayout->addWidget( new Utils::StyledSeparator );
             //---
@@ -638,34 +640,34 @@ MainWindow::createActions()
     if ( auto action = createAction( Constants::ICON_SNAPSHOT, tr( "Snapshot" ), this ) ) {
         connect( action, &QAction::triggered, [this](){ actSnapshot(); } );
         action->setEnabled( false );
-        Core::Command * cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SNAPSHOT, context );
+        Core::Command * cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_SNAPSHOT), context );
         menu->addAction( cmd );
     }
 
     if ( auto action = createAction( Constants::ICON_CONNECT, tr( "Connect" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionConnect(); } );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_CONNECT, context );
+        auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_CONNECT), context );
         menu->addAction( cmd );
     }
 
     if ( auto action = createAction( Constants::ICON_RUN, tr( "Run" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionRun(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_RUN, context );
+        auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_RUN), context );
         menu->addAction( cmd );
     }
 
     if ( auto action = createAction( Constants::ICON_INJECT, tr( "Inject" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionInject(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_INJECT, context );
+        auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_INJECT), context );
         menu->addAction( cmd );
     }
 
     if ( auto action = createAction( Constants::ICON_STOP, tr( "Stop" ), this ) ) {
         connect( action, &QAction::triggered, [] () { document::instance()->actionStop(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_STOP, context );
+        auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_STOP), context );
         menu->addAction( cmd );
     }
 
@@ -677,11 +679,11 @@ MainWindow::createActions()
             action->setCheckable( true );
             // action->setChecked( true );
             action->setEnabled( false );
-            auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_REC, context );
+            auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_REC), context );
             menu->addAction( cmd );
             connect( action, &QAction::triggered, [](bool rec){
                 document::instance()->actionRec(rec);
-                if ( auto action = Core::ActionManager::command(Constants::ACTION_REC)->action() )
+                if ( auto action = Core::ActionManager::command(Utils::Id(Constants::ACTION_REC))->action() )
                     if ( !action->isEnabled() )
                         action->setEnabled( true );
             });
@@ -691,7 +693,7 @@ MainWindow::createActions()
     if ( auto action = createAction( Constants::ICON_SYNC, tr( "Sync trig." ), this ) ) {
         connect( action, &QAction::triggered, [](){ document::instance()->actionSyncTrig(); } );
         action->setEnabled( false );
-        auto cmd = Core::ActionManager::registerAction( action, Constants::ACTION_SYNC, context );
+        auto cmd = Core::ActionManager::registerAction( action, Utils::Id(Constants::ACTION_SYNC), context );
         menu->addAction( cmd );
     }
 
@@ -767,12 +769,12 @@ MainWindow::handleInstState( int status )
     //     w->setEnabled( status > adacquire::Instrument::eNotConnected );
 
     if ( status > adacquire::Instrument::eNotConnected ) {
-        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
+        if ( auto action = Core::ActionManager::instance()->command( Utils::Id(Utils::Id(Constants::ACTION_CONNECT)) )->action() )
             action->setEnabled( false );
     } else {
-        if ( auto action = Core::ActionManager::instance()->command( Constants::ACTION_CONNECT )->action() )
+        if ( auto action = Core::ActionManager::instance()->command( Utils::Id(Utils::Id(Constants::ACTION_CONNECT)) )->action() )
             action->setEnabled( true  );
-        for ( auto id : { Constants::ACTION_RUN, Constants::ACTION_STOP, Constants::ACTION_REC, Constants::ACTION_SNAPSHOT } ) {
+        for ( auto id : { Utils::Id(Utils::Id(Constants::ACTION_RUN)), Utils::Id(Utils::Id(Constants::ACTION_STOP)), Utils::Id(Utils::Id(Constants::ACTION_REC)), Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)) } ) {
             if ( auto action = Core::ActionManager::command( id )->action() )
                 action->setEnabled( false );
         }
@@ -780,12 +782,12 @@ MainWindow::handleInstState( int status )
 
     if ( status == adacquire::Instrument::eStandBy ) {
         ADDEBUG() << "STATE CHANGE TO: " << "Stand By";
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Utils::Id(Constants::ACTION_RUN)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_STOP)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_REC)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_INJECT)), false ) // <== false
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)), true)
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SYNC)), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() ) {
                 action->setEnabled( pair.second );
             }
@@ -793,12 +795,12 @@ MainWindow::handleInstState( int status )
 
     } else if ( status == adacquire::Instrument::ePreparingForRun || status == adacquire::Instrument::eReadyForRun ) {
         ADDEBUG() << "STATE CHANGE TO: " << ( status == adacquire::Instrument::eReadyForRun ? "Ready for Run" : "Preparing for Run" );
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Utils::Id(Constants::ACTION_RUN)), false )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_STOP)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_REC)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_INJECT)), false ) // <== false
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)), true)
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SYNC)), true) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() ) {
                 action->setEnabled( pair.second );
             }
@@ -806,12 +808,12 @@ MainWindow::handleInstState( int status )
 
     } else if ( status == adacquire::Instrument::eWaitingForContactClosure ) {
         ADDEBUG() << "STATE CHANGE TO: " << "Waiting for Contact Closure";
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, false )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, true )  // <== true
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Utils::Id(Constants::ACTION_RUN)), false )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_STOP)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_REC)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_INJECT)), true )  // <== true
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)), true)
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SYNC)), true) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() ) {
                 action->setEnabled( pair.second );
             }
@@ -819,12 +821,12 @@ MainWindow::handleInstState( int status )
 
     } else if ( status == adacquire::Instrument::eRunning ) {
         ADDEBUG() << "STATE CHANGE TO: " << "Running";
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, true )
-                    , std::make_pair( Constants::ACTION_REC, true )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Utils::Id(Constants::ACTION_RUN)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_STOP)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_REC)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_INJECT)), false ) // <== false
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)), true)
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SYNC)), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() ) {
                 action->setEnabled( pair.second );
             }
@@ -832,12 +834,12 @@ MainWindow::handleInstState( int status )
 
     } else if ( status == adacquire::Instrument::eStop ) {
         ADDEBUG() << "STATE CHANGE TO: " << "Stop";
-        for ( auto pair: { std::make_pair(Constants::ACTION_RUN, true )
-                    , std::make_pair( Constants::ACTION_STOP, false )
-                    , std::make_pair( Constants::ACTION_REC, false )
-                    , std::make_pair( Constants::ACTION_INJECT, false ) // <== false
-                    , std::make_pair( Constants::ACTION_SNAPSHOT, true)
-                    , std::make_pair( Constants::ACTION_SYNC, true ) } ) {
+        for ( auto pair: { std::make_pair(Utils::Id(Utils::Id(Constants::ACTION_RUN)), true )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_STOP)), false )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_REC)), false )
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_INJECT)), false ) // <== false
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SNAPSHOT)), true)
+                    , std::make_pair( Utils::Id(Utils::Id(Constants::ACTION_SYNC)), true ) } ) {
             if ( auto action = Core::ActionManager::command( pair.first )->action() ) {
                 action->setEnabled( pair.second );
             }

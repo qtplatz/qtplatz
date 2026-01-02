@@ -11,7 +11,6 @@
 #include <utils/qtcassert.h>
 
 #include <QFile>
-#include <QFileInfo>
 
 #include <memory>
 #include <optional>
@@ -72,28 +71,13 @@
 */
 
 /*!
-    \enum IDocument::OpenResult
-
-    The OpenResult enum describes whether a file was successfully opened.
-
-    \value Success
-           The file was read successfully and can be handled by this document
-           type.
-    \value ReadError
-           The file could not be opened for reading, either because it does not
-           exist or because of missing permissions.
-    \value CannotHandle
-           This document type could not handle the file content.
-*/
-
-/*!
-    \enum IDocument::ReloadSetting
+    \enum Core::IDocument::ReloadSetting
 
     \internal
 */
 
 /*!
-    \enum IDocument::ChangeTrigger
+    \enum Core::IDocument::ChangeTrigger
 
     The ChangeTrigger enum describes whether a file was changed from \QC
     internally or from the outside.
@@ -107,7 +91,7 @@
 */
 
 /*!
-    \enum IDocument::ChangeType
+    \enum Core::IDocument::ChangeType
 
     The ChangeType enum describes the way in which the file changed.
 
@@ -121,7 +105,7 @@
 */
 
 /*!
-    \enum IDocument::ReloadFlag
+    \enum Core::IDocument::ReloadFlag
 
     The ReloadFlag enum describes if a file should be reloaded from disk.
 
@@ -182,21 +166,19 @@
 */
 
 /*!
-    \fn Core::IDocument::aboutToSave(const Utils::FilePath &filePath, bool autoSave)
+    \fn Core::IDocument::aboutToSave(const Utils::FilePath &filePath, SaveOption option)
 
-    This signal is emitted before the document is saved to \a filePath.
-
-    \a autoSave indicates whether this save was triggered by the auto save timer.
+    This signal is emitted before the document is saved to \a filePath with the
+    save option \a option.
 
     \sa save()
 */
 
 /*!
-    \fn Core::IDocument::saved(const Utils::FilePath &filePath, bool autoSave)
+    \fn Core::IDocument::saved(const Utils::FilePath &filePath, SaveOption option)
 
-    This signal is emitted after the document was saved to \a filePath.
-
-    \a autoSave indicates whether this save was triggered by the auto save timer.
+    This signal is emitted after the document was saved to \a filePath with the
+    save option \a option.
 
     \sa save()
 */
@@ -304,35 +286,32 @@ Id IDocument::id() const
     If the editor is opened from a regular file, \a filePath and \a
     filePath are the same.
 
-    Use \a errorString to return an error message if this document cannot
-    handle the file contents.
-
     Returns whether the file was opened and read successfully.
 
     The default implementation does nothing and returns
-    CannotHandle.
+    \c CannotHandle.
 
     \sa EditorManager::openEditor()
     \sa shouldAutoSave()
     \sa setFilePath()
 */
-IDocument::OpenResult IDocument::open(QString *errorString, const Utils::FilePath &filePath, const Utils::FilePath &realFilePath)
+Result<> IDocument::open(const FilePath &filePath, const FilePath &realFilePath)
 {
-    Q_UNUSED(errorString)
     Q_UNUSED(filePath)
     Q_UNUSED(realFilePath)
-    return OpenResult::CannotHandle;
+    return ResultError(ResultUnimplemented);
 }
 
 /*!
     Saves the contents of the document to the \a filePath on disk.
     If \a filePath is empty filePath() is used.
 
-    If \a autoSave is \c true, the saving is done for an auto-save, so the
+    If \a option is \c SaveOption::AutoSave, the saving is done for an auto-save, so the
     document should avoid cleanups or other operations that it does for
     user-requested saves.
 
-    Use \a errorString to return an error message if saving failed.
+    If \a option is \c SaveOption::DisableFormatOnSave, the document should be saved
+    normally, but no "Format on Save" kind of activity should be performed.
 
     Returns whether saving was successful.
 
@@ -343,35 +322,35 @@ IDocument::OpenResult IDocument::open(QString *errorString, const Utils::FilePat
     \sa saved()
     \sa filePath()
 */
-bool IDocument::save(QString *errorString, const Utils::FilePath &filePath, bool autoSave)
+Result<> IDocument::save(const FilePath &filePath, SaveOption option)
 {
-    const Utils::FilePath savePath = filePath.isEmpty() ? this->filePath() : filePath;
-    emit aboutToSave(savePath, autoSave);
-    const bool success = saveImpl(errorString, savePath, autoSave);
-    if (success)
-        emit saved(savePath, autoSave);
-    return success;
+    const FilePath savePath = filePath.isEmpty() ? this->filePath() : filePath;
+    emit aboutToSave(savePath, option);
+    const Result<> res = saveImpl(savePath, option);
+    if (res)
+        emit saved(savePath, option);
+    return res;
 }
 
 /*!
     Implementation of saving the contents of the document to the \a filePath on disk.
 
-    If \a autoSave is \c true, the saving is done for an auto-save, so the
+    If \a option is \c SaveOption::AutoSave, the saving is done for an auto-save, so the
     document should avoid cleanups or other operations that it does for
     user-requested saves.
 
-    Use \a errorString to return an error message if saving failed.
+    If \a option is \c SaveOption::DisableFormatOnSave, the document should be saved
+    normally, but no "Format on Save" kind of activity should be performed.
 
-    Returns whether saving was successful.
+    Returns whether saving was successful, including an error message when it was not.
 
     The default implementation does nothing and returns \c false.
 */
-bool IDocument::saveImpl(QString *errorString, const Utils::FilePath &filePath, bool autoSave)
+Utils::Result<> IDocument::saveImpl(const Utils::FilePath &filePath, SaveOption option)
 {
-    Q_UNUSED(errorString)
     Q_UNUSED(filePath)
-    Q_UNUSED(autoSave)
-    return false;
+    Q_UNUSED(option)
+    return ResultError(Tr::tr("Not implemented"));
 }
 
 /*!
@@ -398,10 +377,10 @@ QByteArray IDocument::contents() const
     \sa contents()
     \sa EditorManager::openEditorWithContents()
 */
-bool IDocument::setContents(const QByteArray &contents)
+Result<> IDocument::setContents(const QByteArray &contents)
 {
     Q_UNUSED(contents)
-    return false;
+    return ResultError(ResultUnimplemented);
 }
 
 /*!
@@ -455,9 +434,6 @@ IDocument::ReloadBehavior IDocument::reloadBehavior(ChangeTrigger trigger, Chang
     The \a type specifies whether only the file permissions changed or if the
     contents of the file changed.
 
-    Use \a errorString to return an error message, if this document cannot
-    handle the file contents.
-
     Returns if the file was reloaded successfully.
 
     The default implementation does nothing and returns \c true.
@@ -470,12 +446,11 @@ IDocument::ReloadBehavior IDocument::reloadBehavior(ChangeTrigger trigger, Chang
     \sa reloadFinished()
     \sa changed()
 */
-bool IDocument::reload(QString *errorString, ReloadFlag flag, ChangeType type)
+Result<> IDocument::reload(ReloadFlag flag, ChangeType type)
 {
-    Q_UNUSED(errorString)
     Q_UNUSED(flag)
     Q_UNUSED(type)
-    return true;
+    return ResultOk;
 }
 
 /*!
@@ -651,12 +626,13 @@ void IDocument::setMimeType(const QString &mimeType)
 /*!
     \internal
 */
-bool IDocument::autoSave(QString *errorString, const FilePath &filePath)
+Result<> IDocument::autoSave(const FilePath &filePath)
 {
-    if (!save(errorString, filePath, true))
-        return false;
+    if (const Result<> res = save(filePath, SaveOption::AutoSave); !res)
+        return res;
+
     d->autoSavePath = filePath;
-    return true;
+    return ResultOk;
 }
 
 static const char kRestoredAutoSave[] = "RestoredAutoSave";
@@ -680,7 +656,7 @@ void IDocument::setRestoredFrom(const Utils::FilePath &path)
 void IDocument::removeAutoSaveFile()
 {
     if (!d->autoSavePath.isEmpty()) {
-        QFile::remove(d->autoSavePath.toString());
+        QFile::remove(d->autoSavePath.toUrlishString());
         d->autoSavePath.clear();
         if (d->restored) {
             d->restored = false;
@@ -815,6 +791,11 @@ void IDocument::setUniqueDisplayName(const QString &name)
 QString IDocument::uniqueDisplayName() const
 {
     return d->uniqueDisplayName;
+}
+
+QString IDocument::toolTip() const
+{
+    return filePath().isEmpty() ? displayName() : filePath().toUserOutput();
 }
 
 } // namespace Core

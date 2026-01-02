@@ -1,6 +1,0 @@
-syntax = "proto2";
-import "subdir/myenum.proto";
-
-message MyMessage {
-  required string msg = 1;
-}

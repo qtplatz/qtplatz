@@ -1,3 +1,0 @@
-JavaJarFile {
-    files: ["**/*.java"]
-}

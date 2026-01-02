@@ -1,6 +1,6 @@
 # This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------
-deleted/
+
 !core/
 *.*#
 *.a
@@ -29,6 +29,7 @@ deleted/
 .DS_Store
 .qmake.cache
 .qmake.stash
+.qmlls.ini
 .vscode
 Makefile*
 Thumbs.db
@@ -55,7 +56,6 @@ CMakeLists.txt.user*
 /share/qtcreator/generic-highlighter/
 /share/qtcreator/qmldesigner/QtProject/
 /src/app/Info.plist
-/src/plugins/**/*.json
 !/src/plugins/**/wizard.json
 /src/plugins/coreplugin/ide_version.h
 /.cmake/
@@ -156,7 +156,6 @@ tmp/
 /bin/cplusplus-mkvisitor
 /bin/cplusplus-update-frontend
 /bin/qbs*
-/bin/qml2puppet
 /bin/qmlpuppet
 /bin/qtcreator
 /bin/qtcreator_crash_handler
@@ -287,3 +286,5 @@ tmp/
 /*-debug/
 /*-release/
 /out/
+# exclude for qtplatz
+*.deleted

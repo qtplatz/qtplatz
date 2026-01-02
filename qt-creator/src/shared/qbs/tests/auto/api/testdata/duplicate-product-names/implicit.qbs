@@ -1,5 +1,0 @@
-Project {
-    Product { }
-    Product { }
-    Product { }
-}

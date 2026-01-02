@@ -20,9 +20,9 @@ namespace accutof {
             acquirePlugin();
             ~acquirePlugin();
 
-            bool initialize(const QStringList &arguments, QString *errorString);
-            void extensionsInitialized();
-            ShutdownFlag aboutToShutdown();
+            Utils::Result<> initialize(const QStringList &arguments) override;
+            void extensionsInitialized() override;
+            ShutdownFlag aboutToShutdown() override;
         private:
             std::unique_ptr< Mode > mode_;
             MainWindow * mainWindow_;

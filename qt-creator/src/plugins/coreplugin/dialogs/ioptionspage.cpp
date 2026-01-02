@@ -19,16 +19,20 @@
 #include <QPushButton>
 #include <QRegularExpression>
 
+#include <utility>
+
 using namespace Utils;
 
-namespace Core {
+static QHash<Id, std::pair<QString, FilePath>> g_categories;
 
+namespace Core {
 namespace Internal {
 
 class IOptionsPageWidgetPrivate
 {
 public:
     std::function<void()> m_onApply;
+    std::function<void()> m_onCancel;
     std::function<void()> m_onFinish;
 };
 
@@ -38,8 +42,6 @@ public:
     Id m_id;
     Id m_category;
     QString m_displayName;
-    QString m_displayCategory;
-    FilePath m_categoryIconPath;
     IOptionsPage::WidgetCreator m_widgetCreator;
     QPointer<QWidget> m_widget; // Used in conjunction with m_widgetCreator
 
@@ -104,6 +106,11 @@ void IOptionsPageWidget::setOnApply(const std::function<void()> &func)
     d->m_onApply = func;
 }
 
+void IOptionsPageWidget::setOnCancel(const std::function<void()> &func)
+{
+    d->m_onCancel = func;
+}
+
 /*!
     Sets the function that is called by default on finish to \a func.
 */
@@ -122,6 +129,12 @@ void IOptionsPageWidget::apply()
         d->m_onApply();
 }
 
+void IOptionsPageWidget::cancel()
+{
+    if (d->m_onCancel)
+        d->m_onCancel();
+}
+
 /*!
     Calls the finish function, if set.
     \sa setOnFinish
@@ -138,7 +151,12 @@ void IOptionsPageWidget::finish()
 */
 FilePath IOptionsPage::categoryIconPath() const
 {
-    return d->m_categoryIconPath;
+    return g_categories.value(category()).second;
+}
+
+std::optional<AspectContainer *> IOptionsPage::aspects() const
+{
+    return d->m_settingsProvider ? std::make_optional(d->m_settingsProvider()) : std::nullopt;
 }
 
 /*!
@@ -191,11 +209,6 @@ void IOptionsPage::setDisplayName(const QString &displayName)
 void IOptionsPage::setCategory(Id category)
 {
     d->m_category = category;
-}
-
-void IOptionsPage::setDisplayCategory(const QString &displayCategory)
-{
-    d->m_displayCategory = displayCategory;
 }
 
 /*!
@@ -251,12 +264,25 @@ void IOptionsPage::apply()
         if (!container->aspects().isEmpty()) {
             BaseAspect *aspect = container->aspects().first();
             QTC_ASSERT(aspect, return);
-            QTC_ASSERT(!aspect->isAutoApply(), container->setAutoApply(false));
+            QTC_ASSERT(!aspect->isAutoApply(), return);
         }
         if (container->isDirty()) {
             container->apply();
             container->writeSettings();
          }
+    }
+}
+
+void IOptionsPage::cancel()
+{
+    if (auto widget = qobject_cast<IOptionsPageWidget *>(d->m_widget))
+         widget->cancel();
+
+    if (d->m_settingsProvider) {
+         AspectContainer *container = d->m_settingsProvider();
+         QTC_ASSERT(container, return);
+         if (container->isDirty())
+            container->cancel();
     }
 }
 
@@ -280,15 +306,6 @@ void IOptionsPage::finish()
     }
 
     delete d->m_widget;
-}
-
-/*!
-    Sets \a categoryIconPath as the path to the category icon of the options
-    page.
-*/
-void IOptionsPage::setCategoryIconPath(const FilePath &categoryIconPath)
-{
-    d->m_categoryIconPath = categoryIconPath;
 }
 
 void IOptionsPage::setSettingsProvider(const std::function<AspectContainer *()> &provider)
@@ -319,6 +336,16 @@ IOptionsPage::IOptionsPage(bool registerGlobally)
 IOptionsPage::~IOptionsPage()
 {
     optionsPages().removeOne(this);
+}
+
+/*!
+    Registers a category with the ID \a id, user-visible name \a displayName, and
+    icon specified by \a iconPath.
+ */
+void IOptionsPage::registerCategory(
+    Utils::Id id, const QString &displayName, const Utils::FilePath &iconPath)
+{
+    g_categories.insert(id, std::make_pair(displayName, iconPath));
 }
 
 /*!
@@ -360,7 +387,7 @@ Id IOptionsPage::category() const
 */
 QString IOptionsPage::displayCategory() const
 {
-    return d->m_displayCategory;
+    return g_categories.value(category()).first;
 }
 
 /*!
@@ -375,7 +402,7 @@ bool IOptionsPage::matches(const QRegularExpression &regexp) const
         d->m_keywordsInitialized = true;
     }
 
-    for (const QString &keyword : d->m_keywords)
+    for (const QString &keyword : std::as_const(d->m_keywords))
         if (keyword.contains(regexp))
             return true;
     return false;

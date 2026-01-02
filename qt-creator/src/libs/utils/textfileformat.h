@@ -3,22 +3,18 @@
 
 #pragma once
 
-#include "expected.h"
+#include "result.h"
+#include "textcodec.h"
 #include "utils_global.h"
 
 #include <QStringList>
-#include <utility>
-
-QT_BEGIN_NAMESPACE
-class QTextCodec;
-class QByteArray;
-QT_END_NAMESPACE
 
 namespace Utils {
 
 class FilePath;
 
-class QTCREATOR_UTILS_EXPORT TextFileFormat  {
+class QTCREATOR_UTILS_EXPORT TextFileFormat
+{
 public:
     enum LineTerminationMode
     {
@@ -32,39 +28,50 @@ public:
 #endif
     };
 
-    enum ReadResult
-    {
+    enum ReadResultCode {
         ReadSuccess,
         ReadEncodingError,
         ReadMemoryAllocationError,
         ReadIOError
     };
 
+    class QTCREATOR_UTILS_EXPORT ReadResult
+    {
+    public:
+        ReadResult() = default;
+        ReadResult(ReadResultCode code) : code(code) {}
+        ReadResult(ReadResultCode code, const QString &error) : code(code), error(error) {}
+
+        ReadResultCode code = ReadSuccess;
+        QString content;
+        QString error;
+        QByteArray decodingErrorSample;
+    };
+
     TextFileFormat();
 
-    static TextFileFormat detect(const QByteArray &data);
+    void detectFromData(const QByteArray &data);
 
     bool decode(const QByteArray &data, QString *target) const;
-    bool decode(const QByteArray &data, QStringList *target) const;
 
-    static ReadResult readFile(const FilePath &filePath, const QTextCodec *defaultCodec,
-                               QStringList *plainText, TextFileFormat *format, QString *errorString,
-                               QByteArray *decodingErrorSample = nullptr);
-    static ReadResult readFile(const FilePath &filePath, const QTextCodec *defaultCodec,
-                               QString *plainText, TextFileFormat *format, QString *errorString,
-                               QByteArray *decodingErrorSample = nullptr);
-    static ReadResult readFileUTF8(const FilePath &filePath, const QTextCodec *defaultCodec,
-                                   QByteArray *plainText, QString *errorString);
-    static tl::expected<QString, std::pair<ReadResult, QString>>
-    readFile(const FilePath &filePath, const QTextCodec *defaultCodec);
+    ReadResult readFile(const FilePath &filePath, const TextEncoding &fallbackEncoding);
 
-    bool writeFile(const FilePath &filePath, QString plainText, QString *errorString) const;
+    static Result<> readFileUtf8(const FilePath &filePath,
+                                 const TextEncoding &fallbackEncoding,
+                                 QByteArray *plainText);
+
+    Result<> writeFile(const FilePath &filePath, QString plainText) const;
 
     static QByteArray decodingErrorSample(const QByteArray &data);
 
     LineTerminationMode lineTerminationMode = NativeLineTerminator;
     bool hasUtf8Bom = false;
-    const QTextCodec *codec = nullptr;
+
+    TextEncoding encoding() const;
+    void setEncoding(const TextEncoding &encoding);
+
+private:
+    TextEncoding m_encoding;
 };
 
 } // namespace Utils

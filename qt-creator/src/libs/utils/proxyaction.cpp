@@ -31,8 +31,7 @@ void ProxyAction::updateState()
         update(m_action, false);
     } else {
         // no active/delegate action, "visible" action is not enabled/visible
-        if (hasAttribute(Hide))
-            setVisible(false);
+        setVisible(!hasAttribute(Hide));
         setEnabled(false);
     }
 }
@@ -58,6 +57,12 @@ void ProxyAction::connectAction()
 QAction *ProxyAction::action() const
 {
     return m_action;
+}
+
+void ProxyAction::setAttributes(ProxyAction::Attributes attributes)
+{
+    m_attributes = attributes;
+    updateState();
 }
 
 void ProxyAction::setAttribute(ProxyAction::Attribute attribute)

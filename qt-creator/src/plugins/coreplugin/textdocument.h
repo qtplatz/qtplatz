@@ -22,21 +22,23 @@ public:
     ~BaseTextDocument() override;
 
     Utils::TextFileFormat format() const;
-    const QTextCodec *codec() const;
-    void setCodec(const QTextCodec *);
-    virtual bool supportsCodec(const QTextCodec *) const;
+
+    Utils::TextEncoding encoding() const;
+    void setEncoding(const Utils::TextEncoding &encoding);
+    virtual bool supportsEncoding(const Utils::TextEncoding &) const;
+
     void switchUtf8Bom();
     bool supportsUtf8Bom() const;
+
     Utils::TextFileFormat::LineTerminationMode lineTerminationMode() const;
 
-    ReadResult read(const Utils::FilePath &filePath, QStringList *plainTextList, QString *errorString);
-    ReadResult read(const Utils::FilePath &filePath, QString *plainText, QString *errorString);
+    ReadResult read(const Utils::FilePath &filePath);
 
     bool hasDecodingError() const;
     QByteArray decodingErrorSample() const;
 
-    bool write(const Utils::FilePath &filePath, const QString &data, QString *errorMessage) const;
-    bool write(const Utils::FilePath &filePath, const Utils::TextFileFormat &format, const QString &data, QString *errorMessage) const;
+    Utils::Result<> write(const Utils::FilePath &filePath, const QString &data) const;
+    Utils::Result<> write(const Utils::FilePath &filePath, const Utils::TextFileFormat &format, const QString &data) const;
 
     void setSupportsUtf8Bom(bool value);
     void setLineTerminationMode(Utils::TextFileFormat::LineTerminationMode mode);

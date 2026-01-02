@@ -5,10 +5,18 @@
 
 #include "utils_global.h"
 
+#include "aspects.h"
+#include "commandline.h"
 #include "port.h"
 
 QT_BEGIN_NAMESPACE
 class QString;
+
+namespace QtTaskTree {
+class ExecutableItem;
+template <typename StorageStruct>
+class Storage;
+} // namespace QtTaskTree
 QT_END_NAMESPACE
 
 namespace Utils {
@@ -36,6 +44,30 @@ public:
 
 private:
     Internal::PortListPrivate * const d;
+};
+
+class QTCREATOR_UTILS_EXPORT PortsInputData
+{
+public:
+    PortList freePorts;
+    CommandLine commandLine;
+    std::function<QList<Port>(const QByteArray &)> portsParser = &Port::parseFromCommandOutput;
+};
+
+using PortsOutputData = Result<QList<Port>>;
+
+QTCREATOR_UTILS_EXPORT QtTaskTree::ExecutableItem portsFromProcessRecipe(
+    const QtTaskTree::Storage<PortsInputData> &input, const QtTaskTree::Storage<PortsOutputData> &output);
+
+class QTCREATOR_UTILS_EXPORT PortListAspect : public Utils::StringAspect
+{
+public:
+    PortListAspect(Utils::AspectContainer *container = nullptr);
+
+    void addToLayoutImpl(Layouting::Layout &parent) override;
+
+    void setPortList(const PortList &ports);
+    PortList portList() const;
 };
 
 } // namespace Utils

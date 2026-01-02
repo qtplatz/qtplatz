@@ -67,24 +67,23 @@ public:
     static Utils::FilePath buildFileName(const Utils::FilePath &path, const QString &baseName, const QString &extension);
 
 protected:
-    virtual BaseFileWizard *create(QWidget *parent, const WizardDialogParameters &parameters) const = 0;
+    virtual BaseFileWizard *create(const WizardDialogParameters &parameters) const = 0;
 
     virtual GeneratedFiles generateFiles(const QWizard *w,
                                          QString *errorMessage) const = 0;
 
-    virtual bool writeFiles(const GeneratedFiles &files, QString *errorMessage) const;
+    virtual Utils::Result<> writeFiles(const GeneratedFiles &files) const;
 
-    virtual bool postGenerateFiles(const QWizard *w, const GeneratedFiles &l, QString *errorMessage) const;
+    virtual Utils::Result<> postGenerateFiles(const QWizard *w, const GeneratedFiles &l) const;
 
     static QString preferredSuffix(const QString &mimeType);
 
-    enum OverwriteResult { OverwriteOk,  OverwriteError,  OverwriteCanceled };
-    static OverwriteResult promptOverwrite(GeneratedFiles *files,
-                                           QString *errorMessage);
-    static bool postGenerateOpenEditors(const GeneratedFiles &l, QString *errorMessage = nullptr);
+    enum OverwriteResult { OverwriteOk, OverwriteCanceled };
+    static Utils::Result<OverwriteResult> promptOverwrite(GeneratedFiles *files);
+    static Utils::Result<> postGenerateOpenEditors(const GeneratedFiles &l);
 
 private:
-    Utils::Wizard *runWizardImpl(const Utils::FilePath &path, QWidget *parent, Utils::Id platform,
+    Utils::Wizard *runWizardImpl(const Utils::FilePath &path, Utils::Id platform,
                                  const QVariantMap &extraValues, bool showWizard = true) final;
 };
 

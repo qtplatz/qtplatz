@@ -5,6 +5,7 @@
 
 #include "utils_global.h"
 
+#include "result.h"
 #include "wizardpage.h"
 
 namespace Utils {
@@ -22,7 +23,7 @@ public:
     ~FileWizardPage() override;
 
     QString fileName() const;
-    QString path() const; // Deprecated: Use filePath()
+    [[deprecated("Use filePath()")]] QString path() const;
 
     Utils::FilePath filePath() const;
 
@@ -37,7 +38,7 @@ public:
     void setAllowDirectoriesInFileSelector(bool allow);
 
     // Validate a base name entry field (potentially containing extension)
-    static bool validateBaseName(const QString &name, QString *errorMessage = nullptr);
+    static Utils::Result<> validateBaseName(const QString &name);
 
 signals:
     void activated();
@@ -45,6 +46,7 @@ signals:
 
 public slots:
     void setPath(const QString &path); // Deprecated: Use setFilePath
+    void setPathVisible(bool visible);
     void setFileName(const QString &name);
     void setFilePath(const Utils::FilePath &filePath);
 

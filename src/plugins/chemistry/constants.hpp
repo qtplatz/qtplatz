@@ -28,10 +28,10 @@
 
 namespace chemistry {
     namespace Constants {
-        const char * const C_CHEM_MODE    = "ChemistryMode";
-		const char * const C_CHEM_EDITOR  = "ChemEditor";
-        const char * const C_SDF_MIMETYPE = "application/sdf";
-        const char * const C_MOL_MIMETYPE = "application/mol";
+        const char C_CHEM_MODE  []  = "ChemistryMode";
+		const char C_CHEM_EDITOR[]  = "ChemEditor";
+        const char C_SDF_MIMETYPE[] = "application/sdf";
+        const char C_MOL_MIMETYPE[] = "application/mol";
     }
 }
 

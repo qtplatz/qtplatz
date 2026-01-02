@@ -1,7 +1,7 @@
 {
     "version": 1,
     "supportedProjectTypes": [ "CMakeProjectManager.CMakeProject", "Qbs.QbsProject", "Qt4ProjectManager.Qt4Project" ],
-    "id": "V.QtQuickApplicationEmptyCompat",
+    "id": "B.QtQuickApplicationEmptyCompat",
     "category": "D.ApplicationQt",
     "trDescription": "Creates a Qt Quick application that contains an empty window.\n\nUse this \"compat\" version if you want to use other build systems than CMake or Qt versions lower than 6.",
     "trDisplayName": "Qt Quick Application (compat)",
@@ -9,7 +9,7 @@
     "icon": "icon.png",
     "iconKind": "Themed",
     "featuresRequired": [ "QtSupport.Wizards.FeatureQt.5.6" ],
-    "enabled": "%{JS: value('Plugins').indexOf('QmakeProjectManager') >= 0 || value('Plugins').indexOf('QbsProjectManager') >= 0 || value('Plugins').indexOf('CMakeProjectManager') >= 0}",
+    "enabled": "%{JS: isAnyPluginRunning(['qmakeprojectmanager', 'qbsprojectmanager', 'cmakeprojectmanager'])}",
 
     "options":
     [
@@ -23,12 +23,13 @@
         { "key": "QtQuickWindowVersion", "value": "%{JS: value('QtVersion').QtQuickWindowVersion}" },
         { "key": "QtQuickVirtualKeyboardImport", "value": "%{JS: value('QtVersion').QtQuickVirtualKeyboardImport}" },
         { "key": "QtQuickFeature", "value": "%{JS: (value('QtQuickVersion')=='') ? 'QtSupport.Wizards.FeatureQt.6.2' : 'QtSupport.Wizards.FeatureQtQuick.%{QtQuickVersion}'}" },
-        { "key": "UseVirtualKeyboardByDefault", "value": "%{JS: value('Plugins').indexOf('Boot2Qt') >= 0 || value('Plugins').indexOf('Boot2QtQdb') >= 0}" },
+        { "key": "UseVirtualKeyboardByDefault", "value": "%{JS: isPluginRunning('boot2qt')}" },
         { "key": "HasTranslation", "value": "%{JS: value('TsFileName') !== ''}" },
         { "key": "SetQPAPhysicalSize", "value": "%{UseVirtualKeyboardByDefault}" },
         { "key": "AdditionalQmlFiles", "value": "" },
         { "key": "AdditionalQmlFilesQbs", "value": "" },
-        { "key": "TargetName", "value": "%{JS: 'app' + value('ProjectName')}" }
+        { "key": "TargetName", "value": "%{JS: 'app' + value('ProjectName')}" },
+        { "key": "EnableCMakeGeneration", "value": "%{JS: false}" }
     ],
 
     "pages":
@@ -36,13 +37,17 @@
         {
             "trDisplayName": "Project Location",
             "trShortTitle": "Location",
-            "typeId": "Project"
+            "typeId": "Project",
+            "data": {
+                "projectNameValidator": "^[A-Za-z0-9_]+$",
+                "trProjectNameValidatorUserMessage": "Project name must use only letters, digits, or underscores."
+            }
         },
         {
             "trDisplayName": "Define Build System",
             "trShortTitle": "Build System",
             "typeId": "Fields",
-            "enabled": "%{JS: !value('IsSubproject')}",
+            "skipForSubprojects": true,
             "data":
             [
                 {
@@ -58,17 +63,17 @@
                             {
                                 "trKey": "qmake",
                                 "value": "qmake",
-                                "condition": "%{JS: value('Plugins').indexOf('QmakeProjectManager') >= 0}"
+                                "condition": "%{JS: isPluginRunning('qmakeprojectmanager')}"
                             },
                             {
                                 "trKey": "CMake",
                                 "value": "cmake",
-                                "condition": "%{JS: value('Plugins').indexOf('CMakeProjectManager') >= 0}"
+                                "condition": "%{JS: isPluginRunning('cmakeprojectmanager')}"
                             },
                             {
                                 "trKey": "Qbs",
                                 "value": "qbs",
-                                "condition": "%{JS: value('Plugins').indexOf('QbsProjectManager') >= 0}"
+                                "condition": "%{JS: isPluginRunning('qbsprojectmanager')}"
                             }
                         ]
                     }
@@ -165,7 +170,6 @@
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
             "typeId": "Kits",
-            "enabled": "%{JS: !value('IsSubproject')}",
             "data": {
                 "projectFilePath": "%{ProjectFile}",
                 "requiredFeatures": [ "QtSupport.Wizards.FeatureQt", "%{QtQuickFeature}" ]

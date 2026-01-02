@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "querydocument.hpp"
+#include "utils/result.h"
 
 using namespace query;
 
@@ -35,13 +36,11 @@ QueryDocument::QueryDocument()
 {
 }
 
-Core::IDocument::OpenResult
-QueryDocument::open(QString *errorString, const Utils::FilePath &filePath,
-                    const Utils::FilePath &realFilePath)
+Utils::Result<> // Core::IDocument::OpenResult
+QueryDocument::open(const Utils::FilePath &filePath
+                    , const Utils::FilePath &realFilePath)
 {
-
-
-    return Core::IDocument::OpenResult::ReadError;
+    return Utils::ResultError( Utils::ResultUnimplemented ); // Core::IDocument::OpenResult::ReadError;
 }
 
 Core::IDocument::ReloadBehavior

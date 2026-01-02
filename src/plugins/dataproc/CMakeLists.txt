@@ -6,6 +6,10 @@ cmake_policy( SET CMP0028 NEW )
 project( Dataproc )
 
 set( PROVIDER "MS-Cheminformatics" )
+set ( PLUGIN_ID "dataproc" )
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
+
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -20,14 +24,19 @@ set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
 qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
 
-########## QtCreator 8 (Qt5/6) plugin.json #############
+########## QtCreator 18 (Qt5/6) plugin.json #############
 if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-  find_package( QtCreator REQUIRED COMPONENTS Core )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "\n    ]" )
+
   configure_file(
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_SOURCE_DIR}/src/plugins/servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
-  )
+    )
 endif()
 ####################### END ##########################
 
@@ -44,7 +53,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}        # version.h
-  ${CMAKE_SOURCE_DIR}/src    # app_version.h
 )
 
 # for debian 10 suport

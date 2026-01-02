@@ -27,8 +27,6 @@ HelperWidgets.ScrollView {
         root.count = c
     }
 
-    property var currMaterialItem: null
-    property var rootItem: null
     property var materialsModel: ContentLibraryBackend.materialsModel
 
     required property var searchBox
@@ -48,20 +46,19 @@ HelperWidgets.ScrollView {
     }
 
     Column {
-        ContentLibraryMaterialContextMenu {
+        ContentLibraryItemContextMenu {
             id: ctxMenu
 
-            hasModelSelection: materialsModel.hasModelSelection
-            importerRunning: materialsModel.importerRunning
+            onApplyToSelected: (add) => root.materialsModel.applyToSelected(ctxMenu.targetItem, add)
 
-            onUnimport: (bundleMat) => root.unimport(bundleMat)
-            onAddToProject: (bundleMat) => materialsModel.addToProject(bundleMat)
+            onUnimport: root.unimport(ctxMenu.targetItem)
+            onAddToProject: root.materialsModel.addToProject(ctxMenu.targetItem)
         }
 
         Repeater {
             id: categoryRepeater
 
-            model: materialsModel
+            model: root.materialsModel
 
             delegate: HelperWidgets.Section {
                 id: section
@@ -73,7 +70,7 @@ HelperWidgets.ScrollView {
                 bottomPadding: StudioTheme.Values.sectionPadding
 
                 caption: bundleCategoryName
-                visible: bundleCategoryVisible && !materialsModel.isEmpty
+                visible: bundleCategoryVisible && !root.materialsModel.isEmpty
                 expanded: bundleCategoryExpanded
                 expandOnClick: false
                 category: "ContentLib_Mat"
@@ -104,6 +101,7 @@ HelperWidgets.ScrollView {
                             height: root.cellHeight
 
                             onShowContextMenu: ctxMenu.popupMenu(modelData)
+                            onAddToProject: root.materialsModel.addToProject(modelData)
                         }
 
                         onCountChanged: root.assignMaxCount()
@@ -114,27 +112,42 @@ HelperWidgets.ScrollView {
 
         Text {
             id: infoText
+
             text: {
-                if (!materialsModel.matBundleExists)
-                    qsTr("No materials available. Make sure you have internet connection.")
-                else if (!ContentLibraryBackend.rootView.isQt6Project)
+                if (!ContentLibraryBackend.rootView.isQt6Project) {
                     qsTr("<b>Content Library</b> materials are not supported in Qt5 projects.")
-                else if (!ContentLibraryBackend.rootView.hasQuick3DImport)
-                    qsTr("To use <b>Content Library</b>, first add the QtQuick3D module in the <b>Components</b> view.")
-                else if (!materialsModel.hasRequiredQuick3DImport)
+                } else if (!ContentLibraryBackend.rootView.hasQuick3DImport) {
+                    qsTr('To use <b>Content Library</b> materials, add the <b>QtQuick3D</b> module and the <b>View3D</b>
+                         component in the <b>Components</b> view, or click
+                         <a href=\"#add_import\"><span style=\"text-decoration:none;color:%1\">
+                         here</span></a>.').arg(StudioTheme.Values.themeInteraction)
+                } else if (!root.materialsModel.hasRequiredQuick3DImport) {
                     qsTr("To use <b>Content Library</b>, version 6.3 or later of the QtQuick3D module is required.")
-                else if (!ContentLibraryBackend.rootView.hasMaterialLibrary)
+                } else if (!ContentLibraryBackend.rootView.hasMaterialLibrary) {
                     qsTr("<b>Content Library</b> is disabled inside a non-visual component.")
-                else if (!searchBox.isEmpty())
+                } else if (!root.materialsModel.bundleExists) {
+                    qsTr("No materials available. Make sure you have an internet connection.")
+                } else if (!searchBox.isEmpty() && root.materialsModel.isEmpty) {
                     qsTr("No match found.")
-                else
+                } else {
                     ""
+                }
             }
+            textFormat: Text.RichText
             color: StudioTheme.Values.themeTextColor
             font.pixelSize: StudioTheme.Values.baseFontSize
             topPadding: 10
             leftPadding: 10
-            visible: materialsModel.isEmpty
+            rightPadding: 10
+            wrapMode: Text.WordWrap
+            width: root.width
+
+            onLinkActivated: ContentLibraryBackend.rootView.addQtQuick3D()
+
+            HoverHandler {
+                enabled: infoText.hoveredLink
+                cursorShape: Qt.PointingHandCursor
+            }
         }
     }
 }

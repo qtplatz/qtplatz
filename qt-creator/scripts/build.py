@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2020 The Qt Company Ltd.
+# Copyright (C) 2024 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
 # import the print function which is used in python 3.x
@@ -10,19 +10,12 @@ import collections
 import os
 import shlex
 import shutil
+import sys
 
 import common
 
 def existing_path(path):
     return path if os.path.exists(path) else None
-
-def default_python3():
-    path_system = os.path.join('/usr', 'bin') if not common.is_windows_platform() else None
-    path = os.environ.get('PYTHON3_PATH') or path_system
-    postfix = '.exe' if common.is_windows_platform() else ''
-    return (path if not path
-            else (existing_path(os.path.join(path, 'python3' + postfix)) or
-                  existing_path(os.path.join(path, 'python' + postfix))))
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='Build Qt Creator for packaging')
@@ -52,7 +45,7 @@ def get_arguments():
                         help='Path to python libraries for use by cdbextension (Windows)')
 
     parser.add_argument('--python3', help='File path to python3 executable for generating translations',
-                        default=default_python3())
+                        default=sys.executable)
 
     parser.add_argument('--no-qtcreator',
                         help='Skip Qt Creator build (only build separate tools)',
@@ -64,6 +57,7 @@ def get_arguments():
                         action='store_true', default=False);
     parser.add_argument('--no-docs', help='Skip documentation generation',
                         action='store_true', default=False)
+    parser.add_argument('--no-sbom', help='Skip SBOM generation', action='store_true', default=False)
     parser.add_argument('--no-build-date', help='Does not show build date in about dialog, for reproducible builds',
                         action='store_true', default=False)
     parser.add_argument('--no-dmg', help='Skip disk image creation (macOS)',
@@ -153,9 +147,12 @@ def common_cmake_arguments(args):
 
     return cmake_args
 
+
+def cmake_option(option):
+    return 'ON' if option else 'OFF'
+
+
 def build_qtcreator(args, paths):
-    def cmake_option(option):
-        return 'ON' if option else 'OFF'
     if args.no_qtcreator:
         return
     if not os.path.exists(paths.build):
@@ -172,10 +169,13 @@ def build_qtcreator(args, paths):
                   '-DCMAKE_PREFIX_PATH=' + ';'.join(prefix_paths),
                   '-DSHOW_BUILD_DATE=' + cmake_option(not args.no_build_date),
                   '-DWITH_DOCS=' + cmake_option(not args.no_docs),
+                  '-DQT_GENERATE_SBOM=' + cmake_option(not args.no_sbom),
                   '-DBUILD_QBS=' + cmake_option(build_qbs),
                   '-DBUILD_DEVELOPER_DOCS=' + cmake_option(not args.no_docs),
+                  '-DBUILD_LIBRARY_SDKTOOLLIB=' + cmake_option(args.with_sdk_tool),
                   '-DBUILD_EXECUTABLE_SDKTOOL=' + cmake_option(args.with_sdk_tool),
                   '-DQTC_FORCE_XCB=ON',
+                  '-DQTC_USE_SYSTEM_LIBARCHIVE=OFF',
                   '-DWITH_TESTS=' + cmake_option(args.with_tests)]
     cmake_args += common_cmake_arguments(args)
 
@@ -233,8 +233,11 @@ def build_wininterrupt(args, paths):
     if not os.path.exists(paths.wininterrupt_build):
         os.makedirs(paths.wininterrupt_build)
     prefix_paths = [common.to_posix_path(os.path.abspath(fp)) for fp in args.prefix_paths]
+    # Needed for Qt SBOM API
+    prefix_paths += [paths.qt]
     cmake_args = ['-DCMAKE_PREFIX_PATH=' + ';'.join(prefix_paths),
-                  '-DCMAKE_INSTALL_PREFIX=' + common.to_posix_path(paths.wininterrupt_install)]
+                  '-DCMAKE_INSTALL_PREFIX=' + common.to_posix_path(paths.wininterrupt_install),
+                  '-DQT_GENERATE_SBOM=' + cmake_option(not args.no_sbom)]
     cmake_args += common_cmake_arguments(args)
     common.check_print_call(['cmake'] + cmake_args + [os.path.join(paths.src, 'src', 'tools', 'wininterrupt')],
                             paths.wininterrupt_build)
@@ -249,11 +252,14 @@ def build_qtcreatorcdbext(args, paths):
     if not os.path.exists(paths.qtcreatorcdbext_build):
         os.makedirs(paths.qtcreatorcdbext_build)
     prefix_paths = [os.path.abspath(fp) for fp in args.prefix_paths]
+    # Needed for Qt SBOM API
+    prefix_paths += [paths.qt]
     if paths.llvm:
         prefix_paths += [paths.llvm]
     prefix_paths = [common.to_posix_path(fp) for fp in prefix_paths]
     cmake_args = ['-DCMAKE_PREFIX_PATH=' + ';'.join(prefix_paths),
-                  '-DCMAKE_INSTALL_PREFIX=' + common.to_posix_path(paths.qtcreatorcdbext_install)]
+                  '-DCMAKE_INSTALL_PREFIX=' + common.to_posix_path(paths.qtcreatorcdbext_install),
+                  '-DQT_GENERATE_SBOM=' + cmake_option(not args.no_sbom)]
     cmake_args += common_cmake_arguments(args)
     common.check_print_call(['cmake'] + cmake_args + [os.path.join(paths.src, 'src', 'libs', 'qtcreatorcdbext')],
                             paths.qtcreatorcdbext_build)
@@ -279,30 +285,31 @@ def package_qtcreator(args, paths):
         if not args.no_cdb:
             common.check_print_call(command + [paths.qtcreatorcdbext_install])
 
+    zip = common.sevenzip_command(args.zip_threads)
     if not args.no_zip:
         if not args.no_qtcreator:
-            common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                     os.path.join(paths.result, 'qtcreator' + args.zip_infix + '.7z'),
-                                     zipPatternForApp(paths)],
+            common.check_print_call(zip
+                                    + [os.path.join(paths.result, 'qtcreator' + args.zip_infix + '.7z'),
+                                       zipPatternForApp(paths)],
                                     paths.install)
-            common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                     os.path.join(paths.result, 'qtcreator' + args.zip_infix + '_dev.7z'),
-                                     '*'],
+            common.check_print_call(zip
+                                    + [os.path.join(paths.result, 'qtcreator' + args.zip_infix + '_dev.7z'),
+                                       '*'],
                                     paths.dev_install)
             if args.with_debug_info:
-                common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                         os.path.join(paths.result, 'qtcreator' + args.zip_infix + '-debug.7z'),
-                                         '*'],
+                common.check_print_call(zip
+                                        + [os.path.join(paths.result, 'qtcreator' + args.zip_infix + '-debug.7z'),
+                                           '*'],
                                         paths.debug_install)
         if common.is_windows_platform():
-            common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                     os.path.join(paths.result, 'wininterrupt' + args.zip_infix + '.7z'),
-                                     '*'],
+            common.check_print_call(zip
+                                    + [os.path.join(paths.result, 'wininterrupt' + args.zip_infix + '.7z'),
+                                       '*'],
                                     paths.wininterrupt_install)
             if not args.no_cdb:
-                common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                         os.path.join(paths.result, 'qtcreatorcdbext' + args.zip_infix + '.7z'),
-                                         '*'],
+                common.check_print_call(zip
+                                        + [os.path.join(paths.result, 'qtcreatorcdbext' + args.zip_infix + '.7z'),
+                                           '*'],
                                         paths.qtcreatorcdbext_install)
 
     if common.is_mac_platform() and not args.no_qtcreator:
@@ -316,12 +323,12 @@ def package_qtcreator(args, paths):
                 app = apps[0]
                 common.codesign(os.path.join(signed_install_path, app))
                 if not args.no_zip:
-                    common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                             os.path.join(paths.result, 'qtcreator' + args.zip_infix + '-signed.7z'),
-                                             app],
+                    common.check_print_call(zip
+                                            + [os.path.join(paths.result, 'qtcreator' + args.zip_infix + '-signed.7z'),
+                                               app],
                                             signed_install_path)
         if not args.no_dmg:
-            common.check_print_call(['python', '-u',
+            common.check_print_call([args.python3, '-u',
                                      os.path.join(paths.src, 'scripts', 'makedmg.py'),
                                      'qt-creator' + args.zip_infix + '.dmg',
                                      'Qt Creator',

@@ -20,10 +20,13 @@
 
 #include <QFocusEvent>
 #include <QHeaderView>
-#include <QVBoxLayout>
+#include <QLoggingCategory>
 #include <QScrollBar>
+#include <QVBoxLayout>
 
 using namespace Utils;
+
+Q_LOGGING_CATEGORY(openEditorsLog, "qtc.core.openeditorswindow", QtWarningMsg);
 
 namespace Core::Internal {
 
@@ -64,8 +67,7 @@ static void selectEditor(OpenEditorsItem *item)
 {
     if (!item)
         return;
-    if (!EditorManagerPrivate::activateEditorForEntry(item->view, item->entry))
-        delete item;
+    EditorManagerPrivate::activateEditorForEntry(item->view, item->entry);
 }
 
 class OpenEditorsView : public QTreeView
@@ -129,26 +131,31 @@ public:
 OpenEditorsWindow::OpenEditorsWindow(QWidget *parent)
     : QFrame(parent, Qt::Popup)
 {
-    m_editorView = new OpenEditorsView;
+    m_openEditorsView = new OpenEditorsView;
 
     setMinimumSize(300, 200);
-    m_editorView->installEventFilter(this);
+    m_openEditorsView->installEventFilter(this);
 
     // We disable the frame on this list view and use a QFrame around it instead.
     // This improves the look with QGTKStyle.
     if (!Utils::HostOsInfo::isMacHost())
-        setFrameStyle(m_editorView->frameStyle());
-    m_editorView->setFrameStyle(QFrame::NoFrame);
+        setFrameStyle(m_openEditorsView->frameStyle());
+    m_openEditorsView->setFrameStyle(QFrame::NoFrame);
 
     auto layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(m_editorView);
+    layout->addWidget(m_openEditorsView);
+
+    // Close the popup and clear it if documents are closed behind the back of the view
+    connect(DocumentModel::model(), &QAbstractItemModel::rowsAboutToBeRemoved, this, [this] {
+        setVisible(false);
+    });
 }
 
 void OpenEditorsWindow::selectAndHide()
 {
+    selectEditor(m_openEditorsView->currentItem());
     setVisible(false);
-    selectEditor(m_editorView->currentItem());
 }
 
 void OpenEditorsWindow::setVisible(bool visible)
@@ -156,27 +163,55 @@ void OpenEditorsWindow::setVisible(bool visible)
     QWidget::setVisible(visible);
     if (visible)
         setFocus();
+    else
+        m_openEditorsView->m_model.clear();
 }
 
 bool OpenEditorsWindow::eventFilter(QObject *obj, QEvent *e)
 {
-    if (obj == m_editorView) {
+    if (obj == m_openEditorsView) {
+        if (e->type() == QEvent::ShortcutOverride) {
+            auto ke = static_cast<QKeyEvent*>(e);
+            switch (ke->key()) {
+            case Qt::Key_Up:
+            case Qt::Key_P:
+                e->accept();
+                return true;
+            case Qt::Key_Down:
+            case Qt::Key_N:
+                e->accept();
+                return true;
+            }
+        }
         if (e->type() == QEvent::KeyPress) {
             auto ke = static_cast<QKeyEvent*>(e);
-            if (ke->key() == Qt::Key_Escape) {
+            switch (ke->key()) {
+            case Qt::Key_Up:
+            case Qt::Key_P:
+                selectNextEditor();
+                return true;
+            case Qt::Key_Down:
+            case Qt::Key_N:
+                selectPreviousEditor();
+                return true;
+            case Qt::Key_Escape:
                 setVisible(false);
                 return true;
-            }
-            if (ke->key() == Qt::Key_Return
-                    || ke->key() == Qt::Key_Enter) {
-                selectEditor(m_editorView->currentItem());
+            case Qt::Key_Return:
+            case Qt::Key_Enter:
+                selectEditor(m_openEditorsView->currentItem());
                 return true;
             }
+
         } else if (e->type() == QEvent::KeyRelease) {
             auto ke = static_cast<QKeyEvent*>(e);
+            qCDebug(openEditorsLog()) << ke;
             if (ke->modifiers() == 0
-                    /*HACK this is to overcome some event inconsistencies between platforms*/
-                    || (ke->modifiers() == Qt::AltModifier
+                /* On some platforms, the key event can claim both that Ctrl is released and that
+                  Ctrl is still pressed, see QTCREATORBUG-31228 */
+                || (ke->modifiers() == Qt::ControlModifier && ke->key() == Qt::Key_Control)
+                /*HACK this is to overcome some event inconsistencies between platforms*/
+                || (ke->modifiers() == Qt::AltModifier
                     && (ke->key() == Qt::Key_Alt || ke->key() == -1))) {
                 selectAndHide();
             }
@@ -187,7 +222,7 @@ bool OpenEditorsWindow::eventFilter(QObject *obj, QEvent *e)
 
 void OpenEditorsWindow::focusInEvent(QFocusEvent *)
 {
-    m_editorView->setFocus();
+    m_openEditorsView->setFocus();
 }
 
 void OpenEditorsView::selectUpDown(bool up)
@@ -221,31 +256,31 @@ void OpenEditorsView::selectUpDown(bool up)
 
 void OpenEditorsWindow::selectPreviousEditor()
 {
-    m_editorView->selectUpDown(false);
+    m_openEditorsView->selectUpDown(false);
 }
 
 void OpenEditorsWindow::selectNextEditor()
 {
-    m_editorView->selectUpDown(true);
+    m_openEditorsView->selectUpDown(true);
 }
 
 QSize OpenEditorsWindow::sizeHint() const
 {
-    return m_editorView->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
+    return m_openEditorsView->sizeHint() + QSize(frameWidth() * 2, frameWidth() * 2);
 }
 
 void OpenEditorsWindow::setEditors(const QList<EditLocation> &globalHistory, EditorView *view)
 {
-    m_editorView->m_model.clear();
+    m_openEditorsView->m_model.clear();
 
     QSet<const DocumentModel::Entry *> entriesDone;
-    m_editorView->addHistoryItems(view->editorHistory(), view, entriesDone);
+    m_openEditorsView->addHistoryItems(view->editorHistory(), view, entriesDone);
 
     // add missing editors from the global history
-    m_editorView->addHistoryItems(globalHistory, view, entriesDone);
+    m_openEditorsView->addHistoryItems(globalHistory, view, entriesDone);
 
     // add purely suspended editors which are not initialised yet
-    m_editorView->addRemainingItems(view, entriesDone);
+    m_openEditorsView->addRemainingItems(view, entriesDone);
 }
 
 static DocumentModel::Entry *entryForEditLocation(const EditLocation &item)

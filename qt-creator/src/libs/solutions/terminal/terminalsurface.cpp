@@ -28,7 +28,7 @@ struct TerminalSurfacePrivate
     TerminalSurfacePrivate(TerminalSurface *surface, const QSize &initialGridSize)
         : m_vterm(vterm_new(initialGridSize.height(), initialGridSize.width()), vterm_free)
         , m_vtermScreen(vterm_obtain_screen(m_vterm.get()))
-        , m_scrollback(std::make_unique<Scrollback>(5000))
+        , m_scrollback(std::make_unique<Scrollback>(100'000'000))
         , q(surface)
     {}
 
@@ -120,6 +120,7 @@ struct TerminalSurfacePrivate
             };
         m_vtermScreenCallbacks.sb_clear = [](void *user) {
             auto p = static_cast<TerminalSurfacePrivate *>(user);
+            emit p->q->cleared();
             return p->sb_clear();
         };
         m_vtermScreenCallbacks.bell = [](void *user) {
@@ -175,7 +176,8 @@ struct TerminalSurfacePrivate
                 return 1;
             };
 
-        vterm_state_set_selection_callbacks(vts, &m_vtermSelectionCallbacks, this, nullptr, 256);
+        vterm_state_set_selection_callbacks(
+            vts, &m_vtermSelectionCallbacks, this, buffer, sizeof buffer);
 
         vterm_state_set_bold_highbright(vts, true);
 
@@ -226,7 +228,7 @@ struct TerminalSurfacePrivate
     {
         TerminalCell result;
         result.width = cell.width;
-        result.text = QString::fromUcs4(cell.chars);
+        result.text = QString::fromUcs4(reinterpret_cast<const char32_t *>(cell.chars));
 
         const VTermColor *bg = &cell.bg;
         const VTermColor *fg = &cell.fg;
@@ -281,8 +283,10 @@ struct TerminalSurfacePrivate
 
     int sb_pushline(int cols, const VTermScreenCell *cells)
     {
+        auto oldSize = m_scrollback->size();
         m_scrollback->emplace(cols, cells);
-        emit q->fullSizeChanged(q->fullSize());
+        if (m_scrollback->size() != oldSize)
+            emit q->fullSizeChanged(q->fullSize());
         return 1;
     }
 
@@ -361,7 +365,7 @@ struct TerminalSurfacePrivate
     }
     int movecursor(VTermPos pos, VTermPos oldpos, int visible)
     {
-        Q_UNUSED(oldpos);
+        Q_UNUSED(oldpos)
         Cursor oldCursor = q->cursor();
         m_cursor.position = {pos.col, pos.row};
         m_cursor.visible = visible > 0;
@@ -396,6 +400,7 @@ struct TerminalSurfacePrivate
     }
 
     std::unique_ptr<VTerm, void (*)(VTerm *)> m_vterm;
+    char buffer[256];
     VTermScreen *m_vtermScreen;
     VTermScreenCallbacks m_vtermScreenCallbacks;
     VTermStateFallbacks m_vtermStateFallbacks;
@@ -459,7 +464,8 @@ std::u32string::value_type TerminalSurface::fetchCharAt(int x, int y) const
     if (cell->chars[0] == 0xffffffff)
         return 0;
 
-    QString s = QString::fromUcs4(cell->chars, 6).normalized(QString::NormalizationForm_C);
+    QString s = QString::fromUcs4(reinterpret_cast<const char32_t *>(cell->chars), 6)
+                    .normalized(QString::NormalizationForm_C);
     const QList<uint> ucs4 = s.toUcs4();
     return std::u32string(ucs4.begin(), ucs4.end()).front();
 }
@@ -643,6 +649,11 @@ void TerminalSurface::sendFocus(bool hasFocus)
         vterm_state_focus_out(vts);
 }
 
+bool TerminalSurface::isInAltScreen()
+{
+    return d->m_altscreen;
+}
+
 void TerminalSurface::setWriteToPty(WriteToPty writeToPty)
 {
     d->m_writeToPty = writeToPty;
@@ -687,6 +698,11 @@ std::reverse_iterator<CellIterator> TerminalSurface::rIteratorAt(QPoint pos) con
 std::reverse_iterator<CellIterator> TerminalSurface::rIteratorAt(int pos) const
 {
     return std::make_reverse_iterator(iteratorAt(pos));
+}
+
+void TerminalSurface::enableLiveReflow(bool enable)
+{
+    vterm_screen_enable_reflow(d->m_vtermScreen, enable);
 }
 
 } // namespace TerminalSolution

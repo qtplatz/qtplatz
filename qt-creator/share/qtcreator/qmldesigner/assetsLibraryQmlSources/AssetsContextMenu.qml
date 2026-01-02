@@ -25,6 +25,8 @@ StudioControls.Menu {
     property var __selectedAssetPathsList: null
     property bool __showInGraphicalShellEnabled: false
 
+    signal openNewFolderDialog(string dirPath)
+
     closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnEscape
 
     function openContextMenuForRoot(rootModelIndex, dirPath, dirName, onFolderCreated)
@@ -83,7 +85,7 @@ StudioControls.Menu {
         root.__selectedAssetPathsList = selectedAssetPathsList
         root.__fileIndex = fileIndex
         root.__dirIndex = dirModelIndex
-        root.__dirPath = AssetsLibraryBackend.assetsModel.filePath(dirModelIndex)
+        root.__dirPath = root.assetsModel.filePath(dirModelIndex)
         root.__isDirectory = false
         root.popup()
     }
@@ -121,12 +123,40 @@ StudioControls.Menu {
     }
 
     StudioControls.MenuItem {
+        id: editInEffectComposerItem
+        text: qsTr("Edit in Effect Composer")
+        visible: root.__fileIndex && root.__selectedAssetPathsList.length === 1
+                 && root.assetsModel.allFilePathsAreComposedEffects(root.__selectedAssetPathsList)
+                 && root.rootView.canCreateEffects
+        height: editInEffectComposerItem.visible ? editInEffectComposerItem.implicitHeight : 0
+        onTriggered: root.rootView.openEffectComposer(root.__selectedAssetPathsList[0])
+    }
+
+    StudioControls.MenuItem {
+        id: editComponent
+        text: qsTr("Edit Component")
+        visible: root.__fileIndex && root.__selectedAssetPathsList.length === 1
+                 && root.rootView.assetIsImported3d(root.__selectedAssetPathsList[0])
+        height: editComponent.visible ? editComponent.implicitHeight : 0
+        onTriggered: root.rootView.editAssetComponent(root.__selectedAssetPathsList[0])
+    }
+
+    StudioControls.MenuItem {
+        id: updateComponent
+        text: qsTr("Reimport 3D Asset")
+        visible: root.__fileIndex && root.__selectedAssetPathsList.length === 1
+                 && root.rootView.assetIsImported3d(root.__selectedAssetPathsList[0])
+        height: editComponent.visible ? editComponent.implicitHeight : 0
+        onTriggered: root.rootView.updateAssetComponent(root.__selectedAssetPathsList[0])
+    }
+
+    StudioControls.MenuItem {
         id: addTexturesItem
         text: qsTr("Add Texture")
         enabled: rootView.hasMaterialLibrary
-        visible: root.__fileIndex && AssetsLibraryBackend.assetsModel.allFilePathsAreTextures(root.__selectedAssetPathsList)
+        visible: root.__fileIndex && root.assetsModel.allFilePathsAreTextures(root.__selectedAssetPathsList)
         height: addTexturesItem.visible ? addTexturesItem.implicitHeight : 0
-        onTriggered: AssetsLibraryBackend.rootView.addTextures(root.__selectedAssetPathsList)
+        onTriggered: root.rootView.addTextures(root.__selectedAssetPathsList)
     }
 
     StudioControls.MenuItem {
@@ -134,7 +164,7 @@ StudioControls.Menu {
         text: qsTr("Add Light Probe")
         enabled: rootView.hasMaterialLibrary && rootView.hasSceneEnv
         visible: root.__fileIndex && root.__selectedAssetPathsList.length === 1
-                 && AssetsLibraryBackend.assetsModel.allFilePathsAreTextures(root.__selectedAssetPathsList)
+                 && root.assetsModel.allFilePathsAreTextures(root.__selectedAssetPathsList)
         height: addLightProbes.visible ? addLightProbes.implicitHeight : 0
         onTriggered: rootView.addLightProbe(root.__selectedAssetPathsList[0])
     }
@@ -145,7 +175,7 @@ StudioControls.Menu {
         visible: root.__fileIndex
         height: deleteFileItem.visible ? deleteFileItem.implicitHeight : 0
         onTriggered: {
-            let deleted = AssetsLibraryBackend.assetsModel.requestDeleteFiles(root.__selectedAssetPathsList)
+            let deleted = root.assetsModel.requestDeleteFiles(root.__selectedAssetPathsList)
             if (!deleted)
                 confirmDeleteFiles.open()
         }
@@ -182,18 +212,9 @@ StudioControls.Menu {
 
     StudioControls.MenuItem {
         text: qsTr("New Folder")
-        visible: AssetsLibraryBackend.assetsModel.haveFiles
         height: visible ? implicitHeight : 0
 
-        NewFolderDialog {
-            id: newFolderDialog
-            parent: root.assetsView
-            dirPath: root.__dirPath
-
-            onAccepted: root.__onFolderCreated(newFolderDialog.createdDirPath)
-        }
-
-        onTriggered: newFolderDialog.open()
+        onTriggered: root.openNewFolderDialog(root.__dirPath)
     }
 
     StudioControls.MenuItem {
@@ -209,11 +230,11 @@ StudioControls.Menu {
         }
 
         onTriggered: {
-            if (!AssetsLibraryBackend.assetsModel.hasChildren(root.__dirIndex)) {
+            if (!root.assetsModel.hasChildren(root.__dirIndex)) {
                 // NOTE: the folder may still not be empty -- it doesn't have files visible to the
                 // user, but that doesn't mean that there are no other files (e.g. files of unknown
                 // types) on disk in this directory.
-                AssetsLibraryBackend.assetsModel.deleteFolderRecursively(root.__dirIndex)
+                root.assetsModel.deleteFolderRecursively(root.__dirIndex)
             } else {
                 confirmDeleteFolderDialog.open()
             }
@@ -222,7 +243,7 @@ StudioControls.Menu {
 
     StudioControls.MenuItem {
         text: qsTr("New Effect")
-        visible: rootView.canCreateEffects()
+        visible: root.rootView.canCreateEffects
         height: visible ? implicitHeight : 0
 
         NewEffectDialog {
@@ -235,15 +256,22 @@ StudioControls.Menu {
     }
 
     StudioControls.MenuItem {
-        text: rootView.showInGraphicalShellMsg()
+        text: root.rootView.showInGraphicalShellMsg()
 
         enabled: root.__showInGraphicalShellEnabled
 
         onTriggered: {
             if (!root.__fileIndex || root.__selectedAssetPathsList.length > 1)
-                rootView.showInGraphicalShell(root.__dirPath)
+                root.rootView.showInGraphicalShell(root.__dirPath)
             else
-                rootView.showInGraphicalShell(root.__selectedAssetPathsList[0])
+                root.rootView.showInGraphicalShell(root.__selectedAssetPathsList[0])
         }
+    }
+
+    StudioControls.MenuItem {
+        text: qsTr("Add to Content Library")
+        visible: root.__fileIndex && root.assetsModel.allFilePathsAreTextures(root.__selectedAssetPathsList)
+        height: visible ? implicitHeight : 0
+        onTriggered: root.rootView.addAssetsToContentLibrary(root.__selectedAssetPathsList)
     }
 }

@@ -3,9 +3,10 @@
 
 #pragma once
 
-#include <QString>
+#include "result.h"
+#include "utils_global.h"
 
-#include <algorithm>
+#include <QString>
 
 #define QTC_WIN_EXE_SUFFIX ".exe"
 
@@ -14,45 +15,15 @@ namespace Utils {
 // Add more as needed.
 enum OsType { OsTypeWindows, OsTypeLinux, OsTypeMac, OsTypeOtherUnix, OsTypeOther };
 
-inline QString osTypeToString(OsType osType)
-{
-    switch (osType) {
-    case OsTypeWindows:
-        return "Windows";
-    case OsTypeLinux:
-        return "Linux";
-    case OsTypeMac:
-        return "Mac";
-    case OsTypeOtherUnix:
-        return "Other Unix";
-    case OsTypeOther:
-    default:
-        return "Other";
-    }
-}
+enum OsArch { OsArchUnknown, OsArchX86, OsArchAMD64, OsArchItanium, OsArchArm, OsArchArm64 };
 
-inline OsType osTypeFromString(const QString &string)
-{
-    if (string == "Windows")
-        return OsTypeWindows;
-    if (string == "Linux")
-        return OsTypeLinux;
-    if (string == "Mac")
-        return OsTypeMac;
-    if (string == "Other Unix")
-        return OsTypeOtherUnix;
-    return OsTypeOther;
-}
+QTCREATOR_UTILS_EXPORT QString osTypeToString(OsType osType);
+QTCREATOR_UTILS_EXPORT Utils::Result<OsType> osTypeFromString(const QString &string);
+QTCREATOR_UTILS_EXPORT Utils::Result<OsArch> osArchFromString(const QString &architecture);
 
 namespace OsSpecificAspects {
 
-inline QString withExecutableSuffix(OsType osType, const QString &executable)
-{
-    QString finalName = executable;
-    if (osType == OsTypeWindows && !finalName.endsWith(QTC_WIN_EXE_SUFFIX))
-        finalName += QLatin1String(QTC_WIN_EXE_SUFFIX);
-    return finalName;
-}
+QTCREATOR_UTILS_EXPORT QString withExecutableSuffix(OsType osType, const QString &executable);
 
 constexpr Qt::CaseSensitivity fileNameCaseSensitivity(OsType osType)
 {
@@ -74,25 +45,7 @@ constexpr Qt::KeyboardModifier controlModifier(OsType osType)
     return osType == OsTypeMac ? Qt::MetaModifier : Qt::ControlModifier;
 }
 
-inline QString pathWithNativeSeparators(OsType osType, const QString &pathName)
-{
-    if (osType == OsTypeWindows) {
-        const int pos = pathName.indexOf('/');
-        if (pos >= 0) {
-            QString n = pathName;
-            std::replace(std::begin(n) + pos, std::end(n), '/', '\\');
-            return n;
-        }
-    } else {
-        const int pos = pathName.indexOf('\\');
-        if (pos >= 0) {
-            QString n = pathName;
-            std::replace(std::begin(n) + pos, std::end(n), '\\', '/');
-            return n;
-        }
-    }
-    return pathName;
-}
+QTCREATOR_UTILS_EXPORT QString pathWithNativeSeparators(OsType osType, const QString &pathName);
 
 } // namespace OsSpecificAspects
 } // namespace Utils

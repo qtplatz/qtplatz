@@ -5,10 +5,10 @@
 
 #include "fileutils.h"
 #include "qtcassert.h"
+#include "stringutils.h"
 #include "utilstr.h"
 
 #include <QDebug>
-#include <QTextCodec>
 
 enum { debug = 0 };
 
@@ -17,16 +17,8 @@ namespace Utils {
 QDebug operator<<(QDebug d, const TextFileFormat &format)
 {
     QDebug nsp = d.nospace();
-    nsp << "TextFileFormat: ";
-    if (format.codec) {
-        nsp << format.codec->name();
-        const QList<QByteArray> aliases = format.codec->aliases();
-        for (const QByteArray &alias : aliases)
-            nsp << ' ' << alias;
-    } else {
-        nsp << "NULL";
-    }
-    nsp << " hasUtf8Bom=" << format.hasUtf8Bom
+    nsp << "TextFileFormat: " << format.encoding().fullDisplayName()
+        << " hasUtf8Bom=" << format.hasUtf8Bom
         << (format.lineTerminationMode == TextFileFormat::LFLineTerminator ? " LF" : " CRLF");
     return d;
 }
@@ -40,7 +32,7 @@ QDebug operator<<(QDebug d, const TextFileFormat &format)
 
     The format comprises
     \list
-    \li Encoding represented by a pointer to a QTextCodec
+    \li Encoding represented by a the name of a codec
     \li Presence of an UTF8 Byte Order Marker (BOM)
     \li Line feed storage convention
     \endlist
@@ -55,33 +47,31 @@ TextFileFormat::TextFileFormat() = default;
     Detects the format of text \a data.
 */
 
-TextFileFormat TextFileFormat::detect(const QByteArray &data)
+void TextFileFormat::detectFromData(const QByteArray &data)
 {
-    TextFileFormat result;
     if (data.isEmpty())
-        return result;
+        return;
     const int bytesRead = data.size();
     const auto buf = reinterpret_cast<const unsigned char *>(data.constData());
     // code taken from qtextstream
     if (bytesRead >= 4 && ((buf[0] == 0xff && buf[1] == 0xfe && buf[2] == 0 && buf[3] == 0)
                            || (buf[0] == 0 && buf[1] == 0 && buf[2] == 0xfe && buf[3] == 0xff))) {
-        result.codec = QTextCodec::codecForName("UTF-32");
+        m_encoding = TextEncoding::Utf32;
     } else if (bytesRead >= 2 && ((buf[0] == 0xff && buf[1] == 0xfe)
                                   || (buf[0] == 0xfe && buf[1] == 0xff))) {
-        result.codec = QTextCodec::codecForName("UTF-16");
+        m_encoding = TextEncoding::Utf16;
     } else if (bytesRead >= 3 && ((buf[0] == 0xef && buf[1] == 0xbb) && buf[2] == 0xbf)) {
-        result.codec = QTextCodec::codecForName("UTF-8");
-        result.hasUtf8Bom = true;
+        m_encoding = TextEncoding::Utf8;
+        hasUtf8Bom = true;
     }
     // end code taken from qtextstream
     const int newLinePos = data.indexOf('\n');
     if (newLinePos == -1)
-        result.lineTerminationMode = NativeLineTerminator;
+        lineTerminationMode = NativeLineTerminator;
     else if (newLinePos == 0)
-        result.lineTerminationMode = LFLineTerminator;
+        lineTerminationMode = LFLineTerminator;
     else
-        result.lineTerminationMode = data.at(newLinePos - 1) == '\r' ? CRLFLineTerminator : LFLineTerminator;
-    return result;
+        lineTerminationMode = data.at(newLinePos - 1) == '\r' ? CRLFLineTerminator : LFLineTerminator;
 }
 
 /*!
@@ -95,222 +85,118 @@ QByteArray TextFileFormat::decodingErrorSample(const QByteArray &data)
     return p < 0 ? data : data.left(p);
 }
 
-enum { textChunkSize = 65536 };
-
-static bool verifyDecodingError(const QString &text, const QTextCodec *codec,
-                                const char *data, const int dataSize,
-                                const bool possibleHeader)
+TextEncoding TextFileFormat::encoding() const
 {
-    const QByteArray verifyBuf = codec->fromUnicode(text); // slow
-    // the minSize trick lets us ignore unicode headers
-    const int minSize = qMin(verifyBuf.size(), dataSize);
-    return (minSize < dataSize - (possibleHeader? 4 : 0)
-            || memcmp(verifyBuf.constData() + verifyBuf.size() - minSize,
-                      data + dataSize - minSize,
-                      minSize));
+    return m_encoding;
 }
 
-// Decode a potentially large file in chunks and append it to target
-// using the append function passed on (fits QStringList and QString).
-
-template <class Target>
-bool decodeTextFileContent(const QByteArray &dataBA,
-                           const TextFileFormat &format,
-                           Target *target,
-                           void (Target::*appendFunction)(const QString &))
+void TextFileFormat::setEncoding(const TextEncoding &encoding)
 {
-    QTC_ASSERT(format.codec, return false);
-
-    QTextCodec::ConverterState state;
-    bool hasDecodingError = false;
-
-    const char *start = dataBA.constData();
-    const char *data = start;
-    const char *end  = data + dataBA.size();
-    // Process chunkwise as QTextCodec allocates too much memory when doing it in one
-    // go. An alternative to the code below would be creating a decoder from the codec,
-    // but its failure detection does not seem be working reliably.
-    for (const char *data = start; data < end; ) {
-        const char *chunkStart = data;
-        const int chunkSize = qMin(int(textChunkSize), int(end - chunkStart));
-        QString text = format.codec->toUnicode(chunkStart, chunkSize, &state);
-        data += chunkSize;
-        // Process until the end of the current multi-byte character. Remaining might
-        // actually contain more than needed so try one-be-one. If EOF is reached with
-        // and characters remain->encoding error.
-        for ( ; state.remainingChars && data < end ; ++data)
-            text.append(format.codec->toUnicode(data, 1, &state));
-        if (state.remainingChars)
-            hasDecodingError = true;
-        if (!hasDecodingError)
-            hasDecodingError =
-                verifyDecodingError(text, format.codec, chunkStart, data - chunkStart,
-                                    chunkStart == start);
-        if (format.lineTerminationMode == TextFileFormat::CRLFLineTerminator)
-            text.remove(QLatin1Char('\r'));
-        (target->*appendFunction)(text);
-    }
-    return !hasDecodingError;
+    m_encoding = encoding;
 }
 
 /*!
-    Returns \a data decoded to a plain string, \a target.
+    Returns \a data decoded to a string, \a target.
 */
 
 bool TextFileFormat::decode(const QByteArray &data, QString *target) const
 {
-    target->clear();
-    return decodeTextFileContent<QString>(data, *this, target, &QString::push_back);
+    QTC_ASSERT(m_encoding.isValid(), return false);
+
+    QStringDecoder decoder(m_encoding.name());
+    *target = decoder.decode(data);
+
+    if (decoder.hasError())
+        return false;
+
+    if (lineTerminationMode == TextFileFormat::CRLFLineTerminator)
+        target->remove(QLatin1Char('\r'));
+
+    return true;
 }
 
 /*!
-    Returns \a data decoded to a list of strings, \a target.
+    Reads a text file from \a filePath into a string. It detects the codec to use
+    from the BOM read file contents. If none is set, it uses \a fallbackEncoding.
+    If the fallback is not set, it uses the text encoding set for the locale.
 
-    Intended for use with progress bars loading large files.
-*/
-
-bool TextFileFormat::decode(const QByteArray &data, QStringList *target) const
-{
-    target->clear();
-    if (data.size() > textChunkSize)
-        target->reserve(5 + data.size() / textChunkSize);
-    return decodeTextFileContent<QStringList>(data, *this, target, &QStringList::append);
-}
-
-// Read text file contents to string or stringlist.
-template <class Target>
-TextFileFormat::ReadResult readTextFile(const FilePath &filePath, const QTextCodec *defaultCodec,
-                                        Target *target, TextFileFormat *format, QString *errorString,
-                                        QByteArray *decodingErrorSampleIn = nullptr)
-{
-    if (decodingErrorSampleIn)
-        decodingErrorSampleIn->clear();
-
-    QByteArray data;
-    try {
-        FileReader reader;
-        if (!reader.fetch(filePath, errorString))
-            return TextFileFormat::ReadIOError;
-        data = reader.data();
-    } catch (const std::bad_alloc &) {
-        *errorString = Tr::tr("Out of memory.");
-        return TextFileFormat::ReadMemoryAllocationError;
-    }
-
-    if (!data.isEmpty())
-        *format = TextFileFormat::detect(data);
-
-    if (!format->codec)
-        format->codec = defaultCodec ? defaultCodec : QTextCodec::codecForLocale();
-
-    if (!format->decode(data, target)) {
-        *errorString = Tr::tr("An encoding error was encountered.");
-        if (decodingErrorSampleIn)
-            *decodingErrorSampleIn = TextFileFormat::decodingErrorSample(data);
-        return TextFileFormat::ReadEncodingError;
-    }
-    return TextFileFormat::ReadSuccess;
-}
-
-/*!
-    Reads a text file from \a filePath into a list of strings, \a plainTextList
-    using \a defaultCodec and text file format \a format.
-
-    Returns whether decoding was possible without errors. If errors occur,
-    returns an error message, \a errorString and a sample error,
-    \a decodingErrorSample.
+    Returns whether decoding was possible without errors. If an error occurs,
+    it is returned together with a decoding error sample.
 */
 
 TextFileFormat::ReadResult
-    TextFileFormat::readFile(const FilePath &filePath, const QTextCodec *defaultCodec,
-                             QStringList *plainTextList, TextFileFormat *format, QString *errorString,
-                             QByteArray *decodingErrorSample /* = 0 */)
-{
-    const TextFileFormat::ReadResult result =
-        readTextFile(filePath, defaultCodec,
-                     plainTextList, format, errorString, decodingErrorSample);
-    if (debug)
-        qDebug().nospace() << Q_FUNC_INFO << filePath << ' ' << *format
-                           << " returns " << result << '/' << plainTextList->size() << " chunks";
-    return result;
-}
-
-/*!
-    Reads a text file from \a filePath into a string, \a plainText using
-    \a defaultCodec and text file format \a format.
-
-    Returns whether decoding was possible without errors.
-
-*/
-
-TextFileFormat::ReadResult
-    TextFileFormat::readFile(const FilePath &filePath, const QTextCodec *defaultCodec,
-                             QString *plainText, TextFileFormat *format, QString *errorString,
-                             QByteArray *decodingErrorSample /* = 0 */)
-{
-    const TextFileFormat::ReadResult result =
-        readTextFile(filePath, defaultCodec,
-                     plainText, format, errorString, decodingErrorSample);
-    if (debug)
-        qDebug().nospace() << Q_FUNC_INFO << filePath << ' ' << *format
-                           << " returns " << result << '/' << plainText->size() << " characters";
-    return result;
-}
-
-TextFileFormat::ReadResult TextFileFormat::readFileUTF8(const FilePath &filePath,
-                                                        const QTextCodec *defaultCodec,
-                                                        QByteArray *plainText, QString *errorString)
+TextFileFormat::readFile(const FilePath &filePath, const TextEncoding &fallbackEncoding)
 {
     QByteArray data;
     try {
-        FileReader reader;
-        if (!reader.fetch(filePath, errorString))
-            return TextFileFormat::ReadIOError;
-        data = reader.data();
+        const Result<QByteArray> res = filePath.fileContents();
+        if (!res)
+            return {TextFileFormat::ReadIOError, res.error()};
+        data = *res;
     } catch (const std::bad_alloc &) {
-        *errorString = Tr::tr("Out of memory.");
-        return TextFileFormat::ReadMemoryAllocationError;
+        return {TextFileFormat::ReadMemoryAllocationError, Tr::tr("Out of memory.")};
     }
 
-    TextFileFormat format = TextFileFormat::detect(data);
-    if (!format.codec)
-        format.codec = defaultCodec ? defaultCodec : QTextCodec::codecForLocale();
+    detectFromData(data);
+
+    if (!m_encoding.isValid())
+        m_encoding = fallbackEncoding;
+    if (!m_encoding.isValid())
+        m_encoding = TextEncoding::encodingForLocale();
+
+    TextFileFormat::ReadResult result;
+    if (!decode(data, &result.content)) {
+        result.code = TextFileFormat::ReadEncodingError;
+        result.error = Tr::tr("An encoding error was encountered.");
+        result.decodingErrorSample = TextFileFormat::decodingErrorSample(data);
+        return result;
+    }
+    return result;
+}
+
+Result<> TextFileFormat::readFileUtf8(const FilePath &filePath,
+                                      const TextEncoding &fallbackEncoding,
+                                      QByteArray *plainText)
+{
+    QByteArray data;
+    try {
+        const Result<QByteArray> res = filePath.fileContents();
+        if (!res)
+            return ResultError(res.error());
+        data = *res;
+    } catch (const std::bad_alloc &) {
+        return ResultError(Tr::tr("Out of memory."));
+    }
+
+    TextFileFormat format;
+    format.detectFromData(data);
+    if (!format.m_encoding.isValid())
+        format.m_encoding = fallbackEncoding;
+    if (!format.m_encoding.isValid())
+        format.m_encoding = TextEncoding::encodingForLocale();
+
     QString target;
-    if (format.codec->name() == "UTF-8" || !format.decode(data, &target)) {
+    if (format.m_encoding.isUtf8() || !format.decode(data, &target)) {
         if (format.hasUtf8Bom)
             data.remove(0, 3);
         if (format.lineTerminationMode == TextFileFormat::CRLFLineTerminator)
             data.replace("\r\n", "\n");
         *plainText = data;
-        return TextFileFormat::ReadSuccess;
+    } else {
+        *plainText = target.toUtf8();
     }
-    *plainText = target.toUtf8();
-    return TextFileFormat::ReadSuccess;
-}
-
-tl::expected<QString, std::pair<TextFileFormat::ReadResult, QString>>
-TextFileFormat::readFile(const FilePath &filePath, const QTextCodec *defaultCodec)
-{
-    QString plainText;
-    TextFileFormat format;
-    QString errorString;
-    const TextFileFormat::ReadResult result =
-        readTextFile(filePath, defaultCodec, &plainText, &format, &errorString, nullptr);
-    if (result != TextFileFormat::ReadSuccess)
-        return tl::unexpected(std::make_pair(result, errorString));
-    return plainText;
+    return ResultOk;
 }
 
 /*!
     Writes out a text file to \a filePath into a string, \a plainText.
 
-    Returns whether decoding was possible without errors. If errors occur,
-    returns an error message, \a errorString.
+    Returns whether decoding was possible without errors.
 */
 
-bool TextFileFormat::writeFile(const FilePath &filePath, QString plainText, QString *errorString) const
+Result<> TextFileFormat::writeFile(const FilePath &filePath, QString plainText) const
 {
-    QTC_ASSERT(codec, return false);
+    QTC_ASSERT(m_encoding.isValid(), return ResultError("No codec"));
 
     // Does the user want CRLF? If that is native,
     // do not let QFile do the work, because it replaces the line ending after the text was encoded,
@@ -321,15 +207,16 @@ bool TextFileFormat::writeFile(const FilePath &filePath, QString plainText, QStr
 
     FileSaver saver(filePath, fileMode);
     if (!saver.hasError()) {
-        if (hasUtf8Bom && codec->name() == "UTF-8")
-            saver.write("\xef\xbb\xbf", 3);
-        saver.write(codec->fromUnicode(plainText));
+        if (hasUtf8Bom && m_encoding.isUtf8())
+            saver.write({"\xef\xbb\xbf", 3});
+        saver.write(m_encoding.encode(plainText));
     }
-    const bool ok = saver.finalize(errorString);
+
+    const Result<> result = saver.finalize();
     if (debug)
         qDebug().nospace() << Q_FUNC_INFO << filePath << ' ' << *this <<  ' ' << plainText.size()
-                           << " bytes, returns " << ok;
-    return ok;
+                           << " bytes, returns " << result.has_value();
+    return result;
 }
 
 } // namespace Utils

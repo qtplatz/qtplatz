@@ -26,12 +26,6 @@ class CORE_EXPORT IDocument : public QObject
     Q_OBJECT
 
 public:
-    enum class OpenResult {
-        Success,
-        ReadError,
-        CannotHandle
-    };
-
     // This enum must match the indexes of the reloadBehavior widget
     // in generalsettings.ui
     enum ReloadSetting {
@@ -60,18 +54,20 @@ public:
         FlagIgnore
     };
 
+    enum class SaveOption { AutoSave, DisableFormatOnSave, None };
+
     IDocument(QObject *parent = nullptr);
     ~IDocument() override;
 
     void setId(Utils::Id id);
     Utils::Id id() const;
 
-    virtual OpenResult open(QString *errorString, const Utils::FilePath &filePath, const Utils::FilePath &realFilePath);
+    virtual Utils::Result<> open(const Utils::FilePath &filePath, const Utils::FilePath &realFilePath);
 
-    bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false);
+    Utils::Result<> save(const Utils::FilePath &filePath = {}, SaveOption option = SaveOption::None);
 
     virtual QByteArray contents() const;
-    virtual bool setContents(const QByteArray &contents);
+    virtual Utils::Result<> setContents(const QByteArray &contents);
     virtual void formatContents();
 
     const Utils::FilePath &filePath() const;
@@ -82,6 +78,8 @@ public:
     QString plainDisplayName() const;
     void setUniqueDisplayName(const QString &name);
     QString uniqueDisplayName() const;
+
+    QString toolTip() const;
 
     bool isFileReadOnly() const;
     bool isTemporary() const;
@@ -100,11 +98,11 @@ public:
     void setSuspendAllowed(bool value);
 
     virtual ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const;
-    virtual bool reload(QString *errorString, ReloadFlag flag, ChangeType type);
+    virtual Utils::Result<> reload(ReloadFlag flag, ChangeType type);
 
     void checkPermissions();
 
-    bool autoSave(QString *errorString, const Utils::FilePath &filePath);
+    Utils::Result<> autoSave(const Utils::FilePath &filePath);
     void setRestoredFrom(const Utils::FilePath &path);
     void removeAutoSaveFile();
 
@@ -125,15 +123,14 @@ signals:
 
     void aboutToReload();
     void reloadFinished(bool success);
-    void aboutToSave(const Utils::FilePath &filePath, bool autoSave);
-    void saved(const Utils::FilePath &filePath, bool autoSave);
+    void aboutToSave(const Utils::FilePath &filePath, SaveOption option);
+    void saved(const Utils::FilePath &filePath, SaveOption option);
 
     void filePathChanged(const Utils::FilePath &oldName, const Utils::FilePath &newName);
 
 protected:
-    virtual bool saveImpl(QString *errorString,
-                          const Utils::FilePath &filePath = Utils::FilePath(),
-                          bool autoSave = false);
+    virtual Utils::Result<> saveImpl(
+        const Utils::FilePath &filePath = {}, SaveOption option = SaveOption::None);
 
 private:
     Internal::IDocumentPrivate *d;

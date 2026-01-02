@@ -25,7 +25,8 @@
 #include "document.hpp"
 #include "moltablewnd.hpp"
 #include "outputwidget.hpp"
-#include <adui/manhattanstyle.hpp>
+//#include <adui/manhattanstyle.hpp>
+#include <coreplugin/manhattanstyle.h>
 #include <adportable/debug.hpp>
 #include <qtwrapper/settings.hpp>
 #include <QAbstractButton>
@@ -71,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     Q_INIT_RESOURCE( adui );
 #endif
     auto baseName = QApplication::style()->objectName();
-    qApp->setStyle( new adui::ManhattanStyle( baseName ) );
+    qApp->setStyle( new ManhattanStyle( baseName ) );
 
     setDockNestingEnabled( true );
     setCorner( Qt::BottomLeftCorner, Qt::LeftDockWidgetArea );

@@ -6,7 +6,7 @@
 #include "utils_global.h"
 
 #include "completinglineedit.h"
-#include "expected.h"
+#include "result.h"
 #include "storekey.h"
 
 #include <QAbstractButton>
@@ -22,33 +22,6 @@ QT_END_NAMESPACE
 namespace Utils {
 
 class FancyLineEditPrivate;
-
-class QTCREATOR_UTILS_EXPORT FancyIconButton : public QAbstractButton
-{
-    Q_OBJECT
-    Q_PROPERTY(float iconOpacity READ iconOpacity WRITE setIconOpacity)
-    Q_PROPERTY(bool autoHide READ hasAutoHide WRITE setAutoHide)
-public:
-    explicit FancyIconButton(QWidget *parent = nullptr);
-    void paintEvent(QPaintEvent *event) override;
-    float iconOpacity() { return m_iconOpacity; }
-    void setIconOpacity(float value) { m_iconOpacity = value; update(); }
-    void animateShow(bool visible);
-
-    void setAutoHide(bool hide) { m_autoHide = hide; }
-    bool hasAutoHide() const { return m_autoHide; }
-
-    QSize sizeHint() const override;
-
-protected:
-    void keyPressEvent(QKeyEvent *ke) override;
-    void keyReleaseEvent(QKeyEvent *ke) override;
-
-private:
-    float m_iconOpacity = 1.0f;
-    bool m_autoHide = false;
-    QIcon m_icon;
-};
 
 class QTCREATOR_UTILS_EXPORT FancyLineEdit : public CompletingLineEdit
 {
@@ -87,7 +60,8 @@ public:
     // Completion
 
     // Enable a history completer with a history of entries.
-    void setHistoryCompleter(const Utils::Key &historyKey, bool restoreLastItemFromHistory = false);
+    void setHistoryCompleter(
+        const Utils::Key &historyKey, bool restoreLastItemFromHistory = false, int maxLines = 6);
     // Sets a completer that is not a history completer.
     void setSpecialCompleter(QCompleter *completer);
 
@@ -101,11 +75,16 @@ public:
     //  Validation
 
     // line edit, (out)errorMessage -> valid?
-    using AsyncValidationResult = Utils::expected_str<QString>;
+    using AsyncValidationResult = Result<QString>;
     using AsyncValidationFuture = QFuture<AsyncValidationResult>;
     using AsyncValidationFunction = std::function<AsyncValidationFuture(QString)>;
-    using SynchronousValidationFunction = std::function<bool(FancyLineEdit *, QString *)>;
-    using ValidationFunction = std::variant<AsyncValidationFunction, SynchronousValidationFunction>;
+    using SynchronousValidationFunction = std::function<Result<>(FancyLineEdit &)>;
+    using SimpleSynchronousValidationFunction = std::function<Result<>(const QString &)>;
+    using ValidationFunction = std::variant<
+        AsyncValidationFunction,
+        SynchronousValidationFunction,
+        SimpleSynchronousValidationFunction
+    >;
 
     enum State { Invalid, DisplayingPlaceholderText, Valid };
 
@@ -122,6 +101,8 @@ public:
 
     static void setCamelCaseNavigationEnabled(bool enabled);
     static void setCompletionShortcut(const QKeySequence &shortcut);
+
+    void setValueAlternatives(const QStringList &values);
 
 protected:
     // Custom behaviour can be added here.
@@ -148,7 +129,7 @@ private:
 
     void handleValidationResult(AsyncValidationResult result, const QString &oldText);
 
-    static bool validateWithValidator(FancyLineEdit *edit, QString *errorMessage);
+    static Result<> validateWithValidator(FancyLineEdit &edit);
     // Unimplemented, to force the user to make a decision on
     // whether to use setHistoryCompleter() or setSpecialCompleter().
     void setCompleter(QCompleter *);

@@ -56,10 +56,6 @@ Component {
 }
 
 Component {
-  name: "QLocale"
-}
-
-Component {
   name: "QPen"
 }
 
@@ -288,10 +284,6 @@ Component {
 }
 
 Component {
-  name: "Qt::InputMethodHints"
-}
-
-Component {
   name: "QRgb"
 }
 
@@ -318,4 +310,13 @@ Component {
 Component {
   name: "QScxmlError"
 }
+
+Component {
+  name: "QList<QQuickLayoutItemProxy*>"
+}
+
+Component {
+  name: "VertexColorMaskFlags"
+}
+
 }

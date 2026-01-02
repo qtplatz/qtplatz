@@ -38,6 +38,7 @@
 #include "mode.hpp"
 #include "navigationwidgetfactory.hpp"
 #include "sessionmanager.hpp"
+#include "utils/result.h"
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/modemanager.h>
@@ -228,19 +229,21 @@ DataprocPlugin::actionManager()
     return impl_->actionManager_.get();
 }
 
-bool
-DataprocPlugin::initialize( const QStringList& arguments, QString* error_message )
+Utils::Result<>
+DataprocPlugin::initialize( const QStringList& arguments )
 {
     Q_UNUSED( arguments );
 
+    ADDEBUG() << "#### DataprocPlugin::" << __FUNCTION__ << " ####";
+
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
-        return false;
+        return Utils::ResultError( "Core instance returns null" );
 
     if ( ! impl_->ini() )
-        return false;
+        return Utils::ResultError( "Internal initialization failure" );
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void
@@ -267,18 +270,11 @@ DataprocPlugin::aboutToShutdown()
     impl_->mainWindow_->OnFinalClose();
     impl_->fin();
 
-#if ! defined NDEBUG
-    ADDEBUG() << "## Shutdown: "
-              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
-                                                     , boost::dll::program_location().parent_path() );
+#if ! defined NDEBUG || 1
+    ADDEBUG() << "#### DataprocPlugin::" << __FUNCTION__ << " ####";
 #endif
 
 	return SynchronousShutdown;
 }
 
 //////////////
-
-
-#if QTC_VERSION <= 0x03'02'81
-Q_EXPORT_PLUGIN( DataprocPlugin )
-#endif

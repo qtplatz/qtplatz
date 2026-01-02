@@ -17,10 +17,10 @@
 
 namespace Utils {
 
-static bool isFileDropMime(const QMimeData *d, QList<DropSupport::FileSpec> *files = nullptr)
+static bool isFileDropMime(const QMimeData *data, QList<DropSupport::FileSpec> *files = nullptr)
 {
     // internal drop
-    if (const auto internalData = qobject_cast<const DropMimeData *>(d)) {
+    if (const auto internalData = qobject_cast<const DropMimeData *>(data)) {
         if (files)
             *files = internalData->files();
         return !internalData->files().isEmpty();
@@ -29,27 +29,23 @@ static bool isFileDropMime(const QMimeData *d, QList<DropSupport::FileSpec> *fil
     // external drop
     if (files)
         files->clear();
+
     // Extract dropped files from Mime data.
-    if (!d->hasUrls())
+    if (!data->hasUrls())
         return false;
-    const QList<QUrl> urls = d->urls();
+
+    const QList<QUrl> urls = data->urls();
     if (urls.empty())
         return false;
-    // Try to find local files
-    bool hasFiles = false;
-    const QList<QUrl>::const_iterator cend = urls.constEnd();
-    for (QList<QUrl>::const_iterator it = urls.constBegin(); it != cend; ++it) {
-        QUrl url = *it;
-        const QString fileName = url.toLocalFile();
-        if (!fileName.isEmpty()) {
-            hasFiles = true;
-            if (files)
-                files->append(DropSupport::FileSpec(FilePath::fromString(fileName)));
-            else
-                break; // No result list, sufficient for checking
-        }
-    }
-    return hasFiles;
+
+    // We know we'll have hits if the url list is not empty.
+    if (!files)
+        return true;
+
+    for (const QUrl &url : urls)
+        files->append(DropSupport::FileSpec(FilePath::fromUrl(url)));
+
+    return !files->isEmpty();
 }
 
 DropSupport::DropSupport(QWidget *parentWidget, const DropFilterFunction &filterFunction)
@@ -108,7 +104,7 @@ bool DropSupport::eventFilter(QObject *obj, QEvent *event)
                     de->acceptProposedAction();
                 bool needToScheduleEmit = m_files.isEmpty();
                 m_files.append(tempFiles);
-                m_dropPos = de->pos();
+                m_dropPos = de->position().toPoint();
                 if (needToScheduleEmit) { // otherwise we already have a timer pending
                     // Delay the actual drop, to avoid conflict between
                     // actions that happen when opening files, and actions that the item views do
@@ -122,7 +118,7 @@ bool DropSupport::eventFilter(QObject *obj, QEvent *event)
                 accepted = true;
                 bool needToScheduleEmit = m_values.isEmpty();
                 m_values.append(fileDropMimeData->values());
-                m_dropPos = de->pos();
+                m_dropPos = de->position().toPoint();
                 if (needToScheduleEmit)
                     QTimer::singleShot(100, this, &DropSupport::emitValuesDropped);
             }

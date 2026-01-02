@@ -20,7 +20,7 @@ QTCREATOR_UTILS_EXPORT QString winErrorMessage(unsigned long error)
 {
     QString rc = QString::fromLatin1("#%1: ").arg(error);
 #ifdef Q_OS_WIN
-    ushort *lpMsgBuf;
+    char16_t *lpMsgBuf;
 
     const int len = FormatMessage(
             FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -132,7 +132,7 @@ QTCREATOR_UTILS_EXPORT bool is64BitWindowsSystem()
 
 QTCREATOR_UTILS_EXPORT bool is64BitWindowsBinary(const FilePath &binaryIn)
 {
-       QTC_ASSERT(!binaryIn.isEmpty() && !binaryIn.needsDevice(), return false);
+       QTC_ASSERT(!binaryIn.isEmpty() && binaryIn.isLocal(), return false);
 #ifdef Q_OS_WIN32
 #  ifdef __GNUC__   // MinGW lacking some definitions/winbase.h
 #    define SCS_64BIT_BINARY 6
@@ -160,7 +160,7 @@ QTCREATOR_UTILS_EXPORT QString imageName(quint32 processId)
     wchar_t path[MAX_PATH];
     DWORD pathLen = MAX_PATH;
     if (QueryFullProcessImageName(handle, 0, path, &pathLen))
-        result = QString::fromUtf16(reinterpret_cast<const ushort*>(path));
+        result = QString::fromUtf16(reinterpret_cast<const char16_t*>(path));
     CloseHandle(handle);
 #else
     Q_UNUSED(processId)

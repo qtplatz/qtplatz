@@ -139,7 +139,7 @@ private:
 
     void ensureMimeOverlays() const
     {
-        for (const std::function<void()> &f : m_mimeUpdater)
+        for (const std::function<void()> &f : std::as_const(m_mimeUpdater))
             f();
         m_mimeUpdater.clear();
     }
@@ -164,7 +164,7 @@ QIcon FileIconProviderImplementation::icon(IconType type) const
 QString FileIconProviderImplementation::type(const QFileInfo &fi) const
 {
     const FilePath fPath = FilePath::fromString(fi.filePath());
-    if (fPath.needsDevice()) {
+    if (!fPath.isLocal()) {
         if (fi.isDir()) {
 #ifdef Q_OS_WIN
         return QGuiApplication::translate("QAbstractFileIconProvider", "File Folder", "Match Windows Explorer");
@@ -214,7 +214,7 @@ QIcon FileIconProviderImplementation::icon(const FilePath &filePath) const
     // Check if its one of the virtual devices directories
     if (filePath.path().startsWith(FilePath::specialRootPath())) {
         // If the filepath does not need a device, it is a virtual device directory
-        if (!filePath.needsDevice())
+        if (filePath.isLocal())
             return dirIcon();
     }
 
@@ -237,7 +237,7 @@ QIcon FileIconProviderImplementation::icon(const FilePath &filePath) const
             return *icon;
     }
 
-    if (filePath.needsDevice())
+    if (!filePath.isLocal())
         return isDir ? dirIcon() : unknownFileIcon();
 
     // Get icon from OS (and cache it based on suffix!)
@@ -345,7 +345,7 @@ QIcon directoryIcon(const QString &overlay)
     // Overlay the SP_DirIcon with the custom icons
     const QSize desiredSize = QSize(16, 16);
 
-    const QPixmap dirPixmap = QApplication::style()->standardIcon(QStyle::SP_DirIcon).pixmap(desiredSize);
+    const QPixmap dirPixmap = dirIcon().pixmap(desiredSize);
     const QIcon overlayIcon(overlay);
     QIcon result;
     result.addPixmap(FileIconProvider::overlayIcon(dirPixmap, overlayIcon));

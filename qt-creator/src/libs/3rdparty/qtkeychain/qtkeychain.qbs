@@ -1,18 +1,21 @@
+import qbs.Utilities
+
 QtcLibrary {
     name: "qtkeychain"
 
     property bool useWinCredentialsStore: qbs.targetOS.contains("windows")
+    property bool useDBus: qbs.targetOS.contains("unix") && !qbs.targetOS.contains("darwin")
 
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
-    Depends { name: "Qt.dbus"; condition: qbs.targetOS.contains("linux") }
-    Depends { name: "libsecret-1"; required: false }
+    Depends { name: "Qt.dbus"; condition: useDBus }
+    Depends { id: libsecret; name: "libsecret-1"; required: false }
 
-    cpp.defines: base.concat(["QTKEYCHAIN_LIBRARY"])
+    Properties { cpp.defines: base.concat(["QTKEYCHAIN_LIBRARY"]) }
 
     Properties {
         condition: useWinCredentialsStore
-        cpp.defines: outer.concat(["USE_CREDENTIAL_STORE=1"])
+        cpp.defines: "USE_CREDENTIAL_STORE=1"
         cpp.dynamicLibraries: ["advapi32"]
     }
 
@@ -25,6 +28,22 @@ QtcLibrary {
         condition: qbs.targetOS.contains("macos")
         cpp.frameworks: [ "Foundation", "Security" ]
     }
+
+    Properties {
+        condition: libsecret.present
+        cpp.defines: "HAVE_LIBSECRET=1"
+    }
+
+    Properties {
+        condition: useDBus
+        cpp.defines: "KEYCHAIN_DBUS=1"
+    }
+
+    Properties {
+        condition: Utilities.versionCompare(qbs.version, "2.6") >= 0
+        qbsModuleProviders: ["Qt", "qbspkgconfig"]
+    }
+    Properties { qbsModuleProviders: undefined }
 
     files: [
         "keychain.cpp",
@@ -55,14 +74,9 @@ QtcLibrary {
     }
 
     Group {
-        name: "qtkeychain Linux files"
-        condition: qbs.targetOS.contains("linux")
+        name: "qtkeychain DBUS files"
+        condition: useDBus
 
-        Group {
-            name: "qtkeychain libsecret support"
-            condition: "libsecret-1".present
-            cpp.defines: outer.concat(["HAVE_LIBSECRET=1"])
-        }
         Group {
             name: "dbus sources"
             fileTags: "qt.dbus.interface"
@@ -71,11 +85,10 @@ QtcLibrary {
 
         Group {
             name: "qtkeychain dbus support"
-            cpp.defines: outer.concat(["KEYCHAIN_DBUS=1"])
-            cpp.cxxFlags: outer.concat("-Wno-cast-function-type")
+            cpp.cxxFlags: outer.concat([
+                "-Wno-cast-function-type", "-Wno-missing-field-initializers",
+                "-Wno-ignored-attributes"])
             files: [
-                "gnomekeyring.cpp",
-                "gnomekeyring_p.h",
                 "keychain_unix.cpp",
                 "libsecret.cpp",
                 "libsecret_p.h",
@@ -83,6 +96,11 @@ QtcLibrary {
                 "plaintextstore_p.h",
             ]
         }
+    }
+
+    Group {
+        name: "CMake helpers"
+        files: "cmake/**/*"
     }
 
     Export {

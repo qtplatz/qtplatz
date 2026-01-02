@@ -12,16 +12,27 @@ import QtQuickDesignerColorPalette
 Column {
     id: root
 
+    // There seems to be an issue on Windows and macOS with ColorPickers canvas not being painted
+    // on initialization, because ColorEditorPopup is invisible at init time, so we use this signal
+    // to explicitly pass visibility status.
+    signal aboutToBeShown
+
     property bool eyeDropperActive: ColorPaletteBackend.eyeDropperActive
 
     property bool supportGradient: false
     property bool shapeGradients: false
+
+    // Gradients on MCUs are limited to Basic and Shape Linear Gradient.
+    property bool mcuGradients: false
+
     property alias gradientLine: gradientLine
     property alias popupHexTextField: popupHexTextField
     property alias gradientPropertyName: root.gradientModel.gradientPropertyName
     property alias gradientOrientation: gradientOrientation
 
     property alias gradientModel: gradientModel
+
+    property Window parentWindow: null
 
     property bool isInValidState: false
 
@@ -176,7 +187,7 @@ Column {
             icon: StudioTheme.Constants.eyeDropper
             pixelSize: StudioTheme.Values.myIconFontSize * 1.4
             tooltip: qsTr("Eye Dropper")
-            onClicked: ColorPaletteBackend.eyeDropper()
+            onClicked: ColorPaletteBackend.invokeEyeDropper()
         }
     }
 
@@ -224,12 +235,12 @@ Column {
         ceMode.items.append({
                                 value: "RadialGradient",
                                 text: qsTr("Radial"),
-                                enabled: root.supportGradient && root.shapeGradients
+                                enabled: root.supportGradient && root.shapeGradients && !root.mcuGradients
                             })
         ceMode.items.append({
                                 value: "ConicalGradient",
                                 text: qsTr("Conical"),
-                                enabled: root.supportGradient && root.shapeGradients
+                                enabled: root.supportGradient && root.shapeGradients && !root.mcuGradients
                             })
     }
 
@@ -428,6 +439,13 @@ Column {
                 hsvSaturationSpinBox.value = colorPicker.saturationHSV
                 hsvValueSpinBox.value = colorPicker.value
                 hsvAlphaSpinBox.value = colorPicker.alpha
+            }
+
+            Connections {
+                target: root
+                function onAboutToBeShown() {
+                    colorPicker.aboutToBeShown()
+                }
             }
         }
 

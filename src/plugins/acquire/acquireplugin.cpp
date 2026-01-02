@@ -29,6 +29,7 @@
 #include "mainwindow.hpp"
 #include "idgmodimpl.hpp"
 #include "document.hpp"
+#include "utils/result.h"
 #include <adcontrols/massspectrometerbroker.hpp>
 #include <adcontrols/massspectrometer.hpp>
 #include <adextension/isequenceimpl.hpp>
@@ -68,11 +69,10 @@ acquireplugin::~acquireplugin()
 #endif
 }
 
-bool
-acquireplugin::initialize( const QStringList &arguments, QString *errorString )
+Utils::Result<>
+acquireplugin::initialize( const QStringList &arguments )
 {
     Q_UNUSED(arguments)
-    Q_UNUSED(errorString)
 
     mainWindow_->activateWindow();
     mainWindow_->createActions();
@@ -85,24 +85,15 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
 
     if ( QWidget * widget = mainWindow_->createContents( mode_.get() ) )
         mode_->setWidget( widget );
-#if QTC_VERSION <= 0x03'02'81
-    addObject( mode_.get() );
-#endif
 
     // add instrument controller
     for ( auto iController : document::instance()->iControllers() ) {
-#if QTC_VERSION <= 0x03'02'81
-        addObject( iController );
-#endif
         connect( iController, &adextension::iController::connected, mainWindow_, &MainWindow::iControllerConnected );
     }
 
     // no time function supported.
     if ( auto iExtension = document::instance()->iSequence() ) {
         MainWindow::instance()->getEditorFactories( *iExtension );
-#if QTC_VERSION <= 0x03'02'81
-        addObject( iExtension );
-#endif
     }
 
     QAction *action = new QAction(tr("acquire action"), this);
@@ -117,7 +108,7 @@ acquireplugin::initialize( const QStringList &arguments, QString *errorString )
     menu->addAction(cmd);
     am->actionContainer(Core::Constants::M_TOOLS)->addMenu(menu);
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void

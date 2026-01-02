@@ -8,7 +8,7 @@
 
 #include <extensionsystem/iplugin.h>
 
-#include <solutions/tasking/tasktreerunner.h>
+#include <QtTaskTree/QSingleTaskTreeRunner>
 
 #include <QObject>
 #include <QTimer>
@@ -40,9 +40,13 @@ public:
     void setCustomFilters(QList<ILocatorFilter *> f);
     int refreshInterval() const;
     void setRefreshInterval(int interval);
+    bool relativePaths() const;
+    void setRelativePaths(bool use);
 
     static bool useCenteredPopupForShortcut();
     static void setUseCenteredPopupForShortcut(bool center);
+    static bool useTabCompletion();
+    static void setUseTabCompletion(bool useTabCompletion);
 
     static void showFilter(ILocatorFilter *filter, LocatorWidget *widget);
 
@@ -63,6 +67,10 @@ private:
     struct Settings
     {
         bool useCenteredPopup = false;
+        bool useTabCompletion = true;
+        bool relativePaths = false;
+        // only for the default:
+        const std::chrono::minutes refreshInterval = std::chrono::minutes(60);
     };
 
     bool m_settingsInitialized = false;
@@ -71,7 +79,7 @@ private:
     QList<ILocatorFilter *> m_customFilters;
     QMap<Utils::Id, QAction *> m_filterActionMap;
     QTimer m_refreshTimer;
-    Tasking::TaskTreeRunner m_taskTreeRunner;
+    QSingleTaskTreeRunner m_taskTreeRunner;
     QList<ILocatorFilter *> m_refreshingFilters;
 };
 

@@ -64,7 +64,7 @@ namespace dataproc {
         explicit DataprocPlugin();
 
         // implement ExtensionSystem::IPlugin
-        bool initialize(const QStringList &arguments, QString *error_message) override;
+        Utils::Result<> initialize(const QStringList &arguments) override;
         void extensionsInitialized() override;
         ShutdownFlag aboutToShutdown() override;
 

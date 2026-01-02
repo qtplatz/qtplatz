@@ -32,8 +32,10 @@
 
 namespace qtwrapper {
     struct filepath {
-#if QTC_VERSION >= 0x08'00'00
+#if QTC_VERSION >= 0x08'00'00 && QTC_VERSION < 0x10'00'00
         static QString toString( const Utils::FilePath& t ) { return t.toString(); }
+#elif QTC_VERSION >= 0x10'00'00
+        static QString toString( const Utils::FilePath& t ) { return t.toUrlishString(); }
 #endif
         static QString toString( QString&& t )              { return t; }
     };

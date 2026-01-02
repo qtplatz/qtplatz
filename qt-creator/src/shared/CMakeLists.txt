@@ -1,7 +1,7 @@
-#add_subdirectory(designerintegrationv2)
-#add_subdirectory(proparser)
+# add_subdirectory(designerintegrationv2)  #  <-- deleted for qtplatz
+# add_subdirectory(proparser)  #  <-- deleted for qtplatz
 add_subdirectory(qtsingleapplication)
-if ( FALSE )
+if ( FALSE )  #  <-- deleted for qtplatz
 add_subdirectory(help)
 add_subdirectory(registryaccess)
 
@@ -10,6 +10,7 @@ qtc_add_public_header(qtcreator_pch.h)
 qtc_add_public_header(qtcreator_gui_pch.h)
 
 option(BUILD_QBS "Build Qbs together with Qt Creator" OFF)
+option(WITH_QBS_DOCS "Build Qbs documentation" ${WITH_DOCS})
 
 add_feature_info("Build Qbs" BUILD_QBS "")
 if (BUILD_QBS)
@@ -31,7 +32,7 @@ if (BUILD_QBS)
   set(INSTALL_PUBLIC_HEADERS OFF CACHE BOOL "")
   set(WITH_TESTS OFF)
   set(WITH_PROJECT_FILE_UPDATES ON CACHE BOOL "")
-  set(QBS_INSTALL_QCH_DOCS ${WITH_DOCS} CACHE BOOL "")
+  set(QBS_INSTALL_QCH_DOCS ${WITH_QBS_DOCS} CACHE BOOL "")
   add_subdirectory(qbs)
 endif()
-endif()
+endif()  #  <-- deleted for qtplatz

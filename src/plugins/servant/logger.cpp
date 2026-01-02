@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -47,7 +47,7 @@ Logger::appendLog( const std::string& text, bool richText )
 void
 Logger::operator ()( int pri, const std::string& text, const std::string& file, int line, const std::chrono::system_clock::time_point& tp )
 {
-    QString loc = (file.empty() ? "" : (boost::format("%s(%4d):") % file % line).str().c_str() );
+    QString loc = (file.empty() ? "" : QString::fromStdString((boost::format("%s(%4d):") % file % line).str().c_str() ));
 
     if ( pri < adlog::LOG_ERR )
 		emit onLogging( QString( "<font color=red>%1&nbsp;&nbsp;%2</font>" ).arg( loc, text.c_str() ), true );

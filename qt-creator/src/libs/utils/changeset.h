@@ -76,6 +76,12 @@ public:
 
     void clear();
 
+    static ChangeSet makeReplace(const Range &range, const QString &replacement);
+    static ChangeSet makeReplace(int start, int end, const QString &replacement);
+    static ChangeSet makeRemove(const Range &range);
+    static ChangeSet makeFlip(int start1, int end1, int start2, int end2);
+    static ChangeSet makeInsert(int pos, const QString &text);
+
     bool replace(const Range &range, const QString &replacement);
     bool remove(const Range &range);
     bool move(const Range &range, int to);
@@ -105,7 +111,7 @@ private:
     bool hasOverlap(int pos, int length) const;
     QString textAt(int pos, int length);
 
-    void doReplace(const EditOp &replace, QList<EditOp> *replaceList);
+    void doReplace(const EditOp &replace);
     void convertToReplace(const EditOp &op, QList<EditOp> *replaceList);
 
     void apply_helper();

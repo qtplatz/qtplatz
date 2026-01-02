@@ -9,6 +9,7 @@
 #include <QList>
 #include <QString>
 #include <QSyntaxHighlighter>
+#include <QTextDocument>
 
 #include <functional>
 
@@ -28,6 +29,9 @@ QTCREATOR_UTILS_EXPORT QString settingsKey(const QString &category);
 // "C:\foo\bar1" "C:\foo\bar2"  -> "C:\foo\bar"
 QTCREATOR_UTILS_EXPORT QString commonPrefix(const QStringList &strings);
 
+// Inserts value at appropriate position in list
+QTCREATOR_UTILS_EXPORT void insertSorted(QStringList *list, const QString &value);
+
 // Removes first unescaped ampersand in text
 QTCREATOR_UTILS_EXPORT QString stripAccelerator(const QString &text);
 // Quotes all ampersands
@@ -37,31 +41,14 @@ QTCREATOR_UTILS_EXPORT QString asciify(const QString &input);
 
 QTCREATOR_UTILS_EXPORT bool readMultiLineString(const QJsonValue &value, QString *out);
 
+QTCREATOR_UTILS_EXPORT QByteArray removeExtraCommasFromJson(const QByteArray &json);
+QTCREATOR_UTILS_EXPORT QByteArray removeCommentsFromJson(const QByteArray &json);
+QTCREATOR_UTILS_EXPORT QByteArray cleanJson(const QByteArray &json);
+
+QTCREATOR_UTILS_EXPORT void applyJsonPatch(QJsonValue &target, const QJsonValue &patch);
+
 // Compare case insensitive and use case sensitive comparison in case of that being equal.
 QTCREATOR_UTILS_EXPORT int caseFriendlyCompare(const QString &a, const QString &b);
-
-class QTCREATOR_UTILS_EXPORT AbstractMacroExpander
-{
-public:
-    virtual ~AbstractMacroExpander() {}
-    // Not const, as it may change the state of the expander.
-    //! Find an expando to replace and provide a replacement string.
-    //! \param str The string to scan
-    //! \param pos Position to start scan on input, found position on output
-    //! \param ret Replacement string on output
-    //! \return Length of string part to replace, zero if no (further) matches found
-    virtual int findMacro(const QString &str, int *pos, QString *ret);
-    //! Provide a replacement string for an expando
-    //! \param name The name of the expando
-    //! \param ret Replacement string on output
-    //! \return True if the expando was found
-    virtual bool resolveMacro(const QString &name, QString *ret, QSet<AbstractMacroExpander *> &seen) = 0;
-private:
-    bool expandNestedMacros(const QString &str, int *pos, QString *ret);
-};
-
-QTCREATOR_UTILS_EXPORT void expandMacros(QString *str, AbstractMacroExpander *mx);
-QTCREATOR_UTILS_EXPORT QString expandMacros(const QString &str, AbstractMacroExpander *mx);
 
 QTCREATOR_UTILS_EXPORT int parseUsedPortFromNetstatOutput(const QByteArray &line);
 
@@ -111,10 +98,13 @@ QTCREATOR_UTILS_EXPORT void setClipboardAndSelection(const QString &text);
 QTCREATOR_UTILS_EXPORT QString chopIfEndsWith(QString str, QChar c);
 QTCREATOR_UTILS_EXPORT QStringView chopIfEndsWith(QStringView str, QChar c);
 
-QTCREATOR_UTILS_EXPORT QString normalizeNewlines(const QString &text);
+QTCREATOR_UTILS_EXPORT QString normalizeNewlines(const QStringView &text);
+QTCREATOR_UTILS_EXPORT QByteArray normalizeNewlines(const QByteArray &text);
 
 // Skips empty parts - see QTBUG-110900
-QTCREATOR_UTILS_EXPORT QString joinStrings(const QStringList &strings, QChar separator);
+template<typename SEPARATOR>
+QTCREATOR_UTILS_EXPORT QString joinStrings(const QStringList &strings, SEPARATOR separator);
+
 QTCREATOR_UTILS_EXPORT QString trimFront(const QString &string, QChar ch);
 QTCREATOR_UTILS_EXPORT QString trimBack(const QString &string, QChar ch);
 QTCREATOR_UTILS_EXPORT QString trim(const QString &string, QChar ch);
@@ -137,5 +127,7 @@ private:
     QBrush h2Brush;
     QBrush m_codeBgBrush;
 };
+
+QTCREATOR_UTILS_EXPORT QString ansiColoredText(const QString &text, const QColor &color);
 
 } // namespace Utils

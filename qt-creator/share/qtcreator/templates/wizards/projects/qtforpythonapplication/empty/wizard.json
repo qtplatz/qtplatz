@@ -8,13 +8,13 @@
     "trDisplayCategory": "Application (Qt for Python)",
     "icon": "icon.png",
     "iconKind": "Themed",
-    "enabled": "%{JS: value('Plugins').indexOf('Python') >= 0 && (!value('Platform').length || ['Desktop', 'DockerDeviceType', 'GenericLinuxOsType'].includes(value('Platform')))}",
+    "enabled": "%{JS: isPluginRunning('python') && (!value('Platform').length || ['Desktop', 'DockerDeviceType', 'GenericLinuxOsType'].includes(value('Platform')))}",
 
     "options":
     [
         { "key": "SrcFileName", "value": "main.py" },
-        { "key": "PyProjectFile", "value": "%{JS: Util.fileName('%{ProjectName}', 'pyproject')}" },
-        { "key": "ProjectFilePath", "value": "%{ProjectDirectory}/%{PyProjectFile}" }
+        { "key": "PyProjectTomlFile", "value": "pyproject.toml" },
+        { "key": "ProjectFilePath", "value": "%{ProjectDirectory}/%{PyProjectTomlFile}" }
     ],
 
     "pages":
@@ -38,13 +38,6 @@
                         "value":
                         {
                             "PySideVersion": "PySide6"
-                        }
-                    },
-                    {
-                        "trKey": "PySide 2",
-                        "value":
-                        {
-                            "PySideVersion": "PySide2"
                         }
                     }
                 ]
@@ -72,8 +65,8 @@
             "data":
             [
                 {
-                    "source": "../main.pyproject",
-                    "target": "%{PyProjectFile}",
+                    "source": "../pyproject.toml",
+                    "target": "%{PyProjectTomlFile}",
                     "openAsProject": true
                 },
                 {

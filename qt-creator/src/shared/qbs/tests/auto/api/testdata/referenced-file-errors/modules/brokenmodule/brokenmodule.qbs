@@ -1,3 +1,0 @@
-Module {
-    syntax error
-}

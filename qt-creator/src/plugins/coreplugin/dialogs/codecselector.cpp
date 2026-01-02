@@ -4,6 +4,7 @@
 #include "codecselector.h"
 
 #include "../coreplugintr.h"
+#include "../icore.h"
 #include "../textdocument.h"
 
 #include <utils/algorithm.h>
@@ -19,16 +20,17 @@
 #include <QScrollBar>
 #include <QVBoxLayout>
 
+using namespace Utils;
+
 namespace Core {
 namespace Internal {
 
 class CodecSelector : public QDialog
 {
 public:
-    CodecSelector(QWidget *parent, Core::BaseTextDocument *doc);
-    ~CodecSelector() override;
+    explicit CodecSelector(BaseTextDocument *doc);
 
-    QTextCodec *selectedCodec() const;
+    TextEncoding selectedEncoding() const;
 
 private:
     void updateButtons();
@@ -55,8 +57,8 @@ public:
     }
 };
 
-CodecSelector::CodecSelector(QWidget *parent, Core::BaseTextDocument *doc)
-    : QDialog(parent)
+CodecSelector::CodecSelector(BaseTextDocument *doc)
+    : QDialog(ICore::dialogParent())
 {
     m_hasDecodingError = doc->hasDecodingError();
     m_isModified = doc->isModified();
@@ -77,26 +79,14 @@ CodecSelector::CodecSelector(QWidget *parent, Core::BaseTextDocument *doc)
     m_listWidget = new CodecListWidget(this);
     m_listWidget->setActivationMode(Utils::DoubleClickActivation);
 
-    QStringList encodings;
-
-    const QList<int> mibs = Utils::sorted(QTextCodec::availableMibs());
-    QList<int> sortedMibs;
-    for (const int mib : mibs)
-        if (mib >= 0)
-            sortedMibs += mib;
-    for (const int mib : mibs)
-        if (mib < 0)
-            sortedMibs += mib;
+    QStringList encodingNames;
 
     int currentIndex = -1;
-    for (const int mib : std::as_const(sortedMibs)) {
-        QTextCodec *c = QTextCodec::codecForMib(mib);
-        if (!doc->supportsCodec(c))
+    for (const TextEncoding &encoding : TextEncoding::availableEncodings()) {
+        if (!doc->supportsEncoding(encoding))
             continue;
         if (!buf.isEmpty()) {
-
-            // slow, should use a feature from QTextCodec or QTextDecoder (but those are broken currently)
-            QByteArray verifyBuf = c->fromUnicode(c->toUnicode(buf));
+            const QByteArray verifyBuf = encoding.encode(encoding.decode(buf));
             // the minSize trick lets us ignore unicode headers
             int minSize = qMin(verifyBuf.size(), buf.size());
             if (minSize < buf.size() - 4
@@ -104,15 +94,11 @@ CodecSelector::CodecSelector(QWidget *parent, Core::BaseTextDocument *doc)
                           buf.constData() + buf.size() - minSize, minSize))
                 continue;
         }
-        QString names = QString::fromLatin1(c->name());
-        const QList<QByteArray> aliases = c->aliases();
-        for (const QByteArray &alias : aliases)
-            names += QLatin1String(" / ") + QString::fromLatin1(alias);
-        if (doc->codec() == c)
-            currentIndex = encodings.count();
-        encodings << names;
+        if (doc->encoding() == encoding)
+            currentIndex = encodingNames.size();
+        encodingNames << encoding.fullDisplayName();
     }
-    m_listWidget->addItems(encodings);
+    m_listWidget->addItems(QStringList(encodingNames.begin(), encodingNames.end()));
     if (currentIndex >= 0)
         m_listWidget->setCurrentRow(currentIndex);
 
@@ -133,26 +119,24 @@ CodecSelector::CodecSelector(QWidget *parent, Core::BaseTextDocument *doc)
     updateButtons();
 }
 
-CodecSelector::~CodecSelector() = default;
-
 void CodecSelector::updateButtons()
 {
-    bool hasCodec = (selectedCodec() != nullptr);
+    bool hasCodec = selectedEncoding().isValid();
     m_reloadButton->setEnabled(!m_isModified && hasCodec);
     m_saveButton->setEnabled(!m_hasDecodingError && hasCodec);
 }
 
-QTextCodec *CodecSelector::selectedCodec() const
+TextEncoding CodecSelector::selectedEncoding() const
 {
     if (QListWidgetItem *item = m_listWidget->currentItem()) {
         if (!item->isSelected())
-            return nullptr;
+            return {};
         QString codecName = item->text();
         if (codecName.contains(QLatin1String(" / ")))
             codecName = codecName.left(codecName.indexOf(QLatin1String(" / ")));
-        return QTextCodec::codecForName(codecName.toLatin1());
+        return codecName.toLatin1();
     }
-    return nullptr;
+    return {};
 }
 
 void CodecSelector::buttonClicked(QAbstractButton *button)
@@ -167,11 +151,11 @@ void CodecSelector::buttonClicked(QAbstractButton *button)
 
 } // namespace Internal
 
-CodecSelectorResult askForCodec(QWidget *parent, BaseTextDocument *doc)
+CodecSelectorResult askForCodec(BaseTextDocument *doc)
 {
-    Internal::CodecSelector dialog(parent, doc);
+    Internal::CodecSelector dialog(doc);
     const CodecSelectorResult::Action result = CodecSelectorResult::Action(dialog.exec());
-    return {result, dialog.selectedCodec()};
+    return {result, dialog.selectedEncoding()};
 }
 
 } // namespace Core

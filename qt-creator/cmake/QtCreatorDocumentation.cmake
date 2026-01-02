@@ -5,6 +5,18 @@ add_feature_info("Build documentation" WITH_DOCS "")
 option(WITH_ONLINE_DOCS "Build online documentation" OFF)
 add_feature_info("Build online documentation" WITH_ONLINE_DOCS "")
 
+option(BUILD_DOCS_BY_DEFAULT "Build documentation by default" OFF)
+add_feature_info("Build documentation by default" BUILD_DOCS_BY_DEFAULT "")
+
+
+if (BUILD_DOCS_BY_DEFAULT)
+set(EXCLUDE_DOCS_FROM_ALL "")
+set(INCLUDE_DOCS_INTO_ALL "ALL")
+else()
+set(EXCLUDE_DOCS_FROM_ALL "EXCLUDE_FROM_ALL")
+set(INCLUDE_DOCS_INTO_ALL "")
+endif()
+
 # Get information on directories from qmake
 # as this is not yet exported by cmake.
 # Used for QT_INSTALL_DOCS
@@ -46,13 +58,13 @@ endfunction()
 function(_setup_doc_targets)
   # Set up important targets:
   if (NOT TARGET html_docs)
-    add_custom_target(html_docs COMMENT "Build HTML documentation")
+    add_custom_target(html_docs ${INCLUDE_DOCS_INTO_ALL} COMMENT "Build HTML documentation")
   endif()
   if (NOT TARGET qch_docs)
-    add_custom_target(qch_docs COMMENT "Build QCH documentation")
+    add_custom_target(qch_docs ${INCLUDE_DOCS_INTO_ALL} COMMENT "Build QCH documentation")
   endif()
   if (NOT TARGET docs)
-    add_custom_target(docs COMMENT "Build documentation")
+    add_custom_target(docs ${INCLUDE_DOCS_INTO_ALL} COMMENT "Build documentation")
     add_dependencies(docs html_docs qch_docs)
   endif()
 endfunction()
@@ -114,6 +126,7 @@ function(_setup_qdoc_targets _qdocconf_file _retval)
 
   set(_html_target "html_docs_${_target}")
   add_custom_target("${_html_target}"
+      ${INCLUDE_DOCS_INTO_ALL}
       ${_full_qdoc_command} -outputdir "${_html_outputdir}" "${_qdocconf_file}"
       ${_qdoc_index_args} ${_qdoc_include_args}
     COMMENT "Build HTML documentation from ${_qdocconf_file}"
@@ -126,7 +139,7 @@ function(_setup_qdoc_targets _qdocconf_file _retval)
 
   # Install HTML files as a special component
   install(DIRECTORY "${_html_outputdir}" DESTINATION "${_arg_INSTALL_DIR}"
-    COMPONENT html_docs EXCLUDE_FROM_ALL)
+    COMPONENT html_docs ${EXCLUDE_DOCS_FROM_ALL})
 
   set("${_retval}" "${_html_outputdir}" PARENT_SCOPE)
 endfunction()
@@ -154,6 +167,7 @@ function(_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
   set(_qch_target "qch_docs_${_target}")
   set(_html_target "html_docs_${_target}")
   add_custom_target("${_qch_target}"
+    ${INCLUDE_DOCS_INTO_ALL}
     Qt::qhelpgenerator "${_html_outputdir}/${_target}.qhp" -o "${_qch_outputdir}/${_target}.qch"
     COMMENT "Build QCH documentation from ${_qdocconf_file}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -163,7 +177,7 @@ function(_setup_qhelpgenerator_targets _qdocconf_file _html_outputdir)
   add_dependencies(qch_docs "${_qch_target}")
 
   install(FILES "${_qch_outputdir}/${_target}.qch" DESTINATION "${_arg_INSTALL_DIR}"
-    COMPONENT qch_docs EXCLUDE_FROM_ALL)
+    COMPONENT qch_docs ${EXCLUDE_DOCS_FROM_ALL})
 endfunction()
 
 # Helper functions:
@@ -251,8 +265,8 @@ function(add_qtc_documentation qdocconf_file)
 
   # Set up environment for qdoc:
   set(QTC_VERSION "${IDE_VERSION_DISPLAY}")
-  set(QTCREATOR_COPYRIGHT_YEAR "${IDE_COPYRIGHT_YEAR}")
   string(REPLACE "." "" QTC_VERSION_TAG "${IDE_VERSION}")
+  string(REPLACE "(C)" "<acronym title=\"Copyright\">&copy\\\;</acronym>" QTCREATOR_COPYRIGHT "${IDE_COPYRIGHT}")
   set(QDOC_INDEX_DIR "${QT_INSTALL_DOCS}")
   if (QT_INSTALL_DOCS_src)
     set(QT_INSTALL_DOCS "${QT_INSTALL_DOCS_src}")
@@ -260,7 +274,7 @@ function(add_qtc_documentation qdocconf_file)
   list(APPEND _qdoc_params ENVIRONMENT_EXPORTS
     IDE_ID IDE_CASED_ID IDE_DISPLAY_NAME
     QTC_DOCS_DIR QTC_VERSION QTC_VERSION_TAG
-    QTCREATOR_COPYRIGHT_YEAR
+    QTCREATOR_COPYRIGHT
     QT_INSTALL_DOCS QDOC_INDEX_DIR
     ${_arg_ENVIRONMENT_EXPORTS}
   )
@@ -269,6 +283,55 @@ function(add_qtc_documentation qdocconf_file)
     INCLUDE_DIRECTORIES ${_arg_INCLUDE_DIRECTORIES}
     FRAMEWORK_PATHS ${_arg_FRAMEWORK_PATHS}
   )
+endfunction()
+
+function(qtc_prepare_attribution_file attribution_file_src attribution_file_dest)
+  if(NOT EXISTS "${attribution_file_src}")
+    message(FATAL_ERROR "Attribution file ${attribution_file_src} not found.")
+  endif()
+
+  # Replace @SOURCE_DIR@ in the json file with the absolute path of the json file parent directory.
+  # We do this, so that the attribution scanner can find the license files and paths even when
+  # the attribution file is in the build dir, not the source dir.
+  get_filename_component(SOURCE_DIR ${attribution_file_src} DIRECTORY)
+
+  if(Qt6_VERSION VERSION_GREATER_EQUAL 6.8.0)
+    # The attribution scanner is new enough, just copy the file.
+    configure_file("${attribution_file_src}" "${attribution_file_dest}" @ONLY)
+    return()
+  endif()
+
+  # Otherwise remove unsupported keys.
+  # Read the file
+  file(READ "${attribution_file_src}" file_content)
+
+  # Replace square brackets, to avoid issue with unbalanced square brackets when iterating lists.
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/9317
+  string(REPLACE "[" "QT_ATTRIBUTION_LEFT_SQUARE" lines "${file_content}")
+  string(REPLACE "]" "QT_ATTRIBUTION_RIGHT_SQUARE" lines "${lines}")
+
+  # Transform newlines into semicolons to get a list.
+  string(REPLACE "\n" ";" lines "${lines}")
+
+  # Remove all CPE and PURL entries of the form "PURL": "foo", so that the attribution scanner of
+  # older Qts does not complain about them.
+  set(result_lines "")
+  foreach(one_line IN ITEMS ${lines})
+    if(one_line MATCHES "\"PURL\":.+\"," OR one_line MATCHES "\"CPE\":.+\",")
+      continue()
+    else()
+      list(APPEND result_lines "${one_line}")
+    endif()
+  endforeach()
+
+  # Turn the list back into a string.
+  list(JOIN result_lines "\n" content)
+
+  # Reverse the transformation.
+  string(REPLACE "QT_ATTRIBUTION_LEFT_SQUARE" "[" content "${content}")
+  string(REPLACE "QT_ATTRIBUTION_RIGHT_SQUARE" "]" content "${content}")
+
+  file(CONFIGURE OUTPUT "${attribution_file_dest}" CONTENT "${content}" @ONLY)
 endfunction()
 
 function(add_qtc_doc_attribution target attribution_file output_file qdocconf_file)
@@ -283,6 +346,7 @@ function(add_qtc_doc_attribution target attribution_file output_file qdocconf_fi
   file(MAKE_DIRECTORY ${output_dir})
   # add target
   add_custom_target(${target}
+      ${INCLUDE_DOCS_INTO_ALL}
       Qt6::qtattributionsscanner -o "${output_file}" --basedir "${PROJECT_SOURCE_DIR}" ${attribution_file}
     COMMENT "Create attributions ${output_file} from ${attribution_file}"
     DEPENDS "${attribution_file}"

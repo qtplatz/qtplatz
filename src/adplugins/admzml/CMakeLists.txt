@@ -12,7 +12,6 @@ qtplatz_adplugin_install_dir( _adplugin_install_dir ${PROVIDER} )
 set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/src    # app_version.h
   ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}  # for QJsonDocument (debug)
   )
 

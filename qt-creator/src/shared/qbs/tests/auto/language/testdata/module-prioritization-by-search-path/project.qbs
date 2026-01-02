@@ -1,3 +1,0 @@
-Project {
-    references: ["product.qbs"]
-}

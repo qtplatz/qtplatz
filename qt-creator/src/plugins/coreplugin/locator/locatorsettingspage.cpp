@@ -21,6 +21,7 @@
 #include <utils/treemodel.h>
 
 #include <QAbstractTextDocumentLayout>
+#include <QCheckBox>
 #include <QHash>
 #include <QHeaderView>
 #include <QLabel>
@@ -165,6 +166,7 @@ public:
 
     QTextDocument &doc() { return m_doc; }
 
+    void setIndentation(int indentation);
     void setMaxWidth(int width);
     int maxWidth() const;
 
@@ -173,14 +175,25 @@ private:
                const QStyleOptionViewItem &option,
                const QModelIndex &index) const override;
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void updateDocumentForIndex(const QModelIndex &index) const;
 
+    int m_indentation = 0;
     int m_maxWidth = -1;
     mutable QTextDocument m_doc;
 };
 
 RichTextDelegate::RichTextDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
-{}
+{
+    QTextOption textOption;
+    textOption.setWrapMode(QTextOption::WordWrap);
+    m_doc.setDefaultTextOption(textOption);
+}
+
+void RichTextDelegate::setIndentation(int indentation)
+{
+    m_indentation = indentation;
+}
 
 void RichTextDelegate::setMaxWidth(int width)
 {
@@ -201,51 +214,38 @@ void RichTextDelegate::paint(QPainter *painter,
 {
     QStyleOptionViewItem options = option;
     initStyleOption(&options, index);
+    updateDocumentForIndex(index);
 
     painter->save();
-    QTextOption textOption;
-    if (m_maxWidth > 0) {
-        textOption.setWrapMode(QTextOption::WordWrap);
-        m_doc.setDefaultTextOption(textOption);
-        if (options.rect.width() > m_maxWidth)
-            options.rect.setWidth(m_maxWidth);
-    }
-    m_doc.setHtml(options.text);
-    m_doc.setTextWidth(options.rect.width());
     options.text = "";
-    options.widget->style()->drawControl(QStyle::CE_ItemViewItem, &options, painter);
+    options.widget->style()->drawControl(QStyle::CE_ItemViewItem, &options, painter, options.widget);
     painter->translate(options.rect.left(), options.rect.top());
     QRect clip(0, 0, options.rect.width(), options.rect.height());
     QAbstractTextDocumentLayout::PaintContext paintContext;
     paintContext.palette = options.palette;
     painter->setClipRect(clip);
     paintContext.clip = clip;
-    if (qobject_cast<const QAbstractItemView *>(options.widget)->selectionModel()->isSelected(index)) {
-        QAbstractTextDocumentLayout::Selection selection;
-        selection.cursor = QTextCursor(&m_doc);
-        selection.cursor.select(QTextCursor::Document);
-        selection.format.setBackground(options.palette.brush(QPalette::Highlight));
-        selection.format.setForeground(options.palette.brush(QPalette::HighlightedText));
-        paintContext.selections << selection;
-    }
     m_doc.documentLayout()->draw(painter, paintContext);
     painter->restore();
 }
 
-QSize RichTextDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize RichTextDelegate::sizeHint([[maybe_unused]] const QStyleOptionViewItem &option,
+                                 const QModelIndex &index) const
 {
-    QStyleOptionViewItem options = option;
-    initStyleOption(&options, index);
-    QTextOption textOption;
-    if (m_maxWidth > 0) {
-        textOption.setWrapMode(QTextOption::WordWrap);
-        m_doc.setDefaultTextOption(textOption);
-        if (!options.rect.isValid() || options.rect.width() > m_maxWidth)
-            options.rect.setWidth(m_maxWidth);
+    updateDocumentForIndex(index);
+    return {qCeil(m_doc.idealWidth()), qCeil(m_doc.size().height())};
+}
+
+void RichTextDelegate::updateDocumentForIndex(const QModelIndex &index) const
+{
+    int level = 0;
+    QModelIndex parent = index;
+    while (parent.isValid()) {
+        ++level;
+        parent = parent.parent();
     }
-    m_doc.setHtml(options.text);
-    m_doc.setTextWidth(options.rect.width());
-    return QSize(m_doc.idealWidth(), m_doc.size().height());
+    m_doc.setTextWidth(m_maxWidth - level * m_indentation);
+    m_doc.setHtml(index.data(Qt::DisplayRole).toString());
 }
 
 class LocatorSettingsWidget : public IOptionsPageWidget
@@ -273,6 +273,10 @@ public:
         m_refreshInterval->setSingleStep(5);
         m_refreshInterval->setValue(60);
 
+        m_relativePaths = new QCheckBox(Tr::tr("Show Paths in Relation to Active Project"));
+        m_relativePaths->setToolTip(
+            Tr::tr("Locator filters show relative paths to the active project when possible."));
+
         auto filterEdit = new FancyLineEdit;
         filterEdit->setFiltering(true);
 
@@ -284,6 +288,7 @@ public:
         m_filterList->setActivationMode(Utils::DoubleClickActivation);
         m_filterList->setAlternatingRowColors(true);
         auto nameDelegate = new RichTextDelegate(m_filterList);
+        nameDelegate->setIndentation(m_filterList->indentation());
         connect(m_filterList->header(),
                 &QHeaderView::sectionResized,
                 nameDelegate,
@@ -315,13 +320,14 @@ public:
 
         Column buttons{addButton, m_removeButton, m_editButton, st};
 
-        Grid{filterEdit,
-             br,
-             m_filterList,
-             buttons,
-             br,
-             Span(2, Row{refreshIntervalLabel, m_refreshInterval, st})}
-            .attachTo(this);
+        // clang-format off
+        Grid {
+            filterEdit, br,
+            m_filterList, buttons, br,
+            Span(2, Row{refreshIntervalLabel, m_refreshInterval, st}), br,
+            Span(2, Row{m_relativePaths, st})
+        }.attachTo(this);
+        // clang-format on
 
         connect(filterEdit, &FancyLineEdit::filterChanged, this, &LocatorSettingsWidget::setFilter);
         connect(m_filterList->selectionModel(),
@@ -355,6 +361,7 @@ public:
         addButton->setMenu(addMenu);
 
         m_refreshInterval->setValue(m_plugin->refreshInterval());
+        m_relativePaths->setChecked(m_plugin->relativePaths());
         saveFilterStates();
     }
 
@@ -376,6 +383,7 @@ private:
     QPushButton *m_removeButton;
     QPushButton *m_editButton;
     QSpinBox *m_refreshInterval;
+    QCheckBox *m_relativePaths;
     Locator *m_plugin = nullptr;
     Utils::TreeModel<> *m_model = nullptr;
     QSortFilterProxyModel *m_proxyModel = nullptr;
@@ -399,6 +407,7 @@ void LocatorSettingsWidget::apply()
     m_plugin->setFilters(m_filters);
     m_plugin->setCustomFilters(m_customFilters);
     m_plugin->setRefreshInterval(m_refreshInterval->value());
+    m_plugin->setRelativePaths(m_relativePaths->isChecked());
     requestRefresh();
     m_plugin->saveSettings();
     saveFilterStates();

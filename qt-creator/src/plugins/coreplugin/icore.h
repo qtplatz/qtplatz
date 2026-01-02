@@ -6,6 +6,7 @@
 #include "core_global.h"
 #include "icontext.h"
 
+#include <extensionsystem/pluginspec.h>
 #include <utils/appmainwindow.h>
 #include <utils/filepath.h>
 #include <utils/qtcsettings.h>
@@ -64,7 +65,6 @@ public:
                                        Utils::Id settingsId = {},
                                        QWidget *parent = nullptr);
 
-    static bool isQtDesignStudio();
     static Utils::QtcSettings *settings(QSettings::Scope scope = QSettings::UserScope);
     static QPrinter *printer();
     static QString userInterfaceLanguage();
@@ -81,15 +81,16 @@ public:
     static QMainWindow *mainWindow();
     static QWidget *dialogParent();
     static Utils::InfoBar *infoBar();
+    static Utils::InfoBar *popupInfoBar();
 
-    static void askForRestart(const QString &text);
+    static bool askForRestart(const QString &text, const QString &altButtonText = {});
 
     static void raiseWindow(QWidget *widget);
     static void raiseMainWindow();
 
-    static IContext *currentContextObject();
+    static QList<IContext *> currentContextObjects();
     static QWidget *currentContextWidget();
-    static IContext *contextObject(QWidget *widget);
+    static QList<IContext *> contextObjects(QWidget *widget);
     static void updateAdditionalContexts(const Context &remove, const Context &add,
                                          ContextPriority priority = ContextPriority::Low);
     static void addAdditionalContext(const Context &context,
@@ -115,6 +116,8 @@ public:
     static void addPreCloseListener(const std::function<bool()> &listener);
 
     static void restart();
+
+    static bool enablePlugins(const QSet<ExtensionSystem::PluginSpec *> &plugins);
 
     enum SaveSettingsReason {
         SettingsDialogDone,
@@ -142,20 +145,19 @@ public:
     static Utils::FilePath pathRelativeToActiveProject(const Utils::FilePath &path);
     static QStringList additionalAboutInformation();
     static void clearAboutInformation();
+    static void setPrependAboutInformation(const QString &line);
     static void appendAboutInformation(const QString &line);
     static QString aboutInformationCompact();
     static QString aboutInformationHtml();
     static QString systemInformation();
     static void setupScreenShooter(const QString &name, QWidget *w, const QRect &rc = QRect());
-    static QString pluginPath();
-    static QString userPluginPath();
-    static Utils::FilePath clangExecutable(const Utils::FilePath &clangBinDirectory);
-    static Utils::FilePath clangdExecutable(const Utils::FilePath &clangBinDirectory);
-    static Utils::FilePath clangTidyExecutable(const Utils::FilePath &clangBinDirectory);
-    static Utils::FilePath clazyStandaloneExecutable(const Utils::FilePath &clangBinDirectory);
+    static Utils::Result<Utils::FilePath> clangExecutable(const Utils::FilePath &clangBinDirectory);
+    static Utils::Result<Utils::FilePath> clangdExecutable(const Utils::FilePath &clangBinDirectory);
+    static Utils::Result<Utils::FilePath> clangTidyExecutable(const Utils::FilePath &clangBinDirectory);
+    static Utils::Result<Utils::FilePath> clazyStandaloneExecutable(const Utils::FilePath &clangBinDirectory);
     static Utils::FilePath clangIncludeDirectory(const QString &clangVersion,
                                                  const Utils::FilePath &clangFallbackIncludeDir);
-    static Utils::FilePath lldbExecutable(const Utils::FilePath &lldbBinDirectory);
+    static Utils::Result<Utils::FilePath> lldbExecutable(const Utils::FilePath &lldbBinDirectory);
     static QStatusBar *statusBar();
 
     static void saveSettings(SaveSettingsReason reason);
@@ -172,9 +174,6 @@ public:
     static IDocument *openFiles(const Utils::FilePaths &filePaths,
                                 OpenFilesFlags flags = None,
                                 const Utils::FilePath &workingDirectory = {});
-
-private:
-    std::function<Utils::FilePath(const Utils::FilePath &)> m_relativePathToProject = nullptr;
 };
 
 } // namespace Core

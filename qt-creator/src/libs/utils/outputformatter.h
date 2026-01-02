@@ -75,7 +75,7 @@ public:
     // The input is to be considered "complete" for parsing purposes.
     virtual Result handleLine(const QString &line, OutputFormat format) = 0;
 
-    virtual bool handleLink(const QString &href) { Q_UNUSED(href); return false; }
+    virtual bool handleLink(const QString &href) { Q_UNUSED(href) return false; }
     virtual bool hasFatalErrors() const { return false; }
     virtual void flush() {}
     virtual void runPostPrintActions(QPlainTextEdit *) {}
@@ -93,12 +93,13 @@ protected:
     Utils::FilePath absoluteFilePath(const Utils::FilePath &filePath) const;
     static QString createLinkTarget(const FilePath &filePath, int line, int column);
     static void addLinkSpecForAbsoluteFilePath(LinkSpecs &linkSpecs, const FilePath &filePath,
-                                               int lineNo, int pos, int len);
+                                               int lineNo, int column, int pos, int len);
     static void addLinkSpecForAbsoluteFilePath(LinkSpecs &linkSpecs, const FilePath &filePath,
-                                               int lineNo, const QRegularExpressionMatch &match,
-                                               int capIndex);
+                                               int lineNo, int column,
+                                               const QRegularExpressionMatch &match, int capIndex);
     static void addLinkSpecForAbsoluteFilePath(LinkSpecs &linkSpecs, const FilePath &filePath,
-                                               int lineNo, const QRegularExpressionMatch &match,
+                                               int lineNo, int column,
+                                               const QRegularExpressionMatch &match,
                                                const QString &capName);
     bool fileExists(const Utils::FilePath &fp) const;
 
@@ -144,6 +145,7 @@ public:
     void handleLink(const QString &href);
     void setBoldFontEnabled(bool enabled);
     void setForwardStdOutToStdError(bool enabled);
+    void setExplicitBackgroundColor(const QColor &color);
 
     bool hasFatalErrors() const;
 
@@ -165,7 +167,8 @@ signals:
     void openInEditorRequested(const Utils::Link &link);
 
 private:
-    void doAppendMessage(const QString &text, OutputFormat format);
+    enum class LineStatus {Complete, Incomplete};
+    void doAppendMessage(const QString &text, OutputFormat format, LineStatus lineStatus);
 
     OutputLineParser::Result handleMessage(const QString &text, OutputFormat format,
                                            QList<OutputLineParser *> &involvedParsers);
@@ -173,7 +176,6 @@ private:
     void append(const QString &text, const QTextCharFormat &format);
     void initFormats();
     void flushIncompleteLine();
-    void flushTrailingNewline();
     void dumpIncompleteLine(const QString &line, OutputFormat format);
     void clearLastLine();
     QList<FormattedText> parseAnsi(const QString &text, const QTextCharFormat &format);

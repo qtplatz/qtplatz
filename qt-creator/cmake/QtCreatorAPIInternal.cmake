@@ -22,7 +22,8 @@ list(APPEND DEFAULT_DEFINES
   QT_CREATOR
   QT_NO_JAVA_STYLE_ITERATORS
   QT_NO_CAST_TO_ASCII QT_RESTRICTED_CAST_FROM_ASCII QT_NO_FOREACH
-  QT_DISABLE_DEPRECATED_BEFORE=0x050900
+  QT_DISABLE_DEPRECATED_UP_TO=0x050900
+  QT_WARN_DEPRECATED_UP_TO=0x060400
   QT_USE_QSTRINGBUILDER
 )
 
@@ -75,6 +76,10 @@ elseif(WIN32)
   set(_IDE_HEADER_INSTALL_PATH "include/qtcreator")
   set(_IDE_CMAKE_INSTALL_PATH "lib/cmake")
 else ()
+  # Small hack to silence a warning in the stable branch - but it means the value is incorrect
+  if (NOT CMAKE_LIBRARY_ARCHITECTURE AND NOT CMAKE_INSTALL_LIBDIR)
+    set(CMAKE_INSTALL_LIBDIR "lib")
+  endif()
   include(GNUInstallDirs)
   set(_IDE_APP_PATH "${CMAKE_INSTALL_BINDIR}")
   set(_IDE_APP_TARGET "${IDE_ID}")
@@ -153,24 +158,6 @@ function(qtc_handle_llvm_linker)
   endif()
 endfunction()
 
-function(qtc_link_with_qt)
-  # When building with Qt Creator 4.15+ do the "Link with Qt..." automatically
-  if (BUILD_LINK_WITH_QT AND DEFINED CMAKE_PROJECT_INCLUDE_BEFORE)
-    get_filename_component(auto_setup_dir "${CMAKE_PROJECT_INCLUDE_BEFORE}" DIRECTORY)
-    set(qt_creator_ini "${auto_setup_dir}/../QtProject/QtCreator.ini")
-    if (EXISTS "${qt_creator_ini}")
-      file(STRINGS "${qt_creator_ini}" install_settings REGEX "^InstallSettings=.*$")
-      if (install_settings)
-        string(REPLACE "InstallSettings=" "" install_settings "${install_settings}")
-      else()
-        file(TO_CMAKE_PATH "${auto_setup_dir}/.." install_settings)
-      endif()
-      file(WRITE ${CMAKE_BINARY_DIR}/${_IDE_DATA_PATH}/QtProject/QtCreator.ini
-                 "[Settings]\nInstallSettings=${install_settings}")
-    endif()
-  endif()
-endfunction()
-
 function(qtc_enable_release_for_debug_configuration)
   if (MSVC)
     string(REPLACE "/Od" "/O2" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -190,9 +177,13 @@ function(qtc_enable_sanitize _target _sanitize_flags)
   endif()
 endfunction()
 
+function(qtc_deeper_concept_diagnostic_depth _target)
+  target_compile_options("${_target}" PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fconcepts-diagnostics-depth=8>)
+endfunction()
+
 function(qtc_add_link_flags_no_undefined target)
   # needs CheckLinkerFlags
-  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18 AND NOT MSVC)
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18 AND NOT MSVC AND NOT APPLE)
     set(no_undefined_flag "-Wl,--no-undefined")
     check_linker_flag(CXX ${no_undefined_flag} QTC_LINKER_SUPPORTS_NO_UNDEFINED)
     if (NOT QTC_LINKER_SUPPORTS_NO_UNDEFINED)
@@ -327,47 +318,19 @@ function(add_qtc_depends target_name)
   set(depends "${_arg_PRIVATE}")
   set(public_depends "${_arg_PUBLIC}")
 
-  get_target_property(target_type ${target_name} TYPE)
-  if (NOT target_type STREQUAL "OBJECT_LIBRARY")
-    target_link_libraries(${target_name} PRIVATE ${depends} PUBLIC ${public_depends})
-  else()
-    list(APPEND object_lib_depends ${depends})
-    list(APPEND object_public_depends ${public_depends})
-  endif()
-
-  foreach(obj_lib IN LISTS object_lib_depends)
-    target_compile_options(${target_name} PRIVATE $<TARGET_PROPERTY:${obj_lib},INTERFACE_COMPILE_OPTIONS>)
-    target_compile_definitions(${target_name} PRIVATE $<TARGET_PROPERTY:${obj_lib},INTERFACE_COMPILE_DEFINITIONS>)
-    target_include_directories(${target_name} PRIVATE $<TARGET_PROPERTY:${obj_lib},INTERFACE_INCLUDE_DIRECTORIES>)
-  endforeach()
-  foreach(obj_lib IN LISTS object_public_depends)
-    target_compile_options(${target_name} PUBLIC $<TARGET_PROPERTY:${obj_lib},INTERFACE_COMPILE_OPTIONS>)
-    target_compile_definitions(${target_name} PUBLIC $<TARGET_PROPERTY:${obj_lib},INTERFACE_COMPILE_DEFINITIONS>)
-    target_include_directories(${target_name} PUBLIC $<TARGET_PROPERTY:${obj_lib},INTERFACE_INCLUDE_DIRECTORIES>)
-  endforeach()
+  target_link_libraries(${target_name} PRIVATE ${depends} PUBLIC ${public_depends})
 endfunction()
 
-function(find_dependent_plugins varName)
-  set(_RESULT ${ARGN})
-
+function(check_library_dependencies)
   foreach(i ${ARGN})
-    if(NOT TARGET ${i})
+    if (NOT TARGET ${i})
       continue()
     endif()
-    set(_dep)
-    get_property(_dep TARGET "${i}" PROPERTY _arg_DEPENDS)
-    if (_dep)
-      find_dependent_plugins(_REC ${_dep})
-      list(APPEND _RESULT ${_REC})
+    get_property(_class_name TARGET "${i}" PROPERTY QTC_PLUGIN_CLASS_NAME)
+    if (_class_name)
+       message(SEND_ERROR "${i} is a plugin, not a library!")
     endif()
   endforeach()
-
-  if (_RESULT)
-    list(REMOVE_DUPLICATES _RESULT)
-    list(SORT _RESULT)
-  endif()
-
-  set("${varName}" ${_RESULT} PARENT_SCOPE)
 endfunction()
 
 function(enable_pch target)
@@ -426,6 +389,10 @@ function(enable_pch target)
             POSITION_INDEPENDENT_CODE ON
           )
           target_link_libraries(${pch_target} PRIVATE ${pch_dependency})
+
+          if (WITH_SANITIZE)
+            qtc_enable_sanitize("${pch_target}" ${SANITIZE_FLAGS})
+          endif()
         endif()
       endfunction()
 
@@ -472,12 +439,34 @@ function(condition_info varName condition)
 endfunction()
 
 function(extend_qtc_target target_name)
-  cmake_parse_arguments(_arg
-    ""
-    "SOURCES_PREFIX;SOURCES_PREFIX_FROM_TARGET;FEATURE_INFO"
-    "CONDITION;DEPENDS;PUBLIC_DEPENDS;DEFINES;PUBLIC_DEFINES;INCLUDES;SYSTEM_INCLUDES;PUBLIC_INCLUDES;PUBLIC_SYSTEM_INCLUDES;SOURCES;EXPLICIT_MOC;SKIP_AUTOMOC;EXTRA_TRANSLATIONS;PROPERTIES;SOURCES_PROPERTIES"
-    ${ARGN}
+  set(opt_args "")
+  set(single_args
+    SOURCES_PREFIX
+    SOURCES_PREFIX_FROM_TARGET
+    FEATURE_INFO
   )
+  set(multi_args
+    CONDITION
+    DEPENDS
+    PUBLIC_DEPENDS
+    DEFINES
+    PUBLIC_DEFINES
+    INCLUDES
+    SYSTEM_INCLUDES
+    PUBLIC_INCLUDES
+    PUBLIC_SYSTEM_INCLUDES
+    SOURCES
+    EXPLICIT_MOC
+    SKIP_AUTOMOC
+    EXTRA_TRANSLATIONS
+    PROPERTIES
+    SOURCES_PROPERTIES
+    PRIVATE_COMPILE_OPTIONS
+    PUBLIC_COMPILE_OPTIONS
+    SBOM_ARGS
+  )
+
+  cmake_parse_arguments(_arg "${opt_args}" "${single_args}" "${multi_args}" ${ARGN})
 
   if (${_arg_UNPARSED_ARGUMENTS})
     message(FATAL_ERROR "extend_qtc_target had unparsed arguments")
@@ -563,6 +552,19 @@ function(extend_qtc_target target_name)
   if (_arg_SOURCES_PROPERTIES)
     set_source_files_properties(${_arg_SOURCES} PROPERTIES ${_arg_SOURCES_PROPERTIES})
   endif()
+
+
+  if (_arg_PRIVATE_COMPILE_OPTIONS)
+      target_compile_options(${target_name} PRIVATE ${_arg_PRIVATE_COMPILE_OPTIONS})
+  endif()
+
+  if (_arg_PUBLIC_COMPILE_OPTIONS)
+      target_compile_options(${target_name} PUBLIC ${_arg_PUBLIC_COMPILE_OPTIONS})
+  endif()
+
+  if(QT_GENERATE_SBOM AND _arg_SBOM_ARGS)
+    qtc_extend_qtc_entity_sbom(${target_name} ${_arg_SBOM_ARGS})
+  endif()
 endfunction()
 
 function (qtc_env_with_default envName varToSet default)
@@ -573,3 +575,142 @@ function (qtc_env_with_default envName varToSet default)
   endif()
 endfunction()
 
+# Checks whether any unparsed arguments have been passed to the function at the call site.
+# Use this right after `cmake_parse_arguments`.
+function(qtc_validate_all_args_are_parsed prefix)
+  if(DEFINED ${prefix}_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "Unknown arguments: (${${prefix}_UNPARSED_ARGUMENTS})")
+  endif()
+endfunction()
+
+# Defer calls command_name and its arguments to the end of the current add_subdirectory() scope.
+function(qtc_defer_call command_name)
+  cmake_language(EVAL CODE "cmake_language(DEFER CALL \"${command_name}\" ${ARGN}) ")
+endfunction()
+
+# Defer calls the function arguments to the end of the current add_subdirectory() scope.
+# Also records that the target will be finalized, but has not been finalized yet. This is needed
+# to properly handle SBOM generation for a project, where the project needs to be handled
+# only after all the targets are finalized.
+function(qtc_mark_for_deferred_finalization target command_name)
+  set_property(GLOBAL APPEND PROPERTY _qtc_sbom_targets_expecting_finalization "${target}")
+
+  qtc_defer_call("${command_name}" "${target}" ${ARGN})
+endfunction()
+
+# This function can remove single-value arguments from a list of arguments in order to pass
+# a filtered list of arguments to a different function that uses
+# cmake_parse_arguments.
+# This is a stripped down version of _qt_internal_qt_remove_args.
+# Parameters:
+#   out_var: result of removing all arguments specified by ARGS_TO_REMOVE from ARGS
+#   ARGS_TO_REMOVE: Arguments to remove.
+#   ARGS: Arguments passed into the function, usually ${ARGV}
+#   E.g.:
+#   We want to forward all arguments from foo to bar, except INSTALL_PATH <path> since it will
+#   trigger an error in bar.
+#
+#   foo(target BAR... INSTALL_PATH /tmp)
+#   bar(target BAR...)
+#
+#   function(foo target)
+#       cmake_parse_arguments(PARSE_ARGV 1 arg "" "INSTALL_PATH" "BAR)
+#       qtc_remove_single_args(forward_args
+#           ARGS_TO_REMOVE INSTALL_PATH
+#           ARGS ${ARGV}
+#       )
+#       bar(${target} ${forward_args})
+#   endfunction()
+function(qtc_remove_single_args out_var)
+  set(opt_args "")
+  set(single_args "")
+  set(multi_args
+    ARGS
+    ARGS_TO_REMOVE
+  )
+
+  cmake_parse_arguments(PARSE_ARGV 0 arg "${opt_args}" "${single_args}" "${multi_args}")
+
+  set(out_args ${arg_ARGS})
+
+  foreach(arg IN LISTS arg_ARGS_TO_REMOVE)
+    # Find arg.
+    list(FIND out_args ${arg} index_to_remove)
+    if(index_to_remove EQUAL -1)
+      continue()
+    endif()
+
+    # Remove arg.
+    list(REMOVE_AT out_args ${index_to_remove})
+
+    list(LENGTH out_args result_len)
+    if(index_to_remove EQUAL result_len)
+        # We removed the last argument.
+        continue()
+    endif()
+
+    # Remove arg value.
+    list(REMOVE_AT out_args ${index_to_remove})
+  endforeach()
+
+  set(${out_var} "${out_args}" PARENT_SCOPE)
+endfunction()
+
+# Helper function to forward options from one function to another.
+#
+# This is somewhat the opposite of _qt_internal_remove_args.
+# It is a renamed copy of _qt_internal_forward_function_args from Qt. It's needed to support
+# building Creator against older versions of Qt that don't have it.
+#
+# Parameters:
+# FORWARD_PREFIX is usually arg because we pass cmake_parse_arguments(PARSE_ARGV 0 arg) in most code
+# FORWARD_OPTIONS, FORWARD_SINGLE, FORWARD_MULTI are the options that should be forwarded.
+#
+# The forwarded args will be either set in arg_FORWARD_OUT_VAR or appended if FORWARD_APPEND is set.
+#
+# The function reads the options like ${arg_FORWARD_PREFIX}_${option} in the parent scope.
+function(qtc_forward_function_args)
+    set(opt_args
+        FORWARD_APPEND
+    )
+    set(single_args
+        FORWARD_PREFIX
+    )
+    set(multi_args
+        FORWARD_OPTIONS
+        FORWARD_SINGLE
+        FORWARD_MULTI
+        FORWARD_OUT_VAR
+    )
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${opt_args}" "${single_args}" "${multi_args}")
+    _qt_internal_validate_all_args_are_parsed(arg)
+
+    if(NOT arg_FORWARD_OUT_VAR)
+        message(FATAL_ERROR "FORWARD_OUT_VAR must be provided.")
+    endif()
+
+    set(forward_args "")
+    foreach(option_name IN LISTS arg_FORWARD_OPTIONS)
+        if(${arg_FORWARD_PREFIX}_${option_name})
+            list(APPEND forward_args "${option_name}")
+        endif()
+    endforeach()
+
+    foreach(option_name IN LISTS arg_FORWARD_SINGLE)
+        if(NOT "${${arg_FORWARD_PREFIX}_${option_name}}" STREQUAL "")
+            list(APPEND forward_args "${option_name}" "${${arg_FORWARD_PREFIX}_${option_name}}")
+        endif()
+    endforeach()
+
+    foreach(option_name IN LISTS arg_FORWARD_MULTI)
+        if(NOT "${${arg_FORWARD_PREFIX}_${option_name}}" STREQUAL "")
+            list(APPEND forward_args "${option_name}" ${${arg_FORWARD_PREFIX}_${option_name}})
+        endif()
+    endforeach()
+
+    if(arg_FORWARD_APPEND)
+        set(forward_args ${${arg_FORWARD_OUT_VAR}} "${forward_args}")
+    endif()
+
+    set(${arg_FORWARD_OUT_VAR} "${forward_args}" PARENT_SCOPE)
+endfunction()

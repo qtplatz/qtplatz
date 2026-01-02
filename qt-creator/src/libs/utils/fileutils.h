@@ -6,9 +6,7 @@
 #include "utils_global.h"
 
 #include "filepath.h"
-
-#include <QCoreApplication>
-#include <QDir>
+#include "result.h"
 
 #ifdef QT_WIDGETS_LIB
 #include <QFileDialog>
@@ -20,7 +18,6 @@
 QT_BEGIN_NAMESPACE
 class QDataStream;
 class QTextStream;
-class QWidget;
 class QXmlStreamWriter;
 
 // for withNtfsPermissions
@@ -30,101 +27,96 @@ extern Q_CORE_EXPORT int qt_ntfs_permission_lookup;
 QT_END_NAMESPACE
 
 namespace Utils {
+namespace FileUtils {
 
-class CommandLine;
+enum class CopyResult { Done, Canceled };
+using CopyHelper = std::function<Result<CopyResult>(const FilePath &, const FilePath &)>;
 
-struct QTCREATOR_UTILS_EXPORT RunResult
-{
-    int exitCode = -1;
-    QByteArray stdOut;
-    QByteArray stdErr;
-};
-
-class QTCREATOR_UTILS_EXPORT FileUtils
+#ifdef QT_GUI_LIB
+class QTCREATOR_UTILS_EXPORT CopyAskingForOverwrite
 {
 public:
-#ifdef QT_GUI_LIB
-    class QTCREATOR_UTILS_EXPORT CopyAskingForOverwrite
-    {
-    public:
-        CopyAskingForOverwrite(QWidget *dialogParent,
-                               const std::function<void(FilePath)> &postOperation = {});
-        bool operator()(const FilePath &src, const FilePath &dest, QString *error);
-        FilePaths files() const;
+    explicit CopyAskingForOverwrite(const std::function<bool(FilePath)> &postOperation = {});
+    CopyHelper operator()();
+    FilePaths files() const;
 
-    private:
-        QWidget *m_parent;
-        FilePaths m_files;
-        std::function<void(FilePath)> m_postOperation;
-        bool m_overwriteAll = false;
-        bool m_skipAll = false;
-    };
+private:
+    FilePaths m_files;
+    std::function<bool(FilePath)> m_postOperation;
+    bool m_overwriteAll = false;
+    bool m_skipAll = false;
+};
 #endif // QT_GUI_LIB
 
-    static bool copyRecursively(
-        const FilePath &srcFilePath,
-        const FilePath &tgtFilePath,
-        QString *error,
-        std::function<bool(const FilePath &, const FilePath &, QString *)> helper);
+QTCREATOR_UTILS_EXPORT Result<CopyResult> copyRecursively(const FilePath &srcFilePath,
+                                                          const FilePath &tgtFilePath,
+                                                          const CopyHelper &helper);
 
-    static bool copyIfDifferent(const FilePath &srcFilePath,
-                                const FilePath &tgtFilePath);
-    static QString fileSystemFriendlyName(const QString &name);
-    static int indexOfQmakeUnfriendly(const QString &name, int startpos = 0);
-    static QString qmakeFriendlyName(const QString &name);
-    static bool makeWritable(const FilePath &path);
-    static QString normalizedPathName(const QString &name);
+QTCREATOR_UTILS_EXPORT Result<> copyIfDifferent(const FilePath &srcFilePath,
+                                                const FilePath &tgtFilePath);
+QTCREATOR_UTILS_EXPORT QString fileSystemFriendlyName(const QString &name);
+QTCREATOR_UTILS_EXPORT int indexOfQmakeUnfriendly(const QString &name, int startpos = 0);
+QTCREATOR_UTILS_EXPORT QString qmakeFriendlyName(const QString &name);
+QTCREATOR_UTILS_EXPORT QString normalizedPathName(const QString &name);
 
-    static FilePath commonPath(const FilePath &oldCommonPath, const FilePath &fileName);
-    static FilePath commonPath(const FilePaths &paths);
-    static FilePath homePath();
+[[deprecated("Use FilePaths::commonPath")]]
+QTCREATOR_UTILS_EXPORT FilePath commonPath(const FilePath &oldCommonPath, const FilePath &fileName);
+[[deprecated("Use FilePaths::commonPath")]]
+QTCREATOR_UTILS_EXPORT FilePath commonPath(const FilePaths &paths);
+QTCREATOR_UTILS_EXPORT FilePath homePath();
+QTCREATOR_UTILS_EXPORT Result<FilePath> scratchBufferFilePath(const QString &pattern);
 
-    static FilePaths toFilePathList(const QStringList &paths);
+[[deprecated("Use FilePaths::fromStrings")]]
+QTCREATOR_UTILS_EXPORT FilePaths toFilePathList(const QStringList &paths);
 
-    static qint64 bytesAvailableFromDFOutput(const QByteArray &dfOutput);
+QTCREATOR_UTILS_EXPORT qint64 bytesAvailableFromDFOutput(const QByteArray &dfOutput);
 
-    static FilePathInfo filePathInfoFromTriple(const QString &infos, int modeBase);
+QTCREATOR_UTILS_EXPORT FilePathInfo filePathInfoFromTriple(const QString &infos, int modeBase);
 
-    //! Returns known paths like /opt/homebrew on macOS that might not be in PATH
-    static FilePaths usefulExtraSearchPaths();
+//! Returns known paths like /opt/homebrew on macOS that might not be in PATH
+QTCREATOR_UTILS_EXPORT FilePaths usefulExtraSearchPaths();
 
 #ifdef QT_WIDGETS_LIB
-    static void setDialogParentGetter(const std::function<QWidget *()> &getter);
+QTCREATOR_UTILS_EXPORT bool hasNativeFileDialog();
 
-    static bool hasNativeFileDialog();
+QTCREATOR_UTILS_EXPORT FilePath getOpenFilePath(
+        const QString &caption,
+        const FilePath &dir = {},
+        const QString &filter = {},
+        QString *selectedFilter = nullptr,
+        QFileDialog::Options options = {},
+        bool fromDeviceIfShiftIsPressed = false,
+        bool forceNonNativeDialog = false);
 
-    static FilePath getOpenFilePath(QWidget *parent,
-                                    const QString &caption,
-                                    const FilePath &dir = {},
-                                    const QString &filter = {},
-                                    QString *selectedFilter = nullptr,
-                                    QFileDialog::Options options = {},
-                                    bool fromDeviceIfShiftIsPressed = false,
-                                    bool forceNonNativeDialog = false);
+QTCREATOR_UTILS_EXPORT FilePath getSaveFilePath(
+        const QString &caption,
+        const FilePath &dir = {},
+        const QString &filter = {},
+        QString *selectedFilter = nullptr,
+        QFileDialog::Options options = {},
+        bool forceNonNativeDialog = false);
 
-    static FilePath getSaveFilePath(QWidget *parent,
-                                    const QString &caption,
-                                    const FilePath &dir = {},
-                                    const QString &filter = {},
-                                    QString *selectedFilter = nullptr,
-                                    QFileDialog::Options options = {},
-                                    bool forceNonNativeDialog = false);
+QTCREATOR_UTILS_EXPORT FilePath getExistingDirectory(
+        const QString &caption,
+        const FilePath &dir = {},
+        QFileDialog::Options options = QFileDialog::ShowDirsOnly,
+        bool fromDeviceIfShiftIsPressed = false,
+        bool forceNonNativeDialog = false);
 
-    static FilePath getExistingDirectory(QWidget *parent,
-                                         const QString &caption,
-                                         const FilePath &dir = {},
-                                         QFileDialog::Options options = QFileDialog::ShowDirsOnly,
-                                         bool fromDeviceIfShiftIsPressed = false,
-                                         bool forceNonNativeDialog = false);
+QTCREATOR_UTILS_EXPORT FilePaths getOpenFilePaths(
+        const QString &caption,
+        const FilePath &dir = {},
+        const QString &filter = {},
+        QString *selectedFilter = nullptr,
+        QFileDialog::Options options = {});
 
-    static FilePaths getOpenFilePaths(QWidget *parent,
-                                      const QString &caption,
-                                      const FilePath &dir = {},
-                                      const QString &filter = {},
-                                      QString *selectedFilter = nullptr,
-                                      QFileDialog::Options options = {});
+QTCREATOR_UTILS_EXPORT void showError(const QString &errorMessage);
+
 #endif
-};
+
+QTCREATOR_UTILS_EXPORT QString fetchQrc(const QString &fileName); // Only for internal resourcesm
+
+} // namespace FileUtils
 
 // for actually finding out if e.g. directories are writable on Windows
 #ifdef Q_OS_WIN
@@ -151,26 +143,6 @@ T withNtfsPermissions(const std::function<T()> &task)
 
 #endif // Q_OS_WIN
 
-class QTCREATOR_UTILS_EXPORT FileReader
-{
-public:
-    static QByteArray fetchQrc(const QString &fileName); // Only for internal resources
-    bool fetch(const FilePath &filePath, QIODevice::OpenMode mode = QIODevice::NotOpen); // QIODevice::ReadOnly is implicit
-    bool fetch(const FilePath &filePath, QIODevice::OpenMode mode, QString *errorString);
-    bool fetch(const FilePath &filePath, QString *errorString)
-        { return fetch(filePath, QIODevice::NotOpen, errorString); }
-#ifdef QT_GUI_LIB
-    bool fetch(const FilePath &filePath, QIODevice::OpenMode mode, QWidget *parent);
-    bool fetch(const FilePath &filePath, QWidget *parent)
-        { return fetch(filePath, QIODevice::NotOpen, parent); }
-#endif // QT_GUI_LIB
-    const QByteArray &data() const { return m_data; }
-    const QString &errorString() const { return m_errorString; }
-private:
-    QByteArray m_data;
-    QString m_errorString;
-};
-
 class QTCREATOR_UTILS_EXPORT FileSaverBase
 {
 public:
@@ -178,16 +150,11 @@ public:
     virtual ~FileSaverBase();
 
     FilePath filePath() const { return m_filePath; }
-    bool hasError() const { return m_hasError; }
-    QString errorString() const { return m_errorString; }
-    virtual bool finalize();
-    bool finalize(QString *errStr);
-#ifdef QT_GUI_LIB
-    bool finalize(QWidget *parent);
-#endif
+    bool hasError() const { return !m_result; }
+    QString errorString() const { return m_result ? QString() : m_result.error(); }
+    virtual Utils::Result<> finalize();
 
-    bool write(const char *data, int len);
-    bool write(const QByteArray &bytes);
+    bool write(QByteArrayView bytes);
     bool setResult(QTextStream *stream);
     bool setResult(QDataStream *stream);
     bool setResult(QXmlStreamWriter *stream);
@@ -198,8 +165,7 @@ public:
 protected:
     std::unique_ptr<QFile> m_file;
     FilePath m_filePath;
-    QString m_errorString;
-    bool m_hasError = false;
+    Result<> m_result;
 
 private:
     Q_DISABLE_COPY(FileSaverBase)
@@ -211,7 +177,7 @@ public:
     // QIODevice::WriteOnly is implicit
     explicit FileSaver(const FilePath &filePath, QIODevice::OpenMode mode = QIODevice::NotOpen);
 
-    bool finalize() override;
+    Utils::Result<> finalize() override;
     using FileSaverBase::finalize;
 
 private:
@@ -236,7 +202,4 @@ private:
 
 QTCREATOR_UTILS_EXPORT QTextStream &operator<<(QTextStream &s, const FilePath &fn);
 
-bool isRelativePathHelper(const QString &path, OsType osType);
-
 } // namespace Utils
-

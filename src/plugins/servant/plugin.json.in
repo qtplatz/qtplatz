@@ -1,9 +1,13 @@
 {
-    "Name"          : "@PROJECT_NAME@",
+    "Id"            : "@PLUGIN_ID@",
+    "DisplayName"   : "@PLUGIN_DISPLAY_NAME@",
+    "Name"          : "@PLUGIN_NAME@",
     "Version"       : "@VERSION@",
-    "CompatVersion" : "@VERSION@",
+    "CompatVersion" : "${IDE_VERSION_COMPAT}",
+    "DisabledByDefault" : true,
+    "VendorId"      : "ms-cheminformatics",
     "Vendor"        : "@PROVIDER@",
-    "Copyright"     : "(C) 2010-2023 MS-Cheminformatics LLC",
+    "Copyright"     : "(C) 2010-2026 MS-Cheminformatics LLC",
     "License"       : [
 	"Commercial Usage",
 	"Licensees holding valid MS-Cheminfomatics commercial licenses may use this file in accordance with the MS-Cheminformatics Commercial License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written agreement between you and MS-Cheminformatics.",

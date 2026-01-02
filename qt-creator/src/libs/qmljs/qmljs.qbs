@@ -8,7 +8,7 @@ QtcLibrary {
     Depends { name: "Utils" }
     Depends { name: "LanguageUtils" }
     Depends { name: "CPlusPlus" }
-    Depends { name: "Qt"; submodules: ["widgets", "xml"] }
+    Depends { name: "Qt"; submodules: ["widgets"] }
 
     Group {
         name: "General"
@@ -28,7 +28,6 @@ QtcLibrary {
             "qmljsfindexportedcpptypes.cpp", "qmljsfindexportedcpptypes.h",
             "qmljsicons.cpp", "qmljsicons.h",
             "qmljsimportdependencies.cpp", "qmljsimportdependencies.h",
-            "qmljsindenter.cpp", "qmljsindenter.h",
             "qmljsinterpreter.cpp", "qmljsinterpreter.h",
             "qmljsdialect.cpp", "qmljsdialect.h",
             "qmljslineinfo.cpp", "qmljslineinfo.h",

@@ -1,3 +1,4 @@
+module HelperWidgets
 AbstractButton 2.0 AbstractButton.qml
 ActionIndicator 2.0 ActionIndicator.qml
 AlignmentHorizontalButtons 2.0 AlignmentHorizontalButtons.qml
@@ -17,12 +18,14 @@ ComponentButton 2.0 ComponentButton.qml
 ComponentSection 2.0 ComponentSection.qml
 ControlLabel 2.0 ControlLabel.qml
 singleton Controller 2.0 Controller.qml
+CornerRadiusSection 2.0 CornerRadiusSection.qml
 DoubleSpinBox 2.0 DoubleSpinBox.qml
 DynamicPropertiesSection 2.0 DynamicPropertiesSection.qml
 EditableListView 2.0 EditableListView.qml
 ExpandingSpacer 2.0 ExpandingSpacer.qml
 ExpressionTextField 2.0 ExpressionTextField.qml
 ExtendedFunctionLogic 2.0 ExtendedFunctionLogic.qml
+FlagsComboBox 2.0 FlagsComboBox.qml
 FlickableGeometrySection 2.0 FlickableGeometrySection.qml
 FlickableSection 2.0 FlickableSection.qml
 FontComboBox 2.0 FontComboBox.qml
@@ -50,7 +53,9 @@ MultiIconLabel 2.0 MultiIconLabel.qml
 OriginControl 2.0 OriginControl.qml
 OriginIndicator 2.0 OriginIndicator.qml
 OriginSelector 2.0 OriginSelector.qml
+PopupLabel 2.0 PopupLabel.qml
 PropertyEditorPane 2.0 PropertyEditorPane.qml
+PropertyEditorToolBar 2.0 PropertyEditorToolBar.qml
 PropertyLabel 2.0 PropertyLabel.qml
 PaddingSection 2.0 PaddingSection.qml
 RoundedPanel 2.0 RoundedPanel.qml

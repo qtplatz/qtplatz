@@ -28,6 +28,7 @@
 #pragma once
 
 #include <utils/fancymainwindow.h>
+#include <utils/id.h>
 #include <memory>
 #include <array>
 
@@ -57,9 +58,9 @@ namespace peptide {
         const std::shared_ptr< adcontrols::ChemicalFormula >& getChemicalFormula() const;
 
         static MainWindow * instance();
-        
+
     signals:
-            
+
     public slots:
         void actFileOpen();
 
@@ -82,7 +83,7 @@ namespace peptide {
         Utils::StyledBar * createMidStyledBar();
 
         QToolButton * toolButton( QAction * );
-        QToolButton * toolButton( const char * );
+        QToolButton * toolButton( Utils::Id );
         QAction * createAction( const QString& iconname, const QString& msg, QObject * parent );
         void setDemoData();
     };

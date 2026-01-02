@@ -5,9 +5,7 @@
 
 #include "../coreplugintr.h"
 
-#include <extensionsystem/pluginmanager.h>
-
-#include <solutions/tasking/tasktreerunner.h>
+#include <QtTaskTree/QSingleTaskTreeRunner>
 
 #include <utils/algorithm.h>
 #include <utils/async.h>
@@ -17,7 +15,6 @@
 #include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QFutureWatcher>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
@@ -27,7 +24,7 @@
 
 #include <unordered_set>
 
-using namespace Tasking;
+using namespace QtTaskTree;
 using namespace Utils;
 
 /*!
@@ -126,7 +123,7 @@ public:
 
     void reportOutput(int index, const LocatorFilterEntries &outputData)
     // Called directly by running filters. The calls may come from main thread in case of
-    // e.g. Sync task or directly from other threads when AsyncTask was used.
+    // e.g. QSyncTask or directly from other threads when AsyncTask was used.
     {
         QTC_ASSERT(index >= 0, return);
 
@@ -239,98 +236,6 @@ private:
     QList<std::optional<LocatorFilterEntries>> m_outputData;
 };
 
-// This instance of this object is created by LocatorMatcher tree.
-// It starts a separate thread which collects and deduplicates the results reported
-// by LocatorStorage instances. The ResultsCollector is started as a first task in
-// LocatorMatcher and runs in parallel to all the filters started by LocatorMatcher.
-// When all the results are reported (the expected number of reports is set with setFilterCount()),
-// the ResultsCollector finishes. The intermediate results are reported with
-// serialOutputDataReady() signal.
-// The object of ResultsCollector is registered in Tasking namespace under the
-// ResultsCollectorTask name.
-class ResultsCollector : public QObject
-{
-    Q_OBJECT
-
-public:
-    ~ResultsCollector();
-    void setFilterCount(int count);
-    void start();
-
-    bool isRunning() const { return m_watcher.get(); }
-
-    std::shared_ptr<ResultsDeduplicator> deduplicator() const { return m_deduplicator; }
-
-signals:
-    void serialOutputDataReady(const LocatorFilterEntries &serialOutputData);
-    void done();
-
-private:
-    int m_filterCount = 0;
-    std::unique_ptr<QFutureWatcher<LocatorFilterEntries>> m_watcher;
-    std::shared_ptr<ResultsDeduplicator> m_deduplicator;
-};
-
-ResultsCollector::~ResultsCollector()
-{
-    if (!isRunning())
-        return;
-
-    m_deduplicator->cancel();
-    if (ExtensionSystem::PluginManager::futureSynchronizer()) {
-        ExtensionSystem::PluginManager::futureSynchronizer()->addFuture(m_watcher->future());
-        return;
-    }
-    m_watcher->future().waitForFinished();
-}
-
-void ResultsCollector::setFilterCount(int count)
-{
-    QTC_ASSERT(!isRunning(), return);
-    QTC_ASSERT(count >= 0, return);
-
-    m_filterCount = count;
-}
-
-void ResultsCollector::start()
-{
-    QTC_ASSERT(!m_watcher, return);
-    QTC_ASSERT(!isRunning(), return);
-    if (m_filterCount == 0) {
-        emit done();
-        return;
-    }
-
-    m_deduplicator.reset(new ResultsDeduplicator(m_filterCount));
-    m_watcher.reset(new QFutureWatcher<LocatorFilterEntries>);
-    connect(m_watcher.get(), &QFutureWatcherBase::resultReadyAt, this, [this](int index) {
-        emit serialOutputDataReady(m_watcher->resultAt(index));
-    });
-    connect(m_watcher.get(), &QFutureWatcherBase::finished, this, [this] {
-        emit done();
-        m_watcher.release()->deleteLater();
-        m_deduplicator.reset();
-    });
-
-    // TODO: When filterCount == 1, deliver results directly and finish?
-    auto deduplicate = [](QPromise<LocatorFilterEntries> &promise,
-                          const std::shared_ptr<ResultsDeduplicator> &deduplicator) {
-        deduplicator->run(promise);
-    };
-    m_watcher->setFuture(Utils::asyncRun(deduplicate, m_deduplicator));
-}
-
-class ResultsCollectorTaskAdapter : public TaskAdapter<ResultsCollector>
-{
-public:
-    ResultsCollectorTaskAdapter() {
-        connect(task(), &ResultsCollector::done, this, [this] { emit done(DoneResult::Success); });
-    }
-    void start() final { task()->start(); }
-};
-
-using ResultsCollectorTask = CustomTask<ResultsCollectorTaskAdapter>;
-
 class LocatorStoragePrivate
 {
 public:
@@ -385,6 +290,14 @@ void LocatorStorage::reportOutput(const LocatorFilterEntries &outputData) const
     d->reportOutput(outputData);
 }
 
+// Please note the thread_local keyword below guarantees a separate instance per thread.
+static thread_local Storage<LocatorStorage> s_locatorStorage = {};
+
+Storage<LocatorStorage> &LocatorStorage::storage()
+{
+    return s_locatorStorage;
+}
+
 void LocatorStorage::finalize() const
 {
     QTC_ASSERT(d, return);
@@ -398,7 +311,7 @@ public:
     QString m_input;
     LocatorFilterEntries m_output;
     int m_parallelLimit = 0;
-    TaskTreeRunner m_taskTreeRunner;
+    QSingleTaskTreeRunner m_taskTreeRunner;
 };
 
 LocatorMatcher::LocatorMatcher()
@@ -427,61 +340,62 @@ void LocatorMatcher::start()
     QTC_ASSERT(!isRunning(), return);
     d->m_output = {};
 
-    struct CollectorStorage
-    {
-        ResultsCollector *m_collector = nullptr;
-    };
-    Storage<CollectorStorage> collectorStorage;
-
     const int filterCount = d->m_tasks.size();
-    const auto onCollectorSetup = [this, filterCount, collectorStorage](ResultsCollector &collector) {
-        collectorStorage->m_collector = &collector;
-        collector.setFilterCount(filterCount);
-        connect(&collector, &ResultsCollector::serialOutputDataReady,
-                this, [this](const LocatorFilterEntries &serialOutputData) {
+    if (filterCount <= 0)
+        return;
+
+    struct ResultsCollector
+    {
+        ~ResultsCollector() {
+            if (m_deduplicator)
+                m_deduplicator->cancel();
+        }
+        std::shared_ptr<ResultsDeduplicator> m_deduplicator;
+    };
+
+    const Storage<ResultsCollector> collectorStorage;
+    const ListIterator iterator(d->m_tasks);
+
+    const auto onCollectorSetup = [this, filterCount, collectorStorage](
+                                      Async<LocatorFilterEntries> &async) {
+        const std::shared_ptr<ResultsDeduplicator> deduplicator(new ResultsDeduplicator(filterCount));
+        collectorStorage->m_deduplicator = deduplicator;
+        Async<LocatorFilterEntries> *asyncPtr = &async;
+        connect(asyncPtr, &AsyncBase::resultReadyAt, this, [this, asyncPtr](int index) {
+            const LocatorFilterEntries serialOutputData = asyncPtr->resultAt(index);
             d->m_output += serialOutputData;
             emit serialOutputDataReady(serialOutputData);
         });
+        // TODO: When filterCount == 1, deliver results directly and finish?
+        async.setConcurrentCallData(&ResultsDeduplicator::run, deduplicator);
     };
-    const auto onCollectorDone = [collectorStorage] {
-        collectorStorage->m_collector = nullptr;
-    };
+    const auto onCollectorDone = [collectorStorage] { collectorStorage->m_deduplicator->cancel(); };
 
-    QList<GroupItem> parallelTasks {parallelLimit(d->m_parallelLimit)};
-
-    const auto onSetup = [this, collectorStorage](const Storage<LocatorStorage> &storage,
-                                                    int index) {
-        return [this, collectorStorage, storage, index] {
-            ResultsCollector *collector = collectorStorage->m_collector;
-            QTC_ASSERT(collector, return);
-            *storage = std::make_shared<LocatorStoragePrivate>(d->m_input, index,
-                                                               collector->deduplicator());
+    const auto onTaskTreeSetup = [iterator, input = d->m_input, collectorStorage](QTaskTree &taskTree) {
+        const std::shared_ptr<ResultsDeduplicator> deduplicator = collectorStorage->m_deduplicator;
+        const auto onSetup = [input, index = iterator.iteration(), deduplicator] {
+            *LocatorStorage::storage()
+                = std::make_shared<LocatorStoragePrivate>(input, index, deduplicator);
         };
-    };
-
-    int index = 0;
-    for (const LocatorMatcherTask &task : std::as_const(d->m_tasks)) {
-        const auto storage = task.storage;
-        const Group group {
+        taskTree.setRecipe({
             finishAllAndSuccess,
-            storage,
-            onGroupSetup(onSetup(storage, index)),
-            onGroupDone([storage] { storage->finalize(); }),
-            task.task
-        };
-        parallelTasks << group;
-        ++index;
-    }
+            LocatorStorage::storage(),
+            onGroupSetup(onSetup),
+            *iterator,
+            onGroupDone([] { LocatorStorage::storage()->finalize(); })
+        });
+    };
 
-    const Group root {
+    const Group recipe {
         parallel,
         collectorStorage,
-        ResultsCollectorTask(onCollectorSetup, onCollectorDone),
-        Group {
-            parallelTasks
+        AsyncTask<LocatorFilterEntries>(onCollectorSetup, onCollectorDone),
+        For (iterator) >> Do {
+            ParallelLimit(d->m_parallelLimit),
+            QTaskTreeTask(onTaskTreeSetup)
         }
     };
-    d->m_taskTreeRunner.start(root, {}, [this](DoneWith result) {
+    d->m_taskTreeRunner.start(recipe, {}, [this](DoneWith result) {
         emit done(result == DoneWith::Success);
     });
 }
@@ -671,15 +585,6 @@ void ILocatorFilter::restoreState(const QByteArray &state)
         setShortcutString(obj.value(kShortcutStringKey).toString(m_defaultShortcut));
         setIncludedByDefault(obj.value(kIncludedByDefaultKey).toBool(m_defaultIncludedByDefault));
         restoreState(obj);
-    } else {
-        // TODO read old settings, remove some time after Qt Creator 4.15
-        m_shortcut = m_defaultShortcut;
-        m_includedByDefault = m_defaultIncludedByDefault;
-
-        // TODO this reads legacy settings from Qt Creator < 4.15
-        QDataStream in(state);
-        in >> m_shortcut;
-        in >> m_includedByDefault;
     }
 }
 
@@ -985,7 +890,8 @@ void ILocatorFilter::setConfigurable(bool configurable)
 
 /*!
     Shows the standard configuration dialog with options for the prefix string
-    and for isIncludedByDefault(). The \a additionalWidget is added at the top.
+    and for isIncludedByDefault(). \a parent is used as the dialog's parent.
+    The \a additionalWidget is added at the top.
     Ownership of \a additionalWidget stays with the caller, but its parent is
     reset to \c nullptr.
 
@@ -1058,17 +964,6 @@ void ILocatorFilter::saveState(QJsonObject &object) const
 void ILocatorFilter::restoreState(const QJsonObject &object)
 {
     Q_UNUSED(object)
-}
-
-/*!
-    Returns if \a state must be restored via pre-4.15 settings reading.
-*/
-bool ILocatorFilter::isOldSetting(const QByteArray &state)
-{
-    if (state.isEmpty())
-        return false;
-    const QJsonDocument doc = QJsonDocument::fromJson(state);
-    return !doc.isObject();
 }
 
 /*!
@@ -1198,7 +1093,7 @@ LocatorFilterEntries LocatorFileCachePrivate::generate(const QFuture<void> &futu
     // If search string contains spaces, treat them as wildcard '*' and search in full path
     const QString wildcardInput = QDir::fromNativeSeparators(input).replace(' ', '*');
     const Link inputLink = Link::fromString(wildcardInput, true);
-    const QString newInput = inputLink.targetFilePath.toString();
+    const QString newInput = inputLink.targetFilePath.toUrlishString();
     const QRegularExpression regExp = ILocatorFilter::createRegExp(newInput);
     if (!regExp.isValid())
         return {}; // Don't clear the cache - still remember the cache for the last valid input.
@@ -1417,7 +1312,7 @@ FilePaths LocatorFileCache::processFilePaths(const QFuture<void> &future,
         if (future.isCanceled())
             return {};
 
-        const QString matchText = hasPathSeparator ? path.toString() : path.fileName();
+        const QString matchText = hasPathSeparator ? path.toUrlishString() : path.fileName();
         const QRegularExpressionMatch match = regExp.match(matchText);
 
         if (match.hasMatch()) {
@@ -1425,7 +1320,7 @@ FilePaths LocatorFileCache::processFilePaths(const QFuture<void> &future,
             filterEntry.displayName = path.fileName();
             filterEntry.filePath = path;
             filterEntry.extraInfo = path.shortNativePath();
-            filterEntry.linkForEditor = Link(path, inputLink.targetLine, inputLink.targetColumn);
+            filterEntry.linkForEditor = Link(path, inputLink.target.line, inputLink.target.column);
             filterEntry.highlightInfo = hasPathSeparator
                 ? ILocatorFilter::highlightInfo(regExp.match(filterEntry.extraInfo),
                                                 LocatorFilterEntry::HighlightInfo::ExtraInfo)
@@ -1469,12 +1364,11 @@ static void filter(QPromise<LocatorFileCachePrivate> &promise, const LocatorStor
     When this cache started a new search in meantime, the cache was invalidated or even deleted,
     the update of the cache after a successful run of the task is ignored.
 */
-LocatorMatcherTask LocatorFileCache::matcher() const
+ExecutableItem LocatorFileCache::matcher() const
 {
-    Storage<LocatorStorage> storage;
     std::weak_ptr<LocatorFileCachePrivate> weak = d;
 
-    const auto onSetup = [storage, weak](Async<LocatorFileCachePrivate> &async) {
+    const auto onSetup = [weak](Async<LocatorFileCachePrivate> &async) {
         auto that = weak.lock();
         if (!that) // LocatorMatcher is running after *this LocatorFileCache was destructed.
             return SetupResult::StopWithSuccess;
@@ -1484,8 +1378,7 @@ LocatorMatcherTask LocatorFileCache::matcher() const
                                              // no provider is set or it returned empty generator
         that->bumpExecutionId();
 
-        async.setFutureSynchronizer(ExtensionSystem::PluginManager::futureSynchronizer());
-        async.setConcurrentCallData(&filter, *storage, *that);
+        async.setConcurrentCallData(&filter, *LocatorStorage::storage(), *that);
         return SetupResult::Continue;
     };
     const auto onDone = [weak](const Async<LocatorFileCachePrivate> &async) {
@@ -1505,9 +1398,7 @@ LocatorMatcherTask LocatorFileCache::matcher() const
         that->update(async.result());
     };
 
-    return {AsyncTask<LocatorFileCachePrivate>(onSetup, onDone, CallDoneIf::Success), storage};
+    return AsyncTask<LocatorFileCachePrivate>(onSetup, onDone, CallDone::OnSuccess);
 }
 
 } // Core
-
-#include "ilocatorfilter.moc"

@@ -1,17 +1,21 @@
 [General]
-Includes=light.figmatokens
-ThemeName=Classic
+Includes=light.figmatokens, ds.tokenmapping, light-palette.inc
+ThemeName=Classic (2009)
 PreferredStyles=
 
 [Palette]
 brightText=ffffffff
 darkText=ff000000
 textDisabled=88a0a0a0
+toolBarItem=ffdcdcdc
 error=ffdf4f4f
 warning=ffecbc1c
+info=ff4f8fff
 shadowBackground=ff232323
 splitterColor=ff151515
 qmlDesignerButtonColor=ff4c4e50
+normalBackground=ffffffff
+alternateBackground=ff515151
 
 ;DS Theme Palette START
 ;greyscale
@@ -45,67 +49,69 @@ splitterBlue=ff64daff
 rgbBlue=ff64daff
 highlightBlue=ff57b9fc
 highlightHover=ff74CBFC
+ds300=ff71d1ef
+ds800=ff08475B
 ;DS Theme Palette END
 
 [Colors]
-;DS controls theme START
+;DS controls theme
 
 ;NEW FOR QtDS 4
 ;4.0
-DScontrolBackground_toolbarIdle=offWhite
-DScontrolBackground_toolbarHover=offWhite
-DScontrolBackground_topToolbarHover=concreteGrey
-DScontrolBackground_statusbarIdle=concreteGrey
-DSControlBackground_statusbarHover=lightWhite
-DScontrolOutline_topToolbarIdle=concreteGrey
-DScontrolOutline_topToolbarHover=lightWhite
+DScontrolBackground_toolbarIdle=midnightGrey
+DScontrolBackground_toolbarHover=midnightGrey
+DScontrolBackground_topToolbarHover=ashGrey
+DScontrolBackground_statusbarIdle=offBlack
+DSControlBackground_statusbarHover=dawnGrey
+DScontrolOutline_topToolbarIdle=dawnGrey
+DScontrolOutline_topToolbarHover=raincloudGrey
 DSidleGreen=idleGreen
 DSrunningGreen=runningGreen
-DStoolbarBackground=offWhite
+DStoolbarBackground=midnightGrey
 DStoolbarIcon_blocked=shadowGrey
-DSthumbnailBackground_baseState=smokeGrey
-DStextColor=raincloudGrey
-DSstatusbarBackground=concreteGrey
+DSthumbnailBackground_baseState=nearBlack
+DStextColor=lightWhite
+DSstatusbarBackground=offBlack
 DSprimaryButton_hoverHighlight=highlightHover
-DSstateBackgroundColor_hover=concreteGrey
-DSstateControlBackgroundColor_globalHover=concreteGrey
-DSstateControlBackgroundColor_hover=smokeGrey
+DSstateBackgroundColor_hover=ashGrey
+DSstateControlBackgroundColor_globalHover=ashGrey
+DSstateControlBackgroundColor_hover=raincloudGrey
 DSpanelBackground=dawnGrey
 
 ;4.3
-DSpopoutBackground=offWhite
-DSpopoutControlBackground_idle=offWhite
-DSpopoutControlBackground_hover=lightWhite
-DSpopoutControlBackground_globalHover=lightWhite
+DSpopoutBackground=offBlack
+DSpopoutControlBackground_idle=offBlack
+DSpopoutControlBackground_hover=dawnGrey
+DSpopoutControlBackground_globalHover=dawnGrey
 DSpopoutControlBackground_interaction=highlightBlue
-DSpopoutControlBackground_disabled=offWhite
-DSpopoutPopupBackground=lightWhite
+DSpopoutControlBackground_disabled=offBlack
+DSpopoutPopupBackground=nearBlack
 
-DSpopoutControlBorder_idle=slateGrey
-DSpopoutControlBorder_hover=concreteGrey
+DSpopoutControlBorder_idle=midnightGrey
+DSpopoutControlBorder_hover=raincloudGrey
 DSpopoutControlBorder_interaction=highlightBlue
-DSpopoutControlBorder_disabled=offWhite
+DSpopoutControlBorder_disabled=offBlack
 
-DSpopoutButtonBackground_idle=offWhite
-DSpopoutButtonBackground_hover=lightWhite
+DSpopoutButtonBackground_idle=offBlack
+DSpopoutButtonBackground_hover=dawnGrey
 DSpopoutButtonBackground_interaction=highlightBlue
-DSpopoutButtonBackground_disabled=offWhite
+DSpopoutButtonBackground_disabled=offBlack
 
-DSpopoutButtonBorder_idle=smokeGrey
-DSpopoutButtonBorder_hover=shadowGrey
+DSpopoutButtonBorder_idle=slateGrey
+DSpopoutButtonBorder_hover=lightWhite
 DSpopoutButtonBorder_interaction=highlightBlue
-DSpopoutButtonBorder_disabled=offWhite
+DSpopoutButtonBorder_disabled=offBlack
 
 ;4.4
-DSconnectionCodeEditor=lightWhite
-DSconnectionEditorMicroToolbar=concreteGrey
-DSconnectionEditorButtonBackground_hover=lightWhite
+DSconnectionCodeEditor=midnightGrey
+DSconnectionEditorMicroToolbar=coalGrey
+DSconnectionEditorButtonBackground_hover=midnightGrey
 DSconnectionEditorButtonBorder_hover=duskGrey
 DSpillText=fullWhite
 DSpillTextSelected=fullBlack
-DspillTextEdit=fullBlack
-DSpillDefaultBackgroundIdle=shadowGrey
-DSpillDefaultBackgroundHover=smokeGrey
+DspillTextEdit=fullWhite
+DSpillDefaultBackgroundIdle=graniteGrey
+DSpillDefaultBackgroundHover=raincloudGrey
 DSpillOperatorBackgroundIdle=ff6b2a7b
 DSpillOperatorBackgroundHover=ff7e478b
 DSpillLiteralBackgroundIdle=ff447953
@@ -113,59 +119,85 @@ DSpillLiteralBackgroundHover=ff61866B
 
 ;END NEW FOR QtDS 4
 
-DSpanelBackground=ffeaeaea
+;REMAPPED
+DSinteraction=highlightBlue
+DScontrolBackground=dawnGrey
+DScontrolOutlineInteraction=highlightBlue
+DScontrolOutline=nearBlack
+DSiconColorInteraction=nearBlack
+DSiconColorSelected=nearBlack
+DSsectionHeadBackground=midnightGrey
+DSstateSeparatorColor=graniteGrey
+DSnavigatorItemBackground=dawnGrey
+DSnavigatorItemBackgroundHover=graniteGrey
+DSnavigatorItemBackgroundSelected=midnightGrey
+DStabActiveBackground=raincloudGrey
+DStabActiveText=offWhite
+DStabActiveIcon=offWhite
+DStabFocusButtonHover=highlightBlue
+DStabFocusButtonPress=highlightBlue
+DStabFocusBackground=highlightBlue
+DSnavigatorText=lightWhite
+DSpopupBackground=offBlack
+DSinteractionHover=highlightHover
+DSnavigatorTextSelected=highlightBlue
 
-DSwelcomeScreenBackground=ffEAEAEA
-DSsubPanelBackground=ffEFEFEF
-DSthumbnailBackground=ffE8E8E8
-DSthumbnailLabelBackground=ffDDDDDD
+;contentious remap
+;background color for main form view, library, navigator, properties, connections
+QmlDesigner_BackgroundColorDarkAlternate=dawnGrey
 
+;TODO
+DSscrollBarTrack=smokeGrey
+DSscrollBarHandle=concreteGrey
+DSscrollBarHandle_idle=slateGrey
+
+DSdockWidgetTitleBar=dawnGrey
+DSdockWidgetSplitter=fullBlack
+
+;LEGACY
+DSwelcomeScreenBackground=ff242424
+DSsubPanelBackground=ff1c1c1c
+DSthumbnailBackground=ff232323
+DSthumbnailLabelBackground=ff2b2a2a
 DSgreenLight=ff5cdc68
 DSamberLight=ffffbf00
 DSredLight=ffff0401
 
-DSinteraction=highlightBlue
 DSerrorColor=ffdf3a3a
 DSwarningColor=warning
-DSdisabledColor=ff8e8e8e
+DSdisabledColor=ff707070
 
-DSinteractionHover=highlightHover
 
-DScontrolBackground=ffeaeaea
-DScontrolBackgroundInteraction=ffc9c9c9
-DScontrolBackgroundDisabled=ffeaeaea
-DScontrolBackgroundGlobalHover=ffdedddd
-DScontrolBackgroundHover=ffdedddd
+DScontrolBackgroundInteraction=ff3d3d3d
+DScontrolBackgroundDisabled=ff2e2f30
+DScontrolBackgroundGlobalHover=ff333333
+DScontrolBackgroundHover=ff333333
 
-DScontrolOutline=ffcecccc
-DScontrolOutlineInteraction=ff2aafd3
 DScontrolOutlineDisabled=ff707070
 
 DStextColorDisabled=ff707070
 DStextSelectionColor=ff2aafd3
 DStextSelectedTextColor=ff000000
 
-DSplaceholderTextColor=ff262626
+DSplaceholderTextColor=ffffffff
 DSplaceholderTextColorInteraction=ffababab
 
-DSiconColor=ff262626
-DSiconColorHover=ff191919
-DSiconColorInteraction=ffffffff
-DSiconColorDisabled=ff707070
+DSiconColor=fullWhite
+DSiconColorHover=ffffffff
+DSiconColorDisabled=ffC7C7C7
 DSiconColorSelected=ff2aafd3
-
 DSlinkIndicatorColor=ff808080
-DSlinkIndicatorColorHover=ff1f1f1f
+DSlinkIndicatorColorHover=ffffffff
 DSlinkIndicatorColorInteraction=ff2aafd3
 DSlinkIndicatorColorDisabled=ff707070
 
-DSpopupBackground=ffd3d3d3
+
 DSpopupOverlayColor=99191919
 
 DSsliderActiveTrack=ff7c7b7b
 DSsliderActiveTrackHover=ff000000
 DSsliderActiveTrackFocus=ffaaaaaa
-DSsliderInactiveTrack=ffaaaaaa
+DSsliderInactiveTrack=ff595959
 DSsliderInactiveTrackHover=ff505050
 DSsliderInactiveTrackFocus=ff606060
 DSsliderHandle=ff1f1f1f
@@ -173,19 +205,12 @@ DSsliderHandleHover=ff606060
 DSsliderHandleFocus=ff0492c9
 DSsliderHandleInteraction=ff2aafd3
 
-DSscrollBarTrack=smokeGrey
-DSscrollBarHandle=shadowGrey
-DSscrollBarHandle_idle=slateGrey
-
-DSsectionHeadBackground=ffd8d8d8
-
 DSstateDefaultHighlight=ffffe400
-DSstateSeparatorColor=ffadadad
-DSstateBackgroundColor=ffe0e0e0
-DSstatePreviewOutline=ff363636
+DSstateBackgroundColor=fffff000
+DSstatePreviewOutline=ffaaaaaa
 
-DSstatePanelBackground=ffdadada
-DSstateHighlight=ff8d8d8d
+DSstatePanelBackground=ff252525
+DSstateHighlight=ff727272
 
 DSchangedStateText=ff99ccff
 
@@ -199,58 +224,45 @@ DSactionKeyframe=ffe0e01b
 DSactionJIT=ff2db543
 
 DStableHeaderBackground=ffff0000
+DStableCellCurrent=ds800
 DStableHeaderText=ff00ff00
 
-DSdockContainerBackground=ff323232
+DSdockContainerBackground=ff242424
 DSdockContainerSplitter=ff323232
-DSdockAreaBackground=ff262728
-
-DSdockWidgetBackground=ff00ff00
-DSdockWidgetSplitter=ff595959
-DSdockWidgetTitleBar=ffeaeaea
-
+DSdockAreaBackground=dawnGrey
+DSdockWidgetBackground=dawnGrey
 DStitleBarText=ffdadada
-DStitleBarIcon=ff4f5052
+DStitleBarIcon=ffffffff
 DStitleBarButtonHover=40ffffff
 DStitleBarButtonPress=60ffffff
 
-DStabContainerBackground=ffdadada
+DStabContainerBackground=ff1f1f1f
 DStabSplitter=ff595959
 
-DStabInactiveBackground=ff999999
-DStabInactiveText=ff262626
+DStabInactiveBackground=ff1f1f1f
+DStabInactiveText=ffdadada
 DStabInactiveIcon=ffffffff
 DStabInactiveButtonHover=ff1f1f1f
 DStabInactiveButtonPress=ff1f1f1f
 
-DStabActiveBackground=ffdadada
-DStabActiveText=ff111111
-DStabActiveIcon=ff000000
 DStabActiveButtonHover=ffdadada
 DStabActiveButtonPress=ffdadada
 
-DStabFocusBackground=ff2aafd3
 DStabFocusText=ff111111
 DStabFocusIcon=ff000000
-DStabFocusButtonHover=ff2aafd3
-DStabFocusButtonPress=ff2aafd3
 
 DSnavigatorBranch=ff7c7b7b
 DSnavigatorBranchIndicator=ff7c7b7b
-DSnavigatorItemBackground=ffeaeaea
-DSnavigatorItemBackgroundHover=ffdedddd
-DSnavigatorItemBackgroundSelected=ffffffff
-DSnavigatorText=ff262626
-DSnavigatorTextHover=ff1f1f1f
-DSnavigatorTextSelected=ff2aafd3
-DSnavigatorIcon=ff1f1f1f
-DSnavigatorIconHover=ff7c7b7b
-DSnavigatorIconSelected=ff1f1f1f
+DSnavigatorTextHover=ffffffff
+
+DSnavigatorIcon=ffffffff
+DSnavigatorIconHover=ffa1a1a1
+DSnavigatorIconSelected=ffffffff
 DSnavigatorAliasIconChecked=ffff0000
 DSnavigatorDropIndicatorBackground=ff2aafd3
 DSnavigatorDropIndicatorOutline=ff2aafd3
 
-DSheaderViewBackground=ffd8d8d8
+DSheaderViewBackground=ff1f1f1f
 DStableViewAlternateBackground=ff00ff00
 
 DStoolTipBackground=ff111111
@@ -259,12 +271,11 @@ DStoolTipText=ffdadada
 
 DSUnimportedModuleColor=ffe33c2e
 
-DSBackgroundColorAlternate=ffeaeaea
-DSBackgroundColorNormal=ffd8d8d8
+DSBackgroundColorAlternate=alternateBackground
+DSBackgroundColorNormal=normalBackground
 
 ;DS controls theme END
 
-BackgroundColorAlternate=ff3d3d3d
 BackgroundColorDark=shadowBackground
 BackgroundColorHover=ff515151
 BackgroundColorNormal=ffffffff
@@ -274,23 +285,11 @@ BadgeLabelBackgroundColorChecked=ffe0e0e0
 BadgeLabelBackgroundColorUnchecked=ff808080
 BadgeLabelTextColorChecked=ff606060
 BadgeLabelTextColorUnchecked=ffffffff
-ComboBoxArrowColor=ffb8b5b2
-ComboBoxArrowColorDisabled=ffdcdcdc
 ComboBoxTextColor=ffffffff
-DetailsButtonBackgroundColorHover=b4ffffff
 DetailsWidgetBackgroundColor=28ffffff
 DockWidgetResizeHandleColor=ff000000
-DoubleTabWidget1stSeparatorColor=ffff0000
-DoubleTabWidget1stTabActiveTextColor=ff000000
-DoubleTabWidget1stTabBackgroundColor=ffff0000
-DoubleTabWidget1stTabInactiveTextColor=ffffffff
-DoubleTabWidget2ndSeparatorColor=ffff0000
-DoubleTabWidget2ndTabActiveTextColor=ffffffff
-DoubleTabWidget2ndTabBackgroundColor=ffff0000
-DoubleTabWidget2ndTabInactiveTextColor=ff000000
 EditorPlaceholderColor=ffe0dcd8
 FancyToolBarSeparatorColor=60ffffff
-FancyTabBarBackgroundColor=ffff0000
 FancyTabBarSelectedBackgroundColor=ffff0000
 FancyTabWidgetDisabledSelectedTextColor=textDisabled
 FancyTabWidgetDisabledUnselectedTextColor=textDisabled
@@ -298,8 +297,8 @@ FancyTabWidgetEnabledSelectedTextColor=ff3c3c3c
 FancyTabWidgetEnabledUnselectedTextColor=ffffffff
 FancyToolButtonHoverColor=28ffffff
 FancyToolButtonSelectedColor=32000000
-FutureProgressBackgroundColor=ffff0000
-IconsBaseColor=ffdcdcdc
+FancyToolButtonHighlightColor=toolBarItem
+IconsBaseColor=toolBarItem
 IconsDisabledColor=textDisabled
 IconsInfoColor=ff3099dc
 IconsInfoToolBarColor=ff71b2db
@@ -313,17 +312,10 @@ IconsStopColor=ffee6969
 IconsStopToolBarColor=ffff8c8c
 IconsInterruptColor=ff587ff7
 IconsInterruptToolBarColor=ff8f9dda
-IconsDebugColor=ffdcdcdc
+IconsDebugColor=toolBarItem
 IconsNavigationArrowsColor=ffebc322
 IconsBuildHammerHandleColor=ffdd7710
 IconsBuildHammerHeadColor=ff989898
-IconsModeWelcomeActiveColor=ffffffff
-IconsModeEditActiveColor=ffffffff
-IconsModeDesignActiveColor=ffffffff
-IconsModeDebugActiveColor=ffffffff
-IconsModeProjectActiveColor=ffffffff
-IconsModeAnalyzeActiveColor=ffffffff
-IconsModeHelpActiveColor=ffffffff
 IconsCodeModelKeywordColor=ff777777
 IconsCodeModelClassColor=ffc0b550
 IconsCodeModelStructColor=ff53b053
@@ -338,18 +330,14 @@ IconsCodeModelOverlayBackgroundColor=70ffffff
 IconsCodeModelOverlayForegroundColor=ff232425
 InfoBarBackground=ffffffe1
 InfoBarText=ff000000
-MenuBarEmptyAreaBackgroundColor=ffff0000
-MenuBarItemBackgroundColor=ffff0000
 MenuBarItemTextColorDisabled=ffa0a0a4
 MenuBarItemTextColorNormal=ff000000
 MenuItemTextColorDisabled=style
 MenuItemTextColorNormal=style
 MiniProjectTargetSelectorBackgroundColor=ffa0a0a0
 MiniProjectTargetSelectorBorderColor=ff000000
-MiniProjectTargetSelectorSummaryBackgroundColor=ff464646
 MiniProjectTargetSelectorTextColor=a0ffffff
 PanelStatusBarBackgroundColor=ff626262
-PanelsWidgetSeparatorLineColor=ffbfbcb8
 PanelTextColorDark=darkText
 PanelTextColorMid=ff909090
 PanelTextColorLight=brightText
@@ -363,12 +351,7 @@ TextColorDisabled=55000000
 TextColorError=ffff0000
 TextColorHighlightBackground=ffef0b
 TextColorLink=ff0057ae
-TextColorLinkVisited=ff644a9b
 TextColorNormal=ff000000
-ToggleButtonBackgroundColor=ffff0000
-ToolBarBackgroundColor=ffff0000
-TreeViewArrowColorNormal=ffff0000
-TreeViewArrowColorSelected=ffff0000
 
 OutputPanes_DebugTextColor=ffaa00aa
 OutputPanes_ErrorMessageTextColor=ffaa0000
@@ -410,7 +393,8 @@ Timeline_HandleColor=ff3d3d3d
 Timeline_RangeColor=66000000
 
 VcsBase_FileStatusUnknown_TextColor=ff000000
-VcsBase_FileAdded_TextColor=ff00aa00
+VcsBase_FileUntracked_TextColor=ff00aa00
+VcsBase_FileAdded_TextColor=ff006400
 VcsBase_FileModified_TextColor=ff0000ee
 VcsBase_FileDeleted_TextColor=ff800000
 VcsBase_FileRenamed_TextColor=ffd77d00
@@ -427,6 +411,7 @@ ProjectExplorer_TaskWarn_TextMarkColor=warning
 
 CodeModel_Error_TextMarkColor=error
 CodeModel_Warning_TextMarkColor=warning
+CodeModel_Info_TextMarkColor=info
 
 QmlDesigner_BackgroundColor=qmlDesignerButtonColor
 QmlDesigner_HighlightColor=ff46a2da
@@ -465,13 +450,12 @@ TerminalAnsi15=e5e5e6
 
 [Flags]
 ComboBoxDrawTextShadow=true
-DerivePaletteFromTheme=false
+DerivePaletteFromThemeIfNeeded=true
 DrawIndicatorBranch=false
 DrawSearchResultWidgetFrame=true
 DrawTargetSelectorBottom=true
 DrawToolBarHighlights=true
 DrawToolBarBorders=false
-ApplyThemePaletteGlobally=false
 FlatToolBars=false
 FlatSideBarIcons=false
 FlatProjectsMode=false

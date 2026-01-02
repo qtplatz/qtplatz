@@ -11,6 +11,8 @@
 #include <QPair>
 #include <QStringList>
 
+#include <variant>
+
 namespace Utils {
 
 class AbstractMacroExpander;
@@ -21,13 +23,6 @@ class MacroExpander;
 class QTCREATOR_UTILS_EXPORT ProcessArgs
 {
 public:
-    static ProcessArgs createWindowsArgs(const QString &args);
-    static ProcessArgs createUnixArgs(const QStringList &args);
-
-    QString toWindowsArgs() const;
-    QStringList toUnixArgs() const;
-    QString toString() const;
-
     enum SplitError {
         SplitOk = 0, //! All went just fine
         BadQuoting, //! Command contains quoting errors
@@ -42,24 +37,30 @@ public:
     static void addArg(QString *args, const QString &arg, OsType osType = HostOsInfo::hostOs());
     //! Join an argument list into a shell command
     static QString joinArgs(const QStringList &args, OsType osType = HostOsInfo::hostOs());
-    //! Prepare argument of a shell command for feeding into QProcess
-    static ProcessArgs prepareArgs(const QString &args, SplitError *err, OsType osType,
-                                   const Environment *env = nullptr, const FilePath *pwd = nullptr,
-                                   bool abortOnMeta = true);
+    //! Prepare argument of a shell command for feeding into QProcess.
+    static QString prepareShellArgs(const QString &args, SplitError *err, OsType osType,
+                                    const Environment *env = nullptr, const FilePath &pwd = {});
     //! Prepare a shell command for feeding into QProcess
-    static bool prepareCommand(const CommandLine &cmdLine, QString *outCmd, ProcessArgs *outArgs,
-                               const Environment *env = nullptr, const FilePath *pwd = nullptr);
+    static bool prepareCommand(const CommandLine &cmdLine, QString *outCmd, QString *outArgs,
+                               const Environment *env = nullptr, const FilePath &pwd = {});
     //! Quote and append each argument to a shell command
     static void addArgs(QString *args, const QStringList &inArgs);
+    //! Quote and append each argument to a shell command
+    static void addArgs(QString *args, const QStringList &inArgs, OsType osType);
     //! Append already quoted arguments to a shell command
     static void addArgs(QString *args, const QString &inArgs);
     //! Split a shell command into separate arguments.
     static QStringList splitArgs(const QString &cmd, OsType osType,
                                  bool abortOnMeta = false, SplitError *err = nullptr,
-                                 const Environment *env = nullptr, const QString *pwd = nullptr);
+                                 const Environment *env = nullptr, const QString &pwd = {});
+    //! Split a shell command into separate arguments and drop complex ones
+    //! as input for the internal .pro parser.
+    static QStringList filterSimpleArgs(const QString &cmd, OsType osType);
+
+    using FindMacro = std::function<int(const QString &str, int *pos, QString *ret)>;
+
     //! Safely replace the expandos in a shell command
-    static bool expandMacros(QString *cmd, AbstractMacroExpander *mx,
-                             OsType osType = HostOsInfo::hostOs());
+    static bool expandMacros(QString *cmd, const FindMacro &findMacro, OsType osType);
 
     /*! Iterate over arguments from a command line.
      *  Assumes that the name of the actual command is *not* part of the line.
@@ -91,25 +92,14 @@ public:
         OsType m_osType;
     };
 
-    class QTCREATOR_UTILS_EXPORT ConstArgIterator
-    {
-    public:
-        ConstArgIterator(const QString &str, OsType osType = HostOsInfo::hostOs())
-            : m_str(str), m_ait(&m_str, osType)
-        {}
-        bool next() { return m_ait.next(); }
-        bool isSimple() const { return m_ait.isSimple(); }
-        QString value() const { return m_ait.value(); }
+};
 
-    private:
-        QString m_str;
-        ArgIterator m_ait;
-    };
-
-private:
-    QString m_windowsArgs;
-    QStringList m_unixArgs;
-    bool m_isWindows;
+class QTCREATOR_UTILS_EXPORT RunResult
+{
+public:
+    int exitCode = -1;
+    QByteArray stdOut;
+    QByteArray stdErr;
 };
 
 class QTCREATOR_UTILS_EXPORT CommandLine
@@ -120,8 +110,33 @@ public:
     CommandLine();
     ~CommandLine();
 
+    struct ArgRef
+    {
+        ArgRef(const char *arg) : m_arg(arg) {}
+        ArgRef(const QString &arg) : m_arg(arg) {}
+        ArgRef(const QStringList &args) : m_arg(args) {}
+        ArgRef(const QString &arg, RawType)
+            : m_arg(arg)
+            , m_raw(true)
+        {}
+        ArgRef(std::initializer_list<QString> args)
+            : m_arg(QStringList(args))
+        {}
+
+    private:
+        friend class CommandLine;
+        const std::variant<
+            const char *,
+            std::reference_wrapper<const QString>,
+            std::reference_wrapper<const QStringList>,
+            QStringList>
+            m_arg;
+        bool m_raw = false;
+    };
+
     explicit CommandLine(const FilePath &executable);
     CommandLine(const FilePath &exe, const QStringList &args);
+    CommandLine(const FilePath &exe, std::initializer_list<ArgRef> args);
     CommandLine(const FilePath &exe, const QStringList &args, OsType osType);
     CommandLine(const FilePath &exe, const QString &unparsedArgs, RawType);
 
@@ -144,7 +159,9 @@ public:
     void addCommandLineAsArgs(const CommandLine &cmd, RawType);
 
     void addCommandLineAsSingleArg(const CommandLine &cmd);
+    void addCommandLineAsSingleArg(const CommandLine &cmd, OsType osType);
     void addCommandLineWithAnd(const CommandLine &cmd);
+    void addCommandLineWithOr(const CommandLine &cmd);
 
     QString toUserOutput() const;
     QString displayName() const;
@@ -158,6 +175,7 @@ public:
     QStringList splitArguments() const;
 
     bool isEmpty() const { return m_executable.isEmpty(); }
+    CommandLine toLocal() const;
 
 private:
     friend QTCREATOR_UTILS_EXPORT bool operator==(const CommandLine &first, const CommandLine &second);

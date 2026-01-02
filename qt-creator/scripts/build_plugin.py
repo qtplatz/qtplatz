@@ -79,6 +79,7 @@ def build(args, paths):
                   '-DCMAKE_BUILD_TYPE=' + args.build_type,
                   '-DQTC_SEPARATE_DEBUG_INFO=' + separate_debug_info_option,
                   '-DCMAKE_INSTALL_PREFIX=' + common.to_posix_path(paths.install),
+                  '-DQT_GENERATE_SBOM=ON',
                   '-G', 'Ninja']
 
     if args.module_paths:
@@ -142,21 +143,24 @@ def build(args, paths):
                                  paths.build)
 
 def package(args, paths):
+    if not os.path.exists(paths.install):
+        os.makedirs(paths.install)
     if not os.path.exists(paths.result):
         os.makedirs(paths.result)
     if common.is_windows_platform() and args.sign_command:
         command = shlex.split(args.sign_command)
         common.check_print_call(command + [paths.install])
-    common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads, os.path.join(paths.result, args.name + '.7z'), '*'],
+    zip = common.sevenzip_command(args.zip_threads)
+    common.check_print_call(zip + [os.path.join(paths.result, args.name + '.7z'), '*'],
                             paths.install)
     if os.path.exists(paths.dev_install):  # some plugins might not provide anything in Devel
-        common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                 os.path.join(paths.result, args.name + '_dev.7z'), '*'],
+        common.check_print_call(zip
+                                + [os.path.join(paths.result, args.name + '_dev.7z'), '*'],
                                 paths.dev_install)
     # check for existence - the DebugInfo install target doesn't work for telemetry plugin
     if args.with_debug_info and os.path.exists(paths.debug_install):
-        common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                 os.path.join(paths.result, args.name + '-debug.7z'), '*'],
+        common.check_print_call(zip
+                                + [os.path.join(paths.result, args.name + '-debug.7z'), '*'],
                                 paths.debug_install)
     if common.is_mac_platform() and common.codesign_call():
         if args.keychain_unlock_script:
@@ -164,15 +168,20 @@ def package(args, paths):
         if os.environ.get('SIGNING_IDENTITY'):
             signed_install_path = paths.install + '-signed'
             common.copytree(paths.install, signed_install_path, symlinks=True)
-            apps = [d for d in os.listdir(signed_install_path) if d.endswith('.app')]
-            if apps:
-                app = apps[0]
-                common.conditional_sign_recursive(os.path.join(signed_install_path, app),
-                                                  lambda ff: ff.endswith('.dylib'))
-                common.check_print_call(['7z', 'a', '-mmt' + args.zip_threads,
-                                         os.path.join(paths.result, args.name + '-signed.7z'),
-                                         app],
-                                        signed_install_path)
+            zippattern = None
+            if os.path.exists(signed_install_path):
+                apps = [d for d in os.listdir(signed_install_path) if d.endswith('.app')]
+                if apps:
+                    zippattern = apps[0]
+            if not zippattern:
+                os.makedirs(signed_install_path)  # if nothing was installed
+                zippattern = '*'
+            common.conditional_sign_recursive(signed_install_path,
+                                              lambda ff: ff.endswith('.dylib'))
+            common.check_print_call(zip
+                                    + [os.path.join(paths.result, args.name + '-signed.7z'),
+                                       zippattern],
+                                    signed_install_path)
 
 def get_paths(args):
     Paths = collections.namedtuple('Paths',

@@ -1,4 +1,0 @@
-Product {
-    doesntexist: 123
-}
-

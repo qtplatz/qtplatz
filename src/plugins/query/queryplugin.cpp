@@ -27,6 +27,7 @@
 #include "queryconstants.hpp"
 #include "queryfactory.hpp"
 #include "querymode.hpp"
+#include "utils/result.h"
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -84,19 +85,14 @@ QueryPlugin::~QueryPlugin()
 #endif
 }
 
-bool
-QueryPlugin::initialize(const QStringList &arguments, QString *errorString)
+Utils::Result<> // bool
+QueryPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
-    Q_UNUSED(errorString);
 
     impl_->ini();
-    // addObject( mode_.get() );
 
-    // it's conflict with Dataproc document factory on MIME due to both support application/adfs
-    // addAutoReleasedObject( new QueryFactory( this ) );
-
-    return true;
+    return Utils::ResultOk;
 }
 
 void QueryPlugin::extensionsInitialized()

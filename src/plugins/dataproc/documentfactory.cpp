@@ -64,7 +64,7 @@ DocumentFactory::open(const Utils::FilePath &filePath)
     qDebug() << "## DocumentFactory::open(" << filePath << ") ##";
     auto processor = Dataprocessor::make_dataprocessor();
     QString errorString;
-    if ( processor->open( &errorString, filePath, filePath ) == Core::IDocument::OpenResult::Success )
+    if ( processor->open( /*&errorString,*/ filePath, filePath ) == Utils::ResultOk ) //Core::IDocument::OpenResult::Success )
         return processor.get();
     return 0;
 }

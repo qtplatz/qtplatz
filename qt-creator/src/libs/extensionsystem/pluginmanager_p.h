@@ -36,8 +36,6 @@ class PluginManager;
 
 namespace Internal {
 
-class PluginSpecPrivate;
-
 class EXTENSIONSYSTEM_TEST_EXPORT PluginManagerPrivate : public QObject
 {
 public:
@@ -52,9 +50,11 @@ public:
     void checkForProblematicPlugins();
     void loadPlugins();
     void loadPluginsAtRuntime(const QSet<PluginSpec *> &plugins);
+    void addPlugins(const QList<PluginSpec *> &specs);
+
     void shutdown();
-    void setPluginPaths(const QStringList &paths);
-    const QVector<ExtensionSystem::PluginSpec *> loadQueue();
+    void setPluginPaths(const Utils::FilePaths &paths);
+    const QList<ExtensionSystem::PluginSpec *> loadQueue();
     void loadPlugin(PluginSpec *spec, PluginSpec::State destState);
     void resolveDependencies();
     void enableDependenciesIndirectly();
@@ -67,6 +67,16 @@ public:
     void setGlobalSettings(Utils::QtcSettings *settings);
     void readSettings();
     void writeSettings();
+
+    bool acceptTermsAndConditions(PluginSpec *spec);
+    void setAcceptTermsAndConditionsCallback(const std::function<bool(PluginSpec *)> &callback);
+    void readPluginPaths();
+
+    void removePluginsAfterRestart();
+    void installPluginsAfterRestart();
+
+    Utils::Result<> removePluginOnRestart(const QString &pluginId);
+    void installPluginOnRestart(const Utils::FilePath &src, const Utils::FilePath &dest);
 
     class TestSpec {
     public:
@@ -88,16 +98,17 @@ public:
         testSpecs = Utils::filtered(testSpecs, [pluginSpec](const TestSpec &s) { return s.pluginSpec != pluginSpec; });
     }
 
-    QHash<QString, QVector<PluginSpec *>> pluginCategories;
-    QVector<PluginSpec *> pluginSpecs;
+    QHash<QString, QList<PluginSpec *>> pluginCategories;
+    QList<PluginSpec *> pluginSpecs;
     std::vector<TestSpec> testSpecs;
-    QStringList pluginPaths;
+    Utils::FilePaths pluginPaths;
     QString pluginIID;
-    QVector<QObject *> allObjects;      // ### make this a QVector<QPointer<QObject> > > ?
+    QObjectList allObjects;      // ### make this a QList<QPointer<QObject> > > ?
     QStringList defaultDisabledPlugins; // Plugins/Ignored from install settings
     QStringList defaultEnabledPlugins; // Plugins/ForceEnabled from install settings
     QStringList disabledPlugins;
     QStringList forceEnabledPlugins;
+    QStringList pluginsWithAcceptedTermsAndConditions;
     // delayed initialization
     QTimer delayedInitializeTimer;
     std::queue<PluginSpec *> delayedInitializeQueue;
@@ -112,16 +123,12 @@ public:
     qint64 m_totalUntilDelayedInitialize = 0;
     qint64 m_totalStartupMS = 0;
     unsigned m_profilingVerbosity = 0;
-    Utils::QtcSettings *settings = nullptr;
-    Utils::QtcSettings *globalSettings = nullptr;
+
+    std::function<bool(PluginSpec *)> acceptTermsAndConditionsCallback;
 
     // Look in argument descriptions of the specs for the option.
     PluginSpec *pluginForOption(const QString &option, bool *requiresArgument) const;
-    PluginSpec *pluginByName(const QString &name) const;
-
-    // used by tests
-    static PluginSpec *createSpec();
-    static PluginSpecPrivate *privateSpec(PluginSpec *spec);
+    PluginSpec *pluginById(const QString &id) const;
 
     static void addTestCreator(IPlugin *plugin, const std::function<QObject *()> &testCreator);
 
@@ -140,22 +147,20 @@ public:
     QWaitCondition m_scenarioWaitCondition;
 
     PluginManager::ProcessData m_creatorProcessData;
-    std::unique_ptr<Utils::FutureSynchronizer> m_futureSynchronizer;
 
 private:
     PluginManager *q;
 
     void startDelayedInitialize();
 
-    void readPluginPaths();
     bool loadQueue(PluginSpec *spec,
-                   QVector<ExtensionSystem::PluginSpec *> &queue,
-                   QVector<ExtensionSystem::PluginSpec *> &circularityCheckQueue);
+                   QList<ExtensionSystem::PluginSpec *> &queue,
+                   QList<ExtensionSystem::PluginSpec *> &circularityCheckQueue);
     void stopAll();
     void deleteAll();
     void checkForDuplicatePlugins();
 
-#ifdef WITH_TESTS
+#ifdef EXTENSIONSYSTEM_WITH_TESTOPTION
     void startTests();
 #endif
 };

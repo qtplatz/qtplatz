@@ -5,21 +5,24 @@
 
 #include "async.h"
 #include "commandline.h"
+#include "datafromprocess.h"
 #include "environment.h"
 #include "fileutils.h"
 #include "guard.h"
 #include "hostosinfo.h"
 #include "macroexpander.h"
 #include "optionpushbutton.h"
-#include "process.h"
+#include "qtcprocess.h"
 #include "qtcassert.h"
+#include "tooltip/tooltip.h"
 #include "utilstr.h"
 
 #include <QFileDialog>
-#include <QFuture>
 #include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QHelpEvent>
 #include <QMenu>
+#include <QPointer>
 #include <QPushButton>
 #include <QStandardPaths>
 
@@ -84,8 +87,6 @@ public:
     QStringList arguments() const { return m_arguments; }
     void setArguments(const QStringList &arguments) { m_arguments = arguments; }
 
-    static QString toolVersion(const CommandLine &cmd);
-
 private:
     // Extension point for concatenating existing tooltips.
     virtual QString defaultToolTip() const  { return QString(); }
@@ -107,38 +108,40 @@ bool BinaryVersionToolTipEventFilter::eventFilter(QObject *o, QEvent *e)
     QTC_ASSERT(le, return false);
 
     const QString binary = le->text();
-    if (!binary.isEmpty()) {
-        const QString version = BinaryVersionToolTipEventFilter::toolVersion(
-                    CommandLine(FilePath::fromString(QDir::cleanPath(binary)), m_arguments));
-        if (!version.isEmpty()) {
-            // Concatenate tooltips.
-            QString tooltip = "<html><head/><body>";
-            const QString defaultValue = defaultToolTip();
-            if (!defaultValue.isEmpty()) {
-                tooltip += "<p>";
-                tooltip += defaultValue;
-                tooltip += "</p>";
-            }
-            tooltip += "<pre>";
-            tooltip += version;
-            tooltip += "</pre><body></html>";
-            le->setToolTip(tooltip);
-        }
-    }
-    return false;
-}
+    DataFromProcess<QString>::Parameters params(
+        CommandLine(FilePath::fromUserInput(binary), m_arguments),
+        [](const QString &output, const QString &) { return output; });
+    params.callback = [binary, self = QPointer(this),
+                       le = QPointer(le)](const std::optional<QString> &version) {
+        if (!self || !le)
+            return;
+        if (!version || version->isEmpty())
+            return;
+        if (binary != le->text())
+            return;
 
-QString BinaryVersionToolTipEventFilter::toolVersion(const CommandLine &cmd)
-{
-    if (cmd.executable().isEmpty())
-        return QString();
-    Process proc;
-    proc.setCommand(cmd);
-    using namespace std::chrono_literals;
-    proc.runBlocking(1s);
-    if (proc.result() != ProcessResult::FinishedWithSuccess)
-        return QString();
-    return proc.allOutput();
+        // Concatenate tooltips.
+        QString tooltip = "<html><head/><body>";
+        const QString defaultValue = self->defaultToolTip();
+        if (!defaultValue.isEmpty()) {
+            tooltip += "<p>";
+            tooltip += defaultValue;
+            tooltip += "</p>";
+        }
+        tooltip += "<pre>";
+        tooltip += *version;
+        tooltip += "</pre><body></html>";
+        le->setToolTip(tooltip);
+        if (QRect(le->mapToGlobal(QPoint(0, 0)), le->size()).contains(QCursor::pos())) {
+            QCoreApplication::postEvent(le,
+                                        new QHelpEvent(QEvent::ToolTip,
+                                                       le->mapFromGlobal(QCursor::pos()),
+                                                       QCursor::pos()));
+        }
+    };
+    DataFromProcess<QString>::provideData(params);
+
+    return false;
 }
 
 // Extends BinaryVersionToolTipEventFilter to prepend the existing pathchooser
@@ -153,6 +156,28 @@ private:
     QString defaultToolTip() const override { return m_pathChooser->errorMessage(); }
 
     const PathChooser *m_pathChooser = nullptr;
+};
+
+class ExpandedValueEventFilter : public QObject
+{
+public:
+    ExpandedValueEventFilter(PathChooser *p) : QObject(p)
+    {
+        p->lineEdit()->installEventFilter(this);
+    }
+
+private:
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        const auto p = qobject_cast<PathChooser *>(parent());
+        if (e->type() == QEvent::ToolTip && p->lineEdit()->toolTip().isEmpty()) {
+            const FilePath fp = p->filePath();
+            if (fp != p->unexpandedFilePath())
+                ToolTip::show(static_cast<QHelpEvent *>(e)->globalPos(), fp.toUserOutput());
+            return true;
+        }
+        return QObject::eventFilter(o, e);
+    }
 };
 
 // ------------------ PathChooserPrivate
@@ -172,7 +197,7 @@ public:
     QString m_dialogFilter;
     FilePath m_initialBrowsePathOverride;
     QString m_defaultValue;
-    FilePath m_baseDirectory;
+    Lazy<FilePath> m_baseDirectory;
     Environment m_environment;
     BinaryVersionToolTipEventFilter *m_binaryVersionToolTipEventFilter = nullptr;
     QList<QAbstractButton *> m_buttons;
@@ -182,6 +207,7 @@ public:
 
     QMenu *m_contextMenu = nullptr;
     OptionPushButton *m_browseButton = nullptr;
+    QPushButton *m_alternativesButton = nullptr;
     Guard m_callGuard;
 };
 
@@ -213,7 +239,7 @@ FilePath PathChooserPrivate::expandedPath(const FilePath &input) const
     switch (m_acceptingKind) {
     case PathChooser::Command:
     case PathChooser::ExistingCommand: {
-        const FilePath expanded = path.searchInPath({m_baseDirectory});
+        const FilePath expanded = path.searchInPath({m_baseDirectory.value()});
         return expanded.isEmpty() ? path : expanded;
     }
     case PathChooser::Any:
@@ -222,8 +248,8 @@ FilePath PathChooserPrivate::expandedPath(const FilePath &input) const
     case PathChooser::ExistingDirectory:
     case PathChooser::File:
     case PathChooser::SaveFile:
-        if (!m_baseDirectory.isEmpty()) {
-            FilePath fp = m_baseDirectory.resolvePath(path.path()).absoluteFilePath();
+        if (!m_baseDirectory.value().isEmpty()) {
+            FilePath fp = m_baseDirectory.value().resolvePath(path.path()).absoluteFilePath();
             // FIXME bad hotfix for manually editing PathChooser (invalid paths, jumping cursor)
             // examples: have an absolute path and try to change the device letter by typing the new
             // letter and removing the original afterwards ends up in
@@ -231,7 +257,7 @@ FilePath PathChooserPrivate::expandedPath(const FilePath &input) const
             // as 'cD:\\dev\\build-project' is considered is handled as being relative
             // input = "cD:\\dev\build-project"; // prepended 'c' to change the device letter
             // m_baseDirectory = "D:\\dev\\project"
-            if (!fp.needsDevice() && HostOsInfo::isWindowsHost() && fp.toString().count(':') > 1)
+            if (fp.isLocal() && HostOsInfo::isWindowsHost() && fp.toUrlishString().count(':') > 1)
                 return path;
             return fp;
         }
@@ -244,6 +270,8 @@ PathChooser::PathChooser(QWidget *parent) :
     QWidget(parent),
     d(new PathChooserPrivate)
 {
+    new ExpandedValueEventFilter(this);
+
     d->m_hLayout->setContentsMargins(0, 0, 0, 0);
 
     d->m_lineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -317,42 +345,42 @@ QAbstractButton *PathChooser::buttonAtIndex(int index) const
     return d->m_buttons.at(index);
 }
 
-void PathChooser::setBaseDirectory(const FilePath &base)
+void PathChooser::setBaseDirectory(const Lazy<FilePath> &base)
 {
-    if (d->m_baseDirectory == base)
-        return;
+    const bool sameValue = d->m_baseDirectory.value() == base.value();
     d->m_baseDirectory = base;
-    triggerChanged();
+    if (!sameValue)
+        triggerChanged();
 }
 
 FilePath PathChooser::baseDirectory() const
 {
-    return d->m_baseDirectory;
+    return d->m_baseDirectory.value();
 }
 
 void PathChooser::setEnvironment(const Environment &env)
 {
-    QString oldExpand = filePath().toString();
+    QString oldExpand = filePath().toUrlishString();
     d->m_environment = env;
-    if (filePath().toString() != oldExpand) {
+    if (filePath().toUrlishString() != oldExpand) {
         triggerChanged();
         emit rawPathChanged();
     }
 }
 
-FilePath PathChooser::rawFilePath() const
+FilePath PathChooser::unexpandedFilePath() const
 {
-    return FilePath::fromUserInput(d->m_lineEdit->text());
+    return FilePath::fromUserInput(d->m_lineEdit->text().trimmed());
 }
 
 FilePath PathChooser::filePath() const
 {
-    return d->expandedPath(rawFilePath());
+    return d->expandedPath(unexpandedFilePath());
 }
 
 FilePath PathChooser::absoluteFilePath() const
 {
-    return d->m_baseDirectory.resolvePath(filePath());
+    return d->m_baseDirectory.value().resolvePath(filePath());
 }
 
 void PathChooser::setPath(const QString &path)
@@ -399,15 +427,17 @@ void PathChooser::slotBrowse(bool remote)
             predefined.clear();
     }
 
-    remote = remote || filePath().needsDevice();
+    if (predefined.isEmpty())
+        predefined = d->m_baseDirectory.value();
+
+    remote = remote || !filePath().isLocal();
 
     // Prompt for a file/dir
     FilePath newPath;
     switch (d->m_acceptingKind) {
     case PathChooser::Directory:
     case PathChooser::ExistingDirectory:
-        newPath = FileUtils::getExistingDirectory(this,
-                                                  makeDialogTitle(Tr::tr("Choose Directory")),
+        newPath = FileUtils::getExistingDirectory(makeDialogTitle(Tr::tr("Choose Directory")),
                                                   predefined,
                                                   {},
                                                   d->m_allowPathFromDevice,
@@ -415,8 +445,7 @@ void PathChooser::slotBrowse(bool remote)
         break;
     case PathChooser::ExistingCommand:
     case PathChooser::Command:
-        newPath = FileUtils::getOpenFilePath(this,
-                                             makeDialogTitle(Tr::tr("Choose Executable")),
+        newPath = FileUtils::getOpenFilePath(makeDialogTitle(Tr::tr("Choose Executable")),
                                              predefined,
                                              d->m_dialogFilter,
                                              nullptr,
@@ -426,8 +455,7 @@ void PathChooser::slotBrowse(bool remote)
         newPath = appBundleExpandedPath(newPath);
         break;
     case PathChooser::File: // fall through
-        newPath = FileUtils::getOpenFilePath(this,
-                                             makeDialogTitle(Tr::tr("Choose File")),
+        newPath = FileUtils::getOpenFilePath(makeDialogTitle(Tr::tr("Choose File")),
                                              predefined,
                                              d->m_dialogFilter,
                                              nullptr,
@@ -437,8 +465,7 @@ void PathChooser::slotBrowse(bool remote)
         newPath = appBundleExpandedPath(newPath);
         break;
     case PathChooser::SaveFile:
-        newPath = FileUtils::getSaveFilePath(this,
-                                             makeDialogTitle(Tr::tr("Choose File")),
+        newPath = FileUtils::getSaveFilePath(makeDialogTitle(Tr::tr("Choose File")),
                                              predefined,
                                              d->m_dialogFilter,
                                              nullptr,
@@ -446,8 +473,7 @@ void PathChooser::slotBrowse(bool remote)
                                              remote);
         break;
     case PathChooser::Any: {
-        newPath = FileUtils::getOpenFilePath(this,
-                                             makeDialogTitle(Tr::tr("Choose File")),
+        newPath = FileUtils::getOpenFilePath(makeDialogTitle(Tr::tr("Choose File")),
                                              predefined,
                                              d->m_dialogFilter,
                                              nullptr,
@@ -542,7 +568,7 @@ static FancyLineEdit::AsyncValidationResult validatePath(FilePath filePath,
         if (!defaultValue.isEmpty()) {
             filePath = FilePath::fromUserInput(defaultValue);
         } else {
-            return make_unexpected(Tr::tr("The path must not be empty."));
+            return ResultError(Tr::tr("The path must not be empty."));
         }
     }
 
@@ -550,57 +576,57 @@ static FancyLineEdit::AsyncValidationResult validatePath(FilePath filePath,
     switch (kind) {
     case PathChooser::ExistingDirectory:
         if (!filePath.exists()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" does not exist.").arg(filePath.toUserOutput()));
         }
         if (!filePath.isDir()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" is not a directory.").arg(filePath.toUserOutput()));
         }
         break;
     case PathChooser::File:
         if (!filePath.exists()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" does not exist.").arg(filePath.toUserOutput()));
         }
         if (!filePath.isFile()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" is not a file.").arg(filePath.toUserOutput()));
         }
         break;
     case PathChooser::SaveFile:
         if (!filePath.parentDir().exists()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The directory \"%1\" does not exist.").arg(filePath.toUserOutput()));
         }
         if (filePath.exists() && filePath.isDir()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" is not a file.").arg(filePath.toUserOutput()));
         }
         break;
     case PathChooser::ExistingCommand:
         if (!filePath.exists()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" does not exist.").arg(filePath.toUserOutput()));
         }
         if (!filePath.isExecutableFile()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" is not an executable file.").arg(filePath.toUserOutput()));
         }
         break;
     case PathChooser::Directory:
         if (filePath.exists() && !filePath.isDir()) {
-            return make_unexpected(
+            return ResultError(
                 Tr::tr("The path \"%1\" is not a directory.").arg(filePath.toUserOutput()));
         }
         if (filePath.osType() == OsTypeWindows && !filePath.startsWithDriveLetter()
             && !filePath.startsWith("\\\\") && !filePath.startsWith("//")) {
-            return make_unexpected(Tr::tr("Invalid path \"%1\".").arg(filePath.toUserOutput()));
+            return ResultError(Tr::tr("Invalid path \"%1\".").arg(filePath.toUserOutput()));
         }
         break;
     case PathChooser::Command:
         if (filePath.exists() && !filePath.isExecutableFile()) {
-            return make_unexpected(Tr::tr("Cannot execute \"%1\".").arg(filePath.toUserOutput()));
+            return ResultError(Tr::tr("Cannot execute \"%1\".").arg(filePath.toUserOutput()));
         }
         break;
 
@@ -615,15 +641,15 @@ FancyLineEdit::AsyncValidationFunction PathChooser::defaultValidationFunction() 
 {
     return [this](const QString &text) -> FancyLineEdit::AsyncValidationFuture {
         if (text.isEmpty()) {
-            return QtFuture::makeReadyFuture((Utils::expected_str<QString>(
-                make_unexpected(Tr::tr("The path must not be empty.")))));
+            return QtFuture::makeReadyFuture((Utils::Result<QString>(
+                ResultError(Tr::tr("The path must not be empty.")))));
         }
 
         const FilePath expanded = d->expandedPath(FilePath::fromUserInput(text));
 
         if (expanded.isEmpty()) {
-            return QtFuture::makeReadyFuture((Utils::expected_str<QString>(
-                make_unexpected(Tr::tr("The path \"%1\" expanded to an empty string.")
+            return QtFuture::makeReadyFuture((Utils::Result<QString>(
+                ResultError(Tr::tr("The path \"%1\" expanded to an empty string.")
                                     .arg(expanded.toUserOutput())))));
         }
 
@@ -724,11 +750,6 @@ FancyLineEdit *PathChooser::lineEdit() const
     return d->m_lineEdit;
 }
 
-QString PathChooser::toolVersion(const CommandLine &cmd)
-{
-    return BinaryVersionToolTipEventFilter::toolVersion(cmd);
-}
-
 void PathChooser::installLineEditVersionToolTip(QLineEdit *le, const QStringList &arguments)
 {
     auto ef = new BinaryVersionToolTipEventFilter(le);
@@ -738,6 +759,30 @@ void PathChooser::installLineEditVersionToolTip(QLineEdit *le, const QStringList
 void PathChooser::setHistoryCompleter(const Key &historyKey, bool restoreLastItemFromHistory)
 {
     d->m_lineEdit->setHistoryCompleter(historyKey, restoreLastItemFromHistory);
+}
+
+void PathChooser::setValueAlternatives(const FilePaths &candidates)
+{
+    if (candidates.size() <= 1) {
+        delete d->m_alternativesButton;
+        d->m_alternativesButton = nullptr;
+        return;
+    }
+
+    if (!d->m_alternativesButton)
+        d->m_alternativesButton = new QPushButton(Tr::tr("Alternatives"), this);
+
+    auto menu = new QMenu;
+    for (const FilePath &candidate : candidates) {
+        QAction *action = menu->addAction(candidate.toUserOutput());
+        connect(action, &QAction::triggered, this, [this, candidate] {
+            setFilePath(candidate);
+        });
+    }
+    delete d->m_alternativesButton->menu();
+    d->m_alternativesButton->setMenu(menu);
+
+    d->m_hLayout->insertWidget(1, d->m_alternativesButton);
 }
 
 void PathChooser::setMacroExpander(const MacroExpander *macroExpander)

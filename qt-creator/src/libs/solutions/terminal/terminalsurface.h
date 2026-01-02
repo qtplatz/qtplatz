@@ -105,12 +105,16 @@ public:
     void mouseButton(Qt::MouseButton button, bool pressed, Qt::KeyboardModifiers modifiers);
 
     void sendFocus(bool hasFocus);
+    bool isInAltScreen();
+    void enableLiveReflow(bool enable);
+
 signals:
     void invalidated(QRect grid);
     void fullSizeChanged(QSize newSize);
     void cursorChanged(Cursor oldCursor, Cursor newCursor);
     void altscreenChanged(bool altScreen);
     void unscroll();
+    void cleared();
 
 private:
     std::unique_ptr<TerminalSurfacePrivate> d;

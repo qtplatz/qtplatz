@@ -3,8 +3,10 @@
 
 #include "url.h"
 
+#include "filepath.h"
 #include "temporaryfile.h"
 
+#include <QDebug>
 #include <QHostAddress>
 #include <QTcpServer>
 #include <QUrl>
@@ -28,14 +30,17 @@ QUrl urlFromLocalSocket()
     QUrl serverUrl;
     serverUrl.setScheme(urlSocketScheme());
     TemporaryFile file("qtc-socket");
-    // see "man unix" for unix socket file name size limitations
-    if (file.fileName().size() > 104) {
-        qWarning().nospace()
-            << "Socket file name \"" << file.fileName()
-            << "\" is larger than 104 characters, which will not work on Darwin/macOS/Linux!";
+    if (file.open()) {
+        QTC_ASSERT(file.filePath().isLocal(), qDebug() << "Only local paths supported");
+        const QString fileName = file.filePath().path();
+        // see "man unix" for unix socket file name size limitations
+        if (fileName.size() > 104) {
+            qWarning().nospace()
+                << "Socket file name \"" << fileName
+                << "\" is larger than 104 characters, which will not work on Darwin/macOS/Linux!";
+        }
+        serverUrl.setPath(fileName);
     }
-    if (file.open())
-        serverUrl.setPath(file.fileName());
     return serverUrl;
 }
 

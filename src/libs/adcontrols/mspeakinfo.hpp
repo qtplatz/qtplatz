@@ -33,10 +33,11 @@
 #include <boost/serialization/vector.hpp>
 #include <memory>
 #include <vector>
+#include <adcontrols/mspeakinfoitem.hpp>
 
 namespace adcontrols {
 
-    class ADCONTROLSSHARED_EXPORT MSPeakInfoItem;
+    // class ADCONTROLSSHARED_EXPORT MSPeakInfoItem;
     class ADCONTROLSSHARED_EXPORT MSPeakInfo;
 
 #if defined _MSC_VER

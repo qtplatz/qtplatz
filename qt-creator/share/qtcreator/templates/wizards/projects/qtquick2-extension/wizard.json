@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "supportedProjectTypes": [ "Qt4ProjectManager.Qt4Project" ],
+    "supportedProjectTypes": [ "Qt4ProjectManager.Qt4Project", "CMakeProjectManager.CMakeProject" ],
     "id": "M.QtQuick2ExtensionPlugin",
     "category": "G.Library",
     "trDescription": "Creates a C++ plugin to load Qt Quick extensions dynamically into applications using the QQmlEngine class.",
@@ -9,7 +9,7 @@
     "icon": "lib.png",
     "iconKind": "Themed",
     "featuresRequired": [ "QtSupport.Wizards.FeatureQtQuick", "QtSupport.Wizards.FeatureQtQuick.2" ],
-    "enabled": "%{JS: value('Plugins').indexOf('QmakeProjectManager') >= 0}",
+    "enabled": "%{JS: isPluginRunning('qmakeprojectmanager')}",
 
     "options":
     [
@@ -23,8 +23,8 @@
         { "key": "ObjectHdr", "value": "%{JS: Cpp.classToFileName(value('ObjectName'), Util.preferredSuffix('text/x-c++hdr'))}" },
         { "key": "ObjectQml", "value": "%{JS: Util.fileName(value('ObjectName') + 'Controls', 'qml')}" },
         { "key": "PluginName", "value": "%{JS: value('ProjectName').charAt(0).toUpperCase() + value('ProjectName').slice(1) + 'Plugin' }" },
-        { "key": "PLUGINGUARD", "value": "%{JS: Cpp.classToHeaderGuard(value('PluginBaseFileName'), Util.preferredSuffix('text/x-c++hdr'))}" },
-        { "key": "OBJECTGUARD", "value": "%{JS: Cpp.classToHeaderGuard(value('ObjectName'), Util.preferredSuffix('text/x-c++hdr'))}" },
+        { "key": "PLUGINGUARD", "value": "%{JS: Cpp.headerGuard(value('PluginHdr'))}" },
+        { "key": "OBJECTGUARD", "value": "%{JS: Cpp.headerGuard(value('ObjectHdr'))}" },
         { "key": "IsQt6", "value": "%{JS: value('QtVersion').IsQt6}" },
         { "key": "QtQuickVersion", "value": "%{JS: value('QtVersion').QtQuickVersion}" },
         { "key": "QtQuickFeature", "value": "%{JS: (value('QtQuickVersion')=='') ? 'QtSupport.Wizards.FeatureQt.6.2' : 'QtSupport.Wizards.FeatureQtQuick.%{QtQuickVersion}'}" },
@@ -37,13 +37,17 @@
         {
             "trDisplayName": "Project Location",
             "trShortTitle": "Location",
-            "typeId": "Project"
+            "typeId": "Project",
+            "data": {
+                "projectNameValidator": "^[A-Za-z0-9_]+$",
+                "trProjectNameValidatorUserMessage": "Project name must use only letters, digits, or underscores."
+            }
         },
         {
             "trDisplayName": "Define Build System",
             "trShortTitle": "Build System",
             "typeId": "Fields",
-            "enabled": "%{JS: !value('IsSubproject')}",
+            "skipForSubprojects": true,
             "data":
             [
                 {
@@ -60,12 +64,12 @@
                             {
                                 "trKey": "CMake",
                                 "value": "cmake",
-                                "condition": "%{JS: value('Plugins').indexOf('CMakeProjectManager') >= 0}"
+                                "condition": "%{JS: isPluginRunning('cmakeprojectmanager')}"
                             },
                             {
                                 "trKey": "qmake",
                                 "value": "qmake",
-                                "condition": "%{JS: value('Plugins').indexOf('QmakeProjectManager') >= 0}"
+                                "condition": "%{JS: isPluginRunning('qmakeprojectmanager')}"
                             }
                         ]
                     }
@@ -173,7 +177,6 @@
             "trDisplayName": "Kit Selection",
             "trShortTitle": "Kits",
             "typeId": "Kits",
-            "enabled": "%{JS: !value('IsSubproject')}",
             "data": {
                  "projectFilePath": "%{ProjectFile}",
                  "requiredFeatures": [ "QtSupport.Wizards.FeatureQtQuick", "%{QtQuickFeature}" ]

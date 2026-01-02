@@ -6,8 +6,6 @@
 #include "locator.h"
 #include "../coreplugintr.h"
 
-#include <extensionsystem/pluginmanager.h>
-
 #include <utils/algorithm.h>
 #include <utils/async.h>
 #include <utils/fileutils.h>
@@ -41,7 +39,7 @@ const char kFilesKey[] = "files";
 const char kExclusionFiltersKey[] = "exclusionFilters";
 
 const QStringList kFiltersDefault = {"*.h", "*.cpp", "*.ui", "*.qrc"};
-const QStringList kExclusionFiltersDefault = {"*/.git/*", "*/.cvs/*", "*/.svn/*"};
+const QStringList kExclusionFiltersDefault = {"*/.git/*", "*/.cvs/*", "*/.svn/*", "*/build/*"};
 
 static QString defaultDisplayName()
 {
@@ -81,7 +79,7 @@ DirectoryFilter::DirectoryFilter(Id id)
                           "or \":<number>\" to jump to the given line number. Append another "
                           "\"+<number>\" or \":<number>\" to jump to the column number as well."));
 
-    using namespace Tasking;
+    using namespace QtTaskTree;
     const auto groupSetup = [this] {
         if (!m_directories.isEmpty())
             return SetupResult::Continue; // Async task will run
@@ -89,7 +87,6 @@ DirectoryFilter::DirectoryFilter(Id id)
         return SetupResult::StopWithSuccess; // Group stops, skips async task
     };
     const auto onSetup = [this](Async<FilePaths> &async) {
-        async.setFutureSynchronizer(ExtensionSystem::PluginManager::futureSynchronizer());
         async.setConcurrentCallData(&refresh, m_directories, m_filters, m_exclusionFilters,
                                     displayName());
     };
@@ -99,7 +96,7 @@ DirectoryFilter::DirectoryFilter(Id id)
     };
     const Group root {
         onGroupSetup(groupSetup),
-        AsyncTask<FilePaths>(onSetup, onDone, CallDoneIf::Success)
+        AsyncTask<FilePaths>(onSetup, onDone, CallDone::OnSuccess)
     };
     setRefreshRecipe(root);
 }
@@ -111,14 +108,14 @@ void DirectoryFilter::saveState(QJsonObject &object) const
     if (!m_directories.isEmpty()) {
         object.insert(kDirectoriesKey,
                       QJsonArray::fromStringList(
-                          Utils::transform(m_directories, &FilePath::toString)));
+                          Utils::transform(m_directories, &FilePath::toUrlishString)));
     }
     if (m_filters != kFiltersDefault)
         object.insert(kFiltersKey, QJsonArray::fromStringList(m_filters));
     const std::optional<FilePaths> files = m_cache.filePaths();
     if (files) {
         object.insert(kFilesKey, QJsonArray::fromStringList(
-                                     Utils::transform(*files, &FilePath::toString)));
+                                     Utils::transform(*files, &FilePath::toUrlishString)));
     }
     if (m_exclusionFilters != kExclusionFiltersDefault)
         object.insert(kExclusionFiltersKey, QJsonArray::fromStringList(m_exclusionFilters));
@@ -142,48 +139,12 @@ void DirectoryFilter::restoreState(const QJsonObject &object)
     m_filters = toStringList(
         object.value(kFiltersKey).toArray(QJsonArray::fromStringList(kFiltersDefault)));
     if (object.contains(kFilesKey)) {
-        m_cache.setFilePaths(FileUtils::toFilePathList(
+        m_cache.setFilePaths(FilePaths::fromStrings(
             toStringList(object.value(kFilesKey).toArray())));
     }
     m_exclusionFilters = toStringList(
         object.value(kExclusionFiltersKey)
             .toArray(QJsonArray::fromStringList(kExclusionFiltersDefault)));
-}
-
-void DirectoryFilter::restoreState(const QByteArray &state)
-{
-    if (isOldSetting(state)) {
-        // TODO read old settings, remove some time after Qt Creator 4.15
-        QString name;
-        QStringList directories;
-        QString shortcut;
-        bool defaultFilter;
-        QStringList files;
-
-        QDataStream in(state);
-        in >> name;
-        in >> directories;
-        in >> m_filters;
-        in >> shortcut;
-        in >> defaultFilter;
-        in >> files;
-        m_cache.setFilePaths(FileUtils::toFilePathList(files));
-        if (!in.atEnd()) // Qt Creator 4.3 and later
-            in >> m_exclusionFilters;
-        else
-            m_exclusionFilters.clear();
-
-        if (m_isCustomFilter) {
-            m_directories = Utils::transform(directories, [](const QString &d) {
-                return FilePath::fromString(d);
-            });
-        }
-        setDisplayName(name);
-        setShortcutString(shortcut);
-        setIncludedByDefault(defaultFilter);
-    } else {
-        ILocatorFilter::restoreState(state);
-    }
 }
 
 class DirectoryFilterOptions : public QDialog
@@ -305,7 +266,7 @@ bool DirectoryFilter::openConfigDialog(QWidget *parent, bool &needsRefresh)
             &DirectoryFilter::updateOptionButtons,
             Qt::DirectConnection);
     m_dialog->directoryList->clear();
-    m_dialog->directoryList->addItems(Utils::transform(m_directories, &FilePath::toString));
+    m_dialog->directoryList->addItems(Utils::transform(m_directories, &FilePath::toUrlishString));
     m_dialog->nameLabel->setVisible(m_isCustomFilter);
     m_dialog->nameEdit->setVisible(m_isCustomFilter);
     m_dialog->directoryLabel->setVisible(m_isCustomFilter);
@@ -355,7 +316,7 @@ bool DirectoryFilter::openConfigDialog(QWidget *parent, bool &needsRefresh)
 
 void DirectoryFilter::handleAddDirectory()
 {
-    FilePath dir = FileUtils::getExistingDirectory(m_dialog, Tr::tr("Select Directory"));
+    FilePath dir = FileUtils::getExistingDirectory(Tr::tr("Select Directory"));
     if (!dir.isEmpty())
         m_dialog->directoryList->addItem(dir.toUserOutput());
 }
@@ -365,7 +326,7 @@ void DirectoryFilter::handleEditDirectory()
     if (m_dialog->directoryList->selectedItems().count() < 1)
         return;
     QListWidgetItem *currentItem = m_dialog->directoryList->selectedItems().at(0);
-    FilePath dir = FileUtils::getExistingDirectory(m_dialog, Tr::tr("Select Directory"),
+    FilePath dir = FileUtils::getExistingDirectory(Tr::tr("Select Directory"),
                                                    FilePath::fromUserInput(currentItem->text()));
     if (!dir.isEmpty())
         currentItem->setText(dir.toUserOutput());

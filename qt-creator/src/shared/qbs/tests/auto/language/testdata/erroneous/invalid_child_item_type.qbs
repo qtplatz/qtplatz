@@ -1,4 +1,0 @@
-Project {
-    Depends { name: "foo" }
-}
-

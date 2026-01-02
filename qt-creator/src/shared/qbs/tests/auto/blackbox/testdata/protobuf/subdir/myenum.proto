@@ -1,6 +1,0 @@
-syntax = "proto2";
-
-enum MyEnum {
-  VAL1 = 0;
-  VAL2 = 1;
-}

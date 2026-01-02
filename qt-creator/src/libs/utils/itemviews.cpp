@@ -19,19 +19,6 @@ namespace Utils {
  */
 
 /*!
-   \class Utils::TreeWidget
-   \inmodule QtCreator
-
-    \brief The TreeWidget adds setActivationMode to QTreeWidget
-    to allow for single click/double click behavior on
-    platforms where the default is different. Use with care.
-
-    Also adds sane keyboard navigation for mac.
-
-    Note: This uses setUniformRowHeights(true) by default.
- */
-
-/*!
    \class Utils::ListView
    \inmodule QtCreator
 
@@ -53,16 +40,40 @@ namespace Utils {
     Also adds sane keyboard navigation for mac.
  */
 
+static Internal::ViewSearchCallback &viewSearchCallback()
+{
+    static Internal::ViewSearchCallback theViewSearchCallback;
+    return theViewSearchCallback;
+}
+
+static void makeViewSearchable(QAbstractItemView *view, int role)
+{
+    if (viewSearchCallback())
+        viewSearchCallback()(view, role);
+}
+
+/*!
+    \internal
+
+    \note Only use once from Core initialization.
+*/
+void Internal::setViewSearchCallback(const ViewSearchCallback &cb)
+{
+    viewSearchCallback() = cb;
+}
+
 TreeView::TreeView(QWidget *parent)
     : View<QTreeView>(parent)
 {
     setUniformRowHeights(true);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 11, 0)
+    setKeyboardSearchFlags(Qt::MatchContains | Qt::MatchWrap);
+#endif
 }
 
-TreeWidget::TreeWidget(QWidget *parent)
-    : View<QTreeWidget>(parent)
+void TreeView::setSearchRole(int role)
 {
-    setUniformRowHeights(true);
+    makeViewSearchable(this, role);
 }
 
 ListView::ListView(QWidget *parent)

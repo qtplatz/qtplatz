@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <utils/filepath.h>
+
 #include <QList>
 #include <QDialog>
 
@@ -30,7 +32,7 @@ public:
     void setAlwaysSaveMessage(const QString &msg);
     bool alwaysSaveChecked();
     QList<IDocument *> itemsToSave() const;
-    QStringList filesToDiff() const;
+    Utils::FilePaths filesToDiff() const;
 
 private:
     void collectItemsToSave();
@@ -44,7 +46,7 @@ private:
     QCheckBox *m_saveBeforeBuildCheckBox;
     QDialogButtonBox *m_buttonBox;
     QList<IDocument *> m_itemsToSave;
-    QStringList m_filesToDiff;
+    Utils::FilePaths m_filesToDiff;
     QPushButton *m_diffButton = nullptr;
 };
 

@@ -23,13 +23,13 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
-import HelperWidgets 2.0
-import QtQuick.Templates 2.15 as T
-import StudioControls 1.0 as StudioControls
-import StudioTheme 1.0 as StudioTheme
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import HelperWidgets
+import QtQuick.Templates as T
+import StudioControls as StudioControls
+import StudioTheme as StudioTheme
 
 Section {
     id: root
@@ -291,53 +291,64 @@ Section {
             property int vecSize: 0
             property var proxyValues: []
             property var spinBoxes: [boxX, boxY, boxZ, boxW]
+            property bool block: false
 
             signal remove
 
-            onVecSizeChanged: updateProxyValues()
+            onVecSizeChanged: layoutVector.updateProxyValues()
 
-            spacing: StudioTheme.Values.sectionRowSpacing / 2
+            spacing: StudioTheme.Values.sectionRowSpacing
 
             function isValidValue(v) {
                 return !(v === undefined || isNaN(v))
             }
 
-            function updateExpression() {
+            function updateExpressionFromExpression() {
+                if (layoutVector.block)
+                    return
+
+                layoutVector.backendValue.expression = layoutVector.proxyValues[0].expression
+                // Only the first proxy value has an expression editor enabled
+            }
+
+            function updateExpressionFromValue() {
+                if (layoutVector.block)
+                    return
+
                 for (let i = 0; i < vecSize; ++i) {
-                    if (!isValidValue(proxyValues[i].value))
+                    if (!layoutVector.isValidValue(layoutVector.proxyValues[i].value))
                         return
                 }
 
-                let expStr = "Qt.vector" + vecSize + "d("+proxyValues[0].value
-                for (let j=1; j < vecSize; ++j)
-                    expStr += ", " + proxyValues[j].value
+                let expStr = "Qt.vector" + layoutVector.vecSize + "d(" + layoutVector.proxyValues[0].value
+                for (let j=1; j < layoutVector.vecSize; ++j)
+                    expStr += ", " + layoutVector.proxyValues[j].value
                 expStr += ")"
 
                 layoutVector.backendValue.expression = expStr
             }
 
             function updateProxyValues() {
-                if (!backendValue)
+                if (!layoutVector.backendValue)
                     return;
 
-                const startIndex = backendValue.expression.indexOf('(')
-                const endIndex = backendValue.expression.indexOf(')')
-                if (startIndex === -1 || endIndex === -1 || endIndex < startIndex)
-                    return
-                const numberStr = backendValue.expression.slice(startIndex + 1, endIndex)
-                const numbers = numberStr.split(",")
-                if (!Array.isArray(numbers) || numbers.length !== vecSize)
-                    return
+                let vals = layoutVector.backendValue.getExpressionAsVector()
 
-                let vals = []
-                for (let i = 0; i < vecSize; ++i) {
-                    vals[i] = parseFloat(numbers[i])
-                    if (!isValidValue(vals[i]))
-                        return
+                layoutVector.block = true
+
+                if (layoutVector.vecSize === vals.length) {
+                    for (let j = 0; j < layoutVector.vecSize; ++j) {
+                        layoutVector.proxyValues[j].setForceBound(false)
+                        layoutVector.proxyValues[j].value = vals[j]
+                    }
+                } else {
+                    for (let j = 0; j < layoutVector.vecSize; ++j) {
+                        layoutVector.proxyValues[j].setForceBound(true) // Required since the backendValue is just proxied
+                        layoutVector.proxyValues[j].expression = layoutVector.backendValue.expression
+                    }
                 }
 
-                for (let j = 0; j < vecSize; ++j)
-                    proxyValues[j].value = vals[j]
+                layoutVector.block = false
             }
 
             SecondColumnLayout {
@@ -357,15 +368,18 @@ Section {
                     tooltip: "X"
                 }
 
-                Spacer { implicitWidth: StudioTheme.Values.controlGap }
+                Spacer {
+                    implicitWidth: StudioTheme.Values.controlGap
+                                   + StudioTheme.Values.actionIndicatorWidth
+                }
 
                 SpinBox {
                     id: boxY
+                    actionIndicatorVisible: false
                     minimumValue: -9999999
                     maximumValue: 9999999
                     decimals: 2
                     implicitWidth: StudioTheme.Values.twoControlColumnWidth
-                                   + StudioTheme.Values.actionIndicatorWidth
                 }
 
                 Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
@@ -386,14 +400,16 @@ Section {
             }
 
             SecondColumnLayout {
-                visible: vecSize > 2
+                visible: layoutVector.vecSize > 2
+                Spacer { implicitWidth: StudioTheme.Values.actionIndicatorWidth }
+
                 SpinBox {
                     id: boxZ
+                    actionIndicatorVisible: false
                     minimumValue: -9999999
                     maximumValue: 9999999
                     decimals: 2
                     implicitWidth: StudioTheme.Values.twoControlColumnWidth
-                                   + StudioTheme.Values.actionIndicatorWidth
                 }
 
                 Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
@@ -401,19 +417,22 @@ Section {
                 ControlLabel {
                     text: "Z"
                     tooltip: "Z"
-                    visible: vecSize > 2
+                    visible: layoutVector.vecSize > 2
                 }
 
-                Spacer { implicitWidth: StudioTheme.Values.controlGap }
+                Spacer {
+                    implicitWidth: StudioTheme.Values.controlGap
+                                   + StudioTheme.Values.actionIndicatorWidth
+                }
 
                 SpinBox {
                     id: boxW
+                    actionIndicatorVisible: false
                     minimumValue: -9999999
                     maximumValue: 9999999
                     decimals: 2
                     implicitWidth: StudioTheme.Values.twoControlColumnWidth
-                                   + StudioTheme.Values.actionIndicatorWidth
-                    visible: vecSize > 3
+                    visible: layoutVector.vecSize > 3
                 }
 
                 Spacer { implicitWidth: StudioTheme.Values.controlLabelGap }
@@ -421,7 +440,7 @@ Section {
                 ControlLabel {
                     text: "W"
                     tooltip: "W"
-                    visible: vecSize > 3
+                    visible: layoutVector.vecSize > 3
                 }
 
                 Spacer { implicitWidth: StudioTheme.Values.controlGap }
@@ -430,7 +449,7 @@ Section {
                     height: 10
                     implicitWidth: StudioTheme.Values.twoControlColumnWidth
                                   + StudioTheme.Values.actionIndicatorWidth
-                    visible: vecSize === 2 // Placeholder for last spinbox
+                    visible: layoutVector.vecSize === 2 // Placeholder for last spinbox
                 }
 
                 Spacer { implicitWidth: StudioTheme.Values.twoControlColumnGap }
@@ -486,9 +505,14 @@ Section {
                     model: root.propertiesModel
                     row: index
                 }
+
                 PropertyLabel {
+                    readonly property bool __inDynamicPropertiesSection: true
+
                     text: propertyName
                     tooltip: propertyType
+                    Layout.alignment: Qt.AlignTop
+                    Layout.topMargin: 6
                 }
 
                 Loader {
@@ -505,6 +529,8 @@ Section {
                         if (propertyType == "int")
                             return intEditor
                         if (propertyType == "real")
+                            return realEditor
+                        if (propertyType == "double")
                             return realEditor
                         if (propertyType == "string")
                             return stringEditor
@@ -540,7 +566,8 @@ Section {
                             for (let i = 0; i < vecSize; ++i) {
                                 var newProxyValue = propertyRow.createProxyBackendValue()
                                 loader.item.proxyValues.push(newProxyValue)
-                                newProxyValue.valueChangedQml.connect(loader.item.updateExpression)
+                                newProxyValue.valueChangedQml.connect(loader.item.updateExpressionFromValue)
+                                newProxyValue.expressionChangedQml.connect(loader.item.updateExpressionFromExpression)
                                 loader.item.spinBoxes[i].backendValue = newProxyValue
                             }
                             propertyRow.backendValue.expressionChanged.connect(loader.item.updateProxyValues)
@@ -657,7 +684,7 @@ Section {
                     IconIndicator {
                         id: closeIndicator
                         icon: StudioTheme.Constants.colorPopupClose
-                        pixelSize: StudioTheme.Values.myIconFontSize * 1.4
+                        pixelSize: StudioTheme.Values.myIconFontSize
                         onClicked: cePopup.close()
                         Layout.alignment: Qt.AlignRight
                     }
@@ -674,7 +701,12 @@ Section {
                         translationIndicatorVisible: false
                         width: cePopup.itemWidth
                         rightPadding: 8
-                        validator: RegExpValidator { regExp: /[a-z]+[0-9A-Za-z]*/ }
+                        validator: PropertyNameValidator {}
+
+                        Binding {
+                            when: !textField.acceptableInput && textField.text !== ""
+                            textField.color: StudioTheme.Values.themeRedLight
+                        }
                     }
                 }
                 RowLayout {
@@ -685,7 +717,7 @@ Section {
                     StudioControls.ComboBox {
                         id: comboBox
                         actionIndicator.visible: false
-                        model: ["int", "real", "color", "string", "bool", "url", "alias",
+                        model: ["int", "real", "double", "color", "string", "bool", "url", "alias", "signal",
                                 "TextureInput", "vector2d", "vector3d", "vector4d"]
                         width: cePopup.itemWidth
                     }
@@ -702,8 +734,9 @@ Section {
                         id: acceptButton
 
                         buttonIcon: qsTr("Add Property")
-                        iconFont: StudioTheme.Constants.font
+                        iconFontFamily: StudioTheme.Constants.font.family
                         width: cePopup.width / 3
+                        enabled: textField.acceptableInput
 
                         onClicked: {
                             root.propertiesModel.createProperty(textField.text, comboBox.currentText)

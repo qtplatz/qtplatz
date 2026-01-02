@@ -1,5 +1,5 @@
 add_qtc_library(QmlJS
-  DEPENDS ExtensionSystem Utils Qt::Xml
+  DEPENDS ExtensionSystem Utils
   PUBLIC_DEPENDS CPlusPlus Qt::Widgets LanguageUtils
   SOURCES
     jsoncheck.cpp jsoncheck.h
@@ -33,7 +33,6 @@ add_qtc_library(QmlJS
     qmljsfindexportedcpptypes.cpp qmljsfindexportedcpptypes.h
     qmljsicons.cpp qmljsicons.h
     qmljsimportdependencies.cpp qmljsimportdependencies.h
-    qmljsindenter.cpp qmljsindenter.h
     qmljsinterpreter.cpp qmljsinterpreter.h
     qmljslineinfo.cpp qmljslineinfo.h
     qmljslink.cpp qmljslink.h

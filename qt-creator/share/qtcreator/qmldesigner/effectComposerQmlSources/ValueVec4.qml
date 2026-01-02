@@ -3,30 +3,39 @@
 
 import QtQuick
 import QtQuick.Layouts
-import StudioControls as StudioControls
+import HelperWidgets as HelperWidgets
 import StudioTheme as StudioTheme
-import EffectComposerBackend
 
 RowLayout {
+    id: root
+
     width: parent.width
     spacing: 0
 
-    StudioControls.RealSpinBox {
+    signal valueChanged()
+
+    HelperWidgets.DoubleSpinBox {
         id: vX
+
+        // value: uniformValue binding can get overwritten by normal operation of the control
+        property double resetValue: uniformValue.x
+        onResetValueChanged: value = resetValue
 
         Layout.fillWidth: true
         Layout.minimumWidth: 30
         Layout.maximumWidth: 60
 
-        actionIndicatorVisible: false
         spinBoxIndicatorVisible: false
         inputHAlignment: Qt.AlignHCenter
-        realFrom: uniformMinValue.x
-        realTo: uniformMaxValue.x
-        realValue: uniformValue.x
-        realStepSize: .01
+        minimumValue: uniformMinValue.x
+        maximumValue: uniformMaxValue.x
+        value: uniformValue.x
+        stepSize: .01
         decimals: 2
-        onRealValueModified: uniformValue.x = realValue
+        onValueModified: {
+            uniformValue.x = value
+            root.valueChanged()
+        }
     }
 
     Item { // spacer
@@ -48,22 +57,28 @@ RowLayout {
         Layout.maximumWidth: 20
     }
 
-    StudioControls.RealSpinBox {
+    HelperWidgets.DoubleSpinBox {
         id: vY
+
+        // value: uniformValue binding can get overwritten by normal operation of the control
+        property double resetValue: uniformValue.y
+        onResetValueChanged: value = resetValue
 
         Layout.fillWidth: true
         Layout.minimumWidth: 30
         Layout.maximumWidth: 60
 
-        actionIndicatorVisible: false
         spinBoxIndicatorVisible: false
         inputHAlignment: Qt.AlignHCenter
-        realFrom: uniformMinValue.y
-        realTo: uniformMaxValue.y
-        realValue: uniformValue.y
-        realStepSize: .01
+        minimumValue: uniformMinValue.y
+        maximumValue: uniformMaxValue.y
+        value: uniformValue.y
+        stepSize: .01
         decimals: 2
-        onRealValueModified: uniformValue.y = realValue
+        onValueModified: {
+            uniformValue.y = value
+            root.valueChanged()
+        }
     }
 
     Item { // spacer
@@ -85,22 +100,28 @@ RowLayout {
         Layout.maximumWidth: 20
     }
 
-    StudioControls.RealSpinBox {
+    HelperWidgets.DoubleSpinBox {
         id: vZ
+
+        // value: uniformValue binding can get overwritten by normal operation of the control
+        property double resetValue: uniformValue.z
+        onResetValueChanged: value = resetValue
 
         Layout.fillWidth: true
         Layout.minimumWidth: 30
         Layout.maximumWidth: 60
 
-        actionIndicatorVisible: false
         spinBoxIndicatorVisible: false
         inputHAlignment: Qt.AlignHCenter
-        realFrom: uniformMinValue.z
-        realTo: uniformMaxValue.z
-        realValue: uniformValue.z
-        realStepSize: .01
+        minimumValue: uniformMinValue.z
+        maximumValue: uniformMaxValue.z
+        value: uniformValue.z
+        stepSize: .01
         decimals: 2
-        onRealValueModified: uniformValue.z = realValue
+        onValueModified: {
+            uniformValue.z = value
+            root.valueChanged()
+        }
     }
 
     Item { // spacer
@@ -122,22 +143,28 @@ RowLayout {
         Layout.maximumWidth: 20
     }
 
-    StudioControls.RealSpinBox {
+    HelperWidgets.DoubleSpinBox {
         id: vW
+
+        // value: uniformValue binding can get overwritten by normal operation of the control
+        property double resetValue: uniformValue.w
+        onResetValueChanged: value = resetValue
 
         Layout.fillWidth: true
         Layout.minimumWidth: 30
         Layout.maximumWidth: 60
 
-        actionIndicatorVisible: false
         spinBoxIndicatorVisible: false
         inputHAlignment: Qt.AlignHCenter
-        realFrom: uniformMinValue.w
-        realTo: uniformMaxValue.w
-        realValue: uniformValue.w
-        realStepSize: .01
+        minimumValue: uniformMinValue.w
+        maximumValue: uniformMaxValue.w
+        value: uniformValue.w
+        stepSize: .01
         decimals: 2
-        onRealValueModified: uniformValue.w = realValue
+        onValueModified: {
+            uniformValue.w = value
+            root.valueChanged()
+        }
     }
 
     Item { // spacer

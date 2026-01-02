@@ -51,22 +51,17 @@ namespace lipidid {
     class ActionManager;
 
     class LipididPlugin : public ExtensionSystem::IPlugin {
-
         Q_OBJECT
-#if QTC_VERSION <= 0x03'02'81
-        Q_PLUGIN_METADATA(IID "com.ms-cheminfo.QtPlatzPlugin" FILE "LipidId.json")
-#else
 		Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "LipidId.json")
-#endif
 
     public:
         ~LipididPlugin();
         explicit LipididPlugin();
 
         // implement ExtensionSystem::IPlugin
-        bool initialize(const QStringList &arguments, QString *error_message);
-        void extensionsInitialized();
-        ShutdownFlag aboutToShutdown();
+        Utils::Result<> initialize(const QStringList &arguments) override;
+        void extensionsInitialized() override;
+        ShutdownFlag aboutToShutdown() override;
 
         // <--
         void applyMethod( const adcontrols::ProcessMethod& );

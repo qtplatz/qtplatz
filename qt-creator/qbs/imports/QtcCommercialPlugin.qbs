@@ -1,0 +1,5 @@
+QtcPlugin {
+    Depends { name: "LicenseChecker"; required: false }
+    cpp.defines: base.concat(LicenseChecker.present ? ["LICENSECHECKER"] : [])
+    pluginjson.useVcsData: true
+}

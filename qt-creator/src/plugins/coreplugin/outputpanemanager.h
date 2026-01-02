@@ -11,7 +11,6 @@ QT_BEGIN_NAMESPACE
 class QAction;
 class QLabel;
 class QStackedWidget;
-class QTimeLine;
 QT_END_NAMESPACE
 
 namespace Core {
@@ -23,7 +22,6 @@ namespace Internal {
 
 class ICorePrivate;
 class MainWindow;
-class OutputPaneToggleButton;
 class OutputPaneManageButton;
 
 class OutputPaneManager : public QWidget
@@ -37,11 +35,7 @@ public:
 
     static int outputPaneHeightSetting();
     static void setOutputPaneHeightSetting(int value);
-
-    // FIXME: Hide again
-    static void create();
-    static void initialize();
-    static void destroy();
+    static bool initialized();
 
 public slots:
     void slotHide();
@@ -55,13 +49,19 @@ protected:
 
 private:
     // the only class that is allowed to create and destroy
-    friend class ICore;
+    friend class Core::ICore;
     friend class ICorePrivate;
     friend class MainWindow;
     friend class OutputPaneManageButton;
+    friend class Core::IOutputPane;
 
     explicit OutputPaneManager(QWidget *parent = nullptr);
     ~OutputPaneManager() override;
+
+    static void create();
+    static void initialize();
+    static void setupButtons();
+    static void destroy();
 
     void shortcutTriggered(int idx);
     void clearPage();
@@ -87,65 +87,7 @@ private:
     QStackedWidget *m_opToolBarWidgets = nullptr;
     QWidget *m_buttonsWidget = nullptr;
     int m_outputPaneHeightSetting = 0;
-};
-
-class BadgeLabel
-{
-public:
-    BadgeLabel();
-    void paint(QPainter *p, int x, int y, bool isChecked);
-    void setText(const QString &text);
-    QString text() const;
-    QSize sizeHint() const;
-
-private:
-    void calculateSize();
-
-    QSize m_size;
-    QString m_text;
-    QFont m_font;
-    static const int m_padding = 6;
-};
-
-class OutputPaneToggleButton : public QToolButton
-{
-    Q_OBJECT
-public:
-    OutputPaneToggleButton(int number, const QString &text, QAction *action,
-                           QWidget *parent = nullptr);
-    QSize sizeHint() const override;
-    void paintEvent(QPaintEvent*) override;
-    void flash(int count = 3);
-    void setIconBadgeNumber(int number);
-    bool isPaneVisible() const;
-
-    void contextMenuEvent(QContextMenuEvent *e) override;
-
-signals:
-    void contextMenuRequested();
-
-private:
-    void updateToolTip();
-    void checkStateSet() override;
-
-    QString m_number;
-    QString m_text;
-    QAction *m_action;
-    QTimeLine *m_flashTimer;
-    BadgeLabel m_badgeNumberLabel;
-};
-
-class OutputPaneManageButton : public QToolButton
-{
-    Q_OBJECT
-public:
-    OutputPaneManageButton();
-    void paintEvent(QPaintEvent *) override;
-
-    void contextMenuEvent(QContextMenuEvent *e) override;
-
-signals:
-    void menuRequested();
+    bool m_initialized = false;
 };
 
 } // namespace Internal

@@ -15,7 +15,11 @@
 
 #include <extensionsystem/pluginmanager.h>
 
+#include <utils/algorithm.h>
+#include <utils/environment.h>
 #include <utils/hostosinfo.h>
+#include <utils/infobar.h>
+#include <utils/layoutbuilder.h>
 #include <utils/mathutils.h>
 #include <utils/qtcassert.h>
 #include <utils/stylehelper.h>
@@ -23,12 +27,14 @@
 #include <utils/utilsicons.h>
 
 #include <QAction>
+#include <QComboBox>
 #include <QEvent>
 #include <QFuture>
 #include <QFutureInterfaceBase>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QScrollArea>
 #include <QStyle>
 #include <QStyleOption>
 #include <QTimer>
@@ -45,6 +51,257 @@ static const bool kDetailsPinnedDefault = true;
 static const milliseconds TimerInterval{100};
 
 namespace Core {
+
+namespace Internal {
+
+int ProgressManagerPrivate::infoMinWidth()
+{
+    return 100;
+}
+
+int ProgressManagerPrivate::infoMaxWidth()
+{
+    return 350;
+}
+
+class PopupInfoBarDisplay : public QWidget
+{
+public:
+    PopupInfoBarDisplay();
+
+    void setInfoBar(InfoBar *infoBar);
+    InfoBar *infoBar() const;
+    void paintEvent(QPaintEvent *ev) override;
+
+private:
+    void update();
+
+    QVBoxLayout *m_layout = nullptr;
+    QPointer<InfoBar> m_infoBar;
+    QList<QWidget *> m_infoWidgets;
+};
+
+class InfoWidget : public QWidget
+{
+public:
+    InfoWidget(const InfoBarEntry &info, QPointer<InfoBar> infoBar);
+
+    void paintEvent(QPaintEvent *ev) override;
+
+private:
+    QPointer<QWidget> m_detailsWidget;
+};
+
+PopupInfoBarDisplay::PopupInfoBarDisplay()
+{
+    m_layout = new QVBoxLayout;
+    m_layout->setContentsMargins(0, 2, 0, 0);
+    m_layout->setSpacing(0);
+    setLayout(m_layout);
+}
+
+void PopupInfoBarDisplay::setInfoBar(InfoBar *infoBar)
+{
+    if (m_infoBar == infoBar)
+        return;
+
+    if (m_infoBar)
+        m_infoBar->disconnect(this);
+    m_infoBar = infoBar;
+    if (m_infoBar)
+        connect(m_infoBar.data(), &InfoBar::changed, this, &PopupInfoBarDisplay::update);
+    update();
+}
+
+InfoBar *PopupInfoBarDisplay::infoBar() const
+{
+    return m_infoBar;
+}
+
+void PopupInfoBarDisplay::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    const QRect r = rect().adjusted(0, layout()->contentsMargins().top(), 0, 0);
+    StyleHelper::drawCardBg(&p, r, creatorColor(Theme::Token_Background_Muted),
+                            creatorColor(Theme::Token_Stroke_Subtle),
+                            StyleHelper::SpacingTokens::PaddingHM);
+}
+
+void PopupInfoBarDisplay::update()
+{
+    for (QWidget *widget : std::as_const(m_infoWidgets)) {
+        widget->hide(); // Late deletion can cause duplicate infos. Hide immediately to prevent it.
+        widget->deleteLater();
+    }
+    m_infoWidgets.clear();
+
+    if (!m_infoBar)
+        return;
+
+    const QList<InfoBarEntry> entries = m_infoBar->entries();
+    for (const InfoBarEntry &info : entries) {
+        auto widget = new InfoWidget(info, m_infoBar);
+        m_layout->addWidget(widget);
+        m_infoWidgets.append(widget);
+    }
+    setVisible(!entries.empty());
+}
+
+InfoWidget::InfoWidget(const InfoBarEntry &info, QPointer<InfoBar> infoBar)
+{
+    using namespace Layouting;
+
+    setMinimumWidth(ProgressManagerPrivate::infoMinWidth());
+
+    const InfoLabel::InfoType infoType = [&info] {
+        const QString envString = qtcEnvironmentVariable("QTC_DEBUG_POPUPNOTIFICATION_TYPE", {});
+        if (!envString.isEmpty()) {
+            bool ok = false;
+            const int i = envString.toUInt(&ok);
+            if (ok && i <= int(InfoLabel::None))
+                return InfoLabel::InfoType(i);
+        }
+        return info.infoType();
+    }();
+
+    const Id id = info.id();
+
+    QToolButton *infoWidgetCloseButton = nullptr;
+    QLabel *titleLabel;
+
+    const auto makeComboBox = [combo = info.combo(), this] {
+        auto cb = new QComboBox();
+        cb->setToolTip(combo.tooltip);
+        for (const InfoBarEntry::ComboInfo &comboInfo : std::as_const(combo.entries))
+            cb->addItem(comboInfo.displayText, comboInfo.data);
+        if (combo.currentIndex >= 0 && combo.currentIndex < cb->count())
+            cb->setCurrentIndex(combo.currentIndex);
+        connect(
+            cb,
+            &QComboBox::currentIndexChanged,
+            this,
+            [cb, combo] { combo.callback({cb->currentText(), cb->currentData()}); },
+            Qt::QueuedConnection);
+        return cb;
+    };
+
+    const auto makeDetails = [this, info] {
+        auto showDetailsButton = new QToolButton;
+        showDetailsButton->setText(::Core::Tr::tr("Show Details..."));
+        connect(showDetailsButton, &QToolButton::clicked, this, [this, info](bool) {
+            if (m_detailsWidget) {
+                ICore::raiseWindow(m_detailsWidget);
+                return;
+            }
+            m_detailsWidget = new QWidget;
+            m_detailsWidget->setAttribute(Qt::WA_DeleteOnClose);
+            m_detailsWidget->setLayout(new QVBoxLayout);
+            auto scrollArea = new QScrollArea;
+            scrollArea->setWidgetResizable(true);
+            scrollArea->setWidget(info.detailsWidgetCreator()());
+            m_detailsWidget->layout()->addWidget(scrollArea);
+            m_detailsWidget->setWindowTitle(scrollArea->widget()->windowTitle());
+            ICore::registerWindow(
+                m_detailsWidget, Context(info.id().withPrefix("PopupNotification.Details.")));
+            m_detailsWidget->show();
+        });
+        return showDetailsButton;
+    };
+
+    const auto makeButton = [infoBar, id](const InfoBarEntry::Button &button) {
+        auto infoWidgetButton = new QToolButton;
+        infoWidgetButton->setText(button.text);
+        infoWidgetButton->setToolTip(button.tooltip);
+        connect(infoWidgetButton, &QAbstractButton::clicked, [button, infoBar, id] {
+            infoBar->triggerButton(id, button);
+        });
+        return infoWidgetButton;
+    };
+
+    const auto makeSuppressionButton = [infoBar, id, this] {
+        auto infoWidgetSuppressButton = new QToolButton;
+        infoWidgetSuppressButton->setText(msgDoNotShowAgain());
+        connect(infoWidgetSuppressButton, &QAbstractButton::clicked, this, [infoBar, id] {
+            if (!infoBar)
+                return;
+            infoBar->removeInfo(id);
+            InfoBar::globallySuppressInfo(id);
+        });
+        return infoWidgetSuppressButton;
+    };
+
+    // clang-format off
+    Column {
+        Row {
+            Column {
+                Layouting::IconDisplay { icon(InfoBarEntry::icon(infoType)) },
+                st,
+                customMargins(0, 0, StyleHelper::SpacingTokens::PaddingHXxs, 0),
+            },
+            Column {
+                Row {
+                    Label { bindTo(&titleLabel), text(info.title()) },
+                    st,
+                    If (info.hasCancelButton()) >> Then {
+                        ToolButton { bindTo(&infoWidgetCloseButton) }
+                    }
+                },
+                Row {
+                    Label { wordWrap(true), text(info.text()) }
+                }
+            }
+        },
+        Space(StyleHelper::SpacingTokens::GapHM),
+        If (!info.combo().entries.isEmpty()) >> Then {
+            makeComboBox
+        },
+        Flow {
+            alignment(Qt::AlignRight),
+            If (info.detailsWidgetCreator() != nullptr) >> Then {
+                makeDetails,
+            },
+            Utils::transform(info.buttons(), makeButton),
+            If (info.globalSuppression() == InfoBarEntry::GlobalSuppression::Enabled) >> Then {
+                makeSuppressionButton
+            }
+        },
+        customMargins(StyleHelper::SpacingTokens::PaddingHXl,
+                      StyleHelper::SpacingTokens::PaddingVL,
+                      StyleHelper::SpacingTokens::PaddingHXl,
+                      StyleHelper::SpacingTokens::PaddingVL),
+    }.attachTo(this);
+    // clang-format on
+
+    titleLabel->setFont(StyleHelper::uiFont(StyleHelper::UiElementH5));
+
+    if (info.hasCancelButton() && QTC_GUARD(infoWidgetCloseButton)) {
+        // need to connect to cancelObjectbefore connecting to cancelButtonClicked,
+        // because the latter removes the button and with it any connect
+        if (info.cancelButtonCallback()) {
+            connect(
+                infoWidgetCloseButton, &QAbstractButton::clicked, this, info.cancelButtonCallback());
+        }
+        connect(infoWidgetCloseButton, &QAbstractButton::clicked, this, [infoBar, id] {
+            if (infoBar)
+                infoBar->removeInfo(id);
+        });
+        if (info.cancelButtonText().isEmpty()) {
+            infoWidgetCloseButton->setAutoRaise(true);
+            infoWidgetCloseButton->setIcon(Icons::CLOSE_FOREGROUND.icon());
+            infoWidgetCloseButton->setToolTip(Tr::tr("Close"));
+        } else {
+            infoWidgetCloseButton->setText(info.cancelButtonText());
+        }
+    }
+}
+
+void InfoWidget::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    p.setPen(creatorColor(Theme::Token_Stroke_Subtle));
+    p.drawLine(Utils::StyleHelper::SpacingTokens::PaddingHM, 0,
+               width() - Utils::StyleHelper::SpacingTokens::PaddingHM - 1, 0);
+}
 
 class ProgressTimer : public QObject
 {
@@ -78,6 +335,8 @@ private:
     int m_currentTime = 0;
     QTimer m_timer;
 };
+
+} // namespace Internal
 
 /*!
     \class Core::ProgressManager
@@ -225,7 +484,7 @@ private:
     \value ShowInApplicationIcon
         The progress indicator for this task is additionally
         shown in the application icon in the system's task bar or dock, on
-        platforms that support that (at the moment Windows 7 and Mac OS X).
+        platforms that support that (at the moment Windows 7 and macOS).
 */
 
 /*!
@@ -269,7 +528,12 @@ ProgressManagerPrivate::ProgressManagerPrivate()
 {
     m_opacityEffect->setOpacity(.999);
     m_instance = this;
+
     m_progressView = new ProgressView;
+    m_infoBarDisplay = new PopupInfoBarDisplay;
+    m_infoBarDisplay->setInfoBar(&m_popupInfoBar);
+    m_progressView->addExtraWidget(m_infoBarDisplay);
+
     // withDelay, so the statusBarWidget has the chance to get the enter event
     connect(m_progressView.data(), &ProgressView::hoveredChanged, this, &ProgressManagerPrivate::updateVisibilityWithDelay);
     connect(ICore::instance(), &ICore::coreAboutToClose, this, &ProgressManagerPrivate::cancelAllRunningTasks);
@@ -286,6 +550,11 @@ ProgressManagerPrivate::~ProgressManagerPrivate()
     m_statusBarWidget = nullptr;
     cleanup();
     m_instance = nullptr;
+}
+
+InfoBar *ProgressManagerPrivate::popupInfoBar()
+{
+    return &m_instance->m_popupInfoBar;
 }
 
 void ProgressManagerPrivate::readSettings()
@@ -327,6 +596,15 @@ void ProgressManagerPrivate::init()
     m_summaryProgressBar->setCancelEnabled(false);
     summaryProgressLayout->addWidget(m_summaryProgressBar);
     layout->addWidget(m_summaryProgressWidget);
+    m_notificationSummaryIcon = new QLabel;
+    m_notificationSummaryIcon->setPixmap(Icons::WARNING_TOOLBAR.pixmap());
+    m_notificationSummaryIcon->setVisible(false);
+    connect(
+        m_infoBarDisplay->infoBar(),
+        &InfoBar::changed,
+        this,
+        &ProgressManagerPrivate::updateNotificationSummaryIcon);
+    layout->addWidget(m_notificationSummaryIcon);
     auto toggleButton = new QToolButton(m_statusBarWidget);
     layout->addWidget(toggleButton);
     m_statusBarWidget->installEventFilter(this);
@@ -361,7 +639,7 @@ void ProgressManagerPrivate::doCancelTasks(Id type)
         found = true;
         if (m_applicationTask == it.key())
             disconnectApplicationTask();
-        it.key()->disconnect();
+        it.key()->disconnect(this);
         it.key()->cancel();
         delete it.key();
         it = m_runningTasks.erase(it);
@@ -403,7 +681,7 @@ void ProgressManagerPrivate::cancelAllRunningTasks()
     for (auto it = m_runningTasks.cbegin(); it != m_runningTasks.cend(); ++it) {
         if (m_applicationTask == it.key())
             disconnectApplicationTask();
-        it.key()->disconnect();
+        it.key()->disconnect(this);
         it.key()->cancel();
         delete it.key();
     }
@@ -486,7 +764,7 @@ void ProgressManagerPrivate::taskFinished(QFutureWatcher<void> *task)
     const Id type = *it;
     if (m_applicationTask == task)
         disconnectApplicationTask();
-    task->disconnect();
+    task->disconnect(this);
     task->deleteLater();
     m_runningTasks.erase(it);
     updateSummaryProgressBar();
@@ -646,6 +924,7 @@ void ProgressManagerPrivate::updateVisibility()
     m_progressView->setVisible(m_progressViewPinned || m_hovered || m_progressView->isHovered());
     m_summaryProgressWidget->setVisible((!m_runningTasks.isEmpty() || !m_taskList.isEmpty())
                                      && !m_progressViewPinned);
+    updateNotificationSummaryIcon();
 }
 
 void ProgressManagerPrivate::updateVisibilityWithDelay()
@@ -692,6 +971,12 @@ void ProgressManagerPrivate::updateStatusDetailsWidget()
     }
 
     m_currentStatusDetailsWidget = candidateWidget;
+}
+
+void ProgressManagerPrivate::updateNotificationSummaryIcon()
+{
+    m_notificationSummaryIcon->setVisible(
+        !m_progressViewPinned && !m_infoBarDisplay->infoBar()->entries().isEmpty());
 }
 
 void ProgressManagerPrivate::summaryProgressFinishedFading()
@@ -768,7 +1053,7 @@ FutureProgress *ProgressManager::addTask(const QFuture<void> &future, const QStr
     Shows a progress indicator for task given by the QFutureInterface object
     \a futureInterface.
     The progress indicator shows the specified \a title along with the progress bar.
-    The progress indicator will increase monotonically with time, at \a expectedSeconds
+    The progress indicator will increase monotonically with time, at \a expectedDuration
     it will reach about 80%, and continue to increase with a decreasingly slower rate.
 
     The \a type of a task will specify a logical grouping with other

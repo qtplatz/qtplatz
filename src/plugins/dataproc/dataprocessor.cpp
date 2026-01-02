@@ -325,21 +325,28 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
     return IDocument::BehaviorSilent;
 }
 
+#if QTC_VERSION < 0x10'00'00
 Core::IDocument::OpenResult
 Dataprocessor::open( QString *errorString
-                    , const Utils::FilePath &filePath
-                    , const Utils::FilePath &realFilePath)
+                     , const Utils::FilePath &filePath
+                     , const Utils::FilePath &realFilePath)
+#elif QTC_VERSION >= 0x10'00'00
+Utils::Result<>
+Dataprocessor::open( const Utils::FilePath &filePath
+                     , const Utils::FilePath &realFilePath)
+
+#endif
 {
     // ScopedDebug(__t);
 	qtwrapper::waitCursor wait;
 
     std::string emsg;
-    if ( adprocessor::dataprocessor::open( std::filesystem::path( filePath.toString().toStdString() ),  emsg ) ) {
+    if ( adprocessor::dataprocessor::open( std::filesystem::path( filePath.toUrlishString().toStdString() ),  emsg ) ) {
         SessionManager::instance()->addDataprocessor( std::static_pointer_cast<Dataprocessor>(shared_from_this()) );
 
         Core::DocumentManager::addDocument( this );
         Core::DocumentManager::addToRecentFiles( filePath );
-        document::instance()->addToRecentFiles( filePath.toString() );
+        document::instance()->addToRecentFiles( filePath.toUrlishString() );
 
         setFilePath(filePath);
         setMimeType(Utils::mimeTypeForFile(filePath).name()); // application/vnd.sqlite3
@@ -347,16 +354,18 @@ Dataprocessor::open( QString *errorString
         handleGlobalMSLockChanged();
         emit openFinished( true );
 
-        return Core::IDocument::OpenResult::Success;
+        return Utils::ResultOk; // Core::IDocument::OpenResult::Success;
     }
+
     // following error message is being ignored by qt-creator."
-    *errorString =
-        QString( "file %1 could not be opend.\nReason: %2." ).arg( filePath.toString(), QString::fromStdString( emsg ) );
-    qDebug() << "=============" << *errorString;
+    auto error = QString( "file %1 could not be opend.\nReason: %2." ).arg( filePath.toUrlishString(), QString::fromStdString( emsg ) );
+    qDebug() << "=============" << error;
     emit openFinished( false );
-    return Core::IDocument::OpenResult::ReadError;
+    return Utils::makeResult( false, error );
+    // return Core::IDocument::OpenResult::ReadError;
 }
 
+// Spec changed at V10?
 bool
 Dataprocessor::saveImpl( QString *errorString, const Utils::FilePath &filePath, bool autoSave)
 {
@@ -371,7 +380,7 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
     bool isSave = filePath.isEmpty(); // or isSaveAs
     isSave = filePath.isEmpty() ||
         ( file()->filename().extension() == ".adfs" &&
-          fs::absolute( filePath.toString().toStdString() ) == fs::absolute( file()->filename() ) );
+          fs::absolute( filePath.toUrlishString().toStdString() ) == fs::absolute( file()->filename() ) );
     if ( isSave ) {
         ADDEBUG() << "########### SAVE ########### ";
         std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
@@ -389,8 +398,8 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
         return false;
     } else {
         // Save As
-        ADDEBUG() << "########### SAVE_AS : " << filePath.toString().toStdString();
-        return save_as( *this, errorString )( std::filesystem::path( filePath.toString().toStdString() ) );
+        ADDEBUG() << "########### SAVE_AS : " << filePath.toUrlishString().toStdString();
+        return save_as( *this, errorString )( std::filesystem::path( filePath.toUrlishString().toStdString() ) );
     }
     return false;
 }

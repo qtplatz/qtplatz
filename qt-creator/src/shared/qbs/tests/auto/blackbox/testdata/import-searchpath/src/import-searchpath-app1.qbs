@@ -1,3 +1,0 @@
-CppApplication {
-    files: ["somefile.cpp"]
-}

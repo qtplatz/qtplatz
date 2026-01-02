@@ -1,3 +1,4 @@
+module StudioControls
 AbstractButton 1.0 AbstractButton.qml
 ActionIndicator 1.0 ActionIndicator.qml
 Button 1.0 Button.qml
@@ -10,6 +11,7 @@ ColorEditorPopup 1.0 impl/ColorEditorPopup.qml
 ColorPalette 1.0 impl/ColorPalette.qml
 ColorPicker 1.0 impl/ColorPicker.qml
 ComboBox 1.0 ComboBox.qml
+CustomComboBox 1.0 CustomComboBox.qml
 ComboBoxInput 1.0 ComboBoxInput.qml
 ContextMenu 1.0 ContextMenu.qml
 Dialog 1.0 Dialog.qml
@@ -18,6 +20,7 @@ DialogButtonBox 1.0 DialogButtonBox.qml
 FilterComboBox 1.0 FilterComboBox.qml
 HueSlider 1.0 impl/HueSlider.qml
 IconIndicator 1.0 IconIndicator.qml
+IconTextButton 1.0 IconTextButton.qml
 Indicator 1.0 Indicator.qml
 InfinityLoopIndicator 1.0 InfinityLoopIndicator.qml
 ItemDelegate 1.0 ItemDelegate.qml
@@ -50,6 +53,7 @@ SortFilterModel 1.0 SortFilterModel.qml
 SpinBox 1.0 SpinBox.qml
 SpinBoxIndicator 1.0 SpinBoxIndicator.qml
 SpinBoxInput 1.0 SpinBoxInput.qml
+SplitView 1.0 SplitView.qml
 Switch 1.0 Switch.qml
 TabBar 1.0 TabBar.qml
 TabButton 1.0 TabButton.qml

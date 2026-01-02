@@ -20,6 +20,8 @@ public:
     // General information
     Q_INVOKABLE QString qtVersion() const;
     Q_INVOKABLE QString qtCreatorVersion() const;
+    Q_INVOKABLE QString qtCreatorIdeVersion() const;
+    Q_INVOKABLE QString qtCreatorSettingsPath() const;
 
     // File name conversions:
     Q_INVOKABLE QString toNativeSeparators(const QString &in) const;

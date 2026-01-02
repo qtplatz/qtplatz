@@ -15,6 +15,7 @@
 #include <utils/qtcassert.h>
 
 #include <QAbstractProxyModel>
+#include <QApplication>
 #include <QMenu>
 
 using namespace Utils;
@@ -85,8 +86,13 @@ OpenEditorsWidget::OpenEditorsWidget()
 
     connect(EditorManager::instance(), &EditorManager::currentEditorChanged,
             this, &OpenEditorsWidget::updateCurrentItem);
-    connect(this, &OpenDocumentsTreeView::activated,
-            this, &OpenEditorsWidget::handleActivated);
+    connect(qApp, &QApplication::focusChanged, this, [this](QWidget *old) {
+        // re-sync after the user possibly changed the current item while
+        // focus was in this view
+        if (old == this)
+            updateCurrentItem(EditorManager::currentEditor());
+    });
+    connect(this, &OpenDocumentsTreeView::activated, this, &OpenEditorsWidget::handleActivated);
     connect(this, &OpenDocumentsTreeView::closeActivated,
             this, &OpenEditorsWidget::closeDocument);
 
@@ -104,8 +110,11 @@ void OpenEditorsWidget::updateCurrentItem(IEditor *editor)
         return;
     }
     const std::optional<int> index = DocumentModel::indexOfDocument(editor->document());
-    if (QTC_GUARD(index))
-        setCurrentIndex(m_model->index(index.value(), 0));
+    QTC_ASSERT(index, return);
+    const QModelIndex idx = m_model->index(*index, 0);
+    if (idx == currentIndex())
+        return;
+    setCurrentIndex(idx);
     selectionModel()->select(currentIndex(),
                              QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     scrollTo(currentIndex());
@@ -136,8 +145,6 @@ void OpenEditorsWidget::activateEditor(const QModelIndex &index)
 void OpenEditorsWidget::closeDocument(const QModelIndex &index)
 {
     EditorManager::closeDocuments({DocumentModel::entryAtRow(m_model->mapToSource(index).row())});
-    // work around selection changes
-    updateCurrentItem(EditorManager::currentEditor());
 }
 
 bool OpenEditorsWidget::userWantsContextMenu(const QMouseEvent *e) const
@@ -153,11 +160,7 @@ void OpenEditorsWidget::contextMenuRequested(QPoint pos)
     QModelIndex editorIndex = indexAt(pos);
     const int row = m_model->mapToSource(editorIndex).row();
     DocumentModel::Entry *entry = DocumentModel::entryAtRow(row);
-    EditorManager::addSaveAndCloseEditorActions(&contextMenu, entry);
-    contextMenu.addSeparator();
-    EditorManager::addPinEditorActions(&contextMenu, entry);
-    contextMenu.addSeparator();
-    EditorManager::addNativeDirAndOpenWithActions(&contextMenu, entry);
+    EditorManager::addContextMenuActions(&contextMenu, entry);
     contextMenu.exec(mapToGlobal(pos));
 }
 

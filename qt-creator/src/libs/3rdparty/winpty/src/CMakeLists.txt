@@ -1,4 +1,4 @@
-if (MSVC)
+if (MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     add_compile_definitions(NOMINMAX UNICODE _UNICODE)
 endif()
 
@@ -90,6 +90,18 @@ add_qtc_executable(winpty-agent
     agent/Win32ConsoleBuffer.h
     agent/main.cc
     ${shared_sources}
+  SBOM_ARGS
+    USE_ATTRIBUTION_FILES
+    ATTRIBUTION_FILE_PATHS
+      "${QtCreator_SOURCE_DIR}/qt_attributions.json"
+    ATTRIBUTION_IDS
+      winpty
+)
+
+extend_qtc_executable(winpty-agent
+  CONDITION MSVC
+  PUBLIC_COMPILE_OPTIONS
+    /EHsc
 )
 
 #
@@ -105,6 +117,19 @@ add_qtc_library(winpty STATIC
     libwinpty/AgentLocation.h
     libwinpty/winpty.cc
     ${shared_sources}
+  SBOM_ARGS
+    SBOM_ENTITY_TYPE THIRD_PARTY_LIBRARY_WITH_FILES
+    USE_ATTRIBUTION_FILES
+    ATTRIBUTION_FILE_PATHS
+      ../../../../../qt_attributions.json
+    ATTRIBUTION_IDS
+      winpty
+)
+
+extend_qtc_library(winpty
+  CONDITION MSVC
+  PUBLIC_COMPILE_OPTIONS
+    /EHsc
 )
 
 target_include_directories(winpty

@@ -39,7 +39,7 @@ namespace adcontrols { class MassSpectrum; class Trace; class SampleRun; namespa
 namespace adextension { class iController; class iSequenceImpl; }
 
 namespace Core { class IMode; class Context; }
-namespace Utils { class StyledBar; }
+namespace Utils { class StyledBar; class Id; }
 
 namespace acquire {
 
@@ -61,7 +61,7 @@ namespace acquire {
 
         void createActions();
 
-		static QToolButton * toolButton( const char * );
+		static QToolButton * toolButton( Utils::Id );
 		static QToolButton * toolButton( QAction * );
 
 		static MainWindow * instance();

@@ -1,1 +1,0 @@
-include(QmlPuppetCommunication.cmake)

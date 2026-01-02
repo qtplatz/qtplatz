@@ -6,7 +6,7 @@
 #include "progressmanager.h"
 #include "../coreplugintr.h"
 
-#include <utils/process.h>
+#include <utils/qtcprocess.h>
 #include <utils/qtcassert.h>
 
 #include <QFutureWatcher>
@@ -33,6 +33,7 @@ public:
     QFutureWatcher<void> m_watcher;
     QFutureInterface<void> m_futureInterface;
     QPointer<FutureProgress> m_futureProgress;
+    bool m_isAutoStopOnCancel = true;
     QString m_displayName;
     FutureProgress::KeepOnFinishType m_keep = FutureProgress::HideOnFinish;
     seconds m_expectedDuration = 2s;
@@ -88,7 +89,9 @@ ProcessProgress::ProcessProgress(Process *process)
     , d(new ProcessProgressPrivate(this, process))
 {
     connect(&d->m_watcher, &QFutureWatcher<void>::canceled, this, [this] {
-        d->m_process->stop(); // TODO: See TaskProgress::setAutoStopOnCancel
+        emit canceled();
+        if (d->m_isAutoStopOnCancel)
+            d->m_process->stop();
     });
     connect(d->m_process, &Process::starting, this, [this] {
         d->m_futureInterface = QFutureInterface<void>();
@@ -97,7 +100,7 @@ ProcessProgress::ProcessProgress(Process *process)
         d->m_futureInterface.reportStarted();
 
         const QString name = d->displayName();
-        const auto id = Id::fromString(name + ".action");
+        const Id id = Id::fromString(name).withSuffix(".action");
         if (d->m_parser) {
             d->m_futureProgress = ProgressManager::addTask(d->m_futureInterface.future(), name, id);
         } else {
@@ -116,6 +119,11 @@ ProcessProgress::ProcessProgress(Process *process)
 }
 
 ProcessProgress::~ProcessProgress() = default;
+
+void ProcessProgress::setAutoStopOnCancel(bool enable)
+{
+    d->m_isAutoStopOnCancel = enable;
+}
 
 void ProcessProgress::setDisplayName(const QString &name)
 {

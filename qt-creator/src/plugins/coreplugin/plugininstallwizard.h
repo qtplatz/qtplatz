@@ -3,16 +3,23 @@
 
 #pragma once
 
+#include "core_global.h"
+
+#include <utils/filepath.h>
+
 #include <QCoreApplication>
 
 namespace Core {
-namespace Internal {
 
-class PluginInstallWizard
-{
-public:
-    static bool exec();
+enum class InstallResult {
+    Success,
+    Error,
+    NeedsRestart,
 };
 
-} // namespace Internal
+CORE_EXPORT InstallResult
+executePluginInstallWizard(const Utils::FilePath &archive = {}, bool prepareForUpdate = false);
+
+CORE_EXPORT QString msgPluginChangesRequireRestart();
+
 } // namespace Core

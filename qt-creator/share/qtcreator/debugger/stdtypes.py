@@ -1,6 +1,25 @@
 # Copyright (C) 2016 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
+# Disclaimers:
+#   1. Looking up the allocator template type is potentially an expensive operation.
+#      A better alternative would be finding out the allocator type
+#      through accessing a class member.
+#      However due to different implementations doing things very differently
+#      it is deemed acceptable.
+#      Specifically:
+#        * GCC's `_Rb_tree_impl` basically inherits from the allocator, the comparator
+#          and the sentinel node
+#        * Clang packs the allocator and the sentinel node into a compressed pair,
+#          so depending on whether the allocator is sized or not,
+#          there may or may not be a member to access
+#        * MSVC goes even one step further and stores the allocator and the sentinel node together
+#          in a compressed pair, which in turn is stored together with the comparator inside
+#          another compressed pair
+#   2. `size` on an empty type, which the majority of the allocators are of,
+#      for whatever reason reports 1. In theory there can be allocators whose type is truly 1 byte,
+#      in which case we will have issues, but in practice they should be rather rare.
+
 from utils import DisplayFormat
 from dumper import Children, SubItem, DumperBase
 
@@ -60,12 +79,16 @@ def qdump__std__deque(d, value):
 def qdumpHelper__std__deque__libstdcxx(d, value):
     innerType = value.type[0]
     innerSize = innerType.size()
-    bufsize = 1
-    if innerSize < 512:
-        bufsize = 512 // innerSize
+    bufsize = 512 // innerSize if innerSize < 512 else 1
 
-    (mapptr, mapsize, startCur, startFirst, startLast, startNode,
-     finishCur, finishFirst, finishLast, finishNode) = value.split("pppppppppp")
+    start = value['_M_start']
+    startCur = start['_M_cur'].pointer()
+    startLast = start['_M_last'].pointer()
+    startNode = start['_M_node'].pointer()
+    finish = value['_M_finish']
+    finishCur = finish['_M_cur'].pointer()
+    finishFirst = finish['_M_first'].pointer()
+    finishNode = finish['_M_node'].pointer()
 
     size = bufsize * ((finishNode - startNode) // d.ptrSize() - 1)
     size += (finishCur - finishFirst) // innerSize
@@ -82,15 +105,21 @@ def qdumpHelper__std__deque__libstdcxx(d, value):
                 d.putSubItem(i, d.createValue(pcur, innerType))
                 pcur += innerSize
                 if pcur == plast:
-                    newnode = pnode + d.ptrSize()
-                    pfirst = d.extractPointer(newnode)
-                    plast = pfirst + bufsize * d.ptrSize()
+                    pnode += d.ptrSize()
+                    if pnode > finishNode:
+                        break
+                    pfirst = d.extractPointer(pnode)
+                    plast = pfirst + bufsize * innerSize
                     pcur = pfirst
-                    pnode = newnode
-
 
 def qdumpHelper__std__deque__libcxx(d, value):
-    mptr, mfirst, mbegin, mend, start, size = value.split("pppptt")
+    alloc_type = value.type[1] # see disclaimer #1
+    alloc_size = alloc_type.size()
+    # see disclaimer #2
+    if alloc_size > 1:
+        mptr, mfirst, mbegin, mend, alloc, start, size = value.split('pppp{{{}}}tt'.format(alloc_type.name))
+    else:
+        mptr, mfirst, mbegin, mend, start, size = value.split("pppptt")
     d.check(0 <= size and size <= 1000 * 1000 * 1000)
     d.putItemCount(size)
     if d.isExpanded():
@@ -156,7 +185,11 @@ def qdumpHelper__std__deque__msvc(d, value):
     else:
         bufsize = 1
 
-    (proxy, map, mapsize, myoff, mysize) = value.split("ppppp")
+    alloc_size = value.type[1].size() # see disclaimer #1
+    # see disclaimer #2
+    offset = alloc_size if alloc_size > 1 else 0
+    core = d.createValue(value.address() + offset, value.type)
+    (proxy, map, mapsize, myoff, mysize) = core.split("ppppp")
 
     d.check(0 <= mapsize and mapsize <= 1000 * 1000 * 1000)
     d.putItemCount(mysize)
@@ -180,9 +213,16 @@ def qdump__std__list(d, value):
         qdump__std__list__QNX(d, value)
         return
 
-    if value.type.size() == 3 * d.ptrSize():
+    # QTCREATORBUG-20476: GCC with _GLIBCXX_DEBUG prepends the head node
+    # with some debug information
+    if value.hasMember('_M_impl'):
+        sentinel = value['_M_impl']['_M_node']
+    else:
+        sentinel = value
+
+    if sentinel.type.size() == 3 * d.ptrSize():
         # C++11 only.
-        (dummy1, dummy2, size) = value.split("ppp")
+        (dummy1, dummy2, size) = sentinel.split("ppp")
         d.putItemCount(size)
     else:
         # Need to count manually.
@@ -195,7 +235,7 @@ def qdump__std__list(d, value):
         d.putItemCount(size, 1000)
 
     if d.isExpanded():
-        p = d.extractPointer(value)
+        p = d.extractPointer(sentinel)
         innerType = value.type[0]
         with Children(d, size, maxNumChild=1000, childType=innerType):
             for i in d.childRange():
@@ -210,10 +250,14 @@ def qdump__std__list__QNX(d, value):
             d.isDebugBuild = True
         except Exception:
             d.isDebugBuild = False
+
+    alloc_size = value.type[1].size() # see disclaimer #1
+    # see disclaimer #2
+    offset = alloc_size if alloc_size > 1 else 0
     if d.isDebugBuild:
-        (proxy, head, size) = value.split("ppp")
-    else:
-        (head, size) = value.split("pp")
+        offset += d.ptrSize() # _Myval2.Myproxy
+    core = d.createValue(value.address() + offset, value.type)
+    (head, size) = core.split("pp")
 
     d.putItemCount(size, 1000)
 
@@ -234,6 +278,43 @@ def qdump__std____cxx11__list(d, value):
     qdump__std__list(d, value)
 
 
+def qdump__std__forward_list(d, value):
+    # QTCREATORBUG-20476: GCC with _GLIBCXX_DEBUG prepends the head node
+    # with some debug information
+    if value.hasMember('_M_impl'):
+        head = value['_M_impl']['_M_head']
+    # MSVC stores the head in a compressed pair with the allocator
+    # (which is normally an empty class)
+    elif value.hasMember('_Mypair'):
+        head = value['_Mypair']['_Myval2']['_Myhead']
+    else:
+        head = value
+
+    # Need to count manually.
+    p = d.extractPointer(head)
+    size = 0
+    while p and size < 1001:
+        size += 1
+        p = d.extractPointer(p)
+    d.putItemCount(size, 1000)
+
+    if d.isExpanded():
+        p = d.extractPointer(head)
+        innerType = value.type[0]
+        with Children(d, size, maxNumChild=1000, childType=innerType):
+            for i in d.childRange():
+                d.putSubItem(i, d.createValue(p + d.ptrSize(), innerType))
+                p = d.extractPointer(p)
+
+
+def qdump__std____debug__forward_list(d, value):
+    qdump__std__forward_list(d, value)
+
+
+def qdump__std____cxx11__forward_list(d, value):
+    qdump__std__forward_list(d, value)
+
+
 def qform__std__map():
     return [DisplayFormat.CompactMap]
 
@@ -244,7 +325,7 @@ def qdump__std__map(d, value):
         return
 
     # stuff is actually (color, pad) with 'I@', but we can save cycles/
-    (compare, stuff, parent, left, right) = value.split('ppppp')
+    parent = value["_M_t"]["_M_impl"]["_M_header"]
     size = value["_M_t"]["_M_impl"]["_M_node_count"].integer()
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
@@ -283,10 +364,13 @@ def qdump_std__map__helper(d, value):
             d.isDebugBuild = True
         except Exception:
             d.isDebugBuild = False
+    alloc_size = value.type[3].size() # see disclaimer #1
+    # see disclaimer #2
+    offset = alloc_size if alloc_size > 1 else 0
     if d.isDebugBuild:
-        (proxy, head, size) = value.split("ppp")
-    else:
-        (head, size) = value.split("pp")
+        offset += d.ptrSize() # _Myval2.Myproxy
+    core = d.createValue(value.address() + offset, value.type)
+    (head, size) = core.split("pp")
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
     if d.isExpanded():
@@ -323,6 +407,14 @@ def qdump__std__multiset(d, value):
     qdump__std__set(d, value)
 
 
+def qdump__std____debug__multiset(d, value):
+    qdump__std__multiset(d, value)
+
+
+def qdump__std____cxx1998__multiset(d, value):
+    qdump__std__multiset(d, value)
+
+
 def qdump__std____cxx1998__map(d, value):
     qdump__std__map(d, value)
 
@@ -333,6 +425,14 @@ def qform__std__multimap():
 
 def qdump__std__multimap(d, value):
     return qdump__std__map(d, value)
+
+
+def qdump__std____debug__multimap(d, value):
+    qdump__std__multimap(d, value)
+
+
+def qdump__std____cxx1998__multimap(d, value):
+    qdump__std__multimap(d, value)
 
 
 def qdumpHelper__std__tree__iterator(d, value, isSet=False):
@@ -384,7 +484,35 @@ def qdump__std__map__iterator(d, value):
 
 
 def qdump____gnu_debug___Safe_iterator(d, value):
-    d.putItem(value["_M_current"])
+    node = value["_M_node"].dereference()
+    d.putExpandable()
+    d.putEmptyValue()
+    if d.isExpanded():
+        with Children(d):
+            real_iterator_type = value.type[0] # std::_Rb_tree_iterator<T> or std::_Rb_tree_iterator<std::pair<K, V>>
+            inner_type = real_iterator_type[0] # T or std::pair<K, V>
+            is_map = inner_type.name.startswith('std::pair')
+            if is_map:
+                key_type = inner_type[0]
+                value_type = inner_type[1]
+                typecode = 'pppp@{{{}}}@{{{}}}'.format(key_type.name, value_type.name)
+                (color, parent, left, right, pad1, key, pad2, value) = d.split(typecode, node)
+                d.putSubItem("first", key)
+                d.putSubItem("second", value)
+            else:
+                typecode = 'pppp@{{{}}}'.format(inner_type.name)
+                (color, parent, left, right, pad1, key) = d.split(typecode, node)
+                d.putSubItem("value", key)
+            with SubItem(d, "[node]"):
+                d.putExpandable()
+                d.putEmptyValue()
+                d.putType(" ")
+                if d.isExpanded():
+                    with Children(d):
+                        nodeType = node.type.pointer()
+                        d.putSubItem("left", d.createValue(left, nodeType))
+                        d.putSubItem("right", d.createValue(right, nodeType))
+                        d.putSubItem("parent", d.createValue(parent, nodeType))
 
 
 def qdump__std__map__const_iterator(d, value):
@@ -467,10 +595,14 @@ def qdump__std__set__QNX(d, value):
             d.isDebugBuild = True
         except Exception:
             d.isDebugBuild = False
+
+    alloc_size = value.type[2].size() # see disclaimer #1
+    # see disclaimer #2
+    offset = alloc_size if alloc_size > 1 else 0
     if d.isDebugBuild:
-        (proxy, head, size) = value.split("ppp")
-    else:
-        (head, size) = value.split("pp")
+        offset += d.ptrSize() # _Myval2.Myproxy
+    core = d.createValue(value.address() + offset, value.type)
+    (head, size) = core.split("pp")
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
     if d.isExpanded():
@@ -748,10 +880,14 @@ def qdump__std__unordered_map(d, value):
                 d.isDebugBuild = True
             except Exception:
                 d.isDebugBuild = False
+
+        alloc_size = value.type[4].size() # see disclaimer #1
+        # see disclaimer #2
+        offset = alloc_size if alloc_size > 1 else 0
         if d.isDebugBuild:
-            (_, start, size) = _list.split("ppp")
-        else:
-            (start, size) = _list.split("pp")
+            offset += d.ptrSize() # _Myval2.Myproxy
+        core = d.createValue(_list.address() + offset, _list.type)
+        (start, size) = core.split("pp")
     else:
         try:
             # gcc ~= 4.7
@@ -909,7 +1045,7 @@ def qedit__std__vector(d, value, data):
     values = data.split(',')
     n = len(values)
     innerType = value.type[0].name
-    cmd = "set $d = (%s*)calloc(sizeof(%s)*%s,1)" % (innerType, innerType, n)
+    cmd = "set $d = (%s*)calloc(%s,sizeof(%s))" % (innerType, n, innerType)
     gdb.execute(cmd)
     cmd = "set {void*[3]}%s = {$d, $d+%s, $d+%s}" % (value.address(), n, n)
     gdb.execute(cmd)
@@ -978,7 +1114,10 @@ def qdumpHelper__std__vector__libcxx(d, value):
     else:
         start = value["__begin_"].pointer()
         finish = value["__end_"].pointer()
-        alloc = value["__end_cap_"].pointer()
+        if value.hasMember('__cap_'):
+            alloc = value["__cap_"].pointer()
+        else:
+            alloc = value["__end_cap_"].pointer()
         qdumpHelper__std__vector__nonbool(d, start, finish, alloc, inner_type)
 
 
@@ -991,12 +1130,16 @@ def qdumpHelper__std__vector__msvc(d, value):
                 d.isDebugBuild = True
             except RuntimeError:
                 d.isDebugBuild = False
+
+        alloc_size = value.type[1].size() # see disclaimer #1
+        # see disclaimer #2
+        offset = alloc_size if alloc_size > 1 else 0
         if d.isDebugBuild:
-            proxy1, proxy2, start, finish, alloc, size = value.split("pppppi")
-        else:
-            start, finish, alloc, size = value.split("pppi")
+            offset += 2 * d.ptrSize() # _Myproxy and _MyVal2._Myproxy
+        core = d.createValue(value.address() + offset, value.type)
+        first, last, end, size = core.split("pppi")
         d.check(0 <= size and size <= 1000 * 1000 * 1000)
-        qdumpHelper__std__vector__bool(d, start, size, inner_type)
+        qdumpHelper__std__vector__bool(d, first, size, inner_type)
     else:
         if d.isDebugBuild is None:
             try:
@@ -1004,13 +1147,17 @@ def qdumpHelper__std__vector__msvc(d, value):
                 d.isDebugBuild = True
             except RuntimeError:
                 d.isDebugBuild = False
+
+        alloc_size = value.type[1].size() # see disclaimer #1
+        # see disclaimer #2
+        offset = alloc_size if alloc_size > 1 else 0
         if d.isDebugBuild:
-            proxy, start, finish, alloc = value.split("pppp")
-        else:
-            start, finish, alloc = value.split("ppp")
-        size = (finish - start) // inner_type.size()
+            offset += d.ptrSize() # _MyVal2._Myproxy
+        core = d.createValue(value.address() + offset, value.type)
+        first, last, end = core.split('ppp')
+        size = (last - first) // inner_type.size()
         d.check(0 <= size and size <= 1000 * 1000 * 1000)
-        qdumpHelper__std__vector__nonbool(d, start, finish, alloc, inner_type)
+        qdumpHelper__std__vector__nonbool(d, first, last, end, inner_type)
 
 
 def qform__std____debug__vector():

@@ -1,3 +1,0 @@
-Module {
-    validate: { throw "broken!"; }
-}

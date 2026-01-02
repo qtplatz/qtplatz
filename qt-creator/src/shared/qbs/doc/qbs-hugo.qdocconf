@@ -1,6 +1,0 @@
-include(config/qbs-project.qdocconf)
-
-syntaxhighlighting = true
-
-HTML.prologue = "<div class=\"content\">"
-HTML.footer += "</div>"

@@ -18,6 +18,7 @@
 #include <QListWidget>
 #include <QPushButton>
 
+using namespace QtTaskTree;
 using namespace Utils;
 
 namespace Core {
@@ -163,12 +164,9 @@ UrlLocatorFilter::UrlLocatorFilter(const QString &displayName, Id id)
 
 LocatorMatcherTasks UrlLocatorFilter::matchers()
 {
-    using namespace Tasking;
-
-    Storage<LocatorStorage> storage;
-
-    const auto onSetup = [storage, urls = remoteUrls()] {
-        const QString input = storage->input();
+    const auto onSetup = [urls = remoteUrls()] {
+        const LocatorStorage &storage = *LocatorStorage::storage();
+        const QString input = storage.input();
         LocatorFilterEntries entries;
         for (const QString &url : urls) {
             const QString name = url.arg(input);
@@ -182,9 +180,9 @@ LocatorMatcherTasks UrlLocatorFilter::matchers()
             entry.highlightInfo = {int(name.lastIndexOf(input)), int(input.length())};
             entries.append(entry);
         }
-        storage->reportOutput(entries);
+        storage.reportOutput(entries);
     };
-    return {{Sync(onSetup), storage}};
+    return {QSyncTask(onSetup)};
 }
 
 const char kDisplayNameKey[] = "displayName";
@@ -205,34 +203,6 @@ void UrlLocatorFilter::restoreState(const QJsonObject &object)
                                         .toArray(QJsonArray::fromStringList(m_defaultUrls))
                                         .toVariantList(),
                                     &QVariant::toString);
-}
-
-void UrlLocatorFilter::restoreState(const QByteArray &state)
-{
-    if (isOldSetting(state)) {
-        // TODO read old settings, remove some time after Qt Creator 4.15
-        QDataStream in(state);
-
-        QString value;
-        in >> value;
-        m_remoteUrls = value.split('^', Qt::SkipEmptyParts);
-
-        QString shortcut;
-        in >> shortcut;
-        setShortcutString(shortcut);
-
-        bool defaultFilter;
-        in >> defaultFilter;
-        setIncludedByDefault(defaultFilter);
-
-        if (!in.atEnd()) {
-            QString name;
-            in >> name;
-            setDisplayName(name);
-        }
-    } else {
-        ILocatorFilter::restoreState(state);
-    }
 }
 
 bool UrlLocatorFilter::openConfigDialog(QWidget *parent, bool &needsRefresh)

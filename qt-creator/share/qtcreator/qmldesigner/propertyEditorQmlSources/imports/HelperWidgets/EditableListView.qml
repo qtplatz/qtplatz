@@ -24,9 +24,7 @@ Item {
     property real __actionIndicatorWidth: StudioTheme.Values.squareComponentWidth
     property real __actionIndicatorHeight: StudioTheme.Values.height
     property string typeFilter: "QtQuick3D.Material"
-    // This binding is a workaround to overcome the rather long adaption to new Qt versions. This
-    // should actually be fixed in the ModelSection.qml by setting the textRole: "idAndName".
-    property string textRole: (root.typeFilter === "QtQuick3D.Material") ? "idAndName" : "id"
+    property string textRole: "id"
     property string valueRole: "id"
     property int activatedReason: ComboBox.ActivatedReason.Other
 
@@ -118,7 +116,10 @@ Item {
                 onHoverChanged: root.delegateHover = delegateComboBox.hover
             }
 
-            Spacer { implicitWidth: extraButton.visible ? 5 : StudioTheme.Values.twoControlColumnGap }
+            Spacer {
+                implicitWidth: extraButton.visible ? StudioTheme.Values.controlLabelGap
+                                                   : StudioTheme.Values.twoControlColumnGap
+            }
 
             IconIndicator {
                 id: extraButton

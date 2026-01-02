@@ -27,6 +27,7 @@
 #include "servantmode.hpp"
 #include "outputwindow.hpp"
 #include "logger.hpp"
+#include "utils/result.h"
 #include <coreplugin/icore.h>
 #include <coreplugin/coreconstants.h>
 #include <coreplugin/minisplitter.h>
@@ -108,13 +109,17 @@ ServantPlugin::~ServantPlugin()
 
 ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
+    ADDEBUG() << "#### ServantPlugin CTOR";
 }
 
-bool
-ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
+// bool
+// ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
+Utils::Result<>
+ServantPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
-	(void)error_message;
+
+    ADDEBUG() << "#### ServantPlugin::initialize ####";
 
     adlog::logger::enable( adlog::logger::logging_file ); // process_name + ".log"
 
@@ -124,18 +129,20 @@ ServantPlugin::initialize(const QStringList &arguments, QString *error_message)
 
     adplugin::manager::standalone_initialize();
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void
 ServantPlugin::extensionsInitialized()
 {
+    ADDEBUG() << "#### ServantPlugin::" << __FUNCTION__ << " ####";
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
     //ScopedDebug(__t);
+    ADDEBUG() << "#### ServantPlugin::" << __FUNCTION__ << " ####";
 
     impl_->fin();
     adportable::core::debug_core::instance()->unhook();

@@ -31,7 +31,7 @@
 #include <array>
 
 namespace Core { class IMode; }
-namespace Utils { class StyledBar; }
+namespace Utils { class StyledBar; class Id; }
 namespace adprot { class protein; class protfile; class protease; }
 namespace adcontrols { class ChemicalFormula; }
 
@@ -65,7 +65,7 @@ namespace quan {
         Utils::StyledBar * createMidStyledBar();
 
         QToolButton * toolButton( QAction * );
-        QToolButton * toolButton( const char * );
+        QToolButton * toolButton( Utils::Id );
 
         void commit();
         void handleIndexChanged( int index, int subIndex );

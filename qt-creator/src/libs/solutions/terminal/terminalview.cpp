@@ -11,6 +11,7 @@
 #include <QCache>
 #include <QClipboard>
 #include <QDesktopServices>
+#include <QDeadlineTimer>
 #include <QElapsedTimer>
 #include <QGlyphRun>
 #include <QLoggingCategory>
@@ -50,6 +51,9 @@ public:
         m_flushDelayTimer.setSingleShot(true);
         m_flushDelayTimer.setInterval(minRefreshInterval);
 
+        m_updateTimer.setSingleShot(true);
+        m_updateTimer.setInterval(minRefreshInterval);
+
         m_scrollTimer.setSingleShot(false);
         m_scrollTimer.setInterval(500ms);
     }
@@ -72,6 +76,10 @@ public:
     } m_activeMouseSelect;
 
     QTimer m_flushDelayTimer;
+
+    QTimer m_updateTimer;
+    std::optional<QRegion> m_updateRegion;
+    QDeadlineTimer m_sinceLastPaint;
 
     QTimer m_scrollTimer;
     int m_scrollDirection{0};
@@ -142,6 +150,7 @@ TerminalView::TerminalView(QWidget *parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     connect(&d->m_flushDelayTimer, &QTimer::timeout, this, [this] { flushVTerm(true); });
+    connect(&d->m_updateTimer, &QTimer::timeout, this, &TerminalView::scheduleViewportUpdate);
 
     connect(&d->m_scrollTimer, &QTimer::timeout, this, [this] {
         if (d->m_scrollDirection < 0)
@@ -168,6 +177,7 @@ TerminalSurface *TerminalView::surface() const
 void TerminalView::setupSurface()
 {
     d->m_surface = std::make_unique<TerminalSurface>(QSize{80, 60});
+    connect(d->m_surface.get(), &TerminalSurface::cleared, this, &TerminalView::cleared);
 
     if (d->m_surfaceIntegration)
         d->m_surface->setSurfaceIntegration(d->m_surfaceIntegration);
@@ -180,7 +190,8 @@ void TerminalView::setupSurface()
     connect(d->m_surface.get(), &TerminalSurface::invalidated, this, [this](const QRect &rect) {
         setSelection(std::nullopt);
         updateViewportRect(gridToViewport(rect));
-        verticalScrollBar()->setValue(d->m_surface->fullSize().height());
+        if (verticalScrollBar()->value() == verticalScrollBar()->maximum())
+            verticalScrollBar()->setValue(d->m_surface->fullSize().height());
     });
     connect(
         d->m_surface.get(),
@@ -266,6 +277,11 @@ void TerminalView::setPasswordMode(bool passwordMode)
         d->m_passwordModeActive = passwordMode;
         updateViewport();
     }
+}
+
+void TerminalView::enableMouseTracking(bool enable)
+{
+    d->m_allowMouseTracking = enable;
 }
 
 void TerminalView::setFont(const QFont &font)
@@ -920,6 +936,8 @@ void TerminalView::paintEvent(QPaintEvent *event)
         QToolTip::showText(this->mapToGlobal(QPoint(width() - 200, 0)),
                            QString("Paint: %1ms").arg(t.elapsed()));
     }
+
+    d->m_sinceLastPaint = QDeadlineTimer(minRefreshInterval);
 }
 
 void TerminalView::keyPressEvent(QKeyEvent *event)
@@ -938,7 +956,29 @@ void TerminalView::keyPressEvent(QKeyEvent *event)
 
     event->accept();
 
-    d->m_surface->sendKey(event);
+    if (d->m_surface->isInAltScreen()) {
+        d->m_surface->sendKey(event);
+    } else {
+        switch (event->key()) {
+        case Qt::Key_PageDown:
+            verticalScrollBar()->setValue(qBound(
+                0,
+                verticalScrollBar()->value() + d->m_surface->liveSize().height(),
+                verticalScrollBar()->maximum()));
+            break;
+        case Qt::Key_PageUp:
+            verticalScrollBar()->setValue(qBound(
+                0,
+                verticalScrollBar()->value() - d->m_surface->liveSize().height(),
+                verticalScrollBar()->maximum()));
+            break;
+        default:
+            if (event->key() < Qt::Key_Shift || event->key() > Qt::Key_ScrollLock)
+                verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+            d->m_surface->sendKey(event);
+            break;
+        }
+    }
 }
 
 void TerminalView::keyReleaseEvent(QKeyEvent *event)
@@ -966,16 +1006,19 @@ void TerminalView::applySizeChange()
     if (d->m_surface->liveSize() == newLiveSize)
         return;
 
-    resizePty(newLiveSize);
-    d->m_surface->resize(newLiveSize);
-    flushVTerm(true);
+    if (resizePty(newLiveSize)) {
+        d->m_surface->resize(newLiveSize);
+        flushVTerm(true);
+    }
 }
 
 void TerminalView::updateScrollBars()
 {
     int scrollSize = d->m_surface->fullSize().height() - d->m_surface->liveSize().height();
+    const bool shouldScroll = verticalScrollBar()->value() == verticalScrollBar()->maximum();
     verticalScrollBar()->setRange(0, scrollSize);
-    verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+    if (shouldScroll)
+        verticalScrollBar()->setValue(verticalScrollBar()->maximum());
     updateViewport();
 }
 
@@ -1018,17 +1061,39 @@ QPoint TerminalView::toGridPos(QMouseEvent *event) const
     return globalToGrid(QPointF(event->pos()) + QPointF(0, -topMargin() + 0.5));
 }
 
+void TerminalView::scheduleViewportUpdate()
+{
+    if (!d->m_passwordModeActive && d->m_updateRegion)
+        viewport()->update(*d->m_updateRegion);
+    else
+        viewport()->update();
+
+    d->m_updateRegion.reset();
+}
+
 void TerminalView::updateViewport()
 {
-    viewport()->update();
+    updateViewportRect({});
 }
 
 void TerminalView::updateViewportRect(const QRect &rect)
 {
-    if (d->m_passwordModeActive)
-        viewport()->update();
+    if (rect.isEmpty())
+        d->m_updateRegion = QRegion{viewport()->rect()};
+    else if (!d->m_updateRegion)
+        d->m_updateRegion = QRegion(rect);
     else
-        viewport()->update(rect);
+        d->m_updateRegion = d->m_updateRegion->united(rect);
+
+    if (d->m_updateTimer.isActive())
+        return;
+
+    if (!d->m_sinceLastPaint.hasExpired()) {
+        d->m_updateTimer.start();
+        return;
+    }
+
+    scheduleViewportUpdate();
 }
 
 void TerminalView::focusInEvent(QFocusEvent *)
@@ -1047,6 +1112,13 @@ void TerminalView::focusOutEvent(QFocusEvent *)
 
 void TerminalView::inputMethodEvent(QInputMethodEvent *event)
 {
+    // Gnome sends empty events when switching virtual desktops, so ignore those.
+    if (event->commitString().isEmpty() && event->preeditString().isEmpty()
+        && event->attributes().empty() && d->m_preEditString.isEmpty())
+        return;
+
+    verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+
     d->m_preEditString = event->preeditString();
 
     if (event->commitString().isEmpty()) {

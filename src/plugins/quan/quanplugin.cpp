@@ -27,6 +27,7 @@
 #include "quanconstants.hpp"
 #include "quanfactory.hpp"
 #include "quanmode.hpp"
+#include "utils/result.h"
 #include <coreplugin/icore.h>
 #include <coreplugin/icontext.h>
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -82,20 +83,14 @@ QuanPlugin::~QuanPlugin()
 #endif
 }
 
-bool
-QuanPlugin::initialize(const QStringList &arguments, QString *errorString)
+Utils::Result<>
+QuanPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
-    Q_UNUSED(errorString);
 
     impl_->ini();
 
-    // addObject( mode_.get() );
-
-    // it's conflict with Dataproc document factory on MIME due to both support application/adfs
-    // addAutoReleasedObject( new QuanFactory( this ) );
-
-    return true;
+    return Utils::ResultOk;
 }
 
 void QuanPlugin::extensionsInitialized()

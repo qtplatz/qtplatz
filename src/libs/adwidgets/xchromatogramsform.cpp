@@ -128,7 +128,7 @@ XChromatogramsForm::XChromatogramsForm( QWidget * parent ) : QWidget( parent )
     }
 
     if ( auto cbx = findChild<QCheckBox *>( "cbxRefresh" ) ) {
-        connect( cbx, &QCheckBox::stateChanged, [this] ( double ) { emit valueChanged(); } );
+        connect( cbx, &QCheckBox::checkStateChanged, [this] ( double ) { emit valueChanged(); } );
     }
 
 }

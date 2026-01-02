@@ -27,9 +27,6 @@ HelperWidgets.ScrollView {
         root.count = c
     }
 
-    property var currMaterialItem: null
-    property var rootItem: null
-
     required property var searchBox
     required property var model
     required property string sectionCategory
@@ -112,8 +109,8 @@ HelperWidgets.ScrollView {
         Text {
             id: infoText
             text: {
-                if (!root.model.texBundleExists)
-                    qsTr("No textures available. Make sure you have internet connection.")
+                if (!root.model.bundleExists)
+                    qsTr("No textures available. Make sure you have an internet connection.")
                 else if (!searchBox.isEmpty())
                     qsTr("No match found.")
                 else
@@ -123,7 +120,10 @@ HelperWidgets.ScrollView {
             font.pixelSize: StudioTheme.Values.baseFontSize
             topPadding: 10
             leftPadding: 10
+            rightPadding: 10
             visible: root.model.isEmpty
+            wrapMode: Text.WordWrap
+            width: root.width
         }
     }
 }

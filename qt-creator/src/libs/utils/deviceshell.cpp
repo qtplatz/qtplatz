@@ -3,7 +3,7 @@
 
 #include "deviceshell.h"
 
-#include "process.h"
+#include "qtcprocess.h"
 #include "processinterface.h"
 #include "qtcassert.h"
 #include "utilstr.h"
@@ -88,13 +88,12 @@ RunResult DeviceShell::run(const CommandLine &cmd, const QByteArray &stdInData)
         qCDebug(deviceShellLog) << "Running fallback:" << fallbackCmd;
         proc.setCommand(fallbackCmd);
         proc.setWriteData(stdInData);
-        proc.runBlocking();
-
-        return RunResult{
-            proc.exitCode(),
-            proc.rawStdOut(),
-            proc.rawStdErr()
-        };
+        // Practically unlimited timeout since we are most probably running dd for copying
+        // data to a device here (=deployment), so a) we have no idea how long that might take
+        // for large files, and b) the user can cancel this manually.
+        proc.runBlocking(/*timout=*/1h);
+        // TODO This misses interesting data like proc.errorMessage() and/or proc.exitMessage()
+        return RunResult{proc.exitCode(), proc.rawStdOut(), proc.rawStdErr()};
     }
 
     const RunResult errorResult{-1, {}, {}};
@@ -162,7 +161,7 @@ CommandLine DeviceShell::createFallbackCommand(const CommandLine &cmd)
  *
  * \note You have to call this function when deriving from DeviceShell. Current implementations call the function from their constructor.
  */
-expected_str<void> DeviceShell::start()
+Result<> DeviceShell::start()
 {
     m_shellProcess = std::make_unique<Process>();
     connect(m_shellProcess.get(), &Process::done, m_shellProcess.get(),
@@ -176,20 +175,20 @@ expected_str<void> DeviceShell::start()
     // Moving the process into its own thread ...
     m_shellProcess->moveToThread(&m_thread);
 
-    expected_str<void> result;
+    Result<> result;
     QMetaObject::invokeMethod(
         m_shellProcess.get(),
-        [this]() -> expected_str<void> {
+        [this]() -> Result<> {
             qCDebug(deviceShellLog)
                 << "Starting shell process:" << m_shellProcess->commandLine().toUserOutput();
             m_shellProcess->start();
 
             if (!m_shellProcess->waitForStarted()) {
                 closeShellProcess();
-                return make_unexpected(Tr::tr("The process failed to start."));
+                return ResultError(msgProcessFailedToStart());
             }
 
-            auto installResult = installShellScript();
+            Result<> installResult = installShellScript();
             if (installResult) {
                 connect(m_shellProcess.get(),
                         &Process::readyReadStandardOutput,
@@ -210,19 +209,48 @@ expected_str<void> DeviceShell::start()
                         qCWarning(deviceShellLog) << "Shell exited with error code:"
                                                   << m_shellProcess->resultData().m_exitCode << "("
                                                   << m_shellProcess->exitMessage() << ")";
+                        emit exitedIrregularly();
                     }
                 });
 
-                return {};
-            } else if (m_shellProcess->isRunning()) {
-                m_shellProcess->kill();
+                return ResultOk;
             }
-            const QString stdErr = m_shellProcess->readAllStandardError();
+
+            const CommandLine savedShellCmd = m_shellProcess->commandLine();
+
+            if (m_shellProcess->isRunning())
+                m_shellProcess->kill();
             m_shellProcess.reset();
 
-            return make_unexpected(Tr::tr("Failed to install shell script: %1\n%2")
-                                       .arg(installResult.error())
-                                       .arg(stdErr));
+            qCDebug(deviceShellLog()) << "Failed to install shell script: " << installResult.error();
+
+            // Shell script setup might not have worked, e.g. due to a missing 'base64'
+            // on the device, but the connection could in principle still be usable due
+            // to the fallback to "single shot" mode.
+            // Try to execute a simple command to check:
+
+            QStringList args = savedShellCmd.splitArguments();
+            QTC_ASSERT(!args.empty(), return ResultError(ResultAssert));
+            args.removeLast(); // drop the traling /bin/bash, so we don't depend on bash either.
+            args.append("echo");
+            args.append("TEST_OK");
+
+            const CommandLine fallbackTestCommand = {savedShellCmd.executable(), args};
+            qCDebug(deviceShellLog()) << "Checking plain access as fallback"
+                                      << fallbackTestCommand.toUserOutput();
+            Process process;
+            process.setProcessChannelMode(QProcess::MergedChannels);
+            process.setCommand(fallbackTestCommand);
+            process.runBlocking(5s);
+
+            const QByteArray out = process.readAllRawStandardOutput().trimmed();
+
+            if (process.result() != ProcessResult::FinishedWithSuccess || out != "TEST_OK") {
+                qCDebug(deviceShellLog()) << "Fallback failed:" << process.error();
+                return ResultError(installResult.error() + process.errorString() + out);
+            }
+
+            return ResultOk;
         },
         Qt::BlockingQueuedConnection,
         &result);
@@ -230,31 +258,52 @@ expected_str<void> DeviceShell::start()
     return result;
 }
 
-expected_str<QByteArray> DeviceShell::checkCommand(const QByteArray &command)
+static std::optional<QByteArray> waitAndReadLine(Process *process, QProcess::ProcessChannel channel)
+{
+    QByteArray result;
+    while (process->waitForReadyRead(5s)) {
+        if (channel == QProcess::StandardOutput)
+            result += process->readAllRawStandardOutput();
+        if (channel == QProcess::StandardError)
+            result += process->readAllRawStandardError();
+        if (result.contains('\n')) {
+            QTC_CHECK(result.endsWith('\n'));
+            return result;
+        }
+    }
+    return {};
+}
+
+Result<QByteArray> DeviceShell::checkCommand(const QByteArray &command)
 {
     const QByteArray checkCmd = "(type " + command + " || echo '<missing>')\n";
 
     m_shellProcess->writeRaw(checkCmd);
-    if (!m_shellProcess->waitForReadyRead()) {
-        return make_unexpected(
+    const std::optional<QByteArray> out
+        = waitAndReadLine(m_shellProcess.get(), QProcess::StandardOutput);
+    if (!out) {
+        if (!m_shellProcess->isRunning()) {
+            return ResultError(
+                m_shellProcess->exitMessage(Process::FailureMessageFormat::WithStdErr));
+        }
+        return ResultError(
             Tr::tr("Timeout while trying to check for %1.").arg(QString::fromUtf8(command)));
     }
-    QByteArray out = m_shellProcess->readAllRawStandardOutput();
-    if (out.contains("<missing>")) {
+    if (out->contains("<missing>")) {
         m_shellScriptState = State::Failed;
         m_missingFeatures.append(QString::fromUtf8(command));
-        return make_unexpected(
+        return ResultError(
             Tr::tr("Command \"%1\" was not found.").arg(QString::fromUtf8(command)));
     }
 
-    return out;
+    return *out;
 }
 
-expected_str<void> DeviceShell::installShellScript()
+Result<> DeviceShell::installShellScript()
 {
     if (m_forceFailScriptInstallation) {
         m_shellScriptState = State::Failed;
-        return make_unexpected(Tr::tr("Script installation was forced to fail."));
+        return ResultError(Tr::tr("Script installation was forced to fail."));
     }
 
     static const QList<QByteArray> requiredCommands
@@ -263,7 +312,7 @@ expected_str<void> DeviceShell::installShellScript()
     for (const QByteArray &command : requiredCommands) {
         auto checkResult = checkCommand(command);
         if (!checkResult)
-            return make_unexpected(checkResult.error());
+            return ResultError(checkResult.error());
     }
 
     const static QByteArray shellScriptBase64 = FilePath(":/utils/scripts/deviceshell.sh")
@@ -279,27 +328,27 @@ expected_str<void> DeviceShell::installShellScript()
     m_shellProcess->writeRaw(scriptCmd);
 
     while (m_shellScriptState == State::Unknown) {
-        if (!m_shellProcess->waitForReadyRead(5s)) {
-            return make_unexpected(Tr::tr("Timeout while waiting for shell script installation."));
-        }
+        const std::optional<QByteArray> out
+            = waitAndReadLine(m_shellProcess.get(), QProcess::StandardError);
+        if (!out)
+            return ResultError(Tr::tr("Timeout while waiting for shell script installation."));
 
-        QByteArray out = m_shellProcess->readAllRawStandardError();
-        if (out.contains("SCRIPT_INSTALLED") && !out.contains("ERROR_INSTALL_SCRIPT")) {
+        if (out->contains("SCRIPT_INSTALLED") && !out->contains("ERROR_INSTALL_SCRIPT")) {
             m_shellScriptState = State::Succeeded;
-            return {};
+            return ResultOk;
         }
-        if (out.contains("ERROR_INSTALL_SCRIPT")) {
+        if (out->contains("ERROR_INSTALL_SCRIPT")) {
             m_shellScriptState = State::Failed;
-            return make_unexpected(
-                Tr::tr("Failed to install shell script: %1").arg(QString::fromUtf8(out)));
+            return ResultError(
+                Tr::tr("Failed to install shell script: %1").arg(QString::fromUtf8(*out)));
         }
-        if (!out.isEmpty()) {
-            qCWarning(deviceShellLog)
-                << "Unexpected output while installing device shell script:" << out;
+        if (!out->isEmpty()) {
+            qCDebug(deviceShellLog)
+                << "Unexpected output while installing device shell script:" << *out;
         }
     }
 
-    return {};
+    return ResultOk;
 }
 
 void DeviceShell::closeShellProcess()
@@ -433,6 +482,11 @@ void DeviceShell::onReadyRead()
         m_commandBuffer.clear();
     else
         m_commandBuffer = m_commandBuffer.mid(lastLineEndIndex);
+}
+
+QString msgProcessFailedToStart()
+{
+    return Tr::tr("The process failed to start.");
 }
 
 } // namespace Utils

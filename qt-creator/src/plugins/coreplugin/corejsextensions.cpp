@@ -3,15 +3,18 @@
 
 #include "corejsextensions.h"
 
+#include "icore.h"
+#include "messagemanager.h"
+
 #include <utils/appinfo.h>
 #include <utils/fileutils.h>
 #include <utils/mimeutils.h>
 #include <utils/qtcassert.h>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QLibraryInfo>
-#include <QTemporaryFile>
 #include <QVariant>
 #include <QVersionNumber>
 
@@ -27,6 +30,16 @@ QString UtilsJsExtension::qtVersion() const
 QString UtilsJsExtension::qtCreatorVersion() const
 {
     return appInfo().displayVersion;
+}
+
+QString UtilsJsExtension::qtCreatorIdeVersion() const
+{
+    return QCoreApplication::applicationVersion();
+}
+
+QString UtilsJsExtension::qtCreatorSettingsPath() const
+{
+    return Core::ICore::userResourcePath().toUrlishString();
 }
 
 QString UtilsJsExtension::toNativeSeparators(const QString &in) const
@@ -85,7 +98,7 @@ QString UtilsJsExtension::relativeFilePath(const QString &path, const QString &b
 {
     const FilePath basePath = FilePath::fromString(base).cleanPath();
     const FilePath filePath = FilePath::fromString(path).cleanPath();
-    return FilePath::calcRelativePath(filePath.toFSPathString(), basePath.toFSPathString());
+    return filePath.relativePathFromDir(basePath);
 }
 
 bool UtilsJsExtension::exists(const QString &in) const
@@ -113,7 +126,7 @@ QString UtilsJsExtension::preferredSuffix(const QString &mimetype) const
 
 QString UtilsJsExtension::fileName(const QString &path, const QString &extension) const
 {
-    return Utils::FilePath::fromStringWithExtension(path, extension).toString();
+    return Utils::FilePath::fromStringWithExtension(path, extension).toUrlishString();
 }
 
 QString UtilsJsExtension::mktemp(const QString &pattern) const
@@ -121,20 +134,12 @@ QString UtilsJsExtension::mktemp(const QString &pattern) const
     QString tmp = pattern;
     if (tmp.isEmpty())
         tmp = QStringLiteral("qt_temp.XXXXXX");
-    QFileInfo fi(tmp);
-    if (!fi.isAbsolute()) {
-        QString tempPattern = QDir::tempPath();
-        if (!tempPattern.endsWith(QLatin1Char('/')))
-            tempPattern += QLatin1Char('/');
-        tmp = tempPattern + tmp;
+    const auto res = FileUtils::scratchBufferFilePath(tmp);
+    if (!res) {
+        MessageManager::writeDisrupting(res.error());
+        return {};
     }
-
-    QTemporaryFile file(tmp);
-    file.setAutoRemove(false);
-    const bool isOpen = file.open();
-    QTC_ASSERT(isOpen, return {});
-    file.close();
-    return file.fileName();
+    return res->toFSPathString();
 }
 
 QString UtilsJsExtension::asciify(const QString &input) const
@@ -144,13 +149,13 @@ QString UtilsJsExtension::asciify(const QString &input) const
 
 QString UtilsJsExtension::qtQuickVersion(const QString &filePath) const
 {
-    QDirIterator dirIt(Utils::FilePath::fromString(filePath).parentDir().path(), {"*.qml"},
+    QDirIterator dirIt(FilePath::fromString(filePath).parentDir().path(), {"*.qml"},
                        QDir::Files, QDirIterator::Subdirectories);
     while (dirIt.hasNext()) {
-        Utils::FileReader reader;
-        if (!reader.fetch(Utils::FilePath::fromString(dirIt.next())))
+        const Result<QByteArray> result = FilePath::fromString(dirIt.next()).fileContents();
+        if (!result)
             continue;
-        const QString data = QString::fromUtf8(reader.data());
+        const QString data = QString::fromUtf8(*result);
         static const QString importString("import QtQuick");
         const int importIndex = data.indexOf(importString);
         if (importIndex == -1)

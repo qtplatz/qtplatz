@@ -30,31 +30,31 @@ namespace Constants {
     const char ACTION_ID[]                 = "Quan.Action";
     const char MENU_ID[]                   = "Quan.Menu";
     const char M_FILE_RECENTFILES []       = "Quan.Menu.RecentFiles";
-    const char * const C_QUAN = "Quan";
-    const char * const C_QUAN_MODE         = "Quan.Mode";
-    const char * const FILE_OPEN           = "Quan.FileOpen";
-    const char * const QUAN_METHOD_OPEN    = "Quan.MethodOpen";
-    const char * const QUAN_METHOD_SAVE    = "Quan.MethodSave";
-    const char * const QUAN_SEQUENCE_OPEN  = "Quan.SequenceOpen";
-    const char * const QUAN_SEQUENCE_SAVE  = "Quan.SequenceSave";
-    const char * const QUAN_RECENTFILES    = "Quan.RecentFiles";
+    const char C_QUAN []            = "Quan";
+    const char C_QUAN_MODE []       = "Quan.Mode";
+    const char FILE_OPEN []         = "Quan.FileOpen";
+    const char QUAN_METHOD_OPEN []  = "Quan.MethodOpen";
+    const char QUAN_METHOD_SAVE []  = "Quan.MethodSave";
+    const char QUAN_SEQUENCE_OPEN []  = "Quan.SequenceOpen";
+    const char QUAN_SEQUENCE_SAVE []  = "Quan.SequenceSave";
+    const char QUAN_RECENTFILES []    = "Quan.RecentFiles";
 
-    const char * const PUBLISHER_FILE_MENU = "Quan.Publisher.FileMenu";
-    const char * const PUBLISHER_EDIT_MENU = "Quan.Publisher.EditMenu";
-    const char * const PUBLISHER_TEXT_MENU = "Quan.Publisher.TextMenu";
+    const char PUBLISHER_FILE_MENU [] = "Quan.Publisher.FileMenu";
+    const char PUBLISHER_EDIT_MENU [] = "Quan.Publisher.EditMenu";
+    const char PUBLISHER_TEXT_MENU [] = "Quan.Publisher.TextMenu";
 
     // actions
-    const char * const QUAN_SEQUENCE_RUN   = "Quan.Run";
-    const char * const QUAN_SEQUENCE_STOP  = "Quan.Stop";
+    const char QUAN_SEQUENCE_RUN   [] = "Quan.Run";
+    const char QUAN_SEQUENCE_STOP  [] = "Quan.Stop";
 
     // task
-    const char * const QUAN_TASK_OPEN      = "Quan.Task.OpenConn";
-    const char * const QUAN_TASK_PROC      = "Quan.Task.SampleProc";
-    const char * const QUAN_TASK_CALIB     = "Quan.Task.Calib";
-    const char * const QUAN_TASK_QUAN      = "Quan.Task.Quan";
+    const char QUAN_TASK_OPEN []     = "Quan.Task.OpenConn";
+    const char QUAN_TASK_PROC []     = "Quan.Task.SampleProc";
+    const char QUAN_TASK_CALIB []    = "Quan.Task.Calib";
+    const char QUAN_TASK_QUAN []     = "Quan.Task.Quan";
 
     const int ICON_SIZE(64);
-    
+
     const int ABOVE_HEADING_MARGIN(10);
     const int ABOVE_CONTENTS_MARGIN(4);
     const int BELOW_CONTENTS_MARGIN(16);
@@ -84,4 +84,3 @@ namespace Constants {
 } // namespace Constants
 
 #endif // QUANCONSTANTS_HPP
-

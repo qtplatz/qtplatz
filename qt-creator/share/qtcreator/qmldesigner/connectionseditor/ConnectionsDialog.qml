@@ -11,6 +11,8 @@ StudioControls.PopupDialog {
 
     property alias backend: form.backend
 
+    keepOpen: form.keepOpen
+
     titleBar: Row {
         spacing: 30 // TODO
         anchors.fill: parent
@@ -37,6 +39,10 @@ StudioControls.PopupDialog {
             onActivated: backend.signal.id.activateIndex(target.currentIndex)
             property int currentTypeIndex: backend.signal.id.currentIndex ?? 0
             onCurrentTypeIndexChanged: target.currentIndex = target.currentTypeIndex
+            onModelChanged: {
+                if (target.model)
+                    target.currentIndex = target.currentTypeIndex
+            }
         }
     }
 

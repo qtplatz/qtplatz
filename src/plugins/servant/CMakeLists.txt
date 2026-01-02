@@ -2,8 +2,13 @@
 #cmake_policy( SET CMP0028 NEW )
 project( Servant )
 
-set( CMAKE_AUTOMOC ON )
-set( PROVIDER MS-Cheminformatics )
+set ( CMAKE_AUTOMOC ON )
+
+set ( PROVIDER MS-Cheminformatics )
+set ( PLUGIN_ID "servant" )
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
+
 set( DESCRIPTION "Servant plugin" )
 
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
@@ -18,8 +23,9 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
   foreach ( i "Core" )
+    string(TOLOWER ${i} id)
     set(_v ${IDE_VERSION})
-    string ( APPEND DEPENDENCY_STRING "        { \"Name\" : \"${i}\", \"Version\" : \"${_v}\" }" )
+    string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"${id}\", \"Version\" : \"${_v}\" }" )
   endforeach()
   string(APPEND DEPENDENCY_STRING "\n    ]")
   configure_file(

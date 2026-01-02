@@ -35,6 +35,7 @@ include_directories(
   ${QtCore_INCLUDE_DIRS}
   ${QtSvg_INCLUDE_DIRS}
   ${QtSql_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/qt-creator/src/plugins
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${CMAKE_SOURCE_DIR}/src/libs
   ${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/src/app
@@ -66,7 +67,6 @@ target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adcontrols
   adfs
   adportable
-  adui
   adwidgets
   ${UTILS}
   Core

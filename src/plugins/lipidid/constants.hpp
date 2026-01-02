@@ -9,27 +9,27 @@ namespace Constants {
     const char ACTION_ID[] = "lipidid.Action";
     const char MENU_ID[] = "lipidid.Menu";
 
-    const char * const C_LIPIDID              = "lipidid";
-    const char * const C_LIPIDID_MODE         = "lipidid.Mode";
-    const char * const C_LIPIDID_NAVI         = "lipidid.Navigator";
+    const char C_LIPIDID []             = "lipidid";
+    const char C_LIPIDID_MODE []        = "lipidid.Mode";
+    const char C_LIPIDID_NAVI []        = "lipidid.Navigator";
     // const char * const C_DATA_TEXT_MIMETYPE   = "application/txt";
     // const char * const C_DATA_NATIVE_MIMETYPE = "application/adfs";
 
     // common actions
-    const char * const FIND_ALL             = "lipidid.FindAll";
-    const char * const SAVE_ALL             = "lipidid.SaveAll";
-    const char * const PRINT_CURRENT_VIEW   = "lipidid.PrintCurrentView";
-    const char * const LISTPEAKS_ON_CHECKED = "lipidid.PeakListAllChecked";
-    const char * const EXPORT_ALL_CHECKED   = "lipidid.ExportAllChecked";
-    const char * const HIDE_DOCK            = "lipidid.HideDock";
-    const char * const SDF_IMPORT           = "lipidid.SDFImport";
+    const char FIND_ALL []            = "lipidid.FindAll";
+    const char SAVE_ALL []            = "lipidid.SaveAll";
+    const char PRINT_CURRENT_VIEW []  = "lipidid.PrintCurrentView";
+    const char LISTPEAKS_ON_CHECKED []= "lipidid.PeakListAllChecked";
+    const char EXPORT_ALL_CHECKED []  = "lipidid.ExportAllChecked";
+    const char HIDE_DOCK []           = "lipidid.HideDock";
+    const char SDF_IMPORT []          = "lipidid.SDFImport";
 
-    const char * const CREATE_SPECTROGRAM   = "lipidid.Spectrogram";
-    const char * const CLUSTER_SPECTROGRAM  = "lipidid.ClusterSpectrogram";
+    const char CREATE_SPECTROGRAM []  = "lipidid.Spectrogram";
+    const char CLUSTER_SPECTROGRAM [] = "lipidid.ClusterSpectrogram";
 
     // edit
-    const char * const CHECK_ALL_SPECTRA   = "lipidid.Edit.CheckAllSpectra";
-    const char * const UNCHECK_ALL_SPECTRA = "lipidid.Edit.UncheckAllSpectra";
+    const char CHECK_ALL_SPECTRA []   = "lipidid.Edit.CheckAllSpectra";
+    const char UNCHECK_ALL_SPECTRA [] = "lipidid.Edit.UncheckAllSpectra";
 
     // icon
     const char * const ICON_METHOD_SAVE     = ":/dataproc/image/filesave.png";
@@ -65,8 +65,8 @@ namespace Constants {
     // QObject names
     const char * const EDIT_PROCMETHOD    = "lipidid.MainWindow.procmethodname";
 
-    const char * const LIPIDID_TASK_SDFIMPORT = "lipidid.task.sdfimport";
-    const char * const LIPIDID_TASK_FIND_ALL  = "lipidid.task.find_all";
+    const char LIPIDID_TASK_SDFIMPORT [] = "lipidid.task.sdfimport";
+    const char LIPIDID_TASK_FIND_ALL []  = "lipidid.task.find_all";
     //
     const char * const THIS_GROUP           = "lipidid";
 

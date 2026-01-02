@@ -1,4 +1,0 @@
-void printStuff()
-{
-    puts("alalalalonglonglilonglonglong");
-}

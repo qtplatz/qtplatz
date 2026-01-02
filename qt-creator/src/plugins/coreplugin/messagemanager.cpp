@@ -3,123 +3,149 @@
 
 #include "messagemanager.h"
 
-#include "messageoutputwindow.h"
+#include "coreconstants.h"
+#include "coreplugintr.h"
+#include "icontext.h"
+#include "ioutputpane.h"
+#include "outputwindow.h"
 
-#include <extensionsystem/pluginmanager.h>
 #include <utils/qtcassert.h>
+#include <utils/shutdownguard.h>
+#include <utils/utilsicons.h>
 
 #include <QFont>
-#include <QThread>
-#include <QTime>
+#include <QPointer>
 
 /*!
-    \class Core::MessageManager
+    \namespace Core::MessageManager
     \inheaderfile coreplugin/messagemanager.h
     \ingroup mainclasses
     \inmodule QtCreator
 
-    \brief The MessageManager class is used to post messages in the
+    \brief The MessageManager namespace is used to post messages in the
     \uicontrol{General Messages} pane.
 */
 
-namespace Core {
+using namespace Core::Internal;
 
-static MessageManager *m_instance = nullptr;
-static Internal::MessageOutputWindow *m_messageOutputWindow = nullptr;
+namespace Core::MessageManager {
 
-/*!
-    \internal
-*/
-MessageManager *MessageManager::instance()
+const char zoomSettingsKey[] = "Core/MessageOutput/Zoom";
+
+class MessageOutputWindow final : public IOutputPane
 {
-    return m_instance;
+public:
+    explicit MessageOutputWindow(QObject *parent)
+        : IOutputPane(parent)
+    {
+        setId("GeneralMessages");
+        setDisplayName(Tr::tr("General Messages"));
+        setPriorityInStatusBar(-100);
+
+        m_widget = new OutputWindow(Context(Constants::C_GENERAL_OUTPUT_PANE), zoomSettingsKey);
+        m_widget->setReadOnly(true);
+
+        connect(this, &IOutputPane::zoomInRequested, m_widget, &Core::OutputWindow::zoomIn);
+        connect(this, &IOutputPane::zoomOutRequested, m_widget, &Core::OutputWindow::zoomOut);
+        connect(this, &IOutputPane::resetZoomRequested, m_widget, &Core::OutputWindow::resetZoom);
+        connect(this, &IOutputPane::fontChanged, m_widget, &OutputWindow::setBaseFont);
+        connect(this, &IOutputPane::wheelZoomEnabledChanged, m_widget, &OutputWindow::setWheelZoomEnabled);
+
+        setupFilterUi("MessageOutputPane.Filter", "Core::Internal::MessageOutputWindow");
+        setFilteringEnabled(true);
+        setupContext(Constants::C_GENERAL_OUTPUT_PANE, m_widget);
+    }
+
+    ~MessageOutputWindow() final
+    {
+        delete m_widget;
+    }
+
+    void append(const QString &text)
+    {
+        m_widget->appendMessage(text, Utils::GeneralMessageFormat);
+    }
+
+private:
+    QWidget *outputWidget(QWidget *parent) final
+    {
+        m_widget->setParent(parent);
+        return m_widget;
+    }
+
+    void clearContents() final { m_widget->clear(); }
+
+    bool canFocus() const final { return true; }
+    bool hasFocus() const final { return m_widget->window()->focusWidget() == m_widget; }
+    void setFocus() final { m_widget->setFocus(); }
+
+    bool canNext() const final { return false; }
+    bool canPrevious() const final { return false; }
+    void goToNext() final {}
+    void goToPrev() final {}
+    bool canNavigate() const final { return false; }
+
+    bool hasFilterContext() const final { return true; }
+
+    void updateFilter() final
+    {
+        m_widget->updateFilterProperties(filterText(), filterCaseSensitivity(), filterUsesRegexp(),
+                                         filterIsInverted(), beforeContext(), afterContext());
+    }
+
+    OutputWindow *m_widget = nullptr;
+};
+
+static MessageOutputWindow *messageOutputWindow()
+{
+    static QPointer<MessageOutputWindow> theMessageOutputWindow
+            = new MessageOutputWindow(Utils::shutdownGuard());
+    return theMessageOutputWindow.get();
 }
 
 enum class Flag { Silent, Flash, Disrupt };
 
 static void showOutputPane(Flag flags)
 {
-    QTC_ASSERT(m_messageOutputWindow, return);
-
+    QTC_ASSERT(messageOutputWindow(), return);
     switch (flags) {
-    case Core::Flag::Silent:
+    case Flag::Silent:
         break;
-    case Core::Flag::Flash:
-        m_messageOutputWindow->flash();
+    case Flag::Flash:
+        messageOutputWindow()->flash();
         break;
-    case Core::Flag::Disrupt:
-        m_messageOutputWindow->popup(IOutputPane::ModeSwitch | IOutputPane::WithFocus);
+    case Flag::Disrupt:
+        messageOutputWindow()->popup(IOutputPane::ModeSwitch | IOutputPane::WithFocus);
         break;
     }
 }
 
-static void doWrite(const QString &text, Flag flags)
+static void writeImpl(const QString &text, Flag flags)
 {
-    QTC_ASSERT(m_messageOutputWindow, return);
-
-    showOutputPane(flags);
-    m_messageOutputWindow->append(text + '\n');
-}
-
-static void write(const QString &text, Flag flags)
-{
-    QTC_ASSERT(m_instance, return);
-    if (QThread::currentThread() == m_instance->thread())
-        doWrite(text, flags);
-    else
-        QMetaObject::invokeMethod(m_instance, [text, flags] {
-            doWrite(text, flags);
-        }, Qt::QueuedConnection);
+    // Make sure this end up in the GUI thread.
+    QMetaObject::invokeMethod(Utils::shutdownGuard(), [text, flags] {
+        QTC_ASSERT(messageOutputWindow(), return);
+        showOutputPane(flags);
+        messageOutputWindow()->append(text + '\n');
+    });
 }
 
 /*!
     \internal
 */
-MessageManager::MessageManager()
+void setFont(const QFont &font)
 {
-    m_instance = this;
-    m_messageOutputWindow = nullptr;
+    QTC_ASSERT(messageOutputWindow(), return);
+    messageOutputWindow()->setFont(font);
 }
 
 /*!
     \internal
 */
-MessageManager::~MessageManager()
+void setWheelZoomEnabled(bool enabled)
 {
-    if (m_messageOutputWindow) {
-        ExtensionSystem::PluginManager::removeObject(m_messageOutputWindow);
-        delete m_messageOutputWindow;
-    }
-    m_instance = nullptr;
-}
-
-/*!
-    \internal
-*/
-void MessageManager::init()
-{
-    m_messageOutputWindow = new Internal::MessageOutputWindow;
-    ExtensionSystem::PluginManager::addObject(m_messageOutputWindow);
-}
-
-/*!
-    \internal
-*/
-void MessageManager::setFont(const QFont &font)
-{
-    QTC_ASSERT(m_messageOutputWindow, return);
-
-    m_messageOutputWindow->setFont(font);
-}
-
-/*!
-    \internal
-*/
-void MessageManager::setWheelZoomEnabled(bool enabled)
-{
-    QTC_ASSERT(m_messageOutputWindow, return);
-
-    m_messageOutputWindow->setWheelZoomEnabled(enabled);
+    QTC_ASSERT(messageOutputWindow(), return);
+    messageOutputWindow()->setWheelZoomEnabled(enabled);
 }
 
 /*!
@@ -132,9 +158,9 @@ void MessageManager::setWheelZoomEnabled(bool enabled)
     \sa writeFlashing()
     \sa writeDisrupting()
 */
-void MessageManager::writeSilently(const QString &message)
+void writeSilently(const QString &message)
 {
-    Core::write(message, Flag::Silent);
+    writeImpl(message, Flag::Silent);
 }
 
 /*!
@@ -149,9 +175,9 @@ void MessageManager::writeSilently(const QString &message)
     \sa writeSilently()
     \sa writeDisrupting()
 */
-void MessageManager::writeFlashing(const QString &message)
+void writeFlashing(const QString &message)
 {
-    Core::write(message, Flag::Flash);
+    writeImpl(message, Flag::Flash);
 }
 
 /*!
@@ -164,15 +190,15 @@ void MessageManager::writeFlashing(const QString &message)
     \sa writeSilently()
     \sa writeFlashing()
 */
-void MessageManager::writeDisrupting(const QString &message)
+void writeDisrupting(const QString &message)
 {
-    Core::write(message, Flag::Disrupt);
+    writeImpl(message, Flag::Disrupt);
 }
 
 /*!
     \overload writeSilently()
 */
-void MessageManager::writeSilently(const QStringList &messages)
+void writeSilently(const QStringList &messages)
 {
     writeSilently(messages.join('\n'));
 }
@@ -180,7 +206,7 @@ void MessageManager::writeSilently(const QStringList &messages)
 /*!
     \overload writeFlashing()
 */
-void MessageManager::writeFlashing(const QStringList &messages)
+void writeFlashing(const QStringList &messages)
 {
     writeFlashing(messages.join('\n'));
 }
@@ -188,9 +214,14 @@ void MessageManager::writeFlashing(const QStringList &messages)
 /*!
     \overload writeDisrupting()
 */
-void MessageManager::writeDisrupting(const QStringList &messages)
+void writeDisrupting(const QStringList &messages)
 {
     writeDisrupting(messages.join('\n'));
 }
 
-} // namespace Core
+void popup()
+{
+    messageOutputWindow()->popup(IOutputPane::NoModeSwitch);
+}
+
+} // namespace Core::MessageManager

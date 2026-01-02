@@ -9,90 +9,70 @@
 
 #include <optional>
 
-QT_BEGIN_NAMESPACE
-class QString;
-QT_END_NAMESPACE
-
 #ifdef Q_OS_WIN
 #define QTC_HOST_EXE_SUFFIX QTC_WIN_EXE_SUFFIX
 #else
 #define QTC_HOST_EXE_SUFFIX ""
 #endif // Q_OS_WIN
 
-namespace Utils {
+namespace Utils { class FilePath; }
 
-class FilePath;
+// The "Host" is the machine QtCreator is running on.
 
-class QTCREATOR_UTILS_EXPORT HostOsInfo
+namespace Utils::HostOsInfo {
+
+QTCREATOR_UTILS_EXPORT constexpr OsType hostOs()
 {
-public:
-    static constexpr OsType hostOs()
-    {
 #if defined(Q_OS_WIN)
-        return OsTypeWindows;
+    return OsTypeWindows;
 #elif defined(Q_OS_LINUX)
-        return OsTypeLinux;
+    return OsTypeLinux;
 #elif defined(Q_OS_MAC)
-        return OsTypeMac;
+    return OsTypeMac;
 #elif defined(Q_OS_UNIX)
-        return OsTypeOtherUnix;
+    return OsTypeOtherUnix;
 #else
-        return OsTypeOther;
+    return OsTypeOther;
 #endif
-    }
+}
 
-    enum HostArchitecture { HostArchitectureX86, HostArchitectureAMD64, HostArchitectureItanium,
-                            HostArchitectureArm, HostArchitectureArm64, HostArchitectureUnknown };
-    static HostArchitecture hostArchitecture();
+//! Returns the architecture of the host system.
+QTCREATOR_UTILS_EXPORT OsArch hostArchitecture();
 
-    static constexpr bool isWindowsHost() { return hostOs() == OsTypeWindows; }
-    static constexpr bool isLinuxHost() { return hostOs() == OsTypeLinux; }
-    static constexpr bool isMacHost() { return hostOs() == OsTypeMac; }
-    static constexpr bool isAnyUnixHost()
-    {
+//! Returns the architecture the running binary was compiled for.
+QTCREATOR_UTILS_EXPORT OsArch binaryArchitecture();
+
+QTCREATOR_UTILS_EXPORT constexpr bool isWindowsHost() { return hostOs() == OsTypeWindows; }
+QTCREATOR_UTILS_EXPORT constexpr bool isLinuxHost() { return hostOs() == OsTypeLinux; }
+QTCREATOR_UTILS_EXPORT constexpr bool isMacHost() { return hostOs() == OsTypeMac; }
+QTCREATOR_UTILS_EXPORT constexpr bool isAnyUnixHost()
+{
 #ifdef Q_OS_UNIX
-        return true;
+    return true;
 #else
-        return false;
+    return false;
 #endif
-    }
+}
 
-    static bool isRunningUnderRosetta();
+QTCREATOR_UTILS_EXPORT QString withExecutableSuffix(const QString &executable);
 
-    static QString withExecutableSuffix(const QString &executable)
-    {
-        return OsSpecificAspects::withExecutableSuffix(hostOs(), executable);
-    }
+QTCREATOR_UTILS_EXPORT void setOverrideFileNameCaseSensitivity(Qt::CaseSensitivity sensitivity);
+QTCREATOR_UTILS_EXPORT void unsetOverrideFileNameCaseSensitivity();
 
-    static void setOverrideFileNameCaseSensitivity(Qt::CaseSensitivity sensitivity);
-    static void unsetOverrideFileNameCaseSensitivity();
+QTCREATOR_UTILS_EXPORT Qt::CaseSensitivity fileNameCaseSensitivity();
 
-    static Qt::CaseSensitivity fileNameCaseSensitivity()
-    {
-        return m_useOverrideFileNameCaseSensitivity
-                ? m_overrideFileNameCaseSensitivity
-                : OsSpecificAspects::fileNameCaseSensitivity(hostOs());
-    }
+QTCREATOR_UTILS_EXPORT constexpr QChar pathListSeparator()
+{
+    return OsSpecificAspects::pathListSeparator(hostOs());
+}
 
-    static constexpr QChar pathListSeparator()
-    {
-        return OsSpecificAspects::pathListSeparator(hostOs());
-    }
+QTCREATOR_UTILS_EXPORT constexpr Qt::KeyboardModifier controlModifier()
+{
+    return OsSpecificAspects::controlModifier(hostOs());
+}
 
-    static constexpr Qt::KeyboardModifier controlModifier()
-    {
-        return OsSpecificAspects::controlModifier(hostOs());
-    }
+QTCREATOR_UTILS_EXPORT std::optional<quint64> totalMemoryInstalledInBytes();
 
-    static bool canCreateOpenGLContext(QString *errorMessage);
+QTCREATOR_UTILS_EXPORT const FilePath &root(); // Do not use.
 
-    static std::optional<quint64> totalMemoryInstalledInBytes();
-
-    static const FilePath &root();
-
-private:
-    static Qt::CaseSensitivity m_overrideFileNameCaseSensitivity;
-    static bool m_useOverrideFileNameCaseSensitivity;
-};
-
-} // namespace Utils
+} // namespace Utils::HostOsInfo

@@ -3,17 +3,21 @@
 
 #pragma once
 
-#include "editorview.h"
-
+#include <QByteArray>
 #include <QPointer>
+#include <QWidget>
 
 namespace Core {
 
-class IContext;
+class IDocument;
+class IEditor;
 
 namespace Internal {
 
-class EditorArea : public SplitterOrView
+class EditorView;
+class SplitterOrView;
+
+class EditorArea : public QWidget
 {
     Q_OBJECT
 
@@ -22,20 +26,33 @@ public:
     ~EditorArea() override;
 
     IDocument *currentDocument() const;
+    EditorView *currentView() const;
+    EditorView *findFirstView() const;
+    EditorView *findLastView() const;
+
+    bool hasSplits() const;
+    EditorView *unsplit(EditorView *view);
+    void unsplitAll(EditorView *viewToKeep);
+
+    QByteArray saveState() const;
+    void restoreState(const QByteArray &s);
 
 signals:
     void windowTitleNeedsUpdate();
+    void hidden();
+    void splitStateChanged();
 
 private:
     void focusChanged(QWidget *old, QWidget *now);
     void setCurrentView(EditorView *view);
     void updateCurrentEditor(IEditor *editor);
     void updateCloseSplitButton();
+    void hideEvent(QHideEvent *) override;
 
-    IContext *m_context;
+    SplitterOrView *m_splitterOrView = nullptr;
     QPointer<EditorView> m_currentView;
     QPointer<IDocument> m_currentDocument;
 };
 
-} // Internal
-} // Core
+} // namespace Internal
+} // namespace Core

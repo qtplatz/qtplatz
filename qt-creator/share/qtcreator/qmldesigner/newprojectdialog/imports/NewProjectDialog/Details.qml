@@ -121,7 +121,7 @@ Item {
                                 iconSize: 20
                                 visible: true
                                 buttonIcon: "…"
-                                iconFont: StudioTheme.Constants.font
+                                iconFontFamily: StudioTheme.Constants.font.family
 
                                 onClicked: {
                                     var newLocation = BackendApi.chooseProjectLocation()
@@ -391,6 +391,21 @@ Item {
                             visible: BackendApi.haveVirtualKeyboard
                         }
 
+                        StudioControls.CheckBox {
+                            id: enableCMakeGeneration
+                            actionIndicatorVisible: false
+                            text: qsTr("Enable Cmake Generation")
+                            font.pixelSize: DialogValues.defaultPixelSize
+                            checked: BackendApi.enableCMakeGeneration
+                            visible: BackendApi.hasCMakeGeneration
+                        }
+
+                        Binding {
+                            target: BackendApi
+                            property: "enableCMakeGeneration"
+                            value: enableCMakeGeneration.checked
+                        }
+
                         RowLayout { // Target Qt Version
                             width: parent.width
                             visible: BackendApi.haveTargetQtVersion
@@ -439,8 +454,9 @@ Item {
                 id: savePresetButton
                 width: StudioTheme.Values.singleControlColumnWidth
                 buttonIcon: qsTr("Save Custom Preset")
-                iconFont: StudioTheme.Constants.font
                 iconSize: DialogValues.defaultPixelSize
+                iconFontFamily: StudioTheme.Constants.font.family
+
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
 

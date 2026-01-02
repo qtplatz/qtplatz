@@ -38,13 +38,15 @@ namespace chemistry {
   class ChemistryPlugin : public ExtensionSystem::IPlugin {
 	  Q_OBJECT
       Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Chemistry.json")
+
   public:
 	  ChemistryPlugin();
 	  ~ChemistryPlugin();
 
-	  bool initialize(const QStringList &arguments, QString *errorString);
-	  void extensionsInitialized();
-      ShutdownFlag aboutToShutdown();
+      Utils::Result<> initialize(const QStringList &arguments) override;
+
+	  void extensionsInitialized() override;
+      ShutdownFlag aboutToShutdown() override;
 
   private:
       class impl;

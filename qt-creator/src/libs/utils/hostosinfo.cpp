@@ -24,79 +24,46 @@
 #include <sys/sysctl.h>
 #endif
 
-namespace Utils {
+namespace Utils::HostOsInfo {
 
-Qt::CaseSensitivity HostOsInfo::m_overrideFileNameCaseSensitivity = Qt::CaseSensitive;
-bool HostOsInfo::m_useOverrideFileNameCaseSensitivity = false;
+static Qt::CaseSensitivity m_overrideFileNameCaseSensitivity = Qt::CaseSensitive;
+static bool m_useOverrideFileNameCaseSensitivity = false;
 
-#ifdef Q_OS_WIN
-static WORD hostProcessorArchitecture()
-{
-    SYSTEM_INFO info;
-    GetNativeSystemInfo(&info);
-    return info.wProcessorArchitecture;
-}
-#endif
-
-HostOsInfo::HostArchitecture HostOsInfo::hostArchitecture()
+OsArch hostArchitecture()
 {
 #ifdef Q_OS_WIN
-    static const WORD processorArchitecture = hostProcessorArchitecture();
-    switch (processorArchitecture) {
-    case PROCESSOR_ARCHITECTURE_AMD64:
-        return HostOsInfo::HostArchitectureAMD64;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-        return HostOsInfo::HostArchitectureX86;
-    case PROCESSOR_ARCHITECTURE_IA64:
-        return HostOsInfo::HostArchitectureItanium;
-    case PROCESSOR_ARCHITECTURE_ARM:
-        return HostOsInfo::HostArchitectureArm;
-    case PROCESSOR_ARCHITECTURE_ARM64:
-        return HostOsInfo::HostArchitectureArm64;
-    default:
-        return HostOsInfo::HostArchitectureUnknown;
-    }
+    // Workaround for Creator running in x86 emulation mode on ARM machines
+    static const OsArch arch = []() {
+        const HANDLE procHandle = GetCurrentProcess();
+        ushort processMachine;
+        ushort nativeMachine;
+        if (IsWow64Process2(procHandle, &processMachine, &nativeMachine)
+            && nativeMachine == IMAGE_FILE_MACHINE_ARM64) {
+            return OsArchArm64;
+        }
+
+        return osArchFromString(QSysInfo::currentCpuArchitecture()).value_or(OsArchUnknown);
+    }();
 #else
-    return HostOsInfo::HostArchitectureUnknown;
+    static const OsArch arch
+        = osArchFromString(QSysInfo::currentCpuArchitecture()).value_or(OsArchUnknown);
 #endif
+
+    return arch;
 }
 
-bool HostOsInfo::isRunningUnderRosetta()
-{
-#ifdef Q_OS_MACOS
-    int translated = 0;
-    auto size = sizeof(translated);
-    if (sysctlbyname("sysctl.proc_translated", &translated, &size, nullptr, 0) == 0)
-        return translated;
-#endif
-    return false;
-}
-
-void HostOsInfo::setOverrideFileNameCaseSensitivity(Qt::CaseSensitivity sensitivity)
+void setOverrideFileNameCaseSensitivity(Qt::CaseSensitivity sensitivity)
 {
     m_useOverrideFileNameCaseSensitivity = true;
     m_overrideFileNameCaseSensitivity = sensitivity;
 }
 
-void HostOsInfo::unsetOverrideFileNameCaseSensitivity()
+void unsetOverrideFileNameCaseSensitivity()
 {
     m_useOverrideFileNameCaseSensitivity = false;
 }
 
-bool HostOsInfo::canCreateOpenGLContext(QString *errorMessage)
-{
-#if defined(QT_NO_OPENGL) || !defined(QT_GUI_LIB)
-    Q_UNUSED(errorMessage)
-    return false;
-#else
-    static const bool canCreate = QOpenGLContext().create();
-    if (!canCreate)
-        *errorMessage = Tr::tr("Cannot create OpenGL context.");
-    return canCreate;
-#endif
-}
-
-std::optional<quint64> HostOsInfo::totalMemoryInstalledInBytes()
+std::optional<quint64> totalMemoryInstalledInBytes()
 {
 #ifdef Q_OS_LINUX
     struct sysinfo info;
@@ -120,10 +87,53 @@ std::optional<quint64> HostOsInfo::totalMemoryInstalledInBytes()
     return {};
 }
 
-const FilePath &HostOsInfo::root()
+const FilePath &root()
 {
     static const FilePath rootDir = FilePath::fromUserInput(QDir::rootPath());
     return rootDir;
+}
+
+Qt::CaseSensitivity fileNameCaseSensitivity()
+{
+    return m_useOverrideFileNameCaseSensitivity
+               ? m_overrideFileNameCaseSensitivity
+               : OsSpecificAspects::fileNameCaseSensitivity(hostOs());
+}
+
+OsArch binaryArchitecture()
+{
+// MSVC:
+#if defined(_M_X64)
+    return OsArchAMD64;
+#elif defined(_M_IX86)
+    return OsArchX86;
+#elif defined(_M_ARM64)
+    return OsArchArm64;
+#elif defined(_M_ARM)
+    return OsArchArm;
+#elif defined(_M_IA64)
+    return OsArchItanium;
+// GCC / Clang:
+#elif defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
+    return OsArchAMD64;
+#elif defined(__i386__) || defined(__i386) || defined(__i486__) || defined(__i586__) \
+    || defined(__i686__)
+        return OsArchX86;
+#elif defined(__aarch64__)
+    return OsArchArm64;
+#elif defined(__arm__)
+    return OsArchArm;
+#elif defined(__ia64__) || defined(__itanium__)
+    return OsArchItanium;
+#else
+    static_assert(false, "Unknown architecture, please add detection.");
+    return OsArchUnknown;
+#endif
+}
+
+QString withExecutableSuffix(const QString &executable)
+{
+    return OsSpecificAspects::withExecutableSuffix(hostOs(), executable);
 }
 
 } // namespace Utils

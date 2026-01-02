@@ -23,10 +23,10 @@ TextInput {
     selectedTextColor: StudioTheme.Values.themeTextSelectedTextColor
 
     // allow only alphanumeric characters, underscores, no space at start, and 1 space between words
-    validator: RegExpValidator { regExp: /^(\w+\s)*\w+$/ }
+    validator: RegularExpressionValidator { regularExpression: /^(\w+\s)*\w+$/ }
 
     signal renamed(string newName)
-    signal clicked()
+    signal clicked(var mouseEvent)
 
     function startRename()
     {
@@ -40,7 +40,7 @@ TextInput {
     function commitRename()
     {
         if (root.readOnly)
-            return;
+            return
 
         root.renamed(root.text)
     }
@@ -61,7 +61,7 @@ TextInput {
         id: mouseArea
         anchors.fill: parent
 
-        onClicked: root.clicked()
+        onClicked: (mouseEvent) => root.clicked(mouseEvent)
         onDoubleClicked: root.startRename()
     }
 }

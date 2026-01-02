@@ -1,10 +1,35 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-from stdtypes import qdump__std__array, qdump__std__complex, qdump__std__once_flag, qdump__std__unique_ptr, qdumpHelper__std__deque__libcxx, qdumpHelper__std__vector__libcxx
+# Disclaimers:
+#   1. Looking up the allocator template type is potentially an expensive operation.
+#      A better alternative would be finding out the allocator type
+#      through accessing a class member.
+#      However due to different implementations doing things very differently
+#      it is deemed acceptable.
+#      Specifically:
+#        * GCC's `_Rb_tree_impl` basically inherits from the allocator, the comparator
+#          and the sentinel node
+#        * Clang packs the allocator and the sentinel node into a compressed pair,
+#          so depending on whether the allocator is sized or not,
+#          there may or may not be a member to access
+#        * MSVC goes even one step further and stores the allocator and the sentinel node together
+#          in a compressed pair, which in turn is stored together with the comparator inside
+#          another compressed pair
+#   2. `size` on an empty type, which the majority of the allocators are of,
+#      for whatever reason reports 1. In theory there can be allocators whose type is truly 1 byte,
+#      in which case we will have issues, but in practice they should be rather rare.
+#   3. Note that sometimes the size of `std::pmr::polymorphic_allocator` is bizarrely reported
+#      as exactly 0, for example this happens with
+#      `std::__1::pmr::polymorphic_allocator<std::__1::pair<const int, int>>` from `std::pmr::map`,
+#      so dumping pmr containers still may still have some breakages for libcxx.
+#      Also see QTCREATORBUG-32455.
+
+from stdtypes import qdump__std__array, qdump__std__complex, qdump__std__once_flag, qdump__std__unique_ptr, qdumpHelper__std__deque__libcxx, qdumpHelper__std__vector__libcxx, qdump__std__forward_list
 from utils import DisplayFormat
 from dumper import Children, DumperBase
 
+import struct
 
 def qform__std____1__array():
     return [DisplayFormat.ArrayPlot]
@@ -20,6 +45,10 @@ def qdump__std____1__complex(d, value):
 
 def qdump__std____1__deque(d, value):
     qdumpHelper__std__deque__libcxx(d, value)
+
+
+def qdump__std____1__forward_list(d, value):
+    qdump__std__forward_list(d, value)
 
 
 def qdump__std____1__list(d, value):
@@ -47,8 +76,20 @@ def qdump__std____1__list(d, value):
                 d.putSubItem(i, val)
 
 
+def qdumpHelper_split_tree_node(d, node, data_type):
+    left, right, parent, _is_black, _pad, data = d.split('pppB@{{{}}}'.format(data_type.name), node)
+    return left, right, parent, data
+
+
 def qdump__std____1__set(d, value):
-    (proxy, head, size) = value.split("ppp")
+    # see disclaimer #1
+    alloc_type = value.type[2]
+    alloc_size = alloc_type.size()
+    # see disclaimer #2
+    if alloc_size > 1:
+        (proxy, head, alloc, size) = value.split('pp{{{}}}p'.format(alloc_type.name))
+    else:
+        (proxy, head, size) = value.split("ppp")
 
     d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
@@ -57,7 +98,7 @@ def qdump__std____1__set(d, value):
         valueType = value.type[0]
 
         def in_order_traversal(node):
-            (left, right, parent, color, pad, data) = d.split("pppB@{%s}" % (valueType.name), node)
+            left, right, _parent, data = qdumpHelper_split_tree_node(d, node, valueType)
 
             if left:
                 for res in in_order_traversal(left):
@@ -83,30 +124,28 @@ def qform__std____1__map():
 
 
 def qdump__std____1__map(d, value):
-    try:
-        (proxy, head, size) = value.split("ppp")
-        d.check(0 <= size and size <= 100 * 1000 * 1000)
+    alloc_type = value.type[3] # see disclaimer #1
+    alloc_size = alloc_type.size()
+    # see disclaimers #2 and #3
+    if alloc_size > 1:
+        (begin_node_ptr, head, alloc, size) = value.split('pp{{{}}}p'.format(alloc_type.name))
+    else:
+        (begin_node_ptr, head, size) = value.split("ppp")
 
-    # Sometimes there is extra data at the front. Don't know why at the moment.
-    except RuntimeError:
-        (junk, proxy, head, size) = value.split("pppp")
-        d.check(0 <= size and size <= 100 * 1000 * 1000)
-
+    d.check(0 <= size and size <= 100 * 1000 * 1000)
     d.putItemCount(size)
 
     if d.isExpanded():
-        keyType = value.type[0]
-        valueType = value.type[1]
-        pairType = value.type[3][0]
+        pair_type = alloc_type[0]
 
         def in_order_traversal(node):
-            (left, right, parent, color, pad, pair) = d.split("pppB@{%s}" % (pairType.name), node)
+            left, right, _parent, pair = qdumpHelper_split_tree_node(d, node, pair_type)
 
             if left:
                 for res in in_order_traversal(left):
                     yield res
 
-            yield pair.split("{%s}@{%s}" % (keyType.name, valueType.name))[::2]
+            yield pair
 
             if right:
                 for res in in_order_traversal(right):
@@ -127,11 +166,23 @@ def qdump__std____1__multimap(d, value):
 
 def qdump__std____1__map__iterator(d, value):
     d.putEmptyValue()
+    d.putExpandable()
     if d.isExpanded():
         with Children(d):
-            node = value['__i_']['__ptr_'].dereference()['__value_']['__cc']
-            d.putSubItem('first', node['first'])
-            d.putSubItem('second', node['second'])
+            if value.type.name.endswith("::iterator"):
+                tree_type_name = value.type.name[:-len("::iterator")]
+            elif value.type.name.endswith("::const_iterator"):
+                tree_type_name = value.type.name[:-len("::const_iterator")]
+            tree_type = d.lookupType(tree_type_name)
+            key_type = tree_type[0]
+            mapped_type = tree_type[1]
+            alloc_type = tree_type[3]
+            pair_type = alloc_type[0]
+            node = value['__i_']['__ptr_'].dereference()
+            _left, _rigt, _parent, pair = qdumpHelper_split_tree_node(d, node, pair_type)
+            key, _pad, val = d.split('{{{}}}@{{{}}}'.format(key_type.name, mapped_type.name), pair)
+            d.putSubItem('first', key)
+            d.putSubItem('second', val)
 
 
 def qdump__std____1__map__const_iterator(d, value):
@@ -149,9 +200,9 @@ def qdump__std____1__set__iterator(d, value):
     keyType = treeType[0]
     if d.isExpanded():
         with Children(d):
-            node = value['__ptr_'].dereference()['__value_']
-            node = node.cast(keyType)
-            d.putSubItem('value', node)
+            node = value['__ptr_'].dereference()
+            _left, _right, _parent, value = qdumpHelper_split_tree_node(d, node, keyType)
+            d.putSubItem('value', value)
 
 
 def qdump__std____1__set_const_iterator(d, value):
@@ -163,231 +214,137 @@ def qdump__std____1__stack(d, value):
     d.putBetterType(value.type)
 
 
-def GetChildMemberWithName(value, name):
-    members = value.members(True)
 
-    for member in members:
-        if member.name == name:
-            return member
-    return None
-
-
-def GetIndexOfChildWithName(value, name):
-    members = value.members(True)
-
-    for i, member in enumerate(members):
-        if member.name == name:
-            return i
-    return None
-
-
-class StringLayout:
-    CSD = 0
-    DSC = 1
-
-
-def std_1_string_dumper_v2(d, value):
-    charType = value['__l']['__data_'].dereference().type
-
-    R = GetChildMemberWithName(value, "__r_")
-    if not R:
-        raise Exception("Could not find __r_")
-
-    # __r_ is a compressed_pair of the actual data and the allocator. The data we
-    # want is in the first base class.
-    R_Base_SP = R[0]
-
-    if not R_Base_SP:
-        raise Exception("Could not find R_Base_SP")
-
-    Rep_Sp = GetChildMemberWithName(R_Base_SP, "__value_")
-
-    if not Rep_Sp:
-        raise Exception("Could not find __value_")
-
-    # Our layout seems a little different
-    Rep_Sp = Rep_Sp[0]
-
-    if not Rep_Sp:
-        raise Exception("Could not find Rep_Sp")
-
-    L = GetChildMemberWithName(Rep_Sp, "__l")
-
-    if not L:
-        raise Exception("Could not find __l")
-
-    layout = StringLayout.CSD
-    if GetIndexOfChildWithName(L, "__data_") == 0:
-        layout = StringLayout.DSC
-
-    short_mode = False
-    using_bitmasks = True
-    size = 0
-    size_mode_value = 0
-
-    Short_Sp = GetChildMemberWithName(Rep_Sp, "__s")
-    if not Short_Sp:
-        raise Exception("Could not find __s")
-
-    Is_Long = GetChildMemberWithName(Short_Sp, "__is_long_")
-    Size_Sp = GetChildMemberWithName(Short_Sp, "__size_")
-    if not Size_Sp:
-        raise Exception("Could not find __size_")
-
-    if Is_Long:
-        using_bitmasks = False
-        short_mode = Is_Long.integer() == 0
-        size = Size_Sp.integer()
-    else:
-        size_mode_value = Size_Sp.integer()
-        mode_mask = 1
-        if layout == StringLayout.DSC:
-            mode_mask = 0x80
-        short_mode = (size_mode_value & mode_mask) == 0
-
-    if short_mode:
-        Location_Sp = GetChildMemberWithName(Short_Sp, "__data_")
-
-        if using_bitmasks:
-            size = ((size_mode_value >> 1) % 256)
-            if layout == StringLayout.DSC:
-                size = size_mode_value
-
-        # The string is most likely not initialized yet
-        if size > 100 or not Location_Sp:
-            raise Exception("Probably not initialized yet")
-
-        d.putCharArrayHelper(d.extractPointer(Location_Sp), size,
-                             charType, d.currentItemFormat())
-        return
-
-    Location_Sp = GetChildMemberWithName(L, "__data_")
-    Size_Vo = GetChildMemberWithName(L, "__size_")
-    Capacity_Vo = GetChildMemberWithName(L, "__cap_")
-
-    if not Location_Sp or not Size_Vo or not Capacity_Vo:
-        raise Exception("Could not find Location_Sp, Size_Vo or Capacity_Vo")
-
-    size = Size_Vo.integer()
-    capacity = Capacity_Vo.integer()
-    if not using_bitmasks and layout == StringLayout.CSD:
-        capacity *= 2
-    if capacity < size:
-        raise Exception("Capacity is less than size")
-
-    d.putCharArrayHelper(d.extractPointer(Location_Sp), size,
-                         charType, d.currentItemFormat())
-
-
-def std_1_string_dumper_v1(d, value):
-    charType = value['__l']['__data_'].dereference().type
-    D = None
-
-    if d.isLldb:
-        D = value[0][0][0][0]
-    elif d.isGdb:
-        D = value["__r_"].members(True)[0][0][0]
-    else:
-        raise Exception("Unknown debugger (neither gdb nor lldb)")
-
-    layoutDecider = D[0][0]
-    if not layoutDecider:
-        raise Exception("Could not find layoutDecider")
-
-    size = 0
-    size_mode_value = 0
-    short_mode = False
-    libcxx_version = 14
-
-    layoutModeIsDSC = layoutDecider.name == '__data_'
-    if (layoutModeIsDSC):
-        size_mode = D[1][1][0]
-        if not size_mode:
-            raise Exception("Could not find size_mode")
-        if not size_mode.name == '__size_':
-            size_mode = D[1][1][1]
-            if not size_mode:
-                raise Exception("Could not find size_mode")
-
-        size_mode_value = size_mode.integer()
-        short_mode = ((size_mode_value & 0x80) == 0)
-    else:
-        size_mode = D[1][0][0]
-        if not size_mode:
-            raise Exception("Could not find size_mode")
-
-        if size_mode.name == '__is_long_':
-            libcxx_version = 15
-            short_mode = (size_mode.integer() == 0)
-
-            size_mode = D[1][0][1]
-            size_mode_value = size_mode.integer()
-        else:
-            size_mode_value = size_mode.integer()
-            short_mode = ((size_mode_value & 1) == 0)
-
-    if short_mode:
-        s = D[1]
-
-        if not s:
-            raise Exception("Could not find s")
-
-        if libcxx_version == 14:
-            location_sp = s[0] if layoutModeIsDSC else s[1]
-            size = size_mode_value if layoutModeIsDSC else ((size_mode_value >> 1) % 256)
-        elif libcxx_version == 15:
-            location_sp = s[0] if layoutModeIsDSC else s[2]
-            size = size_mode_value
-
-    else:
-        l = D[0]
-        if not l:
-            raise Exception("Could not find l")
-
-        # we can use the layout_decider object as the data pointer
-        location_sp = layoutDecider if layoutModeIsDSC else l[2]
-        size_vo = l[1]
-        if not size_vo or not location_sp:
-            raise Exception("Could not find size_vo or location_sp")
-        size = size_vo.integer()
-
-    if short_mode and location_sp:
-        d.putCharArrayHelper(d.extractPointer(location_sp), size,
-                             charType, d.currentItemFormat())
-    else:
-        d.putCharArrayHelper(location_sp.integer(),
-                             size, charType, d.currentItemFormat())
-
-    return
+# Examples for std::__1::string layouts for libcxx version 16
+#
+#   std::string b = "asd"
+#
+#   b = {
+#       static __endian_factor = 2,
+#       __r_ = {
+#           <std::__1::__compressed_pair_elem<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >::__rep, 0, false>> = {
+#               __value_ = {{
+#                   __l = {
+#                       {__is_long_ = 0, __cap_ = 842641539},
+#                       __size_ = 140737353746888,
+#                       __data_ = 0x7ffff7fa0a20 <std::__1::codecvt<wchar_t, char, __mbstate_t>::id> \"\\377\\377\\377\\377\\377\\377\\377\\377\\006\"
+#                   },
+#                   __s = {
+#                       {__is_long_ = 0 '\\000', __size_ = 3 '\\003'},
+#                       __padding_ = 0x7fffffffd859 \"asd\",
+#                       __data_ = \"asd\\000\\000\\000\\000\\310\\t\\372\\367\\377\\177\\000\\000 \\n\\372\\367\\377\\177\\000\"
+#                   },
+#                   __r = {
+#                       __words = {1685283078, 140737353746888, 140737353746976}
+#                   }
+#               }}
+#           },
+#           <std::__1::__compressed_pair_elem<std::__1::allocator<char>, 1, true>> = {
+#               <std::__1::allocator<char>> = {
+#                   <std::__1::__non_trivial_if<true, std::__1::allocator<char> >> = {
+#                       <No data fields>
+#                   },
+#                   <No data fields>
+#               },
+#               <No data fields>
+#           },
+#           <No data fields>
+#       },
+#       static npos = 18446744073709551615
+#   }
+#
+#
+#   std::string c = "asdlonasdlongstringasdlongstringasdlongstringasdlongstringgstring"
+#
+#   c = {
+#       static __endian_factor = 2,
+#       __r_ = {
+#           <std::__1::__compressed_pair_elem<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >::__rep, 0, false>> = {
+#               __value_ = {{
+#                   __l = {
+#                       {__is_long_ = 1, __cap_ = 40},   #  size_type: __cap_
+#                       __size_ = 65,
+#                       __data_ = 0x5555555592a0 \"asdlonasdlongstringasdlongstringasdlongstringasdlongstringgstring\"
+#                   },
+#                   __s = {
+#                       {__is_long_ = 1 '\\001', __size_ = 40 '('},
+#                       __padding_ = 0x7fffffffd831 \"\", __data_ = \"\\000\\000\\000\\000\\000\\000\\000A\\000\\000\\000\\000\\000\\000\\000\\240\\222UUUU\\000\"
+#                   },
+#                   __r = {
+#                       __words = {81, 65, 93824992252576}
+#                   }
+#               }}
+#           },
+#           <std::__1::__compressed_pair_elem<std::__1::allocator<char>, 1, true>> = {
+#               <std::__1::allocator<char>> = {
+#                   <std::__1::__non_trivial_if<true, std::__1::allocator<char> >> = {
+#                       <No data fields>
+#                   },
+#                   <No data fields>
+#               },
+#               <No data fields
+#           >},
+#           <No data fields>
+#       },
+#       static npos = 18446744073709551615
+#   }"
 
 def qdump__std____1__string(d, value):
-    try:
-        std_1_string_dumper_v2(d, value)
-    except Exception as eV2:
-        try:
-            std_1_string_dumper_v1(d, value)
-        except Exception as eV1:
-            d.putValue("Could not parse: %s, %s" % (eV1, eV2))
-
-
-def qdump__std____1__wstring(d, value):
-    try:
-        std_1_string_dumper_v2(d, value)
-    except Exception as eV2:
-        try:
-            std_1_string_dumper_v1(d, value)
-        except Exception as eV1:
-            d.putValue("Could not parse: %s, %s" % (eV1, eV2))
+    charType = value.type[0]
+    blob = bytes(value.data())
+    r0, r1, r2 = struct.unpack(d.packCode + 'QQQ', blob)
+    if d.isLldb and d.isArmMac:
+        is_long = r2 >> 63
+        if is_long:
+            # [---------------- data ptr ---------------]  63:0
+            # [------------------ size  ----------------]
+            # [?----------------  alloc ----------------]
+            data = r0
+            size = r1
+        else:
+            # [------------------- data ----------------]  63:0
+            # [------------------- data ----------------]
+            # [?ssss-------------- data ----------------]
+            data = value.laddress
+            size = (r2 >> 56) &  255
+    else:
+        is_long = r0 & 1
+        if is_long:
+            # [------------------ alloc ---------------?]  63:0
+            # [------------------- size ----------------]
+            # [----------------- data ptr --------------]
+            data = r2
+            size = r1
+        else:
+            # [------------------- data ----------sssss?]  63:0
+            # [------------------- data ----------------]
+            # [------------------- data ----------------]
+            data = value.laddress + charType.size()
+            size = (r0 & 255) // 2
+    d.putCharArrayHelper(data, size, charType)
 
 
 def qdump__std____1__basic_string(d, value):
-    innerType = value.type[0].name
-    if innerType in ("char", "char8_t", "char16_t"):
-        qdump__std____1__string(d, value)
-    elif innerType in ("wchar_t", "char32_t"):
-        qdump__std____1__wstring(d, value)
-    else:
-        d.warn("UNKNOWN INNER TYPE %s" % innerType)
+    qdump__std____1__string(d, value)
+
+
+def qdump__std____1__basic_string_view(d, value):
+    innerType = value.type[0]
+    qdumpHelper_std__string_view(d, value, innerType, d.currentItemFormat())
+
+
+def qdump__std____1__string_view(d, value):
+    qdumpHelper_std__string_view(d, value, d.createType("char"), d.currentItemFormat())
+
+
+def qdump__std____1__u16string_view(d, value):
+    qdumpHelper_std__string_view(d, value, d.createType("char16_t"), d.currentItemFormat())
+
+
+def qdumpHelper_std__string_view(d, value, charType, format):
+    data = value["__data_"].pointer()
+    size = value["__size_"].integer()
+    d.putCharArrayHelper(data, size, charType, format)
 
 
 def qdump__std____1__shared_ptr(d, value):
@@ -424,7 +381,7 @@ def qform__std____1__unordered_map():
 
 
 def qdump__std____1__unordered_map(d, value):
-    (size, _) = value["__table_"]["__p2_"].split("pp")
+    size = value["__table_"]["__p2_"]["__value_"].integer()
     d.putItemCount(size)
 
     keyType = value.type[0]
@@ -432,7 +389,7 @@ def qdump__std____1__unordered_map(d, value):
     pairType = value.type[4][0]
 
     if d.isExpanded():
-        curr = value["__table_"]["__p1_"].split("pp")[0]
+        curr = value["__table_"]["__p1_"].split("p")[0]
 
         def traverse_list(node):
             while node:
@@ -442,17 +399,21 @@ def qdump__std____1__unordered_map(d, value):
 
         with Children(d, size, childType=value.type[0], maxNumChild=1000):
             for (i, value) in zip(d.childRange(), traverse_list(curr)):
-                d.putPairItem(i, value, 'key', 'value')
+                d.putPairItem(i, value, 'first', 'second')
+
+
+def qdump__std____1__unordered_multimap(d, value):
+    qdump__std____1__unordered_map(d, value)
 
 
 def qdump__std____1__unordered_set(d, value):
-    (size, _) = value["__table_"]["__p2_"].split("pp")
+    size = value["__table_"]["__p2_"]["__value_"].integer()
     d.putItemCount(size)
 
     valueType = value.type[0]
 
     if d.isExpanded():
-        curr = value["__table_"]["__p1_"].split("pp")[0]
+        curr = value["__table_"]["__p1_"].split("p")[0]
 
         def traverse_list(node):
             while node:
@@ -494,23 +455,20 @@ def qdump__std____1__once_flag(d, value):
 
 
 def qdump__std____1__variant(d, value):
-    index = value['__impl']['__index']
-    index_num = int(index)
-    value_type = d.templateArgument(value.type, index_num)
-    d.putValue("<%s:%s>" % (index_num, value_type.name))
+    impl = value['__impl_']
+    which = impl['__index']
+    value_type = d.templateArgument(value.type, which.integer())
+    storage = impl['__data']
 
-    d.putNumChild(2)
-    if d.isExpanded():
-        with Children(d):
-            d.putSubItem("index", index)
-            d.putSubItem("value", value.cast(value_type))
+    d.putItem(storage.cast(value_type))
+    d.putBetterType(value_type)
 
 
 def qdump__std____1__optional(d, value):
     if value['__engaged_'].integer() == 0:
         d.putSpecialValue("empty")
     else:
-        d.putItem(value['#1']['__val_'])
+        d.putItem(value['__val_'])
 
 
 def qdump__std____1__tuple(d, value):

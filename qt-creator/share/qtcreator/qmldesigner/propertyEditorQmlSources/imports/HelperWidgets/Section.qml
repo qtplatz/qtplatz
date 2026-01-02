@@ -9,16 +9,22 @@ import StudioTheme as StudioTheme
 
 Item {
     id: section
-    property alias caption: label.text
-    property alias labelColor: label.color
+
+    readonly property bool __isSection: true // used by property search logic
+
+    property string caption: "Title"
+    property string captionTooltip: ""
+    property color labelColor: StudioTheme.Values.themeTextColor
+    property int labelCapitalization: Font.AllUppercase
     property alias sectionHeight: header.height
     property alias sectionBackgroundColor: header.color
-    property alias sectionFontSize: label.font.pixelSize
+    property int sectionFontSize: StudioTheme.Values.myFontSize
     property alias showTopSeparator: topSeparator.visible
     property alias showArrow: arrow.visible
     property alias showLeftBorder: leftBorder.visible
     property alias showCloseButton: closeButton.visible
     property alias closeButtonToolTip: closeButton.tooltip
+    property alias closeButtonIcon: closeButton.icon
     property alias showEyeButton: eyeButton.visible
     property alias eyeButtonToolTip: eyeButton.tooltip
     property alias spacing: column.spacing
@@ -26,12 +32,40 @@ Item {
     property alias fillBackground: sectionBackground.visible
     property alias highlightBorder: sectionBorder.visible
 
+    property Item content: Controls.Label {
+        id: label
+        text: section.caption
+        color: section.labelColor
+        elide: Text.ElideRight
+        font.pixelSize: section.sectionFontSize
+        font.capitalization: section.labelCapitalization
+        anchors.verticalCenter: parent?.verticalCenter
+        textFormat: Text.RichText
+
+        MouseArea {
+            id: labelMouseArea
+
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            hoverEnabled: true
+            enabled: section.captionTooltip !== ""
+        }
+
+        StudioControls.ToolTip {
+            visible: labelMouseArea.containsMouse
+            text: section.captionTooltip
+        }
+    }
+
+    property Item icons
+
     property int leftPadding: StudioTheme.Values.sectionLeftPadding
     property int rightPadding: 0
     property int topPadding: StudioTheme.Values.sectionHeadSpacerHeight
     property int bottomPadding: StudioTheme.Values.sectionHeadSpacerHeight
 
-    property bool expanded: true
+    property bool defaultExpanded: true
+    property bool expanded: defaultExpanded
     property int level: 0
     property int levelShift: 10
     property bool hideHeader: false
@@ -42,12 +76,46 @@ Item {
     property bool dropEnabled: false
     property bool highlight: false
     property bool eyeEnabled: true // eye button enabled (on)
+    property bool searchHide: false
 
     property bool useDefaulContextMenu: true
 
     property string category: "properties"
 
     clip: true
+
+    Component.onCompleted: {
+        updateExpansion()
+    }
+
+    function updateExpansion() {
+        // Check if function 'loadExpandedState' exists in current context
+        if (typeof loadExpandedState === "function") {
+            if (section.expandOnClick)
+                section.expanded = loadExpandedState(section.caption, section.defaultExpanded)
+            else if (loadExpandedState(section.caption, section.defaultExpanded))
+                section.expand()
+            else
+                section.collapse()
+        } else {
+            // Fallback to default value
+            if (section.expandOnClick)
+                section.expanded = section.defaultExpanded
+            else if (section.defaultExpanded)
+                section.expand()
+            else
+                section.collapse()
+        }
+    }
+
+    Connections {
+        target: this.modelNodeBackend ?? null
+        ignoreUnknownSignals: true
+
+        function onSelectionChanged() {
+            updateExpansion()
+        }
+    }
 
     Connections {
         id: connection
@@ -59,7 +127,7 @@ Item {
     Connections {
         target: Controller
         function onCollapseAll(cat) {
-            if (collapsible && cat === section.category) {
+            if (section.collapsible && cat === section.category) {
                 if (section.expandOnClick)
                     section.expanded = false
                 else
@@ -106,6 +174,22 @@ Item {
         onExited: section.dropExit()
     }
 
+    StudioControls.Menu {
+        id: contextMenu
+
+        StudioControls.MenuItem {
+            text: qsTr("Expand All")
+            onTriggered: Controller.expandAll(section.category)
+        }
+
+        StudioControls.MenuItem {
+            text: qsTr("Collapse All")
+            onTriggered: Controller.collapseAll(section.category)
+        }
+
+        onOpenedChanged: Controller.contextMenuOpened = contextMenu.opened
+    }
+
     Rectangle {
         id: header
         height: section.hideHeader ? 0 : StudioTheme.Values.sectionHeadHeight
@@ -115,43 +199,6 @@ Item {
         color: section.highlight ? StudioTheme.Values.themeInteraction
                                  : Qt.lighter(StudioTheme.Values.themeSectionHeadBackground, 1.0
                                               + (0.2 * section.level))
-
-        Item {
-            StudioControls.Menu {
-                id: contextMenu
-
-                StudioControls.MenuItem {
-                    text: qsTr("Expand All")
-                    onTriggered: Controller.expandAll(section.category)
-                }
-
-                StudioControls.MenuItem {
-                    text: qsTr("Collapse All")
-                    onTriggered: Controller.collapseAll(section.category)
-                }
-
-                onOpenedChanged: Controller.contextMenuOpened = contextMenu.opened
-            }
-        }
-
-        Image {
-            id: arrow
-            width: 8
-            height: 4
-            source: "image://icons/down-arrow"
-            anchors.left: parent.left
-            anchors.leftMargin: 4 + (section.level * section.levelShift) + (section.draggable ? 20 : 0) + (section.showEyeButton ? 25 : 0)
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
-        Controls.Label {
-            id: label
-            anchors.verticalCenter: parent.verticalCenter
-            color: StudioTheme.Values.themeTextColor
-            x: arrow.x + 18
-            font.pixelSize: StudioTheme.Values.myFontSize
-            font.capitalization: Font.AllUppercase
-        }
 
         MouseArea {
             id: mouseArea
@@ -167,64 +214,123 @@ Item {
                         section.expanded = !section.expanded
                     else
                         section.toggleExpand()
+
+                    // Check if function 'saveExpandedState' exists in current context
+                    if (typeof saveExpandedState === "function")
+                        saveExpandedState(section.caption, section.expanded)
                 } else {
                     section.showContextMenu()
                 }
             }
         }
 
-        IconButton {
-            id: closeButton
+        RowLayout {
+            spacing: 1
+            anchors.fill: parent
 
-            icon: StudioTheme.Constants.closeCross
-            buttonSize: 22
-            iconScale: containsMouse ? 1.2 : 1
-            transparentBg: true
-            anchors.right: parent.right
-            anchors.rightMargin: 10
-            visible: false
+            IconButton {
+                id: dragButton
+                visible: false
+                icon: StudioTheme.Constants.dragmarks
+                buttonSize: 21
+                iconScale: dragButton.enabled && dragButton.containsMouse ? 1.2 : 1
+                transparentBg: true
 
-            onClicked: root.closeButtonClicked()
-        }
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: dragButton.width
+                Layout.maximumWidth: dragButton.width
 
-        IconButton {
-            id: dragButton
+                drag.target: dragButton.enabled ? section : null
+                drag.axis: Drag.YAxis
 
-            icon: StudioTheme.Constants.dragmarks
-            buttonSize: 22
-            iconScale: dragButton.enabled && dragButton.containsMouse ? 1.2 : 1
-            transparentBg: true
+                onPressed: {
+                    section.startDrag(section)
+                    section.z = ++section.parent.z // put the dragged section on top
+                }
 
-            visible: false
-            drag.target: dragButton.enabled ? section : null
-            drag.axis: Drag.YAxis
-
-            onPressed: {
-                section.startDrag(section)
-
-                section.z = ++section.parent.z // put the dragged section on top
+                onReleased: {
+                    section.stopDrag()
+                }
             }
 
-            onReleased: {
-                section.stopDrag()
+            IconButton {
+                id: eyeButton
+
+                visible: false
+                icon: section.eyeEnabled ? StudioTheme.Constants.visible_small
+                                         : StudioTheme.Constants.invisible_small
+                buttonSize: 21
+                iconScale: eyeButton.containsMouse ? 1.2 : 1
+                transparentBg: true
+
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: eyeButton.width
+                Layout.maximumWidth: eyeButton.width
+
+                onClicked: {
+                    section.eyeEnabled = !section.eyeEnabled
+                    section.eyeButtonClicked()
+                }
             }
-        }
 
-        IconButton {
-            id: eyeButton
+            Item {
+                id: iconsContent
+                height: header.height
+                children: [ section.icons ]
+                Layout.preferredWidth: childrenRect.width
+            }
 
-            anchors.left: dragButton.right
+            IconButton {
+                id: arrow
+                icon: StudioTheme.Constants.sectionToggle
+                transparentBg: true
 
-            icon: section.eyeEnabled ? StudioTheme.Constants.visible_small : StudioTheme.Constants.invisible_small
-            buttonSize: 22
-            iconScale: eyeButton.containsMouse ? 1.2 : 1
-            transparentBg: true
+                buttonSize: 21
+                iconSize: StudioTheme.Values.smallIconFontSize
+                iconColor: StudioTheme.Values.themeTextColor
 
-            visible: false
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: arrow.width
+                Layout.maximumWidth: arrow.width
 
-            onClicked: {
-                section.eyeEnabled = !section.eyeEnabled
-                root.eyeButtonClicked()
+                onClicked: function(mouse) {
+                    if (!section.collapsible && section.expanded)
+                        return
+
+                    transition.enabled = true
+                    if (section.expandOnClick)
+                        section.expanded = !section.expanded
+                    else
+                        section.toggleExpand()
+
+                    // Check if function 'saveExpandedState' exists in current context
+                    if (typeof saveExpandedState === "function")
+                        saveExpandedState(section.caption, section.expanded)
+                }
+            }
+
+            Item {
+                id: headerContent
+                height: header.height
+                Layout.fillWidth: true
+                children: [ section.content ]
+            }
+
+            IconButton {
+                id: closeButton
+
+                visible: false
+                icon: StudioTheme.Constants.closeCross
+                buttonSize: 21
+                iconScale: closeButton.containsMouse ? 1.2 : 1
+                transparentBg: true
+
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: closeButton.width
+                Layout.maximumWidth: closeButton.width
+                Layout.rightMargin: 10
+
+                onClicked: section.closeButtonClicked()
             }
         }
     }
@@ -266,6 +372,7 @@ Item {
         border.width: 1
         visible: false
     }
+
     Item {
         id: topSpacer
         height: section.addTopPadding && column.height > 0 ? section.topPadding : 0
@@ -285,7 +392,7 @@ Item {
         id: leftBorder
         visible: false
         width: 1
-        height: parent.height - bottomPadding
+        height: parent.height - section.bottomPadding
         color: header.color
     }
 
@@ -296,6 +403,14 @@ Item {
     }
 
     states: [
+        State {
+            name: "Hide"
+            when: section.searchHide
+            PropertyChanges {
+                target: section
+                visible: false
+            }
+        },
         State {
             name: "Collapsed"
             when: !section.expanded
@@ -317,6 +432,11 @@ Item {
             properties: "implicitHeight,rotation"
             duration: 120
             easing.type: Easing.OutCubic
+        }
+
+        onRunningChanged: {
+            if (!transition.running)
+                transition.enabled = false
         }
     }
 }

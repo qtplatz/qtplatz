@@ -181,7 +181,7 @@ MainWindow::toolButton( QAction * action )
 
 // static
 QToolButton *
-MainWindow::toolButton( const char * id )
+MainWindow::toolButton( Utils::Id id )
 {
     return toolButton( Core::ActionManager::instance()->command(id)->action() );
 }

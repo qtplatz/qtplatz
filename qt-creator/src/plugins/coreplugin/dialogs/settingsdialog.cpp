@@ -42,33 +42,34 @@
 
 #include <extensionsystem/pluginmanager.h>
 
-const int kInitialWidth = 750;
-const int kInitialHeight = 450;
+using namespace Utils;
+
+namespace Core::Internal {
+
+const int kInitialWidth = 800;
+const int kInitialHeight = 500;
 const int kMaxMinimumWidth = 250;
 const int kMaxMinimumHeight = 250;
 
-static const char pageKeyC[] = "General/LastPreferencePage";
-static const char sortKeyC[] = "General/SortCategories";
+const char pageKeyC[] = "General/LastPreferencePage";
+const char sortKeyC[] = "General/SortCategories";
 const int categoryIconSize = 24;
 
-using namespace Utils;
-
-namespace Core {
-namespace Internal {
-
-bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2)
+static bool optionsPageLessThan(const IOptionsPage *p1, const IOptionsPage *p2)
 {
     if (p1->category() != p2->category())
         return p1->category().alphabeticallyBefore(p2->category());
     return p1->id().alphabeticallyBefore(p2->id());
 }
 
-static inline QList<IOptionsPage*> sortedOptionsPages()
+static QList<IOptionsPage *> sortedOptionsPages()
 {
-    QList<IOptionsPage*> rc = IOptionsPage::allOptionsPages();
+    QList<IOptionsPage *> rc = IOptionsPage::allOptionsPages();
     std::stable_sort(rc.begin(), rc.end(), optionsPageLessThan);
     return rc;
 }
+
+namespace {
 
 // ----------- Category model
 
@@ -127,7 +128,7 @@ CategoryModel::~CategoryModel()
 
 int CategoryModel::rowCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : m_categories.size();
+    return parent.isValid() ? 0 : static_cast<int>(m_categories.size());
 }
 
 QVariant CategoryModel::data(const QModelIndex &index, int role) const
@@ -249,16 +250,18 @@ protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
 };
 
-const char SETTING_HIDE_OPTION_CATEGORIES[] = "HideOptionCategories";
-
-static bool categoryVisible(const Id &id)
+static bool categoryVisible([[maybe_unused]] const Id &id)
 {
+#ifdef QT_NO_DEBUG
+
     static QStringList list
-        = Core::ICore::settings()->value(SETTING_HIDE_OPTION_CATEGORIES).toStringList();
+        = Core::ICore::settings()->value("HideOptionCategories").toStringList();
 
     if (anyOf(list, [id](const QString &str) { return id.toString().contains(str); }))
         return false;
-
+#else
+    Q_UNUSED(id)
+#endif
     return true;
 }
 
@@ -443,8 +446,6 @@ private:
     QSize sizeHint() const final { return minimumSize(); }
 
     void done(int) final;
-    void accept() final;
-    void reject() final;
 
     void apply();
     void currentChanged(const QModelIndex &current);
@@ -594,11 +595,13 @@ void SettingsDialog::createGui()
     QWidget *emptyWidget = new QWidget(this);
     m_stackedLayout->addWidget(emptyWidget); // no category selected, for example when filtering
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
-                                                       QDialogButtonBox::Apply |
-                                                       QDialogButtonBox::Cancel);
-    connect(buttonBox->button(QDialogButtonBox::Apply), &QAbstractButton::clicked,
-            this, &SettingsDialog::apply);
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Apply | QDialogButtonBox::Cancel);
+    connect(
+        buttonBox->button(QDialogButtonBox::Apply),
+        &QAbstractButton::clicked,
+        this,
+        &SettingsDialog::apply);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &SettingsDialog::reject);
@@ -724,31 +727,6 @@ void SettingsDialog::filter(const QString &text)
     updateEnabledTabs(category, text);
 }
 
-void SettingsDialog::accept()
-{
-    if (m_finished)
-        return;
-    m_finished = true;
-    disconnectTabWidgets();
-    m_applied = true;
-    for (IOptionsPage *page : std::as_const(m_visitedPages))
-        page->apply();
-    for (IOptionsPage *page : std::as_const(m_pages))
-        page->finish();
-    done(QDialog::Accepted);
-}
-
-void SettingsDialog::reject()
-{
-    if (m_finished)
-        return;
-    m_finished = true;
-    disconnectTabWidgets();
-    for (IOptionsPage *page : std::as_const(m_pages))
-        page->finish();
-    done(QDialog::Rejected);
-}
-
 void SettingsDialog::apply()
 {
     for (IOptionsPage *page : std::as_const(m_visitedPages))
@@ -758,6 +736,25 @@ void SettingsDialog::apply()
 
 void SettingsDialog::done(int val)
 {
+    if (m_finished)
+        return;
+
+    m_finished = true;
+
+    disconnectTabWidgets();
+
+    if (val == QDialog::Accepted) {
+        m_applied = true;
+        for (IOptionsPage *page : std::as_const(m_visitedPages))
+            page->apply();
+    } else {
+        for (IOptionsPage *page : std::as_const(m_pages))
+            page->cancel();
+    }
+
+    for (IOptionsPage *page : std::as_const(m_pages))
+        page->finish();
+
     QtcSettings *settings = ICore::settings();
     settings->setValue(pageKeyC, m_currentPage.toSetting());
     settings->setValue(sortKeyC, m_sortCheckBox->isChecked());
@@ -786,7 +783,7 @@ bool SettingsDialog::execDialog()
             ICore::settings()->setValueWithDefault(kPreferenceDialogSize, size(), initialSize);
             // make sure that the current "single" instance is deleted
             // we can't delete right away, since we still access the m_applied member
-            deleteLater();
+            QMetaObject::invokeMethod(this, [this] { deleteLater(); }, Qt::QueuedConnection);
         });
     }
 
@@ -799,6 +796,8 @@ bool SettingsDialog::execDialog()
 
     return m_applied;
 }
+
+} // namespace
 
 bool executeSettingsDialog(QWidget *parent, Id initialPage)
 {
@@ -820,5 +819,4 @@ bool executeSettingsDialog(QWidget *parent, Id initialPage)
     return m_instance->execDialog();
 }
 
-} // namespace Internal
-} // namespace Core
+} // namespace Core::Internal

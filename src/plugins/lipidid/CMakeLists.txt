@@ -3,7 +3,10 @@ cmake_policy( SET CMP0028 NEW )
 
 project( LipidId )
 
-set( PROVIDER MS-Cheminformatics )
+set ( PROVIDER "MS-Cheminformatics" )
+string( TOLOWER "${PROJECT_NAME}" PLUGIN_ID)
+set ( PLUGIN_NAME "${PROJECT_NAME}" )
+set ( PLUGIN_DISPLAY_NAME "${PROJECT_NAME}" )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -20,34 +23,21 @@ set( DESCRIPTION "The LipidId plugin for QtCreator 9" )
 qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
 qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
 
-########## QtCreator 8 (Qt5/6) plugin.json #############
+########## QtCreator 18 (Qt5/6) plugin.json #############
 if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/cmake" )
-  find_package( QtCreator REQUIRED COMPONENTS Core )
+  find_package(QtCreator REQUIRED COMPONENTS Core)
+
+  set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "\n    ]" )
+
   configure_file(
-    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}.json.in"
+    "${CMAKE_SOURCE_DIR}/src/plugins/servant/plugin.json.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json"
-  )
+    )
 endif()
 ####################### END ##########################
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  configure_file(
-    "${CMAKE_SOURCE_DIR}/src/plugins/pluginspec.in"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-  )
-
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/mimetype.xml"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
-  )
-
-  execute_process( COMMAND ${XMLPATTERNS} -no-format
-    -output ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.json
-    ${QTPLATZ_SOURCE_DIR}/src/pluginjsonmetadata.xsl
-    ${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec
-  )
-endif()
 
 add_definitions(
   -D_SCL_SECURE_NO_WARNINGS
@@ -59,7 +49,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/plugins
   ${QtCore_INCLUDE_DIRS}
   ${CMAKE_BINARY_DIR}        # version.h
-  ${CMAKE_SOURCE_DIR}/src    # app_version.h
   )
 
 add_library( ${PROJECT_NAME} MODULE

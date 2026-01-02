@@ -12,6 +12,10 @@
 
 namespace Utils {
 
+namespace StyleHelper {
+enum class ToolbarStyle;
+}
+
 class QTCREATOR_UTILS_EXPORT ThemePrivate
 {
 public:
@@ -22,9 +26,10 @@ public:
     QString displayName;
     QStringList preferredStyles;
     QString defaultTextEditorColorScheme;
+    StyleHelper::ToolbarStyle defaultToolbarStyle;
     QString enforceAccentColorOnMacOS;
     QList<QPair<QColor, QString> > colors;
-    QList<QString> imageFiles;
+    QStringList imageFiles;
     QList<bool> flags;
     QMap<QString, QColor> palette;
     QMap<QString, QString> unresolvedPalette;

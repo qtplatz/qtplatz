@@ -35,6 +35,7 @@
   <style name="Function" foreground="#657b83"/>
   <style name="Macro" foreground="#657b83"/>
   <style name="Keyword" foreground="#709d06"/>
+  <style name="Attribute" foreground="#709d06"/>
   <style name="PrimitiveType" foreground="#808000"/>
   <style name="Punctuation"/>
   <style name="Operator" foreground="#657b83"/>
@@ -70,6 +71,8 @@
   <style name="LogChangeLine" foreground="#c00000"/>
   <style name="Warning" underlineColor="#b58900" underlineStyle="SingleUnderline"/>
   <style name="WarningContext" underlineColor="#b58900" underlineStyle="DotLine"/>
+  <style name="Info" underlineColor="#268bd2" underlineStyle="DashUnderline"/>
+  <style name="InfoContext" underlineColor="#268bd2" underlineStyle="DotLine"/>
   <style name="Error" underlineColor="#dc322f" underlineStyle="SingleUnderline"/>
   <style name="ErrorContext" underlineColor="#dc322f" underlineStyle="DotLine"/>
   <style name="Declaration"/>

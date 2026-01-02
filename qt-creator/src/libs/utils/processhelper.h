@@ -20,7 +20,8 @@ public:
     void handleProcessStart();
     void handleProcessStarted();
     void setNativeArguments(const QString &arguments);
-    void setWindowsSpecificStartupFlags(bool belowNormalPriority, bool createConsoleWindow);
+    void setWindowsSpecificStartupFlags(
+        bool belowNormalPriority, bool createConsoleWindow, bool forceDefaultErrorMode);
 
 private:
     ProcessMode m_processMode = ProcessMode::Reader;
@@ -42,6 +43,7 @@ public:
     void setLowPriority();
     void setUnixTerminalDisabled();
     void setUseCtrlCStub(bool enabled); // release only
+    void setAllowCoreDumps(bool enabled);
 
     static void terminateProcess(QProcess *process);
     static void interruptPid(qint64 pid);

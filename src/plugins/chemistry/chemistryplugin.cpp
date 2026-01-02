@@ -27,6 +27,7 @@
 #include "mode.hpp"
 #include "mainwindow.hpp"
 #include "constants.hpp"
+#include "utils/result.h"
 #include <adportable/debug.hpp>
 #include <adportable/scoped_debug.hpp>
 
@@ -75,8 +76,8 @@ ChemistryPlugin::~ChemistryPlugin()
     delete impl_;
 }
 
-bool
-ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
+Utils::Result<> // bool
+ChemistryPlugin::initialize(const QStringList &arguments)
 {
     initialize_actions();
 
@@ -91,7 +92,7 @@ ChemistryPlugin::initialize(const QStringList &arguments, QString *errorString)
             }
         }
     }
-    return true;
+    return Utils::ResultOk;
 }
 
 void

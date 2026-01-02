@@ -11,12 +11,10 @@
 #include <utils/algorithm.h>
 #include <utils/async.h>
 #include <utils/filesystemwatcher.h>
-#include <utils/fileutils.h>
 #include <utils/hostosinfo.h>
-#include <utils/process.h>
+#include <utils/qtcprocess.h>
 
 #include <QDir>
-#include <QDirIterator>
 #include <QRegularExpression>
 
 using namespace LanguageUtils;
@@ -27,20 +25,8 @@ namespace QmlJS {
 PluginDumper::PluginDumper(ModelManagerInterface *modelManager)
     : QObject(modelManager)
     , m_modelManager(modelManager)
-    , m_pluginWatcher(nullptr)
 {
     qRegisterMetaType<QmlJS::ModelManagerInterface::ProjectInfo>("QmlJS::ModelManagerInterface::ProjectInfo");
-}
-
-Utils::FileSystemWatcher *PluginDumper::pluginWatcher()
-{
-    if (!m_pluginWatcher) {
-        m_pluginWatcher = new Utils::FileSystemWatcher(this);
-        m_pluginWatcher->setObjectName(QLatin1String("PluginDumperWatcher"));
-        connect(m_pluginWatcher, &Utils::FileSystemWatcher::fileChanged,
-                this, &PluginDumper::pluginChanged);
-    }
-    return m_pluginWatcher;
 }
 
 void PluginDumper::loadBuiltinTypes(const QmlJS::ModelManagerInterface::ProjectInfo &info)
@@ -49,8 +35,8 @@ void PluginDumper::loadBuiltinTypes(const QmlJS::ModelManagerInterface::ProjectI
     metaObject()->invokeMethod(this, [this, info] { onLoadBuiltinTypes(info); });
 }
 
-void PluginDumper::loadPluginTypes(const Utils::FilePath &libraryPath,
-                                   const Utils::FilePath &importPath,
+void PluginDumper::loadPluginTypes(const FilePath &libraryPath,
+                                   const FilePath &importPath,
                                    const QString &importUri,
                                    const QString &importVersion)
 {
@@ -92,11 +78,10 @@ void PluginDumper::onLoadBuiltinTypes(const QmlJS::ModelManagerInterface::Projec
     }
 
     runQmlDump(info, QStringList(QLatin1String("--builtins")), info.qtQmlPath);
-    m_qtToInfo.insert(info.qtQmlPath.toString(), info);
 }
 
-void PluginDumper::onLoadPluginTypes(const Utils::FilePath &libraryPath,
-                                     const Utils::FilePath &importPath,
+void PluginDumper::onLoadPluginTypes(const FilePath &libraryPath,
+                                     const FilePath &importPath,
                                      const QString &importUri,
                                      const QString &importVersion)
 {
@@ -137,13 +122,15 @@ void PluginDumper::onLoadPluginTypes(const Utils::FilePath &libraryPath,
             plugin.typeInfoPaths += pathNow;
     }
 
+    FilePaths pathsToWatch;
     // watch plugin libraries
     const QList<QmlDirParser::Plugin> plugins = snapshot.libraryInfo(canonicalLibraryPath).plugins();
     for (const QmlDirParser::Plugin &plugin : plugins) {
-        const FilePath pluginLibrary = resolvePlugin(canonicalLibraryPath, plugin.path, plugin.name);
+        const FilePath pluginLibrary = resolvePlugin(canonicalLibraryPath,
+                                                     libraryPath.withNewPath(plugin.path),
+                                                     plugin.name);
         if (!pluginLibrary.isEmpty()) {
-            if (!pluginWatcher()->watchesFile(pluginLibrary))
-                pluginWatcher()->addFile(pluginLibrary, FileSystemWatcher::WatchModifiedDate);
+            pathsToWatch << pluginLibrary;
             m_libraryToPluginIndex.insert(pluginLibrary, index);
         }
     }
@@ -153,11 +140,12 @@ void PluginDumper::onLoadPluginTypes(const Utils::FilePath &libraryPath,
         for (const FilePath &path : std::as_const(plugin.typeInfoPaths)) {
             if (!path.exists())
                 continue;
-            if (!pluginWatcher()->watchesFile(path))
-                pluginWatcher()->addFile(path, FileSystemWatcher::WatchModifiedDate);
+            pathsToWatch << path;
             m_libraryToPluginIndex.insert(path, index);
         }
     }
+
+    watchFilePaths(pathsToWatch);
 
     dump(plugin);
 }
@@ -314,9 +302,13 @@ void PluginDumper::qmlPluginTypeDumpDone(Process *process)
     }
 }
 
-void PluginDumper::pluginChanged(const QString &pluginLibrary)
+void PluginDumper::pluginChanged(const FilePath &pluginLibrary)
 {
-    const int pluginIndex = m_libraryToPluginIndex.value(FilePath::fromString(pluginLibrary), -1);
+    // FilePathWatcher emits also when the file is deleted.
+    if (!pluginLibrary.exists())
+        unwatchFilePath(pluginLibrary);
+
+    const int pluginIndex = m_libraryToPluginIndex.value(pluginLibrary, -1);
     if (pluginIndex == -1)
         return;
 
@@ -327,13 +319,13 @@ void PluginDumper::pluginChanged(const QString &pluginLibrary)
 QFuture<PluginDumper::QmlTypeDescription> PluginDumper::loadQmlTypeDescription(const FilePaths &paths) const
 {
     auto future = Utils::asyncRun(m_modelManager->threadPool(),
-                                  [=](QPromise<PluginDumper::QmlTypeDescription> &promise) {
+                                  [paths](QPromise<PluginDumper::QmlTypeDescription> &promise) {
         PluginDumper::QmlTypeDescription result;
 
         for (const FilePath &p: paths) {
-            Utils::FileReader reader;
-            if (!reader.fetch(p, QFile::Text)) {
-                result.errors += reader.errorString();
+            const Result<QByteArray> contents = p.fileContents();
+            if (!contents) {
+                result.errors += contents.error();
                 continue;
             }
             QString error;
@@ -341,8 +333,8 @@ QFuture<PluginDumper::QmlTypeDescription> PluginDumper::loadQmlTypeDescription(c
             CppQmlTypesLoader::BuiltinObjects objs;
             QList<ModuleApiInfo> apis;
             QStringList deps;
-            CppQmlTypesLoader::parseQmlTypeDescriptions(reader.data(), &objs, &apis, &deps,
-                                                        &error, &warning, p.toString());
+            CppQmlTypesLoader::parseQmlTypeDescriptions(*contents, &objs, &apis, &deps,
+                                                        &error, &warning, p.toFSPathString());
             if (!error.isEmpty()) {
                 result.errors += Tr::tr("Failed to parse \"%1\".\nError: %2").arg(p.toUserOutput(), error);
             } else {
@@ -371,26 +363,26 @@ QFuture<PluginDumper::QmlTypeDescription> PluginDumper::loadQmlTypeDescription(c
  * \sa QmlJs::modulePath
  * \sa LinkPrivate::importNonFile
  */
-Utils::FilePath PluginDumper::buildQmltypesPath(const QString &name) const
+FilePath PluginDumper::buildQmltypesPath(const QString &name) const
 {
     QString qualifiedName;
     QString version;
 
-    QRegularExpression import("^(?<name>[\\w|\\.]+)\\s+(?<major>\\d+)\\.(?<minor>\\d+)$");
+    static const QRegularExpression import("^(?<name>[\\w|\\.]+)\\s+(?<major>\\d+)\\.(?<minor>\\d+)$");
     QRegularExpressionMatch m = import.match(name);
     if (m.hasMatch()) {
         qualifiedName = m.captured("name");
         version = m.captured("major") + QLatin1Char('.') + m.captured("minor");
     }
 
-    const QList<Utils::FilePath> paths = modulePaths(qualifiedName,
-                                                     version,
-                                                     m_modelManager->importPathsNames());
+    const FilePaths paths = modulePaths(qualifiedName,
+                                        version,
+                                        m_modelManager->importPathsNames());
 
     if (paths.isEmpty())
         return {};
 
-    for (const Utils::FilePath &path : paths) {
+    for (const FilePath &path : paths) {
         auto qmltypes = path.dirEntries(FileFilter(QStringList{"*.qmltypes"}, QDir::Files));
         if (!qmltypes.isEmpty())
             return qmltypes.first();
@@ -400,26 +392,23 @@ Utils::FilePath PluginDumper::buildQmltypesPath(const QString &name) const
 
 /*!
  * \brief Recursively load dependencies.
- * \param dependencies
- * \param errors
- * \param warnings
- * \param objects
  *
- * Recursively load type descriptions of dependencies, collecting results
- * in \a objects.
+ * \param dependencies Something like {"QtQuick 2.0"}
+ *
+ * Recursively load type descriptions of dependencies.
  */
-QFuture<PluginDumper::DependencyInfo> PluginDumper::loadDependencies(const FilePaths &dependencies,
-                                                                     QSharedPointer<QSet<FilePath>> visited) const
+QFuture<PluginDumper::DependencyInfo> PluginDumper::loadDependencies(const QStringList &dependencies,
+                                                                     QSharedPointer<QSet<QString>> visited) const
 {
     auto iface = QSharedPointer<QFutureInterface<PluginDumper::DependencyInfo>>(new QFutureInterface<PluginDumper::DependencyInfo>);
 
     if (visited.isNull())
-        visited = QSharedPointer<QSet<FilePath>>(new QSet<FilePath>());
+        visited = QSharedPointer<QSet<QString>>(new QSet<QString>());
 
     FilePaths dependenciesPaths;
     FilePath path;
-    for (const FilePath &name : dependencies) {
-        path = buildQmltypesPath(name.toString());
+    for (const QString &name : dependencies) {
+        path = buildQmltypesPath(name);
         if (!path.isEmpty())
             dependenciesPaths << path;
         visited->insert(name);
@@ -432,7 +421,7 @@ QFuture<PluginDumper::DependencyInfo> PluginDumper::loadDependencies(const FileP
             return;
         }
         PluginDumper::QmlTypeDescription typesResult = typesFuture.result();
-        FilePaths newDependencies = FileUtils::toFilePathList(typesResult.dependencies);
+        QStringList newDependencies = typesResult.dependencies;
 
         newDependencies = Utils::toList(Utils::toSet(newDependencies) - *visited.data());
         if (!newDependencies.isEmpty()) {
@@ -557,7 +546,7 @@ void PluginDumper::prepareLibraryInfo(LibraryInfo &libInfo,
     if (!warnings.isEmpty())
         printParseWarnings(libraryPath, warnings.join(QLatin1String("\n")));
 
-    applyQt515MissingImportWorkaround(libraryPath.toString(), libInfo);
+    applyQt515MissingImportWorkaround(libraryPath.toUrlishString(), libInfo);
 
     libInfo.updateFingerprint();
 }
@@ -575,8 +564,7 @@ void PluginDumper::loadQmltypesFile(const FilePaths &qmltypesFilePaths,
         PluginDumper::QmlTypeDescription typesResult = typesFuture.result();
         if (!typesResult.dependencies.isEmpty())
         {
-            Utils::onFinished(loadDependencies(FileUtils::toFilePathList(typesResult.dependencies),
-                                               QSharedPointer<QSet<FilePath>>()), this,
+            Utils::onFinished(loadDependencies(typesResult.dependencies, {}), this,
                               [typesResult, libraryInfo, libraryPath, this] (const QFuture<PluginDumper::DependencyInfo> &loadFuture)
             {
                 if (loadFuture.isCanceled() || loadFuture.resultCount() == 0)
@@ -605,6 +593,35 @@ void PluginDumper::loadQmltypesFile(const FilePaths &qmltypesFilePaths,
             m_modelManager->updateLibraryInfo(libraryPath, libInfo);
         }
     });
+}
+
+void PluginDumper::watchFilePaths(const FilePaths &paths)
+{
+    const FilePaths pathsToWatch = Utils::filtered(paths, [this](const FilePath &p) {
+        return !m_pluginWatcher.contains(p) && p.exists();
+    });
+
+    std::vector<Result<std::unique_ptr<FilePathWatcher>>> results = pathsToWatch.watch();
+    for (size_t i = 0; i < results.size(); ++i) {
+        Result<std::unique_ptr<FilePathWatcher>> &res = results.at(i);
+        const FilePath path = pathsToWatch.at(i);
+        if (res) {
+            connect(res->get(), &FilePathWatcher::pathChanged, this, &PluginDumper::pluginChanged);
+            m_pluginWatcher.insert(path, std::move(*res));
+        } else {
+            qWarning() << res.error();
+        }
+    }
+}
+
+void PluginDumper::unwatchFilePath(const FilePath &path)
+{
+    auto foundPath = m_pluginWatcher.find(path);
+    if (foundPath == m_pluginWatcher.end())
+        return;
+
+    disconnect(foundPath->get(), &FilePathWatcher::pathChanged, this, &PluginDumper::pluginChanged);
+    m_pluginWatcher.erase(foundPath);
 }
 
 void PluginDumper::runQmlDump(const ModelManagerInterface::ProjectInfo &info,
@@ -661,8 +678,8 @@ void PluginDumper::dump(const Plugin &plugin)
         args << QLatin1String("-nonrelocatable");
     args << plugin.importUri;
     args << plugin.importVersion;
-    args << (plugin.importPath.isEmpty() ? Utils::FilePath::fromString(".") : plugin.importPath)
-                .toString();
+    args << (plugin.importPath.isEmpty() ? FilePath::fromString(".") : plugin.importPath)
+                .toUrlishString();
     runQmlDump(info, args, plugin.qmldirPath);
 }
 
@@ -674,27 +691,27 @@ void PluginDumper::dump(const Plugin &plugin)
 
   Adapted from QDeclarativeImportDatabase::resolvePlugin.
 */
-FilePath PluginDumper::resolvePlugin(const FilePath &qmldirPath, const QString &qmldirPluginPath,
+FilePath PluginDumper::resolvePlugin(const FilePath &qmldirPath, const FilePath &qmldirPluginPath,
                                      const QString &baseName, const QStringList &suffixes,
                                      const QString &prefix)
 {
-    QStringList searchPaths = {"."};
+    FilePaths searchPaths = {"."};
 
-    bool qmldirPluginPathIsRelative = QDir::isRelativePath(qmldirPluginPath);
+    bool qmldirPluginPathIsRelative = qmldirPluginPath.isRelativePath();
     if (!qmldirPluginPathIsRelative)
         searchPaths.prepend(qmldirPluginPath);
 
-    for (const QString &pluginPath : std::as_const(searchPaths)) {
+    for (const FilePath &pluginPath : std::as_const(searchPaths)) {
 
         FilePath resolvedPath;
 
-        if (pluginPath == QLatin1String(".")) {
+        if (pluginPath.path() == QLatin1String(".")) {
             if (qmldirPluginPathIsRelative)
                 resolvedPath = qmldirPath.resolvePath(qmldirPluginPath);
             else
                 resolvedPath = qmldirPath.absoluteFilePath();
         } else {
-            resolvedPath = FilePath::fromString(pluginPath);
+            resolvedPath = pluginPath;
         }
 
         for (const QString &suffix : suffixes) {
@@ -710,49 +727,26 @@ FilePath PluginDumper::resolvePlugin(const FilePath &qmldirPath, const QString &
 /*!
   Returns the result of the merge of \a baseName with \a dir and the platform suffix.
 
-  Adapted from QDeclarativeImportDatabase::resolvePlugin.
+  Adapted from QQmlPluginImporter::resolvePlugin()
 
-  \table
-  \header \li Platform \li Valid suffixes
-  \row \li Windows     \li \c .dll
-  \row \li Unix/Linux  \li \c .so
-  \row \li AIX  \li \c .a
-  \row \li HP-UX       \li \c .sl, \c .so (HP-UXi)
-  \row \li Mac OS X    \li \c .dylib, \c .bundle, \c .so
-  \endtable
-
-  Version number on unix are ignored.
+  Version numbers on Unix are ignored.
 */
-FilePath PluginDumper::resolvePlugin(const FilePath &qmldirPath, const QString &qmldirPluginPath,
+FilePath PluginDumper::resolvePlugin(const FilePath &qmldirPath, const FilePath &qmldirPluginPath,
                                      const QString &baseName)
 {
     QStringList validSuffixList;
     QString prefix;
-    if (Utils::HostOsInfo::isWindowsHost()) {
+    if (qmldirPath.osType() == OsTypeWindows) {
         // try a qmake-style debug build first
         validSuffixList = QStringList({"d.dll",  ".dll"});
-    } else if (Utils::HostOsInfo::isMacHost()) {
+    } else if (qmldirPath.osType() == Utils::OsTypeMac) {
         // try a qmake-style debug build first
         validSuffixList = QStringList({"_debug.dylib", ".dylib", ".so", ".bundle", "lib"});
     } else {
         // Examples of valid library names:
         //  libfoo.so
         prefix = "lib";
-#if defined(Q_OS_HPUX)
-/*
-    See "HP-UX Linker and Libraries User's Guide", section "Link-time Differences between PA-RISC and IPF":
-    "In PA-RISC (PA-32 and PA-64) shared libraries are suffixed with .sl. In IPF (32-bit and 64-bit),
-    the shared libraries are suffixed with .so. For compatibility, the IPF linker also supports the .sl suffix."
- */
-        validSuffixList << QLatin1String(".sl");
-# if defined __ia64
         validSuffixList << QLatin1String(".so");
-# endif
-#elif defined(Q_OS_AIX)
-        validSuffixList << QLatin1String(".a") << QLatin1String(".so");
-#else
-        validSuffixList << QLatin1String(".so");
-#endif
     }
     return resolvePlugin(qmldirPath, qmldirPluginPath, baseName, validSuffixList, prefix);
 }

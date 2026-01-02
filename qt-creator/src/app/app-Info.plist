@@ -237,7 +237,7 @@
 		</dict>
 	</array>
 	<key>NSHumanReadableCopyright</key>
-	<string>(C) ${IDE_COPYRIGHT_YEAR} The Qt Company Ltd</string>
+	<string>${IDE_COPYRIGHT}</string>
 	<key>CFBundleIconFile</key>
 	<string>qtcreator</string>
 	<key>CFBundlePackageType</key>
@@ -254,5 +254,7 @@
 	<string>${IDE_VERSION}</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
 </dict>
 </plist>

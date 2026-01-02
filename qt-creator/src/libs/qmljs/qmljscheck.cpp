@@ -21,6 +21,7 @@
 using namespace QmlJS;
 using namespace QmlJS::AST;
 using namespace QmlJS::StaticAnalysis;
+using namespace Qt::Literals::StringLiterals;
 
 namespace {
 
@@ -546,19 +547,33 @@ private:
     uint _block = 0;
 };
 
-class IdsThatShouldNotBeUsedInDesigner  : public QStringList
+class IdsThatShouldNotBeUsedInDesigner : public QStringList
 {
 public:
     IdsThatShouldNotBeUsedInDesigner()
-        : QStringList({"top",   "bottom", "left",    "right",   "width",  "height",
-                       "x",     "y",      "opacity", "parent",  "item",   "flow",
-                       "color", "margin", "padding", "print",   "border", "font",
-                       "text",  "source", "state",   "visible", "focus",  "data",
-                      "clip",  "layer",  "scale",   "enabled", "anchors",
-                      "texture", "shaderInfo", "sprite", "spriteSequence", "baseState"
-                      "vector", "string", "url", "var", "point", "date", "size", "list",
-                      "enumeration"})
+        : QStringList({
+            "action",    "alias",      "anchors", "as",       "baseState", "bool",
+            "border",    "bottom",     "break",   "case",     "catch",     "clip",
+            "color",     "continue",   "data",    "date",     "debugger",  "default",
+            "delete",    "do",         "double",  "else",     "enabled",   "enumeration",
+            "finally",   "flow",       "focus",   "font",     "for",       "function",
+            "height",    "id",         "if",      "import",   "in",        "instanceof",
+            "int",       "item",       "layer",   "left",     "list",      "margin",
+            "matrix4x4", "new",        "opacity", "padding",  "parent",    "point",
+            "print",     "quaternion", "real",    "rect",     "return",    "right",
+            "scale",     "shaderInfo", "size",    "source",   "sprite",    "spriteSequence",
+            "state",     "string",     "switch",  "text",     "texture",   "this",
+            "throw",     "time",       "top",     "try",      "typeof",    "url",
+            "var",       "variant",    "vector",  "vector2d", "vector3d",  "vector4d",
+            "visible",   "void",       "while",   "width",    "with",      "x",
+            "y",         "z",
+        })
     {}
+
+    bool containsId(const QString &id) const
+    {
+        return std::binary_search(constBegin(), constEnd(), id);
+    }
 };
 
 class VisualAspectsPropertyBlackList : public QStringList
@@ -614,12 +629,8 @@ class UnsupportedRootObjectTypesByVisualDesigner : public QStringList
 {
 public:
     UnsupportedRootObjectTypesByVisualDesigner()
-        : QStringList({"QtObject"
-                       "ListModel"
-                       "Component"
-                       "Timer"
-                       "Package",
-                       "ApplicationWindow"})
+        : QStringList(
+            {"QtObject", "ListModel", "Component", "Timer", "Package", "ApplicationWindow"})
     {}
 };
 
@@ -682,7 +693,7 @@ QList<StaticAnalysis::Type> Check::defaultDisabledMessagesForNonQuickUi()
 
 bool Check::incompatibleDesignerQmlId(const QString &id)
 {
-    return idsThatShouldNotBeUsedInDesigner->contains(id);
+    return idsThatShouldNotBeUsedInDesigner->containsId(id);
 }
 
 Check::Check(Document::Ptr doc, const ContextPtr &context, Utils::QtcSettings *qtcSettings)
@@ -705,16 +716,16 @@ Check::Check(Document::Ptr doc, const ContextPtr &context, Utils::QtcSettings *q
         auto toIntList = [](const QList<StaticAnalysis::Type> list) {
             return Utils::transform(list, [](StaticAnalysis::Type t) { return int(t); });
         };
-        auto disabled = qtcSettings->value("J.QtQuick/QmlJSEditor.disabledMessages",
-                                           QVariant::fromValue(
-                                               toIntList(defaultDisabledMessages()))).toList();
+        const auto disabled = qtcSettings->value("J.QtQuick/QmlJSEditor.disabledMessages",
+                                                 QVariant::fromValue(
+                                                     toIntList(defaultDisabledMessages()))).toList();
         for (const QVariant &disabledNumber : disabled)
             disableMessage(StaticAnalysis::Type(disabledNumber.toInt()));
 
         if (!isQtQuick2Ui()) {
-            auto disabled = qtcSettings->value("J.QtQuick/QmlJSEditor.disabledMessagesNonQuickUI",
-                                               QVariant::fromValue(
-                                                   toIntList(defaultDisabledMessagesForNonQuickUi()))).toList();
+            const auto disabled = qtcSettings->value("J.QtQuick/QmlJSEditor.disabledMessagesNonQuickUI",
+                                                     QVariant::fromValue(
+                                                         toIntList(defaultDisabledMessagesForNonQuickUi()))).toList();
             for (const QVariant &disabledNumber : disabled)
                 disableMessage(StaticAnalysis::Type(disabledNumber.toInt()));
         }
@@ -846,6 +857,32 @@ bool Check::visit(UiObjectInitializer *)
     return true;
 }
 
+bool Check::visit(AST::UiEnumDeclaration *ast)
+{
+    const Value *localLookup = _scopeChain.lookup(ast->name.toString());
+    Utils::FilePath fp;
+    int line, column;
+    if (localLookup->getSourceLocation(&fp, &line, &column)) {
+        // if it's not "us" we get shadowed by another enum declaration
+        if (int(ast->identifierToken.startLine) != line || int(ast->identifierToken.startColumn) != column)
+            addMessage(ErrDuplicateId, SourceLocation(0, 0, line, column));
+    }
+    return true;
+}
+
+bool Check::visit(AST::UiEnumMemberList *ast)
+{
+    QStringList names;
+    for (auto it = ast; it; it = it->next) {
+        if (!it->member.first().isUpper())
+            addMessage(ErrInvalidEnumValue, it->memberToken); // better a different message?
+        if (names.contains(it->member)) // duplicate enum value
+            addMessage(ErrInvalidEnumValue, it->memberToken); // better a different message?
+        names.append(it->member.toString());
+    }
+    return true;
+}
+
 bool Check::visit(AST::TemplateLiteral *ast)
 {
     Node::accept(ast->expression, this);
@@ -879,6 +916,17 @@ void Check::endVisit(UiObjectInitializer *uiObjectInitializer)
         m_idStack.pop();
 }
 
+bool Check::visit(UiInlineComponent *)
+{
+    m_idStackOutsideIInlineComponent = std::exchange(m_idStack, QStack<StringSet>());
+    return true;
+}
+
+void Check::endVisit(UiInlineComponent *)
+{
+    m_idStack = m_idStackOutsideIInlineComponent;
+}
+
 void Check::throwRecursionDepthError()
 {
     addMessage(ErrHitMaximumRecursion, SourceLocation());
@@ -910,7 +958,14 @@ bool Check::visit(UiObjectBinding *ast)
     if (!ast->hasOnToken) {
         checkProperty(ast->qualifiedId);
     } else {
-        addMessage(ErrBehavioursNotSupportedInQmlUi, locationFromRange(ast->firstSourceLocation(), ast->lastSourceLocation()));
+        //addMessage(ErrBehavioursNotSupportedInQmlUi, locationFromRange(ast->firstSourceLocation(), ast->lastSourceLocation()));
+    }
+
+    if (!m_typeStack.isEmpty() && m_typeStack.last() == "State"
+        && toString(ast->qualifiedId) == "when") {
+        addMessage(
+            ErrWhenConditionCannotBeObject,
+            locationFromRange(ast->firstSourceLocation(), ast->lastSourceLocation()));
     }
 
     visitQmlObject(ast, ast->qualifiedTypeNameId, ast->initializer);
@@ -967,7 +1022,8 @@ static bool checkTopLevelBindingForParentReference(ExpressionStatement *expStmt,
     SourceLocation location = locationFromRange(expStmt->firstSourceLocation(), expStmt->lastSourceLocation());
     QString stmtSource = source.mid(int(location.begin()), int(location.length));
 
-    if (stmtSource.contains(QRegularExpression("(^|\\W)parent\\.")))
+    static const QRegularExpression regex("(^|\\W)parent\\.");
+    if (stmtSource.contains(regex))
         return true;
 
     return false;
@@ -1002,8 +1058,19 @@ void Check::visitQmlObject(Node *ast, UiQualifiedId *typeId,
     if (checkTypeForDesignerSupport(typeId))
         addMessage(WarnUnsupportedTypeInVisualDesigner, typeErrorLocation, typeName);
 
-    if (typeId->next == nullptr && _doc->fileName().baseName() == typeName)
-        addMessage(ErrTypeIsInstantiatedRecursively, typeErrorLocation, typeName);
+    if (!typeId->next && _doc->fileName().baseName() == typeName) {
+        int foundTypes = 0;
+        const QList<Import> imports = _imports->all();
+        for (const Import &import : imports) {
+            if (import.object->lookupMember(typeName, nullptr))
+                ++foundTypes;
+
+            if (foundTypes == 2)
+                break;
+        }
+        if (foundTypes < 2)
+            addMessage(ErrTypeIsInstantiatedRecursively, typeErrorLocation, typeName);
+    }
 
     if (checkTypeForQmlUiSupport(typeId))
         addMessage(ErrUnsupportedTypeInQmlUi, typeErrorLocation, typeName);
@@ -1318,10 +1385,10 @@ bool Check::visit(FunctionExpression *ast)
         }
     }
 
-    const bool isDirectInConnectionsScope =
-            (!m_typeStack.isEmpty() && m_typeStack.last() == "Connections");
+    const bool isDirectInConnectionsOrScriptActionScope
+        = isDirectInTypeScope("Connections"_L1, "ScriptAction"_L1);
 
-    if (!isDirectInConnectionsScope)
+    if (!isDirectInConnectionsOrScriptActionScope)
         addMessage(ErrFunctionsNotSupportedInQmlUi, locationFromRange(locfunc, loclparen));
 
     DeclarationsCheck bodyCheck;
@@ -1378,10 +1445,10 @@ bool Check::visit(BinaryExpression *ast)
     SourceLocation expressionSourceLocation = locationFromRange(ast->firstSourceLocation(),
                                                                 ast->lastSourceLocation());
 
-    const bool isDirectInConnectionsScope = (!m_typeStack.isEmpty()
-                                             && m_typeStack.last() == "Connections");
+    const bool isDirectInConnectionsOrScriptActionScope
+        = isDirectInTypeScope("Connections"_L1, "ScriptAction"_L1);
 
-    if (expressionAffectsVisualAspects(ast) && !isDirectInConnectionsScope)
+    if (expressionAffectsVisualAspects(ast) && !isDirectInConnectionsOrScriptActionScope)
         addMessage(WarnImperativeCodeNotEditableInVisualDesigner, expressionSourceLocation);
 
     // check ==, !=
@@ -1426,11 +1493,10 @@ bool Check::visit(BinaryExpression *ast)
 
 bool Check::visit(Block *ast)
 {
+    const bool isDirectInConnectionsOrScriptActionScope
+        = isDirectInTypeScope("Connections"_L1, "ScriptAction"_L1, "TimelineAnimation"_L1);
 
-    bool isDirectInConnectionsScope =
-            (!m_typeStack.isEmpty() && m_typeStack.last() == "Connections");
-
-    if (!isDirectInConnectionsScope)
+    if (!isDirectInConnectionsOrScriptActionScope)
         addMessage(ErrBlocksNotSupportedInQmlUi, locationFromRange(ast->firstSourceLocation(), ast->lastSourceLocation()));
 
     if (Node *p = parent()) {
@@ -1664,7 +1730,7 @@ void Check::addMessage(StaticAnalysis::Type type, const SourceLocation &location
 void Check::scanCommentsForAnnotations()
 {
     m_disabledMessageTypesByLine.clear();
-    const QRegularExpression disableCommentPattern = Message::suppressionPattern();
+    static const QRegularExpression disableCommentPattern = Message::suppressionPattern();
 
     const QList<SourceLocation> comments = _doc->engine()->comments();
     for (const SourceLocation &commentLoc : comments) {
@@ -1813,9 +1879,16 @@ bool Check::visit(CallExpression *ast)
     const QString namespaceName = functionNamespace(ast->base);
 
     // We have to allow the translation functions
-
-    static const QStringList translationFunctions = {"qsTr", "qsTrId", "qsTranslate",
-                                                     "qsTrNoOp", "qsTrIdNoOp", "qsTranslateNoOp"};
+    static const QStringList translationFunctions
+        = {"qsTr",
+           "qsTrId",
+           "qsTranslate",
+           "qsTrNoOp",
+           "qsTrIdNoOp",
+           "qsTranslateNoOp",
+           "QT_TR_NOOP",
+           " QT_TRANSLATE_NOOP",
+           "QT_TRID_NOOP"};
 
     static const QStringList whiteListedFunctions = {
         "toString",    "toFixed",           "toExponential", "toPrecision",    "isFinite",
@@ -1848,9 +1921,11 @@ bool Check::visit(CallExpression *ast)
     const bool isMathFunction = namespaceName == "Math";
     const bool isDateFunction = namespaceName == "Date";
     // allow adding connections with the help of the qt quick designer ui
-    bool isDirectInConnectionsScope =
-            (!m_typeStack.isEmpty() && m_typeStack.last() == QLatin1String("Connections"));
-    if (!whiteListedFunction && !isMathFunction && !isDateFunction && !isDirectInConnectionsScope)
+    const bool isDirectInConnectionsOrScriptActionScope
+        = isDirectInTypeScope("Connections"_L1, "ScriptAction"_L1);
+
+    if (!whiteListedFunction && !isMathFunction && !isDateFunction
+        && !isDirectInConnectionsOrScriptActionScope)
         addMessage(ErrFunctionsNotSupportedInQmlUi, location);
 
     if (translationFunctions.contains(name)) {

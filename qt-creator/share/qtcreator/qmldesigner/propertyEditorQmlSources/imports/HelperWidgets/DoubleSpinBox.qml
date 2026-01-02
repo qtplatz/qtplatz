@@ -13,8 +13,10 @@ Item {
     property alias minimumValue: spinBox.realFrom
     property alias maximumValue: spinBox.realTo
     property alias stepSize: spinBox.realStepSize
+    property alias spinBoxIndicatorVisible: spinBox.spinBoxIndicatorVisible
     property alias sliderIndicatorVisible: spinBox.sliderIndicatorVisible
     property alias hover: spinBox.hover
+    property alias inputHAlignment: spinBox.inputHAlignment
 
     property alias pixelsPerUnit: spinBox.pixelsPerUnit
 
@@ -51,5 +53,6 @@ Item {
         decimals: 2
 
         onRealValueModified: wrapper.valueModified()
+        onCompressedRealValueModified: wrapper.valueModified()
     }
 }

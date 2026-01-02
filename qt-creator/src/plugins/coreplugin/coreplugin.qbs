@@ -16,6 +16,11 @@ QtcPlugin {
     Depends { name: "Utils" }
     Depends { name: "Aggregation" }
     Depends { name: "TerminalLib" }
+    Depends { name: "qtkeychain" }
+
+    pluginTestDepends: [
+        "TextEditor"
+    ]
 
     cpp.dynamicLibraries: {
         if (qbs.targetOS.contains("windows"))
@@ -43,6 +48,10 @@ QtcPlugin {
             "coreplugin.cpp",
             "coreplugin.h",
             "coreplugintr.h",
+            "credentialquery.cpp",
+            "credentialquery.h",
+            "customlanguagemodels.cpp",
+            "customlanguagemodels.h",
             "designmode.cpp",
             "designmode.h",
             "diffservice.cpp",
@@ -110,8 +119,6 @@ QtcPlugin {
             "messagebox.h",
             "messagemanager.cpp",
             "messagemanager.h",
-            "messageoutputwindow.cpp",
-            "messageoutputwindow.h",
             "mimetypemagicdialog.cpp",
             "mimetypemagicdialog.h",
             "mimetypesettings.cpp",
@@ -126,7 +133,6 @@ QtcPlugin {
             "navigationwidget.h",
             "opendocumentstreeview.cpp",
             "opendocumentstreeview.h",
-            "outputpane.cpp",
             "outputpane.h",
             "outputpanemanager.cpp",
             "outputpanemanager.h",
@@ -148,6 +154,8 @@ QtcPlugin {
             "sessionmodel.h",
             "sessionview.cpp",
             "sessionview.h",
+            "secretaspect.cpp",
+            "secretaspect.h",
             "settingsdatabase.cpp",
             "settingsdatabase.h",
             "sidebar.cpp",
@@ -187,7 +195,6 @@ QtcPlugin {
             "actionmanager.cpp", "actionmanager.h", "actionmanager_p.h",
             "command.cpp", "command.h", "command_p.h",
             "commandmappings.cpp", "commandmappings.h",
-            "commandsfile.cpp", "commandsfile.h",
         ]
     }
 
@@ -201,7 +208,6 @@ QtcPlugin {
             "filepropertiesdialog.cpp", "filepropertiesdialog.h",
             "ioptionspage.cpp", "ioptionspage.h",
             "newdialog.cpp", "newdialog.h",
-            "newdialogwidget.cpp", "newdialogwidget.h",
             "openwithdialog.cpp", "openwithdialog.h",
             "promptoverwritedialog.cpp", "promptoverwritedialog.h",
             "readonlyfilesdialog.cpp", "readonlyfilesdialog.h",
@@ -267,8 +273,7 @@ QtcPlugin {
 
     QtcTestFiles {
         files: [
-            "testdatadir.cpp",
-            "testdatadir.h",
+            "editormanager/editormanager_test.cpp",
             "locator/locatorfiltertest.cpp",
             "locator/locatorfiltertest.h",
             "locator/locator_test.cpp"

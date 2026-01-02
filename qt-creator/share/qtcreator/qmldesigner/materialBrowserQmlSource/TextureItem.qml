@@ -11,12 +11,17 @@ import MaterialBrowserBackend
 Item {
     id: root
 
-    visible: textureVisible
+    readonly property bool selected: textureSelected?? false
+    readonly property bool matchedSearch: textureMatchedSearch?? false
+    readonly property int itemIndex: index
+    property bool rightClicked: false
+
+    visible: matchedSearch
 
     signal showContextMenu()
 
     function forceFinishEditing() {
-        txtId.commitRename()
+        txtName.commitRename()
     }
 
     MouseArea {
@@ -26,17 +31,24 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         hoverEnabled: true
 
-        onPressed: (mouse) => {
-            MaterialBrowserBackend.materialBrowserTexturesModel.selectTexture(index)
+        function handleClick(mouse) {
             MaterialBrowserBackend.rootView.focusMaterialSection(false)
 
-            if (mouse.button === Qt.LeftButton)
+            if (mouse.button === Qt.LeftButton) {
+                let appendTexture = mouse.modifiers & Qt.ControlModifier
+                MaterialBrowserBackend.materialBrowserTexturesModel.selectTexture(index, appendTexture)
                 MaterialBrowserBackend.rootView.startDragTexture(index, mapToGlobal(mouse.x, mouse.y))
-            else if (mouse.button === Qt.RightButton)
+            } else if (mouse.button === Qt.RightButton) {
                 root.showContextMenu()
+            }
         }
 
-        onDoubleClicked: MaterialBrowserBackend.materialBrowserTexturesModel.openTextureEditor();
+        onPressed: (mouse) => handleClick(mouse)
+
+        onDoubleClicked: {
+            MaterialBrowserBackend.materialBrowserTexturesModel.selectTexture(index, false)
+            MaterialBrowserBackend.rootView.openPropertyEditor()
+        }
     }
 
     ToolTip {
@@ -76,33 +88,23 @@ Item {
         }
 
         MaterialBrowserItemName {
-            id: txtId
+            id: txtName
 
-            text: textureId
+            text: textureName
             width: img.width
             anchors.horizontalCenter: parent.horizontalCenter
 
-            onRenamed: (newId) => {
-                MaterialBrowserBackend.materialBrowserTexturesModel.setTextureId(index, newId);
+            onRenamed: (newName) => {
+                MaterialBrowserBackend.materialBrowserTexturesModel.setTextureName(index, newName)
                 mouseArea.forceActiveFocus()
             }
 
-            onClicked: {
-                MaterialBrowserBackend.materialBrowserTexturesModel.selectTexture(index)
-                MaterialBrowserBackend.rootView.focusMaterialSection(false)
-            }
+            onClicked: (mouse) => mouseArea.handleClick(mouse)
         }
     }
 
-    Rectangle {
-        id: marker
-        anchors.fill: parent
-
-        color: "transparent"
-        border.width: MaterialBrowserBackend.materialBrowserTexturesModel.selectedIndex === index
-                            ? !MaterialBrowserBackend.rootView.materialSectionFocused ? 3 : 1 : 0
-        border.color: MaterialBrowserBackend.materialBrowserTexturesModel.selectedIndex === index
-                            ? StudioTheme.Values.themeControlOutlineInteraction
-                            : "transparent"
+    ItemBorder {
+        selected: root.selected
+        rightClicked: root.rightClicked
     }
 }

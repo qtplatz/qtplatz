@@ -46,4 +46,16 @@ void QTCREATOR_UTILS_EXPORT setWheelScrollingWithoutFocusBlocked(QWidget *widget
         widget->setFocusPolicy(Qt::StrongFocus);
 }
 
+static QWidget *(*s_dialogParentGetter)() = nullptr;
+
+void setDialogParentGetter(QWidget *(*getter)())
+{
+    s_dialogParentGetter = getter;
+}
+
+QWidget *dialogParent()
+{
+    return s_dialogParentGetter ? s_dialogParentGetter() : nullptr;
+}
+
 } // namespace Utils

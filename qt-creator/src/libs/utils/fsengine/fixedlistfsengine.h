@@ -9,9 +9,9 @@
 #include "../stringutils.h"
 
 #include <QtCore/private/qabstractfileengine_p.h>
+#include <QtGlobal>
 
-namespace Utils {
-namespace Internal {
+namespace Utils::Internal {
 
 class FixedListFSEngine : public QAbstractFileEngine
 {
@@ -40,7 +40,7 @@ public:
         case QAbstractFileEngine::AbsoluteName:
         case QAbstractFileEngine::DefaultName:
         case QAbstractFileEngine::CanonicalName:
-            return chopIfEndsWith(m_filePath.toString(), '/');
+            return chopIfEndsWith(m_filePath.toFSPathString(), '/');
             break;
         case QAbstractFileEngine::BaseName:
             if (m_filePath.fileName().isEmpty())
@@ -50,7 +50,7 @@ public:
         case QAbstractFileEngine::PathName:
         case QAbstractFileEngine::AbsolutePathName:
         case QAbstractFileEngine::CanonicalPathName:
-            return chopIfEndsWith(m_filePath.parentDir().toString(), '/');
+            return chopIfEndsWith(m_filePath.parentDir().toFSPathString(), '/');
             break;
 
         default:
@@ -63,11 +63,26 @@ public:
 
         return QAbstractFileEngine::fileName(file);
     }
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    QAbstractFileEngine::IteratorUniquePtr beginEntryList(
+        const QString &path,
+        QDirListing::IteratorFlags itFlags,
+        const QStringList &filterNames) override
+    {
+        // We do not support recursive or following symlinks for the Fixed List engine.
+        Q_ASSERT(itFlags.testFlag(QDirListing::IteratorFlag::Recursive) == false);
+
+        const auto [filters, _] = convertQDirListingIteratorFlags(itFlags);
+
+        return std::make_unique<DirIterator>(m_children, path, filters, filterNames);
+    }
+#else
     Iterator *beginEntryList(QDir::Filters /*filters*/, const QStringList & /*filterNames*/) override
     {
         return new DirIterator(m_children);
     }
+#endif
 };
 
-} // namespace Internal
-} // namespace Utils
+} // namespace Utils::Internal

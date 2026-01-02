@@ -1,3 +1,0 @@
-Project {
-    property stringList someStrings
-}

@@ -46,12 +46,11 @@ static int indexOfFile(const GeneratedFiles &f, const FilePath &path)
     \sa Core::BaseFileWizardFactory
 */
 
-Utils::Wizard *BaseFileWizardFactory::runWizardImpl(const FilePath &path, QWidget *parent,
-                                                    Id platform,
-                                                    const QVariantMap &extraValues,
-                                                    bool showWizard)
+Wizard *BaseFileWizardFactory::runWizardImpl(const FilePath &path, Id platform,
+                                             const QVariantMap &extraValues,
+                                             bool showWizard)
 {
-    Q_UNUSED(showWizard);
+    Q_UNUSED(showWizard)
     QTC_ASSERT(!path.isEmpty(), return nullptr);
 
     // Create dialog and run it. Ensure that the dialog is deleted when
@@ -63,11 +62,11 @@ Utils::Wizard *BaseFileWizardFactory::runWizardImpl(const FilePath &path, QWidge
     if (flags().testFlag(ForceCapitalLetterForFileName))
         dialogParameterFlags |= WizardDialogParameters::ForceCapitalLetterForFileName;
 
-    Wizard *wizard = create(parent, WizardDialogParameters(path,
-                                                           platform,
-                                                           requiredFeatures(),
-                                                           dialogParameterFlags,
-                                                           extraValues));
+    Wizard *wizard = create(WizardDialogParameters(path,
+                                                   platform,
+                                                   requiredFeatures(),
+                                                   dialogParameterFlags,
+                                                   extraValues));
     QTC_CHECK(wizard);
     return wizard;
 }
@@ -90,17 +89,15 @@ Utils::Wizard *BaseFileWizardFactory::runWizardImpl(const FilePath &path, QWidge
     postGenerateFiles(), which is called after generating the files.
 
     \note Instead of using this class, we recommend that you create JSON-based
-    wizards, as instructed in \l{https://doc.qt.io/qtcreator/creator-project-wizards.html}
-    {Adding New Custom Wizards}.
+    wizards, as instructed in \l{Add wizards} and \l {Custom wizards}.
 
     \sa Core::GeneratedFile, Core::WizardDialogParameters, Core::BaseFileWizard
 */
 
 /*!
-    \fn Core::BaseFileWizard *Core::BaseFileWizardFactory::create(QWidget *parent,
-                                                                  const Core::WizardDialogParameters &parameters) const
+    \fn Core::BaseFileWizard *Core::BaseFileWizardFactory::create(const Core::WizardDialogParameters &parameters) const
 
-    Creates the wizard on the \a parent with the \a parameters.
+    Creates the wizard with the \a parameters.
 */
 
 /*!
@@ -118,22 +115,22 @@ Utils::Wizard *BaseFileWizardFactory::runWizardImpl(const FilePath &path, QWidge
 /*!
     Physically writes \a files.
 
-    If the files cannot be written, returns \c false and sets \a errorMessage
-    to the message that is displayed to users.
+    If the files cannot be written, returns \c Utils::ResultError.
 
     Re-implement (calling the base implementation) to create files with
-    GeneratedFile::CustomGeneratorAttribute set.
+    \c GeneratedFile::CustomGeneratorAttribute set.
 */
 
-bool BaseFileWizardFactory::writeFiles(const GeneratedFiles &files, QString *errorMessage) const
+Result<> BaseFileWizardFactory::writeFiles(const GeneratedFiles &files) const
 {
     const GeneratedFile::Attributes noWriteAttributes
         = GeneratedFile::CustomGeneratorAttribute|GeneratedFile::KeepExistingFileAttribute;
-    for (const GeneratedFile &generatedFile : std::as_const(files))
+    for (const GeneratedFile &generatedFile : std::as_const(files)) {
         if (!(generatedFile.attributes() & noWriteAttributes ))
-            if (!generatedFile.write(errorMessage))
-                return false;
-    return true;
+            if (const Result<> res = generatedFile.write(); !res)
+                return res;
+    }
+    return ResultOk;
 }
 
 /*!
@@ -141,54 +138,47 @@ bool BaseFileWizardFactory::writeFiles(const GeneratedFiles &files, QString *err
     specified by \a l are actually created.
 
     The default implementation opens editors with the newly generated files
-    that have GeneratedFile::OpenEditorAttribute set.
-
-    Returns \a errorMessage if errors occur.
+    that have \c GeneratedFile::OpenEditorAttribute set.
 */
 
-bool BaseFileWizardFactory::postGenerateFiles(const QWizard *, const GeneratedFiles &l,
-                                              QString *errorMessage) const
+Result<> BaseFileWizardFactory::postGenerateFiles(const QWizard *, const GeneratedFiles &l) const
 {
-    return BaseFileWizardFactory::postGenerateOpenEditors(l, errorMessage);
+    return BaseFileWizardFactory::postGenerateOpenEditors(l);
 }
 
 /*!
     Opens the editors for the files \a l if their
-    GeneratedFile::OpenEditorAttribute attribute
+    \c GeneratedFile::OpenEditorAttribute attribute
     is set accordingly.
 
-    If the editorrs cannot be opened, returns \c false and dand sets
-    \a errorMessage to the message that is displayed to users.
+    If the editors cannot be opened, returns \c Utils::ResultError.
 */
 
-bool BaseFileWizardFactory::postGenerateOpenEditors(const GeneratedFiles &l, QString *errorMessage)
+Result<> BaseFileWizardFactory::postGenerateOpenEditors(const GeneratedFiles &l)
 {
     for (const GeneratedFile &file : std::as_const(l)) {
         if (file.attributes() & GeneratedFile::OpenEditorAttribute) {
             IEditor * const editor = EditorManager::openEditor(file.filePath(), file.editorId());
             if (!editor) {
-                if (errorMessage) {
-                    *errorMessage = Tr::tr("Failed to open an editor for \"%1\".")
-                                        .arg(file.filePath().toUserOutput());
-                }
-                return false;
+                return ResultError(Tr::tr("Failed to open an editor for \"%1\".")
+                                        .arg(file.filePath().toUserOutput()));
             }
             editor->document()->formatContents();
-            editor->document()->save(nullptr);
+            editor->document()->save();
         }
     }
-    return true;
+    return ResultOk;
 }
 
 /*!
     Performs an overwrite check on a set of \a files. Checks if the file exists and
     can be overwritten at all, and then prompts the user with a summary.
 
-    Returns \a errorMessage if the file cannot be overwritten.
+    Returns whether the file can be overwritten.
 */
 
-BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(GeneratedFiles *files,
-                                                                QString *errorMessage)
+Result<BaseFileWizardFactory::OverwriteResult>
+    BaseFileWizardFactory::promptOverwrite(GeneratedFiles *files)
 {
     if (debugWizard)
         qDebug() << Q_FUNC_INFO << files;
@@ -210,7 +200,7 @@ BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(Ge
     // Before prompting to overwrite existing files, loop over files and check
     // if there is anything blocking overwriting them (like them being links or folders).
     // Format a file list message as ( "<file1> [readonly], <file2> [folder]").
-    const FilePath commonExistingPath = FileUtils::commonPath(existingFiles);
+    const FilePath commonExistingPath = existingFiles.commonPath();
     const int commonPrefixLen = commonExistingPath.toUserOutput().size() + 1;
     QString fileNamesMsgPart;
     for (const FilePath &filePath : std::as_const(existingFiles)) {
@@ -238,9 +228,9 @@ BaseFileWizardFactory::OverwriteResult BaseFileWizardFactory::promptOverwrite(Ge
     }
 
     if (oddStuffFound) {
-        *errorMessage = Tr::tr("The project directory %1 contains files which cannot be overwritten:\n%2.")
-                            .arg(commonExistingPath.toUserOutput(), fileNamesMsgPart);
-        return OverwriteError;
+        return ResultError(
+            Tr::tr("The project directory %1 contains files which cannot be overwritten:\n%2.")
+                .arg(commonExistingPath.toUserOutput(), fileNamesMsgPart));
     }
     // Prompt to overwrite existing files.
     PromptOverwriteDialog overwriteDialog;

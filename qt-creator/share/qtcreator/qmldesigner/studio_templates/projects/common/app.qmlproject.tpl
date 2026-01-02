@@ -1,36 +1,36 @@
-@if %{IsQt6Project}
 import QmlProject
-@else
-import QmlProject 1.1
-@endif
 
 Project {
-    mainFile: "content/App.qml"
-    mainUiFile: "content/Screen01.ui.qml"
+    mainFile: "%{ContentDir}/App.qml"
+    mainUiFile: "%{ContentDir}/Screen01.ui.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {
-        directory: "content"
+        directory: "%{ProjectName}"
     }
 
     QmlFiles {
-        directory: "imports"
+        directory: "%{ContentDir}"
+    }
+
+    QmlFiles {
+        directory: "%{AssetDir}"
     }
 
     JavaScriptFiles {
-        directory: "content"
+        directory: "%{ProjectName}"
     }
 
     JavaScriptFiles {
-        directory: "imports"
+        directory: "%{ContentDir}"
     }
 
     ImageFiles {
-        directory: "content"
+        directory: "%{ContentDir}"
     }
-    
+
     ImageFiles {
-        directory: "asset_imports"
+        directory: "%{AssetDir}"
     }
 
     Files {
@@ -43,7 +43,7 @@ Project {
         directory: "."
     }
 
-    Files {
+    FontFiles {
         filter: "*.ttf;*.otf"
     }
 
@@ -69,27 +69,17 @@ Project {
 
     Files {
         filter: "*.mesh"
-        directory: "asset_imports"
+        directory: "%{AssetDir}"
     }
 
     Files {
         filter: "*.qad"
-        directory: "asset_imports"
-    }
-
-    Files {
-        filter: "*.qml"
-        directory: "asset_imports"
+        directory: "%{AssetDir}"
     }
 
     Environment {
        QT_QUICK_CONTROLS_CONF: "qtquickcontrols2.conf"
-       QT_AUTO_SCREEN_SCALE_FACTOR: "1"
        QML_COMPAT_RESOLVE_URLS_ON_ASSIGNMENT: "1"
-@if %{IsQt6Project}
-@else
-       QMLSCENE_CORE_PROFILE: "true" // Required for macOS, but can create issues on embedded Linux
-@endif
 @if %{UseVirtualKeyboard}
        QT_IM_MODULE: "qtvirtualkeyboard"
        QT_VIRTUALKEYBOARD_DESKTOP_DISABLE: 1
@@ -104,33 +94,34 @@ Project {
        */
     }
 
-@if %{IsQt6Project}
     qt6Project: true
-@endif
 
     /* List of plugin directories passed to QML runtime */
-    importPaths: [ "imports", "asset_imports" ]
+    importPaths: [ "." ]
 
     /* Required for deployment */
     targetDirectory: "/opt/%{ProjectName}"
 
-    qdsVersion: "4.3"
+@if %{EnableCMakeGeneration}
+    enableCMakeGeneration: true
+    standaloneApp: true
+@endif
+
+    qdsVersion: "4.7"
 
     quickVersion: "%{QtQuickVersion}"
 
-@if %{IsQt6Project}
     /* If any modules the project imports require widgets (e.g. QtCharts), widgetApp must be true */
     widgetApp: true
 
     /* args: Specifies command line arguments for qsb tool to generate shaders.
        files: Specifies target files for qsb tool. If path is included, it must be relative to this file.
               Wildcard '*' can be used in the file name part of the path.
-              e.g. files: [ "content/shaders/*.vert", "*.frag" ]  */
+              e.g. files: [ "%{ContentDir}/shaders/*.vert", "*.frag" ]  */
     ShaderTool {
         args: "-s --glsl \\\"100 es,120,150\\\" --hlsl 50 --msl 12"
-        files: [ "content/shaders/*" ]
+        files: [ "%{ContentDir}/shaders/*" ]
     }
-@endif
 
     multilanguageSupport: true
     supportedLanguages: ["en"]

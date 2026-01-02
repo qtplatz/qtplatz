@@ -3,6 +3,7 @@
 
 #include "figshareplugin.hpp"
 #include "mainwindow.hpp"
+#include "utils/result.h"
 #include <adportable/debug.hpp>
 
 #include <coreplugin/actionmanager/actionmanager.h>
@@ -58,8 +59,8 @@ FigsharePlugin::~FigsharePlugin()
     delete impl_;
 }
 
-bool
-FigsharePlugin::initialize(const QStringList &arguments, QString *errorMessage)
+Utils::Result<>
+FigsharePlugin::initialize(const QStringList &arguments)
 {
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
         impl_->mainWindow_->activateWindow();
@@ -68,7 +69,6 @@ FigsharePlugin::initialize(const QStringList &arguments, QString *errorMessage)
         if ( QWidget * widget = impl_->mainWindow_->createContents() ) {
             if (( impl_->mode_ = std::make_unique< Mode >() )) {
                 impl_->mode_->setWidget( widget );
-                // ExtensionSystem::PluginManager::addObject( mode_.get() );
             }
         }
     }
@@ -98,13 +98,20 @@ FigsharePlugin::initialize(const QStringList &arguments, QString *errorMessage)
         Core::ActionManager::actionContainer(Core::Constants::M_TOOLS);
     toolsMenu->addMenu(restMenu);
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void
 FigsharePlugin::extensionsInitialized()
 {
 	impl_->mainWindow_->OnInitialUpdate();
+}
+
+ExtensionSystem::IPlugin::ShutdownFlag
+FigsharePlugin::aboutToShutdown()
+{
+    ADDEBUG() << "#### FigsharePlugin::" << __FUNCTION__ << " ####";
+    return SynchronousShutdown;
 }
 
 void

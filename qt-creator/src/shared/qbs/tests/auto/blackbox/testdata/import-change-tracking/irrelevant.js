@@ -1,1 +1,0 @@
-function irrelevant() { return "irrelevant"; }

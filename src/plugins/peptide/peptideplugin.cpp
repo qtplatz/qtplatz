@@ -27,6 +27,7 @@
 #include "peptideconstants.hpp"
 #include "mainwindow.hpp"
 #include "peptidemode.hpp"
+#include "utils/result.h"
 
 #include <adportable/debug_core.hpp>
 #include <adlog/logging_handler.hpp>
@@ -87,14 +88,14 @@ peptideplugin::~peptideplugin()
 {
 }
 
-bool peptideplugin::initialize(const QStringList &arguments, QString *errorString)
+Utils::Result<>
+peptideplugin::initialize(const QStringList &arguments)
 {
     (void)arguments;
-    (void)errorString;
 
     impl_->ini();
 
-    return true;
+    return Utils::ResultOk;
 }
 
 void peptideplugin::extensionsInitialized()
@@ -102,11 +103,12 @@ void peptideplugin::extensionsInitialized()
     impl_->mainWindow_->onInitialUpdate();
 }
 
-ExtensionSystem::IPlugin::ShutdownFlag peptideplugin::aboutToShutdown()
+ExtensionSystem::IPlugin::ShutdownFlag
+peptideplugin::aboutToShutdown()
 {
     impl_->fin();
 
-#if ! defined NDEBUG
+#if ! defined NDEBUG && 1
     ADDEBUG() << "\t## Shutdown: "
               << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
                                                      , boost::dll::program_location().parent_path() );

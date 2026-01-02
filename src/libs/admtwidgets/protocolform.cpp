@@ -305,8 +305,8 @@ protocolForm::protocolForm( int protocol, QWidget *parent ) : QWidget(parent)
 
         for ( auto& w : findChildren< QCheckBox *>() ) {
             //w->setTextFormat( Qt::RichText );
-            connect( w, static_cast< void(QCheckBox::*)(int) >(&QCheckBox::stateChanged)
-                     , [this,w](int){
+            connect( w, &QCheckBox::checkStateChanged
+                     , [this,w](Qt::CheckState){
                            handleValueChanged(w);
                        });
         }
@@ -336,7 +336,7 @@ protocolForm::protocolForm( int protocol, QWidget *parent ) : QWidget(parent)
 
         if ( auto cbx = findChild< QCheckBox * >( "gate" ) ) {
             std::pair< QWidget *, QWidget * > w{ findChild< QDoubleSpinBox * >("gate_delay"), findChild< QDoubleSpinBox * >("gate_width") };
-            connect( cbx, &QCheckBox::stateChanged
+            connect( cbx, &QCheckBox::checkStateChanged
                      , [=]( int state ){
                            bool enable = ( state == Qt::Checked );// && impl_->editorBehavior_->gateEditable( 0 );
                            w.first->setEnabled( enable );
@@ -346,7 +346,7 @@ protocolForm::protocolForm( int protocol, QWidget *parent ) : QWidget(parent)
 
         if ( auto cbx = findChild< QCheckBox * >( "gate_1" ) ) {
             std::pair< QWidget *, QWidget * > w{ findChild< QDoubleSpinBox * >("gate_1_delay"), findChild< QDoubleSpinBox * >("gate_1_width") };
-            connect( cbx, &QCheckBox::stateChanged
+            connect( cbx, &QCheckBox::checkStateChanged
                      , [=]( int state ){
                            bool enable = ( state == Qt::Checked ); // && impl_->editorBehavior_->gateEditable( 1 );
                            w.first->setEnabled( enable );

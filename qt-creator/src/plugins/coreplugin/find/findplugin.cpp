@@ -3,12 +3,6 @@
 
 #include "findplugin.h"
 
-#include "currentdocumentfind.h"
-#include "findtoolbar.h"
-#include "findtoolwindow.h"
-#include "ifindfilter.h"
-#include "searchresultwindow.h"
-#include "textfindconstants.h"
 #include "../actionmanager/actioncontainer.h"
 #include "../actionmanager/actionmanager.h"
 #include "../actionmanager/command.h"
@@ -16,10 +10,19 @@
 #include "../coreplugintr.h"
 #include "../icontext.h"
 #include "../icore.h"
+#include "../session.h"
+#include "currentdocumentfind.h"
+#include "findtoolbar.h"
+#include "findtoolwindow.h"
+#include "ifindfilter.h"
+#include "itemviewfind.h"
+#include "searchresultwindow.h"
+#include "textfindconstants.h"
 
 #include <extensionsystem/pluginmanager.h>
 
 #include <utils/algorithm.h>
+#include <utils/itemviews.h>
 #include <utils/qtcassert.h>
 
 #include <QApplication>
@@ -38,8 +41,6 @@
     \inmodule QtCreator
     \internal
 */
-
-Q_DECLARE_METATYPE(Core::IFindFilter*)
 
 using namespace Qt;
 using namespace Utils;
@@ -75,6 +76,10 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    void restore(const Store &s);
+    Store save() const;
+
+    // TODO deprecated since QtC 14.0
     void writeSettings(QtcSettings *settings) const;
     void readSettings(QtcSettings *settings);
 
@@ -104,6 +109,41 @@ QVariant CompletionModel::data(const QModelIndex &index, int role) const
 static Utils::Key completionSettingsArrayPrefix() { return "FindCompletions"; }
 static Utils::Key completionSettingsTextKey() { return "Text"; }
 static Utils::Key completionSettingsFlagsKey() { return "Flags"; }
+
+void CompletionModel::restore(const Store &s)
+{
+    beginResetModel();
+    const QStringList texts = s.value(completionSettingsTextKey()).toStringList();
+    const QList<FindFlags> flags
+        = transform(s.value(completionSettingsFlagsKey()).toList(), [](const QVariant &v) {
+              return FindFlags(v.toInt());
+          });
+    const int size = texts.size();
+    m_entries.clear();
+    m_entries.reserve(size);
+    for (int i = 0; i < size; ++i) {
+        CompletionEntry entry;
+        entry.text = texts.at(i);
+        entry.findFlags = i < flags.size() ? flags.at(i) : FindFlags();
+        if (!entry.text.isEmpty())
+            m_entries.append(entry);
+    }
+    endResetModel();
+}
+
+Store CompletionModel::save() const
+{
+    if (m_entries.isEmpty())
+        return {};
+    const QStringList texts = transform(m_entries, [](const CompletionEntry &e) { return e.text; });
+    const QVariantList flags = transform(m_entries, [](const CompletionEntry &e) {
+        return QVariant::fromValue(int(e.findFlags));
+    });
+    Store s;
+    s.insert(completionSettingsTextKey(), texts);
+    s.insert(completionSettingsFlagsKey(), flags);
+    return s;
+}
 
 void CompletionModel::writeSettings(QtcSettings *settings) const
 {
@@ -167,7 +207,7 @@ public:
     Internal::FindToolBar *m_findToolBar = nullptr;
     Internal::FindToolWindow *m_findDialog = nullptr;
     SearchResultWindow *m_searchResultWindow = nullptr;
-    FindFlags m_findFlags;
+    FindFlags m_findFlags = DontFindGeneratedFiles;
     CompletionModel m_findCompletionModel;
     QStringListModel m_replaceCompletionModel;
     QStringList m_replaceCompletions;
@@ -207,21 +247,29 @@ void Find::initialize()
     d->m_currentDocumentFind = new Internal::CurrentDocumentFind;
 
     d->m_findToolBar = new Internal::FindToolBar(d->m_currentDocumentFind);
-    auto *findToolBarContext = new IContext(m_instance);
-    findToolBarContext->setWidget(d->m_findToolBar);
-    findToolBarContext->setContext(Context(Constants::C_FINDTOOLBAR));
-    ICore::addContextObject(findToolBarContext);
+    IContext::attach(d->m_findToolBar, Context(Constants::C_FINDTOOLBAR));
 
     d->m_findDialog = new Internal::FindToolWindow;
     d->m_searchResultWindow = new SearchResultWindow(d->m_findDialog);
     ExtensionSystem::PluginManager::addObject(d->m_searchResultWindow);
+
     QObject::connect(ICore::instance(), &ICore::saveSettingsRequested, d, &FindPrivate::writeSettings);
+    QObject::connect(
+        SessionManager::instance(),
+        &SessionManager::aboutToSaveSession,
+        d,
+        &FindPrivate::writeSettings);
+    QObject::connect(
+        SessionManager::instance(), &SessionManager::sessionLoaded, d, &FindPrivate::readSettings);
+
+    Utils::Internal::setViewSearchCallback([](QAbstractItemView *view, int role) {
+        Aggregation::aggregate({view, new ItemViewFind(view, role)});
+    });
 }
 
 void Find::extensionsInitialized()
 {
     d->setupFilterMenuItems();
-    d->readSettings();
 }
 
 void Find::aboutToShutdown()
@@ -334,6 +382,16 @@ void Find::setWholeWord(bool wholeOnly)
     d->setFindFlag(FindWholeWords, wholeOnly);
 }
 
+void Find::setIgnoreBinaryFiles(bool ignoreBinaryFiles)
+{
+    d->setFindFlag(DontFindBinaryFiles, ignoreBinaryFiles);
+}
+
+void Find::setIgnoreGeneratedFiles(bool ignoreGeneratedFiles)
+{
+    d->setFindFlag(Utils::DontFindGeneratedFiles, ignoreGeneratedFiles);
+}
+
 void Find::setBackward(bool backward)
 {
     d->setFindFlag(FindBackward, backward);
@@ -369,11 +427,15 @@ bool Find::hasFindFlag(FindFlag flag)
 
 void FindPrivate::writeSettings()
 {
+    // TODO for backwards compatibility
+    // deprecated since QtC 14.0
     QtcSettings *settings = ICore::settings();
     settings->beginGroup("Find");
     settings->setValueWithDefault("Backward", bool(m_findFlags & FindBackward), false);
     settings->setValueWithDefault("CaseSensitively", bool(m_findFlags & FindCaseSensitively), false);
     settings->setValueWithDefault("WholeWords", bool(m_findFlags & FindWholeWords), false);
+    settings
+        ->setValueWithDefault("IgnoreBinaryFiles", bool(m_findFlags & DontFindBinaryFiles), false);
     settings->setValueWithDefault("RegularExpression",
                                   bool(m_findFlags & FindRegularExpression),
                                   false);
@@ -384,26 +446,77 @@ void FindPrivate::writeSettings()
     m_findToolBar->writeSettings();
     m_findDialog->writeSettings();
     m_searchResultWindow->writeSettings();
+
+    // save in session
+    Store s;
+    if (m_findFlags & FindBackward)
+        s.insert("Backward", true);
+    if (m_findFlags & FindCaseSensitively)
+        s.insert("CaseSensitively", true);
+    if (m_findFlags & DontFindBinaryFiles)
+        s.insert("IgnoreBinaryFiles", true);
+    if (!(m_findFlags & DontFindGeneratedFiles))
+        s.insert("IgnoreGeneratedFiles", false);
+    if (m_findFlags & FindWholeWords)
+        s.insert("WholeWords", true);
+    if (m_findFlags & FindRegularExpression)
+        s.insert("RegularExpression", true);
+    if (m_findFlags & FindPreserveCase)
+        s.insert("PreserveCase", true);
+    const Store completion = m_findCompletionModel.save();
+    if (!completion.isEmpty())
+        s.insert("FindCompletions", variantFromStore(completion));
+    if (!m_replaceCompletions.isEmpty())
+        s.insert("ReplaceStrings", m_replaceCompletions);
+    const Store toolbar = m_findToolBar->save();
+    if (!toolbar.isEmpty())
+        s.insert("ToolBar", variantFromStore(toolbar));
+    const Store advanced = m_findDialog->save();
+    if (!advanced.isEmpty())
+        s.insert("AdvancedSearch", variantFromStore(advanced));
+    SessionManager::setValue("Find", variantFromStore(s));
 }
 
 void FindPrivate::readSettings()
 {
-    QtcSettings *settings = ICore::settings();
-    settings->beginGroup("Find");
-    {
-        QSignalBlocker blocker(m_instance);
-        Find::setBackward(settings->value("Backward", false).toBool());
-        Find::setCaseSensitive(settings->value("CaseSensitively", false).toBool());
-        Find::setWholeWord(settings->value("WholeWords", false).toBool());
-        Find::setRegularExpression(settings->value("RegularExpression", false).toBool());
-        Find::setPreserveCase(settings->value("PreserveCase", false).toBool());
+    const Store s = storeFromVariant(SessionManager::value("Find"));
+    if (s.isEmpty() && SessionManager::isDefaultVirgin()) {
+        // TODO compatibility path when opening Qt Creator
+        // TODO deprecated since QtC 14.0
+        QtcSettings *settings = ICore::settings();
+        settings->beginGroup("Find");
+        {
+            QSignalBlocker blocker(m_instance);
+            Find::setBackward(settings->value("Backward", false).toBool());
+            Find::setCaseSensitive(settings->value("CaseSensitively", false).toBool());
+            Find::setWholeWord(settings->value("WholeWords", false).toBool());
+            Find::setRegularExpression(settings->value("RegularExpression", false).toBool());
+            Find::setPreserveCase(settings->value("PreserveCase", false).toBool());
+            Find::setIgnoreBinaryFiles(settings->value("IgnoreBinaryFiles", false).toBool());
+        }
+        m_findCompletionModel.readSettings(settings);
+        m_replaceCompletions = settings->value("ReplaceStrings").toStringList();
+        m_replaceCompletionModel.setStringList(m_replaceCompletions);
+        settings->endGroup();
+        m_findToolBar->readSettings();
+        m_findDialog->readSettings();
+    } else if (!s.empty()) {
+        {
+            QSignalBlocker blocker(m_instance);
+            Find::setBackward(s.value("Backward", false).toBool());
+            Find::setCaseSensitive(s.value("CaseSensitively", false).toBool());
+            Find::setWholeWord(s.value("WholeWords", false).toBool());
+            Find::setRegularExpression(s.value("RegularExpression", false).toBool());
+            Find::setPreserveCase(s.value("PreserveCase", false).toBool());
+            Find::setIgnoreBinaryFiles(s.value("IgnoreBinaryFiles", false).toBool());
+            Find::setIgnoreGeneratedFiles(s.value("IgnoreGeneratedFiles", true).toBool());
+        }
+        m_findCompletionModel.restore(storeFromVariant(s.value("FindCompletions")));
+        m_replaceCompletions = s.value("ReplaceStrings").toStringList();
+        m_replaceCompletionModel.setStringList(m_replaceCompletions);
+        m_findToolBar->restore(storeFromVariant(s.value("ToolBar")));
+        m_findDialog->restore(storeFromVariant(s.value("AdvancedSearch")));
     }
-    m_findCompletionModel.readSettings(settings);
-    m_replaceCompletions = settings->value("ReplaceStrings").toStringList();
-    m_replaceCompletionModel.setStringList(m_replaceCompletions);
-    settings->endGroup();
-    m_findToolBar->readSettings();
-    m_findDialog->readSettings();
     emit m_instance->findFlagsChanged(); // would have been done in the setXXX methods above
 }
 

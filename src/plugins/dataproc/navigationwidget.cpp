@@ -553,7 +553,7 @@ void
 NavigationWidget::handleSessionUpdated( Dataprocessor * processor, portfolio::Folium& folium )
 {
     // ScopedDebug(__t);
-    QString filename = processor->filePath().toString();
+    QString filename = processor->filePath().toUrlishString();
 
     QStandardItemModel& model = *impl_->pModel_;
 

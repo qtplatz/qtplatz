@@ -1,10 +1,13 @@
 {
+    "Id" : "core",
+    "DisplayName" : "Core",
     "Name" : "Core",
     "Version" : "${IDE_VERSION}",
     "CompatVersion" : "${IDE_VERSION_COMPAT}",
     "Required" : true,
+    "VendorId" : "theqtcompany",
     "Vendor" : "The Qt Company Ltd",
-    "Copyright" : "(C) ${IDE_COPYRIGHT_YEAR} The Qt Company Ltd",
+    "Copyright" : "${IDE_COPYRIGHT}",
     "License" : [ "Commercial Usage",
                   "",
                   "Licensees holding valid Qt Commercial licenses may use this plugin in accordance with the Qt Commercial License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written agreement between you and The Qt Company.",
@@ -15,7 +18,7 @@
     ],
     "Category" : "Core",
     "Description" : "The core plugin for the Qt IDE.",
-    "Url" : "http://www.qt.io",
+    "Url" : "https://www.qt.io",
     "Arguments" : [
         {
             "Name" : "-color",

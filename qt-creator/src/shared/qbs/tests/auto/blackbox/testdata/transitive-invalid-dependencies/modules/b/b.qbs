@@ -1,3 +1,0 @@
-Module {
-    Depends { name: "a" }
-}

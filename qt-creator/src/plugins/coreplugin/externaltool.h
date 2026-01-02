@@ -10,7 +10,6 @@
 #include <utils/id.h>
 
 #include <QObject>
-#include <QTextCodec>
 #include <QMetaType>
 
 namespace Utils { class Process; }
@@ -55,12 +54,12 @@ public:
     // all tools that are preset (changed or unchanged) have the original value here:
     std::shared_ptr<ExternalTool> preset() const;
 
-    static ExternalTool *createFromXml(const QByteArray &xml, QString *errorMessage = nullptr,
-                                       const QString &locale = {});
-    static ExternalTool *createFromFile(const Utils::FilePath &fileName, QString *errorMessage = nullptr,
-                                        const QString &locale = {});
+    static Utils::Result<ExternalTool *> createFromXml(const QByteArray &xml,
+                                                       const QString &locale = {});
+    static Utils::Result<ExternalTool *> createFromFile(const Utils::FilePath &filePath,
+                                                        const QString &locale = {});
 
-    bool save(QString *errorMessage = nullptr) const;
+    Utils::Result<> save() const;
 
     bool operator==(const ExternalTool &other) const;
     bool operator!=(const ExternalTool &other) const { return !((*this) == other); }
@@ -127,10 +126,6 @@ private:
     Utils::FilePath m_resolvedWorkingDirectory;
     Utils::Environment m_resolvedEnvironment;
     Utils::Process *m_process;
-    // TODO remove codec handling, that is done by Process now
-    QTextCodec *m_outputCodec;
-    QTextCodec::ConverterState m_outputCodecState;
-    QTextCodec::ConverterState m_errorCodecState;
     QString m_processOutput;
     Utils::FilePath m_expectedFilePath;
     bool m_hasError;
@@ -138,5 +133,3 @@ private:
 };
 
 } // Core
-
-Q_DECLARE_METATYPE(Core::ExternalTool *)

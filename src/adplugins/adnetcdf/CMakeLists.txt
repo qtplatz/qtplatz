@@ -25,7 +25,6 @@ set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
 include_directories(
   ${QtWidgets_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/src    # app_version.h
   ${netCDF_INCLUDE_DIR}
   )
 

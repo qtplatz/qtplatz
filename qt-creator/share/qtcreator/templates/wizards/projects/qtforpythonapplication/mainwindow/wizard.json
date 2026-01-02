@@ -8,13 +8,13 @@
     "trDisplayCategory": "Application (Qt for Python)",
     "icon": "../icons/icon.png",
     "iconKind": "Themed",
-    "enabled": "%{JS: value('Plugins').indexOf('Python') >= 0 && (!value('Platform').length || ['Desktop', 'DockerDeviceType', 'GenericLinuxOsType'].includes(value('Platform')))}",
+    "enabled": "%{JS: isPluginRunning('python') && (!value('Platform').length || ['Desktop', 'DockerDeviceType', 'GenericLinuxOsType'].includes(value('Platform')))}",
 
     "options":
     [
         { "key": "MainPyFileName", "value": "%{ProjectDirectory}/%{SrcFileName}" },
-        { "key": "PyProjectFile", "value": "%{ProjectFileName}" },
-        { "key": "ProjectFilePath", "value": "%{ProjectDirectory}/%{PyProjectFile}" }
+        { "key": "PyProjectTomlFile", "value": "pyproject.toml" },
+        { "key": "ProjectFilePath", "value": "%{ProjectDirectory}/%{PyProjectTomlFile}" }
     ],
 
     "pages":
@@ -58,13 +58,6 @@
                     "trDisplayName": "Source file:",
                     "mandatory": true,
                     "data": { "text": "%{JS: Cpp.classToFileName(value('Class'), Util.preferredSuffix('text/x-python'))}" }
-                },
-                {
-                    "name": "ProjectFileName",
-                    "type": "LineEdit",
-                    "trDisplayName": "Project file:",
-                    "mandatory": true,
-                    "data": { "text": "%{JS: Util.fileName('%{ProjectName}', 'pyproject')}" }
                 }
             ]
         },
@@ -82,13 +75,6 @@
                         "value":
                         {
                             "PySideVersion": "PySide6"
-                        }
-                    },
-                    {
-                        "trKey": "PySide 2",
-                        "value":
-                        {
-                            "PySideVersion": "PySide2"
                         }
                     }
                 ]
@@ -116,8 +102,8 @@
             "data":
             [
                 {
-                    "source": "../main.pyproject",
-                    "target": "%{PyProjectFile}",
+                    "source": "../pyproject.toml",
+                    "target": "%{PyProjectTomlFile}",
                     "openAsProject": true
                 },
                 {

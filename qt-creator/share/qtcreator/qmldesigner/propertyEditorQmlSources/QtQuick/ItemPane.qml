@@ -20,7 +20,7 @@ PropertyEditorPane {
     }
 
     DynamicPropertiesSection {
-        propertiesModel: SelectionDynamicPropertiesModel {}
+        propertiesModel: PropertyEditorDynamicPropertiesModel {}
         visible: !hasMultiSelection
     }
 
@@ -89,10 +89,18 @@ PropertyEditorPane {
         anchors.right: parent.right
 
         StudioControls.TabButton {
-            text: backendValues.__classNamePrivateInternal.value
+            text: backendValues.__classNamePrivateInternal?.value
+            onClicked: () => {
+                if (itemPane.searchBar.hasDoneSearch)
+                    itemPane.searchBar.search();
+            }
         }
         StudioControls.TabButton {
             text: qsTr("Layout")
+            onClicked: () => {
+                if (itemPane.searchBar.hasDoneSearch)
+                    itemPane.searchBar.search();
+            }
         }
     }
 
@@ -133,12 +141,16 @@ PropertyEditorPane {
                 visible: specificsOne.source.toString() !== ""
             }
 
+            EffectsSection {
+                defaultExpanded: false
+            }
+
             AdvancedSection {
-                expanded: false
+                defaultExpanded: false
             }
 
             LayerSection {
-                expanded: false
+                defaultExpanded: false
             }
         }
 

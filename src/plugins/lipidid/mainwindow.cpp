@@ -127,7 +127,7 @@ namespace lipidid {
         void setup_menu_actions();
 
         static QToolButton *
-        toolButton( const char * id ) {
+        toolButton( Utils::Id id ) {
             return toolButton( Core::ActionManager::instance()->command( id )->action() );
         }
         static void createDockWidgets( MainWindow * );

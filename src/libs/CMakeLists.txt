@@ -14,7 +14,7 @@ add_subdirectory ( admethods )
 if ( QT_FOUND )
   add_subdirectory ( adplugin )  # <-- Qt5_Core dependency (QJsonXXX)
   add_subdirectory ( adacquire ) # <-- adplugin dependency
-  add_subdirectory ( adui )      # tools dependency
+  #add_subdirectory ( adui )      # tools dependency
 endif()
 add_subdirectory ( adportfolio )
 add_subdirectory ( adprot )

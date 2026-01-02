@@ -1,1 +1,0 @@
-Product { name: "p2" }

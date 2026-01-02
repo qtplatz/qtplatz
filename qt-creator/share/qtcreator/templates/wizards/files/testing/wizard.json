@@ -8,7 +8,7 @@
     "trDisplayCategory": "Test Case",
     "icon": "../../autotest/autotest.png",
     "iconKind": "Themed",
-    "enabled": "%{JS: value('Plugins').indexOf('AutoTest') >= 0}",
+    "enabled": "%{JS: isPluginRunning('autotest')}",
 
     "options": [
         { "key": "TargetPath", "value": "%{Path}" },
@@ -103,6 +103,27 @@
                     "type": "CheckBox",
                     "data": {
                         "checked": false
+                    }
+                },
+                {
+                    "name": "QtCompatibility",
+                    "trDisplayName": "Qt code compatibility:",
+                    "type": "ComboBox",
+                    "visible": "%{JS: value('TestFrameWork') === 'QtQuickTest' }",
+                    "data":
+                    {
+                        "index": 0,
+                        "items":
+                        [
+                            {
+                                "trKey": "Qt6 and higher",
+                                "value": "Qt6+"
+                            },
+                            {
+                                "trKey": "Qt5 and higher",
+                                "value": "Qt5+"
+                            }
+                        ]
                     }
                 },
                 {

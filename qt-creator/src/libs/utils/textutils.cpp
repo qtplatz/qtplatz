@@ -4,26 +4,18 @@
 #include "textutils.h"
 #include "qtcassert.h"
 
+#include <QPromise>
 #include <QRegularExpression>
 #include <QTextBlock>
 #include <QTextDocument>
 
 namespace Utils::Text {
 
-bool Position::operator==(const Position &other) const
+QTextCursor Position::toTextCursor(QTextDocument *doc) const
 {
-    return line == other.line && column == other.column;
-}
-
-int Position::positionInDocument(QTextDocument *doc) const
-{
-    if (!isValid())
-        return -1;
-    QTC_ASSERT(doc, return -1);
-    QTextBlock block = doc->findBlockByNumber(line - 1);
-    if (!block.isValid())
-        return -1;
-    return block.position() + column;
+    QTextCursor result(doc);
+    result.setPosition(toPositionInDocument(doc));
+    return result;
 }
 
 /*!
@@ -77,12 +69,45 @@ Position Position::fromCursor(const QTextCursor &c)
 
 int Position::toPositionInDocument(const QTextDocument *document) const
 {
+    if (!isValid())
+        return -1;
+
     QTC_ASSERT(document, return -1);
     const QTextBlock block = document->findBlockByNumber(line - 1);
     if (block.isValid())
         return block.position() + qMin(column, block.length() - 1);
 
     return -1;
+}
+
+bool operator==(const Position &left, const Position &right)
+{
+    return left.line == right.line && left.column == right.column;
+}
+
+bool operator!=(const Position &left, const Position &right)
+{
+    return !(left == right);
+}
+
+bool operator>=(const Position &left, const Position &right)
+{
+    return !(left < right);
+}
+
+bool operator>(const Position &left, const Position &right)
+{
+    return !(left <= right);
+}
+
+bool operator<=(const Position &left, const Position &right)
+{
+    return left.line < right.line || (left.line == right.line && left.column <= right.column);
+}
+
+bool operator<(const Position &left, const Position &right)
+{
+    return left.line < right.line || (left.line == right.line && left.column < right.column);
 }
 
 int Range::length(const QString &text) const
@@ -118,12 +143,29 @@ bool Range::operator==(const Range &other) const
     return begin == other.begin && end == other.end;
 }
 
+bool Range::contains(const Position &pos) const
+{
+    return pos >= begin && pos <= end;
+}
+
 QTextCursor Range::toTextCursor(QTextDocument *doc) const
 {
+    int anchor = begin.toPositionInDocument(doc);
+    if (anchor < 0)
+        return {};
+    int pos = end.toPositionInDocument(doc);
+    if (pos < 0)
+        return {};
+    QTC_ASSERT(anchor <= pos, std::swap(anchor, pos));
     QTextCursor cursor(doc);
-    cursor.setPosition(begin.positionInDocument(doc));
-    cursor.setPosition(end.positionInDocument(doc), QTextCursor::KeepAnchor);
+    cursor.setPosition(anchor);
+    cursor.setPosition(pos, QTextCursor::KeepAnchor);
     return cursor;
+}
+
+QString Range::text(QTextDocument *doc) const
+{
+    return toTextCursor(doc).selectedText().replace(QChar(QChar::ParagraphSeparator), '\n');
 }
 
 bool convertPosition(const QTextDocument *document, int pos, int *line, int *column)
@@ -143,15 +185,16 @@ bool convertPosition(const QTextDocument *document, int pos, int *line, int *col
 
 int positionInText(const QTextDocument *textDocument, int line, int column)
 {
-    // Deduct 1 from line and column since they are 1-based.
+    // Deduct 1 from line since it is 1-based.
     // Column should already be converted from UTF-8 byte offset to the TextEditor column.
-    return textDocument->findBlockByNumber(line - 1).position() + column - 1;
+    return textDocument->findBlockByNumber(line - 1).position() + column;
 }
 
-QString textAt(QTextCursor tc, int pos, int length)
+QString textAt(QTextDocument *textDocument, int pos, int length)
 {
     if (pos < 0)
         pos = 0;
+    QTextCursor tc(textDocument);
     tc.movePosition(QTextCursor::End);
     const int end = std::min(pos + length, tc.position());
 
@@ -170,7 +213,7 @@ QTextCursor selectAt(QTextCursor textCursor, int line, int column, uint length)
     if (column < 0)
         column = 0;
 
-    const int anchorPosition = positionInText(textCursor.document(), line, column + 1);
+    const int anchorPosition = positionInText(textCursor.document(), line, column);
     textCursor.setPosition(anchorPosition);
     textCursor.setPosition(anchorPosition + int(length), QTextCursor::KeepAnchor);
 
@@ -284,6 +327,33 @@ QDebug &operator<<(QDebug &stream, const Position &pos)
 {
     stream << "line: " << pos.line << ", column: " << pos.column;
     return stream;
+}
+
+HighlightCallback &codeHighlighter()
+{
+    static HighlightCallback s_highlighter;
+    return s_highlighter;
+}
+
+QFuture<QTextDocument *> highlightCode(const QString &code, const QString &mimeType)
+{
+    if (const auto highlighter = codeHighlighter())
+        return highlighter(code, mimeType);
+
+    QTextDocument *doc = new QTextDocument;
+    doc->setPlainText(code);
+
+    QPromise<QTextDocument *> promise;
+    promise.start();
+    promise.addResult(doc);
+    promise.finish();
+
+    return promise.future();
+}
+
+void setCodeHighlighter(const HighlightCallback &highlighter)
+{
+    codeHighlighter() = highlighter;
 }
 
 } // namespace Utils::Text
