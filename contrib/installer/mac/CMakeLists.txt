@@ -20,6 +20,9 @@ elseif( __arch_counts EQUAL "0" )
 endif()
 
 message( STATUS "####### mac installer ######### --- " ${OSX_TARGET_ARCH} )
+message( STATUS "####### mac installer QTPLATZ_VERSION  : ${QTPLATZ_VERSION}" )
+message( STATUS "####### mac installer VERSION  : ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}.${VERSION_PATCH}" )
+message( STATUS "####### mac installer HASH     : ${VERSION_HASH}" )
 
 set( QTPLATZ_SOURCE_DIR "${CMAKE_SOURCE_DIR}" )
 set( QTPLATZ_BINARY_DIR "${CMAKE_BINARY_DIR}" )

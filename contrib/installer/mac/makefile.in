@@ -16,8 +16,7 @@ default:
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
-	@echo "make rpath"
-	@echo "make dmg"
+	@echo "make dmg | make pkg"
 
 deploy:
 	make app
@@ -26,7 +25,7 @@ deploy:
 
 world:
 	make deploy
-	make dmg
+	make pkg
 
 # all: qtplatz.app
 qtplatz.app:
@@ -41,13 +40,28 @@ deployqt: qtplatz.app
 	${DEPLOYQT} ./qtplatz.app -verbose=2
 
 clean:
-	rm -rf qtplatz.app ${TARGET} rpath.sh
+	rm -rf qtplatz.app pkgroot ${TARGET} rpath.sh *~ qtplatz-component.pkg
 
 translations:
 	cp -rp ${QTDIR}/translations ./qtplatz.app/Contents/Resources
 
 dmg: qtplatz.app translations
-	hdiutil create -size 300m ${TARGET} -srcfolder ./qtplatz.app
+	hdiutil create ${TARGET} -srcfolder ./qtplatz.app
+
+pkg: qtplatz.app translations
+	rm -f qtplatz-component.pkg qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@.pkg
+	find qtplatz.app -name '._*' -delete
+	find qtplatz.app -name '.DS_Store' -delete
+	pkgbuild \
+	  --component qtplatz.app \
+	  --install-location /Applications \
+	  --identifier com.ms-cheminfo.qtplatz \
+	  --version @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@ \
+	  --ownership recommended \
+	  qtplatz-component.pkg
+	productbuild \
+	  --package qtplatz-component.pkg \
+	  qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@.pkg
 
 # ---- debug helpers ----------
 
