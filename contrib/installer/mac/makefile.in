@@ -49,19 +49,19 @@ dmg: qtplatz.app translations
 	hdiutil create ${TARGET} -srcfolder ./qtplatz.app
 
 pkg: qtplatz.app translations
-	rm -f qtplatz-component.pkg qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@.pkg
+	rm -f qtplatz-component.pkg qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@.pkg
 	find qtplatz.app -name '._*' -delete
 	find qtplatz.app -name '.DS_Store' -delete
 	pkgbuild \
 	  --component qtplatz.app \
 	  --install-location /Applications \
 	  --identifier com.ms-cheminfo.qtplatz \
-	  --version @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@ \
+	  --version @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@ \
 	  --ownership recommended \
 	  qtplatz-component.pkg
 	productbuild \
 	  --package qtplatz-component.pkg \
-	  qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@.pkg
+	  qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@.pkg
 
 # ---- debug helpers ----------
 
