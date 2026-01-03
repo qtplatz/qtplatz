@@ -58,7 +58,7 @@ if [ -z $cross_target ]; then
 					  "-DBoost_NO_BOOST_CMAKE=ON"
 					  "-DRDK_BUILD_FREETYPE_SUPPORT=OFF"
 					  "-DRDK_BUILD_RPATH_SUPPORT=ON"
-					  "-DCMAKE_OSX_DEPLOYMENT_TARGET=14.0"
+					  #"-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0"
 					)
 		if (( $nproc < 8 )); then
 			cmake_args+=(

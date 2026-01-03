@@ -154,6 +154,22 @@ function boost_build_mingw {
 			 install
 }
 
+function warn_homebrew_python_framework {
+    case "$(build_uname)" in
+        Darwin*)
+            if [ -d /opt/homebrew/Frameworks/Python.framework ]; then
+                echo "WARNING: Homebrew Python framework exists:"
+                echo "  /opt/homebrew/Frameworks/Python.framework"
+                echo "CMake may prefer this over python.org Python regardless of PATH."
+                echo "Suggested: uninstall python@X.Y or remove that framework."
+                echo
+                echo "Found versions:"
+                ls -1 /opt/homebrew/Frameworks/Python.framework/Versions 2>/dev/null || true
+                prompt
+            fi
+            ;;
+    esac
+}
 
 function boost_build {
     echo "=============================="
@@ -299,6 +315,7 @@ if [ -z $PREFIX ]; then
 fi
 
 python_dirs
+warn_homebrew_python_framework
 
 BOOST_BUILD_DIR=${BUILD_ROOT}/boost_${BOOST_VERSION}
 
