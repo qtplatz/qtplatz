@@ -165,8 +165,8 @@ LipididPlugin::aboutToShutdown()
     mainWindow_->OnFinalClose();
 #if ! defined NDEBUG
     ADDEBUG() << "## Shutdown: "
-              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
-                                                     , boost::dll::program_location().parent_path() );
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
+                                                    , boost::dll::program_location().parent_path() );
 #endif
 	return SynchronousShutdown;
 }

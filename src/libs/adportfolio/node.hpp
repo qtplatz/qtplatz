@@ -27,6 +27,7 @@
 
 #include "portfolio_global.h"
 #include <pugixml.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 #include <boost/uuid/uuid.hpp>
@@ -42,7 +43,7 @@ namespace portfolio {
             Node();
             Node( const Node& );
         protected:
-            Node( const pugi::xml_node&, PortfolioImpl* impl );
+            Node( const pugi::xml_node&, std::shared_ptr< PortfolioImpl > impl );
 
         public:
             operator bool () const;
@@ -79,7 +80,8 @@ namespace portfolio {
 
             static boost::uuids::uuid uuidFromString( const std::string& );
 
-            const PortfolioImpl * impl() const { return impl_; };
+            std::shared_ptr<const PortfolioImpl> impl() const { return impl_; }
+            std::shared_ptr< PortfolioImpl > impl() { return impl_; }
             pugi::xpath_node select_node( const std::string& query );
             // std::wstring portfolio_fullpath() const;
             template< typename char_type > std::basic_string< char_type > filename() const;
@@ -103,7 +105,7 @@ namespace portfolio {
 
         protected:
             pugi::xml_node node_;
-            PortfolioImpl* impl_;
+            std::shared_ptr< PortfolioImpl > impl_;
             boost::uuids::uuid uuid_;
         };
 

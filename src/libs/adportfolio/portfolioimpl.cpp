@@ -55,13 +55,13 @@ PortfolioImpl::PortfolioImpl( const std::string& xml ) : isXMLLoaded_(false)
     }
 }
 
-PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t )
-                                                       , isXMLLoaded_( t.isXMLLoaded_ )
-                                                       , db_( t.db_ )
-                                                       , removed_list_( t.removed_list_ )
-{
-    ADDEBUG() << "PortfolioImpl copy ctor : " << removed_list_.size();
-}
+// PortfolioImpl::PortfolioImpl( const PortfolioImpl& t ) : Node( t )
+//                                                        , isXMLLoaded_( t.isXMLLoaded_ )
+//                                                        , db_( t.db_ )
+//                                                        , removed_list_( t.removed_list_ )
+// {
+//     ADDEBUG() << "PortfolioImpl copy ctor : " << removed_list_.size();
+// }
 
 const std::wstring
 PortfolioImpl::fullpath() const
@@ -76,7 +76,7 @@ PortfolioImpl::selectFolders( const std::wstring& query )
 
     pugi::xpath_node_set list = Node::selectNodes( query );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        vec.emplace_back( it->node(), this );
+        vec.emplace_back( it->node(), this->shared_from_this() );
 
     return vec;
 }
@@ -86,7 +86,7 @@ PortfolioImpl::selectFolium( const std::wstring& query )
 {
     pugi::xpath_node_set list = Node::selectNodes( query );
     if ( list.size() )
-        return Folium( list[0].node(), this );
+        return Folium( list[0].node(), this->shared_from_this() );
 
     return Folium(); // empty
 }
@@ -154,13 +154,13 @@ PortfolioImpl::addFolder( const std::string& name, bool uniq )
         try {
             pugi::xpath_node_set list = Node::selectNodes( query );
             if ( list.size() > 0 )
-                return Folder( list[0].node(), this );
+                return Folder( list[0].node(), this->shared_from_this() );
         } catch ( pugi::xpath_exception& ex ) {
             adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
             assert(0);
         }
     }
-    return Folder( Node::addFolder( name, this ), this );
+    return Folder( Node::addFolder( name, this ), this->shared_from_this() );
 }
 
 Folder
@@ -171,7 +171,7 @@ PortfolioImpl::findFolder( const std::wstring& name )
     try {
         pugi::xpath_node_set list = Node::selectNodes( query );
         if ( list.size() > 0 )
-            return Folder( list[0].node(), this );
+            return Folder( list[0].node(), this->shared_from_this() );
     } catch ( pugi::xpath_exception& ex ) {
         adportable::debug(__FILE__, __LINE__) << "xml_exception: " << ex.what();
     }

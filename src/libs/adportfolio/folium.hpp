@@ -86,8 +86,7 @@ namespace portfolio {
         ~Folium();
         Folium();
         Folium( const Folium& );
-        Folium( const pugi::xml_node&, internal::PortfolioImpl * impl );
-        // Folium( pugi::xml_node, internal::PortfolioImpl * impl );
+        Folium( const pugi::xml_node&, std::shared_ptr< internal::PortfolioImpl > impl );
     public:
 
         bool nil() const;
@@ -143,7 +142,6 @@ namespace portfolio {
 
         // --- create/modify
         Folium addAttachment( const std::wstring& name );
-		// bool removeAttachment( const std::wstring& name, bool removeContents = true );
         bool erase_attachment( const std::wstring& name, std::function< void( std::tuple< std::wstring, std::wstring > ) > callback );
         bool erase_attachments( std::function< void( std::tuple< std::wstring, std::wstring > ) > callback );
     };

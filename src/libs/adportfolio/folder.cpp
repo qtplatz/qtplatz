@@ -37,7 +37,8 @@ Folder::Folder()
 {
 }
 
-Folder::Folder( const pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+Folder::Folder(const pugi::xml_node &n
+               , std::shared_ptr< internal::PortfolioImpl > impl ) : Node( n, impl )
 {
 }
 
@@ -58,8 +59,7 @@ Folder::folders()
 
     pugi::xpath_node_set list = node_.select_nodes( "./folder[@folderType='directory']" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        folders.push_back( Folder( it->node(), impl_ ) );
-
+        folders.push_back( Folder( it->node(), this->impl() ) );
     return folders;
 }
 
@@ -77,8 +77,7 @@ Folder::folio()
 
     pugi::xpath_node_set list = node_.select_nodes( "./folder[@folderType='file']|./folium" );
     for ( pugi::xpath_node_set::const_iterator it = list.begin(); it != list.end(); ++it )
-        folio.emplace_back( Folium( it->node(), impl_ ) );
-
+        folio.emplace_back(Folium(it->node(), impl_ ));
     return folio;
 }
 
@@ -89,43 +88,43 @@ Folder::folio() const
 }
 
 Folium
-Folder::findFoliumByName( const std::wstring& name )
+Folder::findFoliumByName(const std::wstring &name)
 {
-	std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";
+    std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";
     pugi::xpath_node node = node_.select_node( query.c_str() );
-    if ( node.node().empty() ) {
-        return Folium();
+    if ( not node.node().empty() ) {
+        return Folium( node.node(), impl_ );
     }
-	return Folium( node.node(), impl_ );
+    return {};
 }
 
 Folium
-Folder::findFoliumByName( const std::string& name )
+Folder::findFoliumByName(const std::string &name)
 {
-	std::string query = "./folium[@name=\"" + name + "\"]";
+    std::string query = "./folium[@name=\"" + name + "\"]";
     pugi::xpath_node node = node_.select_node( query.c_str() );
-    if ( node.node().empty() ) {
-        return Folium{};
+    if ( not node.node().empty() ) {
+        return Folium(node.node(), impl_ );
     }
-	return Folium( node.node(), impl_ );
+    return {};
 }
 
 Folium
-Folder::findFoliumByRegex( const std::string& query )
+Folder::findFoliumByRegex(const std::string &query)
 {
     //std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";
     pugi::xpath_node node = node_.select_node( query.c_str() );
-    if ( node.node().empty() ) {
-        return Folium();
+    if ( not node.node().empty() ) {
+        return Folium(node.node(), impl_ );
     }
-	return Folium( node.node(), impl_ );
+    return {};
 }
 
 template<> std::vector< Folium >
 Folder::find( const std::string& xpath ) const
 {
     std::vector< Folium > r;
-    auto nodes = node_.select_nodes( xpath.c_str() );
+    auto nodes = node_.select_nodes(xpath.c_str());
     for ( const auto& node: nodes ) {
         r.emplace_back( node.node(), impl_ );
     }

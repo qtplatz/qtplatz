@@ -47,7 +47,7 @@ namespace portfolio {
         ~Folder();
         Folder();
         // Folder( const xmlNode&, internal::PortfolioImpl * );
-        Folder( const pugi::xml_node&, internal::PortfolioImpl * );
+        Folder( const pugi::xml_node&, std::shared_ptr< internal::PortfolioImpl > );
         Folder( const Folder& );
         bool nil() const;
 

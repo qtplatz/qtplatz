@@ -36,7 +36,8 @@ Portfolio::~Portfolio()
 {
 }
 
-Portfolio::Portfolio() : impl_( new internal::PortfolioImpl() )
+Portfolio::Portfolio()
+    : impl_( std::shared_ptr< internal::PortfolioImpl >( new internal::PortfolioImpl ) )
 {
 }
 
@@ -44,11 +45,13 @@ Portfolio::Portfolio( const Portfolio& t ) : impl_(t.impl_)
 {
 }
 
-Portfolio::Portfolio( const std::string& xml ) : impl_( new internal::PortfolioImpl( xml ) )
+Portfolio::Portfolio(const std::string &xml)
+    : impl_( std::make_shared< internal::PortfolioImpl >( xml ) )
 {
 }
 
-Portfolio::Portfolio( const std::wstring& xml ) : impl_( new internal::PortfolioImpl( pugi::as_utf8( xml ) ) )
+Portfolio::Portfolio(const std::wstring &xml)
+    : impl_( std::make_shared< internal::PortfolioImpl >( pugi::as_utf8( xml ) ) )
 {
 }
 

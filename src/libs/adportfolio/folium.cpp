@@ -42,7 +42,9 @@ Folium::Folium( const Folium& t ) : Node( t )
 {
 }
 
-Folium::Folium( const pugi::xml_node& n, internal::PortfolioImpl * impl ) : Node( n, impl )
+Folium::Folium(const pugi::xml_node &n
+               , std::shared_ptr<internal::PortfolioImpl> impl)
+    : Node( n, impl )
 {
 }
 

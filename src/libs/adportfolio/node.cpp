@@ -42,16 +42,18 @@
 using namespace portfolio;
 using namespace portfolio::internal;
 
-namespace portfolio { namespace internal {
+namespace portfolio {
+    namespace internal {
 
-    static void set_attribute( pugi::xml_node& node, const char * key, const std::string& value ) {
-        pugi::xml_attribute attrib = node.attribute( key );
-        if ( ! attrib )
-            attrib = node.append_attribute( key );
-        attrib.set_value( value.c_str() );
+        static void set_attribute(pugi::xml_node &node
+                                  , const char *key,
+                                  const std::string &value)   {
+            pugi::xml_attribute attrib = node.attribute( key );
+            if ( ! attrib )
+                attrib = node.append_attribute( key );
+            attrib.set_value( value.c_str() );
+        }
     }
-
-}
 }
 
 boost::uuids::uuid
@@ -75,13 +77,13 @@ Node::uuidFromString( const std::string& id )
     return uuid;
 }
 
-Node::Node() : impl_(0)
+Node::Node() : impl_({})
              , uuid_({ {0} })
 {
 }
 
-Node::Node( const pugi::xml_node& e, PortfolioImpl* impl ) : node_( e )
-                                                           , impl_( impl )
+Node::Node( const pugi::xml_node& e, std::shared_ptr< PortfolioImpl > impl ) : node_( e )
+                                                                             , impl_( impl )
 {
     std::string id = node_.attribute( "dataId" ).value();
     uuid_ = uuidFromString( id );

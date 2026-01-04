@@ -26,6 +26,7 @@
 #pragma once
 
 #include <boost/any.hpp>
+#include <memory>
 #include <set>
 #include <map>
 #include <pugixml.hpp>
@@ -41,10 +42,11 @@ namespace portfolio {
 
         // Portfolio is a root folder
 
-        class PortfolioImpl : public Node {
-            PortfolioImpl( const PortfolioImpl& );
-        public:
+        class PortfolioImpl : public Node
+                            , public std::enable_shared_from_this< PortfolioImpl > {
+            PortfolioImpl(const PortfolioImpl &) = delete;
             PortfolioImpl();
+        public:
             PortfolioImpl( const std::string& xml );
             operator bool () const { return isXMLLoaded_; }
             const std::wstring fullpath() const;
@@ -74,7 +76,8 @@ namespace portfolio {
             std::map< std::wstring, boost::any > db_;
         protected:
             pugi::xml_document doc_;
-            std::vector< std::tuple< std::string, std::string > > removed_list_; // name,dataId
+            std::vector<std::tuple<std::string, std::string>>  removed_list_; // name,dataId
+            friend class Portfolio;
         };
     }
 }

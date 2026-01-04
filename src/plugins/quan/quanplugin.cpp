@@ -108,7 +108,7 @@ QuanPlugin::aboutToShutdown()
 
 #if ! defined NDEBUG
     ADDEBUG() << "\t\t## Shutdown: "
-              << "\t" << boost::filesystem::relative( boost::dll::this_line_location()
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
                                                      , boost::dll::program_location().parent_path() );
 #endif
 
