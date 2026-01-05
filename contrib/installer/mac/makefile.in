@@ -56,12 +56,12 @@ pkg: qtplatz.app translations
 	  --component qtplatz.app \
 	  --install-location /Applications \
 	  --identifier com.ms-cheminfo.qtplatz \
-	  --version @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@ \
+	  --version @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@.@VERSION_PATCH@ \
 	  --ownership recommended \
 	  qtplatz-component.pkg
 	productbuild \
 	  --package qtplatz-component.pkg \
-	  qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@.pkg
+	  qtplatz-@QTPLATZ_VERSION@-@OSX_TARGET_ARCH@.pkg
 
 # ---- debug helpers ----------
 
