@@ -18,7 +18,7 @@ file(GLOB Resources *.qrc)
 
 set( COMPAT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
 set( VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-set( DESCRIPTION "The LipidId plugin for QtCreator 9" )
+set( DESCRIPTION "The LipidId plugin for QtCreator 18" )
 
 qtplatz_plugin_output_dir( _plugin_output_dir ${PROVIDER} )
 qtplatz_plugin_install_dir( _plugin_install_dir ${PROVIDER} )
@@ -29,7 +29,8 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   find_package(QtCreator REQUIRED COMPONENTS Core)
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
-  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" },\n" )
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"dataproc\", \"Version\" : \"${IDE_VERSION}\", \"Type\": \"required\" }" )
   string ( APPEND DEPENDENCY_STRING "\n    ]" )
 
   configure_file(
@@ -141,10 +142,3 @@ install( TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   LIBRARY DESTINATION "${_plugin_install_dir}" COMPONENT plugins
   ARCHIVE DESTINATION lib/qtplatz COMPONENT libraries )
-
-if ( IDE_VERSION VERSION_LESS_EQUAL "3.2.81" )
-  install( FILES
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}.pluginspec"
-    "${QTPLATZ_PLUGIN_DIRECTORY}/${PROVIDER}/${PROJECT_NAME}-mimetype.xml"
-    DESTINATION ${QTPLATZ_PLUGIN_DESTINATION}/${PROVIDER} COMPONENT plugins )
-endif()

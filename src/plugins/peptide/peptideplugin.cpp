@@ -54,6 +54,10 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "peptideplugin";
+}
+
 namespace peptide {
 
     class peptideplugin::impl {
@@ -93,6 +97,9 @@ peptideplugin::initialize(const QStringList &arguments)
 {
     (void)arguments;
 
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
     impl_->ini();
 
     return Utils::ResultOk;
@@ -100,6 +107,9 @@ peptideplugin::initialize(const QStringList &arguments)
 
 void peptideplugin::extensionsInitialized()
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
     impl_->mainWindow_->onInitialUpdate();
 }
 
@@ -108,10 +118,10 @@ peptideplugin::aboutToShutdown()
 {
     impl_->fin();
 
-#if ! defined NDEBUG && 1
-    ADDEBUG() << "\t## Shutdown: "
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
               << "\t" << std::filesystem::relative( boost::dll::this_line_location()
-                                                    , boost::dll::program_location().parent_path() );
+                                                     , boost::dll::program_location().parent_path() );
 #endif
 
     return SynchronousShutdown;

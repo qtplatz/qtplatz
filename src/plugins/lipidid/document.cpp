@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2022-2022 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -83,7 +83,7 @@ namespace lipidid {
     class document::impl {
     public:
         ~impl() {
-            // ADDEBUG() << "## lipidid::document::impl DTOR ##";
+            ADDEBUG() << "## lipidid::document::impl DTOR ##";
         }
         impl() : settings_( std::make_unique< QSettings >( QSettings::IniFormat
                                                            , QSettings::UserScope
@@ -122,7 +122,7 @@ using lipidid::document;
 
 document::~document()
 {
-    // ADDEBUG() << "## lipidid::document DTOR ##";
+    ADDEBUG() << "## lipidid::document::" << __FUNCTION__ << " ##";
 }
 
 document::document(QObject *parent) : QObject(parent)
@@ -156,8 +156,10 @@ document::initialSetup()
         std::filesystem::path dir = user_preference::path( impl_->settings_.get() );
         if ( !std::filesystem::exists( dir ) ) {
             if ( !std::filesystem::create_directories( dir ) ) {
-                QMessageBox::information( 0, "lipidid::document"
-                                          , QString( "Work directory '%1' can not be created" ).arg( dir.string().c_str() ) );
+              QMessageBox::information(
+                  0, "lipidid::document",
+                  QString("Work directory '%1' can not be created")
+                  .arg( dir.string().c_str() ) );
             }
         }
     } while ( 0 );
@@ -165,7 +167,8 @@ document::initialSetup()
     do {
         auto path = std::filesystem::path( impl_->settings_->fileName().toStdString() );
         auto dir = path.remove_filename() / "lipidid";
-        std::filesystem::path fpath = qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdWString();
+        std::filesystem::path fpath =
+            qtwrapper::settings( *impl_->settings_ ).recentFile( "LIPID_MAPS", "Files" ).toStdWString();
         if ( fpath.empty() ) {
             fpath = dir / "lipid_maps.db";
         }
@@ -202,6 +205,11 @@ document::initialSetup()
 void
 document::finalClose()
 {
+    impl_->simple_mass_spectrum_.reset();
+    impl_->matched_.reset();
+    impl_->overlay_.reset();
+    impl_->refms_.reset();
+    impl_->ms_.reset();
 }
 
 QSqlDatabase
@@ -219,7 +227,14 @@ document::sqlite()
 void
 document::handleAddProcessor( adextension::iSessionManager *, const QString& file )
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+  // ADDEBUG() << "## " << __FUNCTION__ << "\t" << file.toStdString();
+}
+
+void
+document::handleSessionRemoved( const QString& file )
+{
+    emit onSessionRemoved( file );
+    impl_->ms_.reset();
 }
 
 // change node (folium) selection
@@ -231,7 +246,8 @@ document::handleSelectionChanged( adextension::iSessionManager *
     using portfolio::is_any_shared_of;
     if ( is_any_shared_of< adcontrols::MassSpectrum, const adcontrols::MassSpectrum >( folium ) ) {
         using portfolio::get_shared_of;
-        if ( auto ptr = get_shared_of< const adcontrols::MassSpectrum, adcontrols::MassSpectrum >()( folium.data() ) ) {
+        if (auto ptr = get_shared_of < const adcontrols::MassSpectrum
+                                     , adcontrols::MassSpectrum >()( folium.data() ) ) {
             if ( ptr->isCentroid() ) {
                 impl_->ms_ = ptr;
                 impl_->filename_ = std::filesystem::path( file.toStdString() );
@@ -458,7 +474,8 @@ document::load_all() const
 
         std::unique_ptr< adcontrols::MetIdMethod > method;
         if ( auto top = jv.as_object().if_contains( "metid_method" ) ) {
-            method = std::make_unique< adcontrols::MetIdMethod >( boost::json::value_to< adcontrols::MetIdMethod >( *top ) );
+            method = std::make_unique<adcontrols::MetIdMethod>(
+                boost::json::value_to< adcontrols::MetIdMethod >( *top ) );
             impl_->method_ = *method;
             emit metIdMethodChanged( impl_->method_ );
         }

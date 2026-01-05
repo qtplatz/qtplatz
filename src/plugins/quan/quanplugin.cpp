@@ -44,6 +44,10 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "QuanPlugin";
+}
+
 
 namespace quan {
 
@@ -75,18 +79,15 @@ QuanPlugin::QuanPlugin() : impl_( std::make_unique< impl >() )
 
 QuanPlugin::~QuanPlugin()
 {
-    // if ( mode_ )
-    //     removeObject( mode_.get() );
-    // mainWindow has been deleted at BaseMode dtor
-#if ! defined NDEBUG
-    ADDEBUG() << "\t\t## DTOR ##";
-#endif
 }
 
 Utils::Result<>
 QuanPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 
     impl_->ini();
 
@@ -95,6 +96,9 @@ QuanPlugin::initialize(const QStringList &arguments)
 
 void QuanPlugin::extensionsInitialized()
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
     impl_->mainWindow_->onInitialUpdate();
 }
 
@@ -105,16 +109,10 @@ QuanPlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
     impl_->fin();
-
 #if ! defined NDEBUG
-    ADDEBUG() << "\t\t## Shutdown: "
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
               << "\t" << std::filesystem::relative( boost::dll::this_line_location()
                                                      , boost::dll::program_location().parent_path() );
 #endif
-
     return SynchronousShutdown;
 }
-
-#if QTC_VERSION <= 0x03'02'82
-Q_EXPORT_PLUGIN2(Quan, QuanPlugin)
-#endif

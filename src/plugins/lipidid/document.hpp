@@ -79,6 +79,9 @@ namespace lipidid {
     public slots:
         void handleAddProcessor( adextension::iSessionManager *, const QString& file );
 
+        // Processor (datafile) removed == file close
+        void handleSessionRemoved( const QString& file );
+
         // change node (folium) selection
         void handleSelectionChanged( adextension::iSessionManager *, const QString& file, const portfolio::Folium& );
 
@@ -100,7 +103,8 @@ namespace lipidid {
         void onMatchedSelected( int ) const;
 
         // souce iSessionManager
-        void dataChanged( const portfolio::Folium& );
+        void dataChanged(const portfolio::Folium &);
+        void onSessionRemoved( const QString& ); // <== iSessionManager::onSessionRemoved
     private:
         class impl;
         std::unique_ptr< impl > impl_;

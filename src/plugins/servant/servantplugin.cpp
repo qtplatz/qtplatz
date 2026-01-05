@@ -69,6 +69,10 @@
 #include <process.h>
 #endif
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "ServantPlugin";
+}
+
 namespace servant {
 
     class ServantPlugin::impl {
@@ -109,7 +113,6 @@ ServantPlugin::~ServantPlugin()
 
 ServantPlugin::ServantPlugin() : impl_( std::make_unique< impl >() )
 {
-    ADDEBUG() << "#### ServantPlugin CTOR";
 }
 
 // bool
@@ -119,7 +122,9 @@ ServantPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
 
-    ADDEBUG() << "#### ServantPlugin::initialize ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 
     adlog::logger::enable( adlog::logger::logging_file ); // process_name + ".log"
 
@@ -135,14 +140,20 @@ ServantPlugin::initialize(const QStringList &arguments)
 void
 ServantPlugin::extensionsInitialized()
 {
-    ADDEBUG() << "#### ServantPlugin::" << __FUNCTION__ << " ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ServantPlugin::aboutToShutdown()
 {
     //ScopedDebug(__t);
-    ADDEBUG() << "#### ServantPlugin::" << __FUNCTION__ << " ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
 
     impl_->fin();
     adportable::core::debug_core::instance()->unhook();

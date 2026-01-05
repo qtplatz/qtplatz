@@ -2,7 +2,7 @@
     "Id"            : "@PLUGIN_ID@",
     "DisplayName"   : "@PLUGIN_DISPLAY_NAME@",
     "Name"          : "@PLUGIN_NAME@",
-    "Version"       : "@VERSION@",
+    "Version"       : "${IDE_VERSION}",
     "CompatVersion" : "${IDE_VERSION_COMPAT}",
     "DisabledByDefault" : true,
     "VendorId"      : "ms-cheminformatics",

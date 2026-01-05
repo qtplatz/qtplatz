@@ -110,6 +110,11 @@
 #include <functional>
 #include <thread>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "LipididPlugin";
+}
+
+
 using namespace lipidid;
 
 LipididPlugin::~LipididPlugin()
@@ -123,8 +128,11 @@ LipididPlugin::LipididPlugin() : mainWindow_( new MainWindow )
 Utils::Result<>
 LipididPlugin::initialize( const QStringList& arguments )
 {
-    Q_UNUSED( arguments );
+#if ! defined NDEBUG
+    qDebug() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " #### " << arguments;
+#endif
 
+    ADDEBUG() << "#### LipididPlugin::" << __FUNCTION__ << " ####";
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
         return Utils::ResultError( "Core instance is null" );
@@ -146,6 +154,9 @@ void
 LipididPlugin::extensionsInitialized()
 {
     mainWindow_->OnInitialUpdate();
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 
     // SessionManager is a singleton, instanciated in dataproc
     auto mgr = ExtensionSystem::PluginManager::instance()->getObject< adextension::iSessionManager >();
@@ -153,7 +164,8 @@ LipididPlugin::extensionsInitialized()
     connect( mgr, &iSessionManager::addProcessor, document::instance(), &document::handleAddProcessor );
     connect( mgr, &iSessionManager::onSelectionChanged, document::instance(), &document::handleSelectionChanged );
     connect( mgr, &iSessionManager::onProcessed, document::instance(), &document::handleProcessed );
-    connect( mgr, &iSessionManager::onCheckStateChanged, document::instance(), &document::handleCheckStateChanged );
+    connect(mgr, &iSessionManager::onCheckStateChanged, document::instance(), &document::handleCheckStateChanged);
+    connect( mgr, &iSessionManager::onSessionRemoved, document::instance(), &document::handleSessionRemoved );
     Core::ModeManager::activateMode( mode_->id() );
 }
 
@@ -164,11 +176,9 @@ LipididPlugin::aboutToShutdown()
     document::instance()->finalClose();
     mainWindow_->OnFinalClose();
 #if ! defined NDEBUG
-    ADDEBUG() << "## Shutdown: "
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
               << "\t" << std::filesystem::relative( boost::dll::this_line_location()
-                                                    , boost::dll::program_location().parent_path() );
+                                                     , boost::dll::program_location().parent_path() );
 #endif
 	return SynchronousShutdown;
 }
-
-// Q_EXPORT_PLUGIN( LipididPlugin )

@@ -67,6 +67,7 @@ namespace lipidid {
         void handleIdCompleted();
         void handleFormulaSelection( const QString& formula, double );
         void handleMatchedSelection();
+        void handleSessionRemoved( const QString& file );
 
     signals:
         void zoomed( size_t, const QRectF& );

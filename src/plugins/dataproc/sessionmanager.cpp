@@ -93,7 +93,7 @@ SessionManager::removeEditor( Core::IEditor * editor )
         }
         emit onRemoveSession( it->processor() );
         impl_->sessions_.erase( it );
-        emit onSessionRemoved( filePath.toUrlishString() );
+        emit onSessionRemoved(filePath.toUrlishString());
     }
 }
 

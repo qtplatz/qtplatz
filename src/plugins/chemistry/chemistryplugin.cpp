@@ -54,6 +54,10 @@
 #include <boost/dll.hpp>
 #include <memory>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "ChemistryPlugin";
+}
+
 namespace chemistry {
 
     class ChemistryPlugin::impl {
@@ -79,6 +83,10 @@ ChemistryPlugin::~ChemistryPlugin()
 Utils::Result<> // bool
 ChemistryPlugin::initialize(const QStringList &arguments)
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
+
     initialize_actions();
 
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
@@ -124,13 +132,23 @@ ChemistryPlugin::initialize_actions()
 void
 ChemistryPlugin::extensionsInitialized()
 {
-	impl_->mainWindow_->OnInitialUpdate();
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
+    impl_->mainWindow_->OnInitialUpdate();
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 ChemistryPlugin::aboutToShutdown()
 {
-	impl_->mainWindow_->OnClose();
+    impl_->mainWindow_->OnClose();
+
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
+
 	return SynchronousShutdown;
 }
 

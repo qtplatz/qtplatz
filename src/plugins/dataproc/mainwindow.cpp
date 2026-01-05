@@ -709,11 +709,8 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Right-side window with editor, output etc.
     Core::MiniSplitter * mainWindowSplitter = new Core::MiniSplitter;
-#if QTC_VERSION <= 0x03'02'81
-    QWidget * outputPane = new Core::OutputPanePlaceHolder( mode, mainWindowSplitter );
-#else
     QWidget * outputPane = new Core::OutputPanePlaceHolder( mode->id(), mainWindowSplitter );
-#endif
+
     outputPane->setObjectName( QLatin1String( "OutputPanePlaceHolder" ) );
     mainWindowSplitter->addWidget( this );
     mainWindowSplitter->addWidget( outputPane );
@@ -723,11 +720,8 @@ MainWindow::createContents( Core::IMode * mode )
 
     // Navigation and right-side window
     Core::MiniSplitter * splitter = new Core::MiniSplitter;
-#if QTC_VERSION <= 0x03'02'81
-    splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode ) );
-#else
     splitter->addWidget( new Core::NavigationWidgetPlaceHolder( mode->id(), Core::Side::Left) );
-#endif
+
     splitter->addWidget( mainWindowSplitter );
     splitter->setStretchFactor( 0, 0 );
     splitter->setStretchFactor( 1, 1 );

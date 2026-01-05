@@ -30,7 +30,8 @@ if ( IDE_VERSION VERSION_GREATER_EQUAL "8.0.0" )
   find_package(QtCreator REQUIRED COMPONENTS Core)
 
   set ( DEPENDENCY_STRING "\"Dependencies\" : [\n")
-  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" }" )
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"core\", \"Version\" : \"${IDE_VERSION}\" },\n" )
+  string ( APPEND DEPENDENCY_STRING "        { \"Id\" : \"servant\", \"Version\" : \"${VERSION}\",  \"Type\": \"optional\" }" )
   string ( APPEND DEPENDENCY_STRING "\n    ]" )
 
   configure_file(

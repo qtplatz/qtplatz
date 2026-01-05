@@ -124,6 +124,10 @@
 #include <functional>
 #include <thread>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "DataprocPlugin";
+}
+
 namespace dataproc {
 
     class DataprocPlugin::impl {
@@ -234,7 +238,9 @@ DataprocPlugin::initialize( const QStringList& arguments )
 {
     Q_UNUSED( arguments );
 
-    ADDEBUG() << "#### DataprocPlugin::" << __FUNCTION__ << " ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 
     Core::ICore * core = Core::ICore::instance();
     if ( core == 0 )
@@ -255,7 +261,9 @@ DataprocPlugin::applyMethod( const adcontrols::ProcessMethod& m )
 void
 DataprocPlugin::extensionsInitialized()
 {
-    // ScopedDebug(__t);
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
     impl_->mainWindow_->OnInitialUpdate();
     document::instance()->initialSetup();
     Core::ModeManager::activateMode( impl_->mode_->id() );
@@ -270,10 +278,11 @@ DataprocPlugin::aboutToShutdown()
     impl_->mainWindow_->OnFinalClose();
     impl_->fin();
 
-#if ! defined NDEBUG || 1
-    ADDEBUG() << "#### DataprocPlugin::" << __FUNCTION__ << " ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
 #endif
-
 	return SynchronousShutdown;
 }
 

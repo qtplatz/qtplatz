@@ -44,6 +44,10 @@
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/path.hpp>
 
+namespace {
+    static constexpr char __CLASS_NAME__[] = "QueryPlugin";
+}
+
 namespace query {
 
     class QueryPlugin::impl {
@@ -77,19 +81,15 @@ QueryPlugin::QueryPlugin() : impl_( std::make_unique< impl >() )
 
 QueryPlugin::~QueryPlugin()
 {
-    // if ( mode_ )
-    //     removeObject( mode_.get() );
-    // mainWindow has been deleted at BaseMode dtor
-#if ! defined NDEBUG
-    ADDEBUG() << "\t## DTOR ##";
-#endif
 }
 
 Utils::Result<> // bool
 QueryPlugin::initialize(const QStringList &arguments)
 {
     Q_UNUSED(arguments);
-
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
     impl_->ini();
 
     return Utils::ResultOk;
@@ -108,13 +108,9 @@ QueryPlugin::aboutToShutdown()
     // Disconnect from signals that are not needed during shutdown
     // Hide UI (if you add UI that is not in the main window directly)
 #if ! defined NDEBUG
-    ADDEBUG() << "\t## Shutdown: "
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
               << "\t" << std::filesystem::relative( boost::dll::this_line_location()
-                                                    , boost::dll::program_location().parent_path() );
+                                                     , boost::dll::program_location().parent_path() );
 #endif
     return SynchronousShutdown;
 }
-
-#if QTC_VERSION <= 0x03'02'81
-Q_EXPORT_PLUGIN2(Query, QueryPlugin)
-#endif

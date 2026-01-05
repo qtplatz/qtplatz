@@ -12,12 +12,17 @@
 #include <coreplugin/icore.h>
 #include <coreplugin/imode.h>
 #include <coreplugin/modemanager.h>
+#include <boost/dll.hpp>
 
 #include <QDebug>
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+
+namespace {
+    static constexpr char __CLASS_NAME__[] = "FigsharePlugin";
+}
 
 namespace figshare {
 
@@ -62,6 +67,10 @@ FigsharePlugin::~FigsharePlugin()
 Utils::Result<>
 FigsharePlugin::initialize(const QStringList &arguments)
 {
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
+
     if (( impl_->mainWindow_ = std::make_unique< MainWindow >() )) {
         impl_->mainWindow_->activateWindow();
         impl_->mainWindow_->createActions();
@@ -104,13 +113,20 @@ FigsharePlugin::initialize(const QStringList &arguments)
 void
 FigsharePlugin::extensionsInitialized()
 {
-	impl_->mainWindow_->OnInitialUpdate();
+    impl_->mainWindow_->OnInitialUpdate();
+#if ! defined NDEBUG
+    ADDEBUG() << "\t#### " << __CLASS_NAME__ << "::" << __FUNCTION__ << " ####";
+#endif
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag
 FigsharePlugin::aboutToShutdown()
 {
-    ADDEBUG() << "#### FigsharePlugin::" << __FUNCTION__ << " ####";
+#if ! defined NDEBUG
+    ADDEBUG() << "\t\t## " << __CLASS_NAME__ << "::" << __FUNCTION__
+              << "\t" << std::filesystem::relative( boost::dll::this_line_location()
+                                                     , boost::dll::program_location().parent_path() );
+#endif
     return SynchronousShutdown;
 }
 

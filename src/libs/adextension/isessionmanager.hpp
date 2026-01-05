@@ -30,7 +30,7 @@
 
 namespace adprocessor { class dataprocessor; }
 namespace portfolio { class Folium; class Folder; }
-    
+
 namespace adextension {
 
     class ADEXTENSIONSHARED_EXPORT iSessionManager : public QObject {
@@ -40,16 +40,15 @@ namespace adextension {
         explicit iSessionManager(QObject *parent = 0);
 
         virtual std::shared_ptr< adprocessor::dataprocessor > getDataprocessor( const QString& ) { return nullptr; }
-        
+
     signals:
         void addProcessor( iSessionManager *, const QString& );                                        // file open
         void onSelectionChanged( iSessionManager *, const QString& file, const portfolio::Folium& );   // change focused folium (node)
-        void onProcessed( iSessionManager *, const QString& file, const portfolio::Folium& );        // onProcessed (data contents changed)
+        void onProcessed( iSessionManager *, const QString& file, const portfolio::Folium& );          // onProcessed (data contents changed)
         void onCheckStateChanged( iSessionManager *, const QString& file, portfolio::Folium&, bool );
-
+        void onSessionRemoved( const QString& filename );
     public slots:
 
     };
 
 }
-

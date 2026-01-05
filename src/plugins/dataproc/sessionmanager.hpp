@@ -94,7 +94,7 @@ namespace dataproc {
 		void onFolderChanged( Dataprocessor *, const QString& folder );
         void onSessionAdded( Dataprocessor * );
         void onRemoveSession( Dataprocessor * );
-        void onSessionRemoved( const QString& filename );
+        // void onSessionRemoved( const QString& filename );
         void onProcessed( Dataprocessor *, portfolio::Folium& );
         void foliumChanged( Dataprocessor *, const portfolio::Folium& );
         void onDataprocessorChanged( Dataprocessor * );

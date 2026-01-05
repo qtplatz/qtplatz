@@ -166,7 +166,15 @@ MSSpectraWnd::handleSessionAdded( adprocessor::dataprocessor * processor )
 }
 
 void
-MSSpectraWnd::handleSelectionChanged( adprocessor::dataprocessor * processor, portfolio::Folium& folium )
+MSSpectraWnd::handleSessionRemoved( const QString& file )
+{
+    qDebug() << __FUNCTION__ << file;
+    impl_->plots_[ 0 ]->setData( nullptr, 0, QwtPlot::yLeft );
+}
+
+void
+MSSpectraWnd::handleSelectionChanged( adprocessor::dataprocessor * processor
+                                      , portfolio::Folium& folium )
 {
     if ( ! portfolio::is_type< adcontrols::MassSpectrumPtr >( folium ) )
         return;
@@ -175,20 +183,26 @@ MSSpectraWnd::handleSelectionChanged( adprocessor::dataprocessor * processor, po
 void
 MSSpectraWnd::handleSelected( const QRectF& rc, adplot::SpectrumWidget * plot )
 {
-    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() ) - plot->transform( QwtPlot::xBottom, rc.right() ) );
+    auto d = std::abs( plot->transform( QwtPlot::xBottom, rc.left() )
+                       - plot->transform( QwtPlot::xBottom, rc.right() ) );
     if ( d <= 2 ) {
 		QMenu menu;
         typedef std::pair < QAction *, std::function<void()> > action_type;
         std::vector < action_type > actions;
 
-        actions.emplace_back( menu.addAction( tr("Copy image to clipboard") ), [=] () { adplot::plot::copyToClipboard( plot ); } );
-        actions.emplace_back( menu.addAction( tr( "Save SVG File" ) ) , [=] () {
-            auto name = MainWindow::makeSaveSvgFilename();
-            if ( ! name.isEmpty() ) {
-                adplot::plot::copyImageToFile( plot, name, "svg" );
-                qtwrapper::settings( *document::instance()->settings() ).addRecentFiles( "SVG", "Files", name );
-            }
-        });
+        actions.emplace_back( menu.addAction( tr("Copy image to clipboard") )
+                              , [=] () { adplot::plot::copyToClipboard( plot ); } );
+        actions.emplace_back(
+            menu.addAction( tr( "Save SVG File" ) )
+            , [=] () {
+                auto name = MainWindow::makeSaveSvgFilename();
+                if ( ! name.isEmpty() ) {
+                    adplot::plot::copyImageToFile( plot, name, "svg" );
+                    qtwrapper::settings(
+                        *document::instance()->settings() )
+                        .addRecentFiles( "SVG", "Files", name );
+                }
+            });
 
         QAction * selected = menu.exec( QCursor::pos() );
         if ( selected ) {

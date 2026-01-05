@@ -325,19 +325,10 @@ Dataprocessor::reloadBehavior( ChangeTrigger state, ChangeType type ) const
     return IDocument::BehaviorSilent;
 }
 
-#if QTC_VERSION < 0x10'00'00
-Core::IDocument::OpenResult
-Dataprocessor::open( QString *errorString
-                     , const Utils::FilePath &filePath
-                     , const Utils::FilePath &realFilePath)
-#elif QTC_VERSION >= 0x10'00'00
 Utils::Result<>
 Dataprocessor::open( const Utils::FilePath &filePath
                      , const Utils::FilePath &realFilePath)
-
-#endif
 {
-    // ScopedDebug(__t);
 	qtwrapper::waitCursor wait;
 
     std::string emsg;
