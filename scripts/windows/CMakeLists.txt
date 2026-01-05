@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.22.1 ) # for VS2022
 
-project( qtplatz-windows-dependency )
+project( qtplatz-windows )
 
 if ( NOT WIN32 )
   message( FATAL_ERROR "This cmake script is targetted for win32")

@@ -217,13 +217,13 @@ namespace {
 
                             if ( anno.dataFormat() == adcontrols::annotation::dataText ||
                                  anno.dataFormat() == adcontrols::annotation::dataFormula ) {
-                                if ( atext.find( std::make_tuple( proto, anno.index() ) ) == atext.end() )
+                                if ( atext.find( std::make_pair( proto, anno.index() ) ) == atext.end() )
                                     atext[ std::make_pair( proto, anno.index() ) ] = anno.text();
                             }
                             if ( anno.dataFormat() == adcontrols::annotation::dataMOL ) {
                                 // target.id candidate
                                 auto mol = boost::json::value_to< adcontrols::annotation::reference_molecule >( anno.value() );
-                                atext[ std::make_tuple( proto, anno.index() ) ] = mol.display_text_;
+                                atext[ std::make_pair( proto, anno.index() ) ] = mol.display_text_;
                             }
                         }
                         ++proto;
