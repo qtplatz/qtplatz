@@ -80,6 +80,7 @@ if ( WIN32 )
   # OpenSSL default dir when build/install from source
   set ( OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL" )
   set ( OPENSSL_USE_STATIC_LIBS FALSE )
+
 endif()
 if ( APPLE )
   set ( OPENSSL_ROOT_DIR "/usr/local" ) # prepend to use homebrew version
@@ -102,6 +103,9 @@ if ( WITH_QT5 )
       include_directories( BEFORE  "${CMAKE_BINARY_DIR}/bin/src" )   # app/app_version.h
     else()
       ## Linux & Windows
+      if ( WIN32 )
+        set ( BUILD_WITH_PCH OFF )
+      endif()
       set( CMAKE_INSTALL_RPATH     "\${ORIGIN}/../lib:\${ORIGIN}/../lib/qtplatz:\${ORIGIN}/../../lib:\${ORIGIN}/../.." )
       set( QTC_BINARY_DIR          "qtplatz" )
       add_subdirectory( qt-creator "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}" ) #<bindir>/qqtcreator

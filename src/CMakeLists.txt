@@ -40,4 +40,9 @@ file( COPY
   DESTINATION ${CMAKE_BINARY_DIR}/cmake
 )
 
-install ( DIRECTORY ${CMAKE_BINARY_DIR}/cmake DESTINATION "." COMPONENT headers )
+install ( DIRECTORY
+  ${CMAKE_BINARY_DIR}/cmake
+  DESTINATION "."
+  COMPONENT headers
+  PATTERN "QtPlatzTargets*.cmake" EXCLUDE
+)
