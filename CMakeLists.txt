@@ -519,7 +519,8 @@ elseif ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 endif()
 
 set( CPACK_CREATE_DESKTOP_LINKS QtPlatz )
-set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
+#set( CPACK_PACKAGE_EXECUTABLES QtPlatz "QtPlatz")
+set( CPACK_PACKAGE_EXECUTABLES qtcreator "QtPlatz")
 
 if ( CMAKE_SYSTEM_NAME STREQUAL "Linux" )
   install( FILES "${CMAKE_SOURCE_DIR}/qt-creator/src/app/qtcreator.ico"
