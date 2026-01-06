@@ -533,9 +533,8 @@ configure_file(
 #install( FILES ${CMAKE_BINARY_DIR}/qtplatz-config_installed.cmake
 #  DESTINATION "." RENAME "qtplatz-config.cmake" COMPONENT headers )
 
-
 # Export for build-tree usage (e.g., contrib plugins)
-export(EXPORT ${QTPLATZ_TARGETS}
+export( EXPORT ${QTPLATZ_TARGETS}
   FILE ${CMAKE_BINARY_DIR}/cmake/QtPlatzTargets.cmake
   NAMESPACE QtPlatz::
 )
@@ -545,6 +544,7 @@ install( EXPORT ${QTPLATZ_TARGETS}
   # FILE QtPlatzTargets.cmake
   NAMESPACE QtPlatz::
   DESTINATION cmake
+  COMPONENT headers
 )
 
 include( CPack )

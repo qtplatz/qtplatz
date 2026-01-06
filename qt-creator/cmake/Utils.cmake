@@ -7,6 +7,7 @@ function (env_with_default envName varToSet default)
 endfunction()
 
 function(setup_dependencies_component)
+  if ( FALSE )
   find_package(Python3 COMPONENTS Interpreter)
   if (NOT Python3_Interpreter_FOUND)
     message("No python interpreter found, skipping \"Dependencies\" install component.")
@@ -57,6 +58,7 @@ function(setup_dependencies_component)
       COMPONENT Dependencies
       EXCLUDE_FROM_ALL
     )
+  endif()
   endif()
 endfunction()
 
