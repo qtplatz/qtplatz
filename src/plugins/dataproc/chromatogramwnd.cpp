@@ -569,6 +569,10 @@ ChromatogramWnd::impl::selectedOnChromatogram( const QRectF& rect, int index )
                     , [&] () {
                         adplot::plot::copyToClipboard( this->plots_[ index ].get() );
                     } );
+    menu.addAction( tr("Copy SVG to clipboard")
+                    , [&] () {
+                        adplot::plot::copySvgToClipboard( this->plots_[ index ].get() );
+                    } );
 
     menu.addAction( tr( "Save SVG File" ), [index,this](){
         boost::uuids::uuid idFolium;

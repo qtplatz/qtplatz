@@ -43,7 +43,6 @@ namespace dataproc {
 
         template< PrintFormatType >
         struct save_image_as {
-            // std::pair<bool, QString> operator ()( adplot::plot*, const std::wstring& foliumId, std::string&& insertor = {} ) const;
             template<typename id_type = std::wstring> std::optional<QString> operator ()( adplot::plot*, const id_type& foliumId, std::string&& insertor = {} ) const;
 
             std::optional<QString> operator ()( adplot::plot* ) const;

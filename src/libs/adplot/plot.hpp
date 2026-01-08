@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -72,6 +72,9 @@ namespace adplot {
 
         static void copyToClipboard( plot * );
         static void copyImageToFile( plot *, const QString& file, const QString& format = "svg", bool compress = false, int dpi = 300 );
+        static QByteArray toSvg( plot * );
+        static QByteArray toPdf( plot * );
+        static void copySvgToClipboard( plot * );
 
     private:
         class impl;

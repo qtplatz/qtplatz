@@ -31,7 +31,12 @@
 #include "zoomer.hpp"
 #include "picker.hpp"
 #include "panner.hpp"
+#include <QtGui/qclipboard.h>
+#include <QtGui/qpagelayout.h>
+#include <QtSvg/qsvggenerator.h>
+#include <QtWidgets/qapplication.h>
 #include <adportable/debug.hpp>
+#include <fstream>
 #include <qtwrapper/font.hpp>
 #include <qwt_picker_machine.h>
 #include <qwt_scale_widget.h>
@@ -43,6 +48,7 @@
 #include <QClipboard>
 #include <QSignalBlocker>
 #include <QPainter>
+#include <QPdfWriter>
 //#include <QSvgGenerator>
 
 namespace adplot {
@@ -229,6 +235,131 @@ plot::copyToClipboard( plot * plot )
     if ( QClipboard * clipboard = QApplication::clipboard() )
         clipboard->setImage( img );
 }
+
+//static
+void
+plot::copySvgToClipboard( plot * plot )
+{
+    QByteArray svg = toSvg( plot );
+    QByteArray pdf = toPdf( plot );
+
+    const QString svgText = QString::fromUtf8(svg);
+    const QString pdfText = QString::fromUtf8( pdf );
+
+    // HTML payload: inline SVG (works best for web editors)
+    const QString html =
+        "<html><body>"
+        "<div style='display:inline-block'>"
+        + svgText +
+        "</div>"
+        "</body></html>";
+
+    if ( auto md = new QMimeData() ) {
+        md->setHtml( html );
+        //md->setData( "image/svg+xml", svg );
+        //md->setData( "application/pdf", pdf );
+        md->setText( pdfText );
+
+        QApplication::clipboard()->setMimeData( md, QClipboard::Clipboard );
+        qDebug() << QApplication::clipboard()->mimeData()->formats();
+    }
+    {
+        std::ofstream of( "x.pdf" );
+        of << pdfText.toStdString();
+    }
+    {
+        std::ofstream of( "x.svg" );
+        of << svgText.toStdString();
+    }
+
+}
+
+
+//static
+QByteArray
+plot::toSvg( plot * plot )
+{
+    QSvgGenerator generator;
+    QBuffer buffer;
+    buffer.open( QIODevice::WriteOnly );
+    generator.setOutputDevice(&buffer);
+
+    QwtPlotRenderer renderer;
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+    renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+    renderer.renderTo( plot, generator );
+
+    // QPainter painter;
+    // painter.begin( &generator );
+    // renderer.render( plot, &painter, plot->rect() );
+    // painter.end();
+    return  buffer.data();
+}
+
+#if 0
+QByteArray
+ plot::toPdf( plot * plot)
+{
+    QByteArray out;
+    QBuffer buffer(&out);
+    buffer.open(QIODevice::WriteOnly);
+
+    {
+        QPdfWriter writer(&buffer);
+        writer.setTitle("Title");
+        writer.setCreator("QtPlatz");
+        writer.setResolution(96);
+
+        // Be explicit about margins
+        QPageLayout layout(QPageSize(QPageSize::A5),
+                           QPageLayout::Landscape,
+                           QMarginsF(0,0,0,0));
+        writer.setPageLayout(layout);
+
+        QwtPlotRenderer renderer;
+        renderer.setDiscardFlag(QwtPlotRenderer::DiscardCanvasBackground, true);
+        renderer.setDiscardFlag(QwtPlotRenderer::DiscardCanvasFrame, true);
+        renderer.setDiscardFlag(QwtPlotRenderer::DiscardBackground, true);
+
+        // Recommended: render to the page rect, not widget rect
+        const QRectF pageRect = layout.paintRectPixels(writer.resolution());
+        renderer.renderTo(plot, writer); //, pageRect);
+    } // <-- writer destroyed here; PDF gets finalized
+
+    buffer.close();
+    return out;
+}
+#endif
+
+//static
+ QByteArray
+plot::toPdf( plot * plot )
+{
+    QByteArray ba;
+    {
+        QBuffer buffer( &ba );
+        buffer.open( QIODevice::WriteOnly );
+
+        QPdfWriter writer ( &buffer );
+
+        writer.setTitle( "Title" );
+        writer.setCreator( "QtPlatz" );
+        writer.setResolution( 96 );
+        QPageLayout pageLayout( QPageSize( QPageSize::A5 ), QPageLayout::Landscape, {} );
+        writer.setPageLayout(pageLayout);
+
+        QwtPlotRenderer renderer;
+        renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasBackground, true );
+        renderer.setDiscardFlag( QwtPlotRenderer::DiscardCanvasFrame, true );
+        renderer.setDiscardFlag( QwtPlotRenderer::DiscardBackground, true );
+
+        renderer.renderTo( plot, writer );
+    }
+    return ba;
+}
+
 
 //static
 void
