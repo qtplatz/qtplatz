@@ -30,6 +30,7 @@
 #include "document.hpp"
 #include "mainwindow.hpp"
 #include "sessionmanager.hpp"
+#include "utils/result.h"
 #include <QtCore/qbytearray.h>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
@@ -223,10 +224,11 @@ namespace {
 
     struct save_as {
         Dataprocessor& this_;
-        QString *errorString_;
-        save_as( Dataprocessor& t, QString*& sp ) : this_( t ), errorString_( sp ) {}
+        QString errorString_;
+        save_as( Dataprocessor& t ) : this_( t )
+                                    , errorString_( QString() ) {}
 
-        bool rename_backup( const std::filesystem::path& path ) const {
+        bool rename_backup( const std::filesystem::path& path ) {
             if ( std::filesystem::exists( path ) ) {
                 // rename existing files
                 int id = 1;
@@ -239,7 +241,7 @@ namespace {
                         std::filesystem::rename( path, backup, ec );
                         // std::filesystem::copy( path, backup, ec );
                         if ( ec ) {
-                            *errorString_ = QString::fromStdString( ec.message() );
+                            errorString_ = QString::fromStdString( ec.message() );
                             return false;
                         }
                         break;
@@ -250,7 +252,7 @@ namespace {
         }
 
         // save as
-        bool operator()( std::filesystem::path&& path ) const {
+        bool operator()( std::filesystem::path&& path ) {
 
             // :memory: --> create new .adfs file
             // if ( this_.db()->db_filename().empty() /*:memory:*/ && path.extension() != ".adfs" ) {
@@ -356,15 +358,9 @@ Dataprocessor::open( const Utils::FilePath &filePath
     // return Core::IDocument::OpenResult::ReadError;
 }
 
-// Spec changed at V10?
-bool
-Dataprocessor::saveImpl( QString *errorString, const Utils::FilePath &filePath, bool autoSave)
-{
-    return save( errorString, filePath, autoSave );
-}
 
-bool
-Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, bool autoSave )
+Utils::Result<>
+Dataprocessor::saveImpl( const Utils::FilePath &filePath, SaveOption option )
 {
     namespace fs = std::filesystem;
 
@@ -372,27 +368,30 @@ Dataprocessor::save( QString * errorString, const Utils::FilePath& filePath, boo
     isSave = filePath.isEmpty() ||
         ( file()->filename().extension() == ".adfs" &&
           fs::absolute( filePath.toUrlishString().toStdString() ) == fs::absolute( file()->filename() ) );
+    QString errorString = {};
     if ( isSave ) {
-        ADDEBUG() << "########### SAVE ########### ";
         std::filesystem::path path( file()->filename() ); // adcontrols::datafile *
         if ( path.extension() == ".adfs" ) {
             if ( file()->saveContents( L"/Processed", portfolio() ) ) {
                 setModified( false );
-                return true;
+                return Utils::ResultOk;
             } else {
-                *errorString = "Save contents failed.";
+                return Utils::ResultError( "Save contents failed.");
             }
         } else {
-            return save_as( *this, errorString )( std::filesystem::path( path.replace_extension( ".adfs" ) ) );
-            *errorString = "Cannot save processed result into a file rather than .adfs file.";
+            if ( save_as( *this )( std::filesystem::path( path.replace_extension( ".adfs" ) ) ) ) {
+                return Utils::ResultOk;
+            }
+            ADDEBUG() << "########### SAVE_AS : " << filePath.toUrlishString().toStdString();
+            return Utils::ResultError( "Cannot save as processed result into a specified file." );
         }
-        return false;
     } else {
-        // Save As
-        ADDEBUG() << "########### SAVE_AS : " << filePath.toUrlishString().toStdString();
-        return save_as( *this, errorString )( std::filesystem::path( filePath.toUrlishString().toStdString() ) );
+        if ( not save_as( *this )( std::filesystem::path( filePath.toUrlishString().toStdString() ) ) ) {
+            ADDEBUG() << "########### SAVE_AS : " << filePath.toUrlishString().toStdString();
+            return Utils::ResultError( "Cannot save as processed result into a specified file." );
+        }
     }
-    return false;
+    return Utils::ResultOk;
 }
 
 bool

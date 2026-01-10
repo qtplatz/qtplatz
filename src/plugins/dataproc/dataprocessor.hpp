@@ -90,26 +90,16 @@ namespace dataproc {
             return std::make_shared< make_shared_enabler >();
         }
 
-        // Core::IDocument
-        // QtCreator9 based code
-#if QTC_VERSION < 0x10'00'00
-        OpenResult open(QString *errorString
-                        , const Utils::FilePath &filePath
-                        , const Utils::FilePath &realFilePath) override;
-#elif QTC_VERSION >= 0x10'00'00
         Utils::Result<> open( const Utils::FilePath &filePath
                               , const Utils::FilePath &realFilePath) override;
-#endif
+
         ReloadBehavior reloadBehavior(ChangeTrigger state, ChangeType type) const override;
-#if QTC_VERSION <= 0x08'00'02
-        bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false) override;
-#else
+
+    private:
         bool save(QString *errorString, const Utils::FilePath &filePath = Utils::FilePath(), bool autoSave = false);
-#endif
-#if QTC_VERSION >= 0x09'00'00
     protected:
-        bool saveImpl( QString *errorString, const Utils::FilePath &filePath, bool autoSave); // override;
-#endif
+        // QTC_VERSION >= 0x18'00'00
+        Utils::Result<> saveImpl( const Utils::FilePath&, SaveOption option ) override;
     public:
         bool reload( QString *, Core::IDocument::ReloadFlag, Core::IDocument::ChangeType ); // override;
         bool isModified() const override;
