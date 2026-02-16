@@ -157,6 +157,10 @@ include (boost.cmake)
 include (qtplatz_api)
 message ( STATUS "##### Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #####" )
 
+############# RDKIT_JARS ##############
+
+find_package( RDKit_jar )
+
 ############# INSTALL PREFIX ##############
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -692,6 +696,11 @@ if ( WITH_PYTHON3 )
   message( STATUS "     Python3_FOUND      :  ${Python3_FOUND} ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
   message( STATUS "     Python3_EXECUTABLE : ${Python3_EXECUTABLE}" )
   message( STATUS "     Python3_LIBRARY_DIRS ${Python3_LIBRARY_DIRS}" )
+endif()
+
+if ( RDKit_JAR_FOUND )
+  message( STATUS "# RDKit_JAR_FILES       : " "${RDKit_JAR_FILES}" )
+  message( STATUS "# RDKit_JNILIBS         : " "${RDKit_JNILIBS}" )
 endif()
 
 if ( OPENSSL_FOUND )

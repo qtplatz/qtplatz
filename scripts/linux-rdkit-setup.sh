@@ -60,6 +60,10 @@ if [ -z $cross_target ]; then
 					  "-DRDK_BUILD_RPATH_SUPPORT=ON"
 					  #"-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0"
 					)
+		cmake_args+=("-DRDK_BUILD_SWIG_WRAPPERS=ON"
+					 "-DRDK_BUILD_SWIG_JAVA_WRAPPER=ON"
+					 "-DRDK_INSTALL_STATIC_LIBS=ON"
+					)
 		if (( $nproc < 8 )); then
 			cmake_args+=(
 				"-DRDK_BUILD_CPP_TESTS=OFF"
