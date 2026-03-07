@@ -157,10 +157,6 @@ include (boost.cmake)
 include (qtplatz_api)
 message ( STATUS "##### Boost_USE_STATIC_LIBS ${Boost_USE_STATIC_LIBS} #####" )
 
-############# RDKIT_JARS ##############
-
-find_package( RDKit_jar )
-
 ############# INSTALL PREFIX ##############
 if ( WIN32 )
   set( CMAKE_INSTALL_PREFIX "C:/QtPlatz" )
@@ -187,14 +183,15 @@ if ( APPLE )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/MacOS" )
+  set( CMAKE_JAR_OUTPUT_DIRECTORY             "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/Resources/java" )
   set( CMAKE_SHARED_MODULE_SUFFIX             ".dylib" )
   set( CMAKE_MACOSX_RPATH                     1 )
   set( CMAKE_SKIP_BUILD_RPATH                 FALSE )
   set( CMAKE_BUILD_WITH_INSTALL_RPATH         FALSE )
   if ( IDE_VERSION VERSION_LESS_EQUAL "8.0.2" AND UNIX )
-    set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns" )
+    set( QTPLATZ_PLUGIN_DIRECTORY             "${CMAKE_BINARY_DIR}/bin/qtplatz.app/Contents/PlugIns" )
   else()
-    set( QTPLATZ_PLUGIN_DIRECTORY               "${CMAKE_BINARY_DIR}/bin/${IDE_PLUGIN_PATH}" )
+    set( QTPLATZ_PLUGIN_DIRECTORY             "${CMAKE_BINARY_DIR}/bin/${IDE_PLUGIN_PATH}" )
   endif()
 
   set( QTPLATZ_PLUGIN_DESTINATION             "bin/qtplatz.app/Contents/PlugIns" )
@@ -211,6 +208,7 @@ else()
   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/lib" ) # static libs, dll's import lib/exp
   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/lib/qtplatz" )
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY           "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/bin" )  # .exe | .dll
+  set( CMAKE_JAR_OUTPUT_DIRECTORY               "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/lib/java" )
   if ( WIN32 )
     set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${QTPLATZ_PLUGIN_DESTINATION}" )
     set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/${QTC_BINARY_DIR}/${QTPLATZ_PLUGIN_DESTINATION}" )
@@ -254,6 +252,7 @@ else() # Linux
   endif()
   set( QTPLATZ_QT5_RUNTIME_INSTALL_DIRECTORY    "lib" )  # don't change.  This path is referencing from libqxcb in plugins directory
   set( QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY "lib" ) # <-- formerly lib/qtplatz
+  set( QTPLATZ_COMMON_JAR_INSTALL_DIRECTORY     "${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY}/java" ) # <-- formerly lib/qtplatz
 endif()
 
 if ( WITH_PYTHON3 )
@@ -302,6 +301,21 @@ if ( WITH_RDKIT )
     message( STATUS "No RDKit found" )
   endif()
 endif()
+
+############# RDKIT_JARS ##############
+find_package( RDKit_jar )
+
+if ( RDKit_JAR_FOUND )
+  foreach( _jar ${RDKit_JAR_FILES})
+    get_filename_component(_name "${_jar}" NAME)
+    configure_file("${_jar}" "${CMAKE_JAR_OUTPUT_DIRECTORY}/${_name}" COPYONLY)
+  endforeach()
+
+  get_filename_component(_jniname "${RDKit_JNILIBS}" NAME)
+  configure_file("${RDKit_JNILIBS}"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${_jniname}"  COPYONLY)
+endif()
+#####################################
 
 ##############################################
 ### find boost
@@ -625,6 +639,10 @@ if ( rdkit_FOUND )
 else()
   message( STATUS "# RDKit                 : ${rdkit_FOUND}" )
 endif()
+if ( RDKit_JAR_FOUND )
+  message( STATUS "# RDKit_JAR_FILES       : ${RDKit_JAR_FILES}" )
+  message( STATUS "# RDKit_JNILIBS         : ${RDKit_JNILIBS}" )
+endif()
 
 if ( WITH_CUDA )
   if ( CUDA_FOUND )
@@ -696,11 +714,6 @@ if ( WITH_PYTHON3 )
   message( STATUS "     Python3_FOUND      :  ${Python3_FOUND} ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
   message( STATUS "     Python3_EXECUTABLE : ${Python3_EXECUTABLE}" )
   message( STATUS "     Python3_LIBRARY_DIRS ${Python3_LIBRARY_DIRS}" )
-endif()
-
-if ( RDKit_JAR_FOUND )
-  message( STATUS "# RDKit_JAR_FILES       : " "${RDKit_JAR_FILES}" )
-  message( STATUS "# RDKit_JNILIBS         : " "${RDKit_JNILIBS}" )
 endif()
 
 if ( OPENSSL_FOUND )

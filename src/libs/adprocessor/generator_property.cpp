@@ -76,6 +76,8 @@ namespace adprocessor {
                                                   , mass_width_( 0 ) {
 
             jv_ = adportable::json_helper::parse( c.generatorProperty() );
+            if ( jv_.is_null() )
+                return;
             setup( jv_ );
 
             if ( auto value = adportable::json_helper::if_contains( jv_, "mass_width" ) ) {
@@ -122,19 +124,24 @@ namespace adprocessor {
             }
         }
         void setup( const boost::json::value& jv ) {
-            ADDEBUG() << "--------------------->\n" << jv;
-            if ( auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
-                generator_ = "extract_by_peak_info"; // gen from mass peak
-                if ( auto value = adportable::json_helper::if_contains( *gen, "pkinfo.mass" ) )
-                    mass_ = value->as_double();
-            } else if (  auto gen = adportable::json_helper::if_contains( jv, "generator.extract_by_mols" ) ) {
-                generator_ = "extract_by_mols";  // gen from mschromatogr. parameter
-                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.mass" ) )
-                    mass_ = value->as_double();
-                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.formula" ) )
-                    formula_ = value->as_string();
-                if ( auto value = adportable::json_helper::if_contains( *gen, "moltable.adduct" ) )
-                    adduct_ = value->as_string();
+            if ( not jv.is_null() ) {
+                ADDEBUG() << "----------> generator_property::setup( jb ): " << jv;
+                using namespace adportable;
+                if ( auto gen  = json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
+                    generator_ = "extract_by_peak_info"; // gen from mass peak
+                    if ( auto value = json_helper::if_contains( *gen, "pkinfo.mass" ) )
+                        mass_ = value->as_double();
+                } else if (  auto gen = json_helper::if_contains( jv, "generator.extract_by_mols" ) ) {
+                    generator_ = "extract_by_mols";  // gen from mschromatogr. parameter
+                    if ( auto value = json_helper::if_contains( *gen, "moltable.mass" ) )
+                        mass_ = value->as_double();
+                    if ( auto value = json_helper::if_contains( *gen, "moltable.formula" ) )
+                        formula_ = value->as_string();
+                    if ( auto value = json_helper::if_contains( *gen, "moltable.adduct" ) )
+                        adduct_ = value->as_string();
+                }
+            } else {
+                ADDEBUG() << "-------- no generator_property found -------";
             }
         }
     };

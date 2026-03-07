@@ -1529,10 +1529,15 @@ MainWindow::handleImportChecked()
 void
 MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
 {
+    ADDEBUG() << __FUNCTION__ << ":: merge.size = " << merge.size();
+    for ( const auto& folium: merge )
+        ADDEBUG() << "\tfolium.name: " << folium.name();
+
     // std::vector< std::pair< double, portfolio::Folium > > tuples;
     std::vector< std::tuple< adprocessor::generator_property, portfolio::Folium > > tuples;
 
     for ( auto folium: merge ) {
+        ADDEBUG() << "folium: " << folium.name();
         if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
             auto gp = adprocessor::generator_property( *chro );
             auto it = std::upper_bound( tuples.begin(), tuples.end(), gp
@@ -1540,14 +1545,17 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
             tuples.emplace( it, gp, folium );
         }
     }
-    // for ( auto& t: tuples ) {
-    //     ADDEBUG() << std::get<0>(t).mass();
-    // }
+
+    for ( auto& t: tuples ) {
+        ADDEBUG() << std::get<0>(t).mass();
+    }
 
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Merge chromatograms into a new portfolio")
                                                      , currentDir()
                                                      , tr( "QtPlatz files(*.adfs)" ) );
+    qDebug() << filename;
+
     if ( !filename.isEmpty() ) {
 
         std::filesystem::path path( filename.toStdString() );

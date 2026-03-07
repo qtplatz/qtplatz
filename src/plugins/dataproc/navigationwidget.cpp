@@ -1497,7 +1497,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         merge_selection merger( selRows );
         menu.addAction( tr( "Merge selection" ), [merger,this]{
             emit document::instance()->onMergeSelection( merger() );
-            });
+        });
     }
 
     if ( ( selFolders.folders().size() == 1 ) && selFolders.contains( "Spectrograms" ) ) { // Chromatograms -- exclusively selected

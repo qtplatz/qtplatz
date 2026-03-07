@@ -31,4 +31,9 @@ if ( rdkit_FOUND )
     endif()
   endforeach()
 
+  if ( RDKit_JAR_FOUND )
+    install ( FILES "${RDKit_JAR_FILES}" DESTINATION ${QTPLATZ_COMMON_JAR_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
+    install ( FILES "${RDKit_JNILIBS}" DESTINATION ${QTPLATZ_COMMON_RUNTIME_INSTALL_DIRECTORY} COMPONENT runtime_libraries )
+  endif()
+
 endif()
