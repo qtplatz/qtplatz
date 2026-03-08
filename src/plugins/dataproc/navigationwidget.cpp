@@ -1528,18 +1528,15 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
         menu.addAction( tr( "PGE2/PGD2 deconvolution"), [list]{
             emit document::instance()->onPeakDeconvolution( list, 0 );
         })->setEnabled( list.size() );
-        menu.addAction( tr( "PGE2/PGD2 deconvolution (1)"), [list]{
-            emit document::instance()->onPeakDeconvolution( list, 1 );
+
+        menu.addAction( tr( "PGE2/PGD2/d12-PGD2 deconvolution"), [list]{
+            emit document::instance()->onPeakDeconvolution( list, 5 );
         })->setEnabled( list.size() );
-        menu.addAction( tr( "PGE2/PGD2 deconvolution (2)"), [list]{
-            emit document::instance()->onPeakDeconvolution( list, 2 );
+
+        menu.addAction( tr( "PGD2/d12-PGD2 deconvolution"), [list]{
+            emit document::instance()->onPeakDeconvolution( list, 6 );
         })->setEnabled( list.size() );
-        menu.addAction( tr( "PGE2/PGD2 deconvolution SS-BP 150 (3)"), [list]{
-            emit document::instance()->onPeakDeconvolution( list, 3 );
-        })->setEnabled( list.size() );
-        menu.addAction( tr( "PGE2/PGD2 deconvolution SS-BP 150 (4)"), [list]{
-            emit document::instance()->onPeakDeconvolution( list, 4 );
-        })->setEnabled( list.size() );
+
     }
 
     if ( selRows.size() == 1 ) {

@@ -1602,8 +1602,11 @@ void
 MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list, int id )
 {
     for ( auto processor: list ) {
-        ADDEBUG() << processor->filename();
-        processor->srmDeconvolution( id );
+        if ( id < 5 ) {
+            processor->srmDeconvolution( id );
+        } else {
+            processor->srmDeconvolution2( id );
+        }
     }
 }
 

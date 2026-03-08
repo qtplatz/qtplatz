@@ -114,6 +114,7 @@
 #include <qtwrapper/debug.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <coreplugin/documentmanager.h>
+#include <utility>
 #include <utils/mimeutils.h>
 #include <boost/json.hpp>
 #include <boost/variant.hpp>
@@ -2099,28 +2100,92 @@ Dataprocessor::setSFEDelay( bool enable, double value )
 }
 
 namespace {
+
+    ////////////////////////////////////////////////////////////////////////
+    template<size_t, class T> using T_ = T;
+
+    template<class T, size_t... Is>
+    auto gen(std::index_sequence<Is...>) { return std::tuple<T_<Is, T>...>{}; }
+
+    template<class T, size_t N>
+    auto make_n_tuple() { return gen<T>(std::make_index_sequence<N>{}); }
+
+    /////////
+    template< size_t... Is >
+    auto make_row( const std::vector< std::shared_ptr< adcontrols::Chromatogram > >& cv
+                   , size_t i
+                   , std::index_sequence<Is...> )
+    {
+        return std::make_tuple(
+            cv.at(0)->time(i),
+            ( cv.at(Is)->intensity(i) - cv.at(Is)->intensity(0) )...
+            );
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+
+    template< size_t N >
+    auto make_n_tuple_array( const std::vector< std::shared_ptr< adcontrols::Chromatogram > >& cv )
+    {
+        using row_type = decltype( make_row( cv, 0, std::make_index_sequence< N - 1 >{} ) );
+
+        std::vector< row_type > data;
+
+        data.reserve( cv.at(0)->size() );
+
+        for ( size_t i = 0; i < cv.at(0)->size(); ++i ) {
+            data.emplace_back( make_row( cv, i, std::make_index_sequence< N - 1 >{} ) );
+        }
+
+        return data;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+
+    size_t
+    folium_name_count( portfolio::Folder folder, const std::string query = R"(./folium[contains(@name,'PGE')])" )
+    {
+        size_t cnt{0};
+        try {
+            auto folio = folder.find<portfolio::Folium>( query );
+            cnt = folio.size();
+            for ( auto folium: folio ) {
+                auto pos = folium.name().find_last_of( '~' );
+                if ( pos != std::string::npos ) {
+                    int num = std::stoi( folium.name().substr( pos + 1 ) );
+                    cnt = std::max( cnt, size_t(num + 1) );
+                }
+            }
+        } catch ( pugi::xpath_exception& ex ) {
+            ADDEBUG() << ex.what();
+        }
+        return cnt;
+    }
+
+    /////////////////////////////////////////////////////////////////////////
+
     void PGE2D2Deconvolution( Dataprocessor * dp,  const Eigen::Matrix<double, 4, 2 >& A ) {
 
         auto peakd = adprocessor::PeakDecomposition< double, 4, 2 >( A );
 
-        static std::vector< std::string > cnames = {
-            "0, m/z 233.20 neg",
-            "1, m/z 271.20 neg",
-            "2, m/z 315.20 neg",
-            "3, m/z 333.20 neg"
+        static std::vector< std::string > re_names = {
+            R"(./folium[contains(@name, ', m/z 233.20 neg')])"
+            , R"(./folium[contains(@name, ', m/z 271.20 neg')])"
+            , R"(./folium[contains(@name, ', m/z 315.20 neg')])"
+            , R"(./folium[contains(@name, ', m/z 333.20 neg')])"
         };
 
         std::vector< std::shared_ptr< adcontrols::Chromatogram > > cv;
 
         auto folder = dp->portfolio().findFolder( L"Chromatograms");
-        for ( const auto& cname: cnames ) {
-            if ( auto a = folder.findFoliumByName( cname ) ) {
+        for ( const auto& re: re_names ) {
+            if ( auto a = folder.findFoliumByXpath( re ) ) {
                 dp->fetch( a );
                 if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
                     cv.emplace_back( chro );
                 }
             } else {
-                ADDEBUG() << "not find " << cname;
+                ADDEBUG() << "not find " << re;
             }
         }
         if ( cv.size() != 4 )
@@ -2177,21 +2242,7 @@ namespace {
             idx++;
         }
 
-        size_t cnt{0};
-        try {
-            auto folio = folder.find<portfolio::Folium>( R"(./folium[contains(@name,'PGE')])" );
-            cnt = folio.size();
-            for ( auto folium: folio ) {
-                auto pos = folium.name().find_last_of( '~' );
-                if ( pos != std::string::npos ) {
-                    int num = std::stoi( folium.name().substr( pos + 1 ) );
-                    cnt = std::max( cnt, size_t(num + 1) );
-                }
-            }
-        } catch ( pugi::xpath_exception& ex ) {
-            ADDEBUG() << ex.what();
-            return;
-        }
+        size_t cnt = folium_name_count( folder, R"(./folium[contains(@name,'PGE')])" );
 #if defined __GNUC__ && __GNUC__ <= 12
         auto dst0 = folder.addFolium( (boost::format("PGE2~%1%") % cnt).str() ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
         auto dst1 = folder.addFolium( (boost::format("PGD2~%1%") % cnt).str() ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
@@ -2206,6 +2257,79 @@ namespace {
         SessionManager::instance()->updateDataprocessor( dp, dst2 );
 
         dp->setModified( true );
+    }
+
+
+    //----------------------------
+    template< size_t ndim, size_t nprod >
+    void PGDeconvolution( Dataprocessor * dp
+                         , const Eigen::Matrix<double, ndim, nprod >& A
+                         , const std::vector< std::string >& re_names ) {
+
+        ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
+
+        std::vector< std::shared_ptr< adcontrols::Chromatogram > > cv;
+
+        auto folder = dp->portfolio().findFolder( L"Chromatograms");
+
+        for ( const auto& re: re_names ) {
+            if ( auto a = folder.findFoliumByXpath( re ) ) {
+                dp->fetch( a );
+                if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( a ) ) {
+                    cv.emplace_back( chro );
+                }
+            } else {
+                ADDEBUG() << "not find " << re;
+            }
+        }
+        if ( cv.size() != ndim ) {
+            ADDEBUG() << "cv.size != ndim: " << std::make_pair( cv.size(), ndim );
+            return;
+        }
+
+        auto peakd = adprocessor::PeakDecomposition< double, ndim, nprod >( A );
+
+        auto data = make_n_tuple_array<ndim+1>( cv ); // vector< time, intens, ... >
+
+        //--- std::tuple< chromatogram_ptr, ... >
+        auto a = make_n_tuple< std::shared_ptr< adcontrols::Chromatogram >, nprod+1 >();
+        std::get<0>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "PGE2" );
+        std::get<1>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "PGD2" );
+        std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "d12-PGD2" );
+        std::get<3>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "||A*b-x||" );
+
+        size_t idx{0};
+        for ( const auto& d: data ) {
+            auto time = std::get<0>(d);
+            auto [b,v] = peakd( std::get<1>( d )
+                                , std::get<2>( d )
+                                , std::get<3>( d )
+                                , std::get<4>( d )
+                                , std::get<5>( d ) );
+
+            std::get<0>(a)->setDatum( idx, { time, v(0) } );
+            std::get<1>(a)->setDatum( idx, { time, v(1) } );
+            std::get<2>(a)->setDatum( idx, { time, v(2) } );
+            std::get<3>(a)->setDatum( idx, { time, (A*v - b).norm() } );
+            idx++;
+        }
+
+        const size_t cnt = folium_name_count( folder );
+        ADDEBUG() << "PEG2 count = " << cnt;
+
+        auto dst0 = folder.addFolium( std::format( "PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
+        auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
+        auto dst2 = folder.addFolium( std::format( "d12-D2~{}", cnt) ).assign( std::get<1>(a), std::get<2>(a)->dataClass() );
+        auto dst3 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<3>(a)->dataClass() );
+
+        SessionManager::instance()->updateDataprocessor( dp, dst0 );
+        SessionManager::instance()->updateDataprocessor( dp, dst1 );
+        SessionManager::instance()->updateDataprocessor( dp, dst2 );
+        SessionManager::instance()->updateDataprocessor( dp, dst3 );
+
+        dp->setModified( true );
+
+
     }
 }
 
@@ -2257,6 +2381,58 @@ Dataprocessor::srmDeconvolution( int id )
 
     ADDEBUG() << "========= RANK(A) = " << A.colPivHouseholderQr().rank();
     PGE2D2Deconvolution( this, A );
+}
+
+void
+Dataprocessor::srmDeconvolution2( int id )
+{
+    constexpr int ndim = 5;
+    constexpr int nprod = 3;
+
+    static std::vector< std::string > re_names = {
+        R"(./folium[contains(@name,   ', m/z 189.10 neg')])"
+        , R"(./folium[contains(@name, ', m/z 233.20 neg')])"
+        , R"(./folium[contains(@name, ', m/z 271.20 neg')])"
+        , R"(./folium[contains(@name, ', m/z 315.20 neg')])"
+        , R"(./folium[contains(@name, ', m/z 333.20 neg')])"
+    };
+
+#if 0
+    if ( id == 5 ) { // area
+        Eigen::Matrix<double, ndim, nprod> A;
+        A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
+            /* 189.1 */  0.2917, 0.2993, 0.7371
+            /* 233.2 */ ,0.0874, 0.3705, 0.5135
+            /* 271.2 */ ,1.0000, 1.0000, 1.0000
+            /* 315.2 */ ,0.6870, 0.6413, 0.6597
+            /* 333.2 */ ,0.5786, 0.2290, 0.1741
+            ;
+        PGE2D2Deconvolution<ndim,nprod>( this, A, re_names );
+    }
+#endif
+    if ( id == 5 ) {  // height
+        Eigen::Matrix<double, ndim, nprod> A;
+        A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
+            /* 189.1 */ 0.2833,  0.3595,  0.7208
+            /* 233.2 */ , 0.0922,  0.4650,  0.5311
+            /* 271.2 */ , 1.0000,  1.0000,  1.0000
+            /* 315.2 */ , 0.6788,  0.6671,  0.7210
+            /* 333.2 */ , 0.5493,  0.1829,  0.1765
+            ;
+        PGDeconvolution<ndim,nprod>( this, A, re_names );
+    }
+
+    // if ( id == 6 ) {  // height
+    //     Eigen::Matrix<double, ndim, 2> A;
+    //     A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
+    //         /* 189.1 */   0.3595,  0.7208
+    //         /* 233.2 */ , 0.4650,  0.5311
+    //         /* 271.2 */ , 1.0000,  1.0000
+    //         /* 315.2 */ , 0.6671,  0.7210
+    //         /* 333.2 */ , 0.1829,  0.1765
+    //         ;
+    //     PGE2D2Deconvolution<ndim,2>( this, A, re_names );
+    // }
 }
 
 namespace {

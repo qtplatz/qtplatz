@@ -155,6 +155,7 @@ namespace dataproc {
         void createChromatograms( std::vector< adprocessor::generator_property > v );
         void setSFEDelay( bool, double );
         void srmDeconvolution( int id );
+        void srmDeconvolution2( int id );
         void relativeAbundances( portfolio::Folium, double t );
 
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >

@@ -110,7 +110,7 @@ Folder::findFoliumByName(const std::string &name)
 }
 
 Folium
-Folder::findFoliumByRegex(const std::string &query)
+Folder::findFoliumByXpath(const std::string &query)
 {
     //std::string query = "./folium[@name=\"" + pugi::as_utf8( name ) + "\"]";
     pugi::xpath_node node = node_.select_node( query.c_str() );

@@ -57,7 +57,7 @@ namespace portfolio {
         const std::vector< Folium > folio() const;
         Folium findFoliumByName( const std::wstring& name );
         Folium findFoliumByName( const std::string& name );
-        Folium findFoliumByRegex( const std::string& name );
+        Folium findFoliumByXpath( const std::string& name );
         Folium findFoliumById( const std::wstring& id );
         template< typename T = Folium > std::vector< T > find( const std::string& xpath ) const;
 

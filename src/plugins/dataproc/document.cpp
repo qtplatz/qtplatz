@@ -273,7 +273,7 @@ document::findTIC( Dataprocessor * dp, int fcn )
         // query should match both 'pkd.1.u5303a/TIC.1' 'TIC.1/pkd.1.u5303a
         std::ostringstream query;
         query << boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 );
-        if ( auto folium = cfolder.findFoliumByRegex( query.str() ) ) {
+        if ( auto folium = cfolder.findFoliumByXpath( query.str() ) ) {
             auto cptr = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
             return cptr;
         }

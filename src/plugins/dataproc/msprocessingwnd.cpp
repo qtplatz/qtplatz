@@ -489,7 +489,7 @@ MSProcessingWnd::handleSessionAdded( Dataprocessor * processor )
                                       % L"TIC" % ( fcn + 1 ) ).str();
 
                         auto query = ( boost::format( "./folium[contains(@name,'TIC.%d')]" ) % ( fcn + 1 ) ).str();
-                        auto folium = folder.findFoliumByRegex( query );
+                        auto folium = folder.findFoliumByXpath( query );
 
                         if ( folium.nil() ) {
                             auto c = std::make_shared< adcontrols::Chromatogram >(*tic);
