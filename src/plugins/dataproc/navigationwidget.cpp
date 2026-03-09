@@ -1529,6 +1529,10 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             emit document::instance()->onPeakDeconvolution( list, 0 );
         })->setEnabled( list.size() );
 
+        menu.addAction( tr( "PGE2/PGD2 (+189) deconvolution"), [list]{
+            emit document::instance()->onPeakDeconvolution( list, 4 );
+        })->setEnabled( list.size() );
+
         menu.addAction( tr( "PGE2/PGD2/d12-PGD2 deconvolution"), [list]{
             emit document::instance()->onPeakDeconvolution( list, 5 );
         })->setEnabled( list.size() );
