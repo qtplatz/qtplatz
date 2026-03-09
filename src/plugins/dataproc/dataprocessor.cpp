@@ -2111,6 +2111,7 @@ namespace {
     auto make_n_tuple() { return gen<T>(std::make_index_sequence<N>{}); }
 
     /////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
     template< size_t... Is >
     auto make_row( const std::vector< std::shared_ptr< adcontrols::Chromatogram > >& cv
                    , size_t i
@@ -2122,7 +2123,7 @@ namespace {
             );
     }
 
-    /////////////////////////////////////////////////////////////////////////
+    //--------------------------------------------------------------------------------------------
 
     template< size_t N >
     auto make_n_tuple_array( const std::vector< std::shared_ptr< adcontrols::Chromatogram > >& cv )
@@ -2141,6 +2142,53 @@ namespace {
     }
 
     /////////////////////////////////////////////////////////////////////////
+
+    // Helper to select elements from a tuple by index
+    template <typename Tuple, std::size_t... Is>
+    auto select_tuple(Tuple&& tuple, std::index_sequence<Is...>) {
+        return std::make_tuple(std::get<Is + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    // Function to remove the first element from a tuple
+    template <typename Tuple>
+    auto remove_first(Tuple&& tuple) {
+        constexpr auto size = std::tuple_size_v<std::decay_t<Tuple>>;
+        // Generate an index sequence starting from index 0 up to size - 2
+        using indices = std::make_index_sequence<size - 1>;
+        return select_tuple(std::forward<Tuple>(tuple), indices{});
+    }
+
+    //======================================================================
+    template<typename Function, typename Tuple>
+    void for_each(Function&& function, Tuple&& tuple) {
+        std::apply([&function](auto&&... xs){
+            // Use a fold expression over the comma operator to call the function on each element
+            ((function(std::forward<decltype(xs)>(xs))), ...);
+        }, std::forward<Tuple>(tuple));
+    }
+
+    //======================================================================
+
+    template <typename F, typename Tuple1, typename Tuple2, std::size_t... Is>
+    void apply_elements_impl(F&& f, Tuple1&& t1, Tuple2&& t2, std::index_sequence<Is...>) {
+        (std::invoke(std::forward<F>(f)
+                     , std::get<Is>(std::forward<Tuple1>(t1))
+                     , std::get<Is>(std::forward<Tuple2>(t2))), ...);
+    }
+
+    template <typename F, typename Tuple1, typename Tuple2>
+    void apply_elements(F&& f, Tuple1&& t1, Tuple2&& t2) {
+        // Ensure both tuples are of the same size at compile time
+        static_assert(std::tuple_size_v<std::decay_t<Tuple1>> == std::tuple_size_v<std::decay_t<Tuple2>>, "Tuples must be of the same size");
+
+        // Generate the index sequence
+        apply_elements_impl(
+            std::forward<F>(f),
+            std::forward<Tuple1>(t1),
+            std::forward<Tuple2>(t2),
+            std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple1>>>{});
+    }
+    //======================================================================
 
     size_t
     folium_name_count( portfolio::Folder folder, const std::string query = R"(./folium[contains(@name,'PGE')])" )
@@ -2259,12 +2307,22 @@ namespace {
         dp->setModified( true );
     }
 
+    template<std::size_t... Is, typename Vector>
+    auto vector_to_tuple_impl(std::index_sequence<Is...>, const Vector& v, double norm ) {
+        return std::make_tuple(v(Is)..., norm);
+    }
+
+    template <std::size_t N, typename Vector>
+    auto vector_to_tuple(const Vector& v, double norm) {
+        return vector_to_tuple_impl(std::make_index_sequence<N>{}, v, norm);
+    }
 
     //----------------------------
-    template< size_t ndim, size_t nprod >
+    template< size_t ndim, size_t nprod, typename Tuple >
     void PGDeconvolution( Dataprocessor * dp
-                         , const Eigen::Matrix<double, ndim, nprod >& A
-                         , const std::vector< std::string >& re_names ) {
+                          , const Eigen::Matrix<double, ndim, nprod >& A
+                          , const std::vector< std::string >& re_names
+                          , Tuple&& cnames ) {
 
         ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
 
@@ -2293,34 +2351,23 @@ namespace {
 
         //--- std::tuple< chromatogram_ptr, ... >
         auto a = make_n_tuple< std::shared_ptr< adcontrols::Chromatogram >, nprod+1 >();
-        std::get<0>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "PGE2" );
-        std::get<1>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "PGD2" );
-        std::get<2>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "d12-PGD2" );
-        std::get<3>(a) = std::make_shared< adcontrols::Chromatogram >( *cv[0] ); std::get<0>(a)->set_display_name( "||A*b-x||" );
+        for_each( [&](auto&& x){x = std::make_shared< adcontrols::Chromatogram >( *cv[0] );},  a );
+        apply_elements([](auto&& a, auto&& b){a->set_display_name(b);}, a, cnames );
 
         size_t idx{0};
         for ( const auto& d: data ) {
             auto time = std::get<0>(d);
-            auto [b,v] = peakd( std::get<1>( d )
-                                , std::get<2>( d )
-                                , std::get<3>( d )
-                                , std::get<4>( d )
-                                , std::get<5>( d ) );
-
-            std::get<0>(a)->setDatum( idx, { time, v(0) } );
-            std::get<1>(a)->setDatum( idx, { time, v(1) } );
-            std::get<2>(a)->setDatum( idx, { time, v(2) } );
-            std::get<3>(a)->setDatum( idx, { time, (A*v - b).norm() } );
+            auto [b,v] = std::apply( peakd, remove_first( d ) );
+            apply_elements( [&](auto&& a, auto&& b){ a->setDatum( idx, { time, b }); }, a, vector_to_tuple< nprod >( v, (A*v-b).norm() ) );
             idx++;
         }
 
         const size_t cnt = folium_name_count( folder );
-        ADDEBUG() << "PEG2 count = " << cnt;
 
         auto dst0 = folder.addFolium( std::format( "PGE2~{}", cnt) ).assign( std::get<0>(a), std::get<0>(a)->dataClass() );
         auto dst1 = folder.addFolium( std::format( "PGD2~{}", cnt) ).assign( std::get<1>(a), std::get<1>(a)->dataClass() );
-        auto dst2 = folder.addFolium( std::format( "d12-D2~{}", cnt) ).assign( std::get<1>(a), std::get<2>(a)->dataClass() );
-        auto dst3 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<2>(a), std::get<3>(a)->dataClass() );
+        auto dst2 = folder.addFolium( std::format( "d12-D2~{}", cnt) ).assign( std::get<2>(a), std::get<2>(a)->dataClass() );
+        auto dst3 = folder.addFolium( std::format( "NORM~{}", cnt) ).assign( std::get<3>(a), std::get<3>(a)->dataClass() );
 
         SessionManager::instance()->updateDataprocessor( dp, dst0 );
         SessionManager::instance()->updateDataprocessor( dp, dst1 );
@@ -2328,8 +2375,6 @@ namespace {
         SessionManager::instance()->updateDataprocessor( dp, dst3 );
 
         dp->setModified( true );
-
-
     }
 }
 
@@ -2419,7 +2464,7 @@ Dataprocessor::srmDeconvolution2( int id )
             /* 315.2 */ , 0.6788,  0.6671,  0.7210
             /* 333.2 */ , 0.5493,  0.1829,  0.1765
             ;
-        PGDeconvolution<ndim,nprod>( this, A, re_names );
+        PGDeconvolution<ndim,nprod>( this, A, re_names, std::make_tuple( "PGE2", "PGD2", "d12-PGD2", "||A*b-x||" ) );
     }
 
     // if ( id == 6 ) {  // height
