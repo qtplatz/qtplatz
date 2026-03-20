@@ -122,6 +122,7 @@ namespace dataproc {
         void onSetDelayedInjectionDelay( std::set< Dataprocessor * > list );
         void onPeakDeconvolution( std::set< Dataprocessor * > list, int id );
         void onNotifyRelativeAbundance( const QByteArray& );
+        void onSelectionExportTo( std::vector< std::pair< portfolio::Folium, Dataprocessor * > > );
     };
 
 }

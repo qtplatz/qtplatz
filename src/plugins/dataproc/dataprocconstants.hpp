@@ -65,6 +65,8 @@ namespace Constants {
     const char * const GRP_SVG_FILES        = "SVGFiles";
     const char * const GRP_SAVEAS_FILES     = "SaveAsFiles";
     const char * const KEY_FILES            = "Files";
+    const char * const GRP_MERGE_FILES      = "MergeFiles";
+    const char * const GRP_SELECTION_EXPORT = "SelectionExportToFiles";
 
     //
     const char * const GRP_SPECTRUM_IMAGE   = "SpectrumImage";

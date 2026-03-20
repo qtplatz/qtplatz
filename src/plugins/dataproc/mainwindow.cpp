@@ -98,6 +98,7 @@
 #include <qtwrapper/plugin_manager.hpp>
 #include <qtwrapper/trackingenabled.hpp>
 #include <qtwrapper/waitcursor.hpp>
+#include <qtwrapper/settings.hpp>
 #include <extensionsystem/pluginmanager.h>
 #include <boost/any.hpp>
 #include <boost/exception/all.hpp>
@@ -152,6 +153,7 @@
 #include <functional>
 #include <fstream>
 #include <filesystem>
+#include <limits>
 
 namespace dataproc {
 
@@ -1221,6 +1223,7 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(), &document::onMergeSelection, this, &MainWindow::handleMergeSelection );
     connect( document::instance(),  &document::onSetDelayedInjectionDelay, this, &MainWindow::handleSetDelayedInjectionDelay );
     connect( document::instance(),  &document::onPeakDeconvolution, this, &MainWindow::handlePeakDeconvolution );
+    connect( document::instance(),  &document::onSelectionExportTo, this, &MainWindow::handleSelectionExportTo );
 
     adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
             getProcessMethod( pm );
@@ -1552,9 +1555,15 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
 
     QString filename = QFileDialog::getSaveFileName( 0
                                                      , tr( "Merge chromatograms into a new portfolio")
-                                                     , currentDir()
+                                                     //, currentDir()
+                                                     , document::instance()->recentFile( Constants::GRP_MERGE_FILES, true )
                                                      , tr( "QtPlatz files(*.adfs)" ) );
     qDebug() << filename;
+    if ( not filename.isEmpty() ) {
+        qtwrapper::settings(
+            *document::instance()->settings()
+            ).addRecentFiles( Constants::GRP_MERGE_FILES, Constants::KEY_FILES, filename );
+    }
 
     if ( !filename.isEmpty() ) {
 
@@ -1606,6 +1615,62 @@ MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list, int id )
             processor->srmDeconvolution( id );
         } else {
             processor->srmDeconvolution2( id );
+        }
+    }
+}
+
+void
+MainWindow::handleSelectionExportTo( std::vector< std::pair< portfolio::Folium, Dataprocessor * > > list )
+{
+    QFileDialog dlg( this, tr( "Save selection to:") );
+    dlg.setDirectory( document::instance()->recentFile( Constants::GRP_SELECTION_EXPORT ) );
+    dlg.setAcceptMode( QFileDialog::AcceptSave );
+    dlg.setFileMode( QFileDialog::AnyFile );
+
+    QStringList filter;
+    filter << "Text files(*.txt)" << "All files(*)";
+    dlg.setNameFilters( filter );
+
+    if ( dlg.exec() ) {
+        auto files = dlg.selectedFiles();
+        if ( not files.isEmpty() ) {
+            std::filesystem::path path( files.at(0).toStdString() );
+            document::instance()->addToRecentFiles( QString::fromStdString( path.string() ), Constants::GRP_SELECTION_EXPORT );
+
+            using datum_type = std::pair< double, double >;
+            std::vector< std::pair< std::string, std::shared_ptr< adcontrols::Chromatogram > > > alist;
+            size_t length = 0;
+
+            for ( auto [folium, processor] : list ) {
+                if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
+                    length = std::max( length, v->size() );
+                    alist.emplace_back( folium.name<char>(), std::move(v) );
+                }
+            }
+            std::ofstream of( path );
+            of << "#";
+            for ( auto it = alist.begin(); it != alist.end(); ++it ) {
+                of << ( (it == alist.end() - 1) ?
+                        std::format("\"{}\"\n", std::get<0>(*it) ) :
+                        std::format("\"{}\",\t", std::get<0>(*it) ) );
+            }
+
+            auto functor = [](adcontrols::Chromatogram& c, size_t i)->std::pair<double,double> {
+                if ( c.size() > i )
+                    return { c.time(i), c.intensity(i) };
+                else
+                    return {};
+            };
+
+             for ( size_t i = 0; i < length; ++i ) {
+                 for ( auto it = alist.begin(); it != alist.end(); ++it ) {
+                     of << std::apply( [&](auto... pack){
+                         return (it == alist.end() - 1) ?
+                             std::format("{:.3f},{}\n", pack...) :
+                             std::format("{:.3f},{},\t", pack...);
+                     }, functor( *std::get<1>(*it), i ));
+                 }
+             }
         }
     }
 }

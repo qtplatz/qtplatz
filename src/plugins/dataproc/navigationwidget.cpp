@@ -1541,6 +1541,22 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             emit document::instance()->onPeakDeconvolution( list, 6 );
         })->setEnabled( list.size() );
 
+        menu.addAction( tr( "Selection export to ..."), [list,selRows]{
+            std::vector< std::pair< portfolio::Folium, Dataprocessor * > > flist;
+
+            for ( const auto& index: selRows ) {
+                auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
+                if ( processor ) {
+                    processor->fetch( folium );
+                    flist.push_back( { std::move(folium), processor } );
+                }
+            }
+            for ( const auto& p: flist ) {
+                ADDEBUG() << p.first.name() << "\t" << (p.second ? p.second->filename<char>() : "");
+            }
+
+            emit document::instance()->onSelectionExportTo( flist );
+        })->setEnabled( list.size() );
     }
 
     if ( selRows.size() == 1 ) {

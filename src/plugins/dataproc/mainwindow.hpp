@@ -138,6 +138,7 @@ namespace dataproc {
         void handleMergeSelection( std::vector< portfolio::Folium > );
         void handleSetDelayedInjectionDelay( std::set< Dataprocessor * > );
         void handlePeakDeconvolution( std::set< Dataprocessor * >, int id );
+        void handleSelectionExportTo( std::vector< std::pair< portfolio::Folium, Dataprocessor * > > );
 
     private slots:
         void handleApplyMethod();

@@ -2334,63 +2334,46 @@ Dataprocessor::srmDeconvolution2( int id )
     constexpr int nprod = 3;
 
     static std::vector< std::string > re_names = {
-        R"(./folium[contains(@name,   ', m/z 189.10 neg')])"
+        R"(./folium[contains(@name,   ', m/z 189.15 neg')])"
         , R"(./folium[contains(@name, ', m/z 233.20 neg')])"
         , R"(./folium[contains(@name, ', m/z 271.20 neg')])"
         , R"(./folium[contains(@name, ', m/z 315.20 neg')])"
         , R"(./folium[contains(@name, ', m/z 333.20 neg')])"
     };
 
-    if ( id == 4 ) {
+    if ( id == 4 ) {  // PGE2, PGD2
         Eigen::Matrix<double, ndim, 2> A;
-        A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
-            /* 189.1 */  0.2917, 0.2993
-            /* 233.2 */ ,0.0874, 0.3705
-            /* 271.2 */ ,1.0000, 1.0000
-            /* 315.2 */ ,0.6870, 0.6413
-            /* 333.2 */ ,0.5786, 0.2290
+        A <<            /* PGE2 *//* PGD2 */
+            /* 189.1 */   0.3141, 0.5326
+            /* 233.2 */ , 0.1305, 0.4998
+            /* 271.2 */ , 1.0000, 1.0000
+            /* 315.2 */ , 0.8761, 0.8629
+            /* 333.2 */ , 0.7108, 0.3492
             ;
-        ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
         PGDeconvolution<ndim,2>( this, A, re_names, std::make_tuple( "PGE2", "PGD2", "||A*b-x||" ) );
     }
 
-#if 1
-    if ( id == 5 ) { // area
-        Eigen::Matrix<double, ndim, nprod> A;
-        A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
-            /* 189.1 */  0.2917, 0.2993, 0.7371
-            /* 233.2 */ ,0.0874, 0.3705, 0.5135
-            /* 271.2 */ ,1.0000, 1.0000, 1.0000
-            /* 315.2 */ ,0.6870, 0.6413, 0.6597
-            /* 333.2 */ ,0.5786, 0.2290, 0.1741
-            ;
-        ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
-        PGDeconvolution<ndim,nprod>( this, A, re_names, std::make_tuple( "PGE2", "PGD2", "d12-PGD2", "||A*b-x||" ) );
-    }
-#else
     if ( id == 5 ) {  // height
         Eigen::Matrix<double, ndim, nprod> A;
-        A <<        /* PGE2 *//* PGD2 *//* d12-PGD2 */
-            /* 189.1 */ 0.2833,  0.3595,  0.7208
-            /* 233.2 */ , 0.0922,  0.4650,  0.5311
-            /* 271.2 */ , 1.0000,  1.0000,  1.0000
-            /* 315.2 */ , 0.6788,  0.6671,  0.7210
-            /* 333.2 */ , 0.5493,  0.1829,  0.1765
+        A <<           /* PGE2 *//* PGD2 *//* d12-PGD2 */
+            /* 189.1 */   0.3141, 0.5326, 0.7036
+            /* 233.2 */ , 0.1305, 0.4998, 0.4957
+            /* 271.2 */ , 1.0000, 1.0000, 1.0000
+            /* 315.2 */ , 0.8761, 0.8629, 0.6967
+            /* 333.2 */ , 0.7108, 0.3492, 0.1626
             ;
-        ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
         PGDeconvolution<ndim,nprod>( this, A, re_names, std::make_tuple( "PGE2", "PGD2", "d12-PGD2", "||A*b-x||" ) );
     }
-#endif
+
     if ( id == 6 ) {  // height
         Eigen::Matrix<double, ndim, 2> A;
-        A <<            /* PGD2 *//* d12-PGD2 */
-            /* 189.1 */   0.3595,  0.7208
-            /* 233.2 */ , 0.4650,  0.5311
-            /* 271.2 */ , 1.0000,  1.0000
-            /* 315.2 */ , 0.6671,  0.7210
-            /* 333.2 */ , 0.1829,  0.1765
+        A <<           /* PGD2 */ /* d12-PGD2 */
+            /* 189.1 */   0.5326, 0.7036
+            /* 233.2 */ , 0.4998, 0.4957
+            /* 271.2 */ , 1.0000, 1.0000
+            /* 315.2 */ , 0.8629, 0.6967
+            /* 333.2 */ , 0.3492, 0.1626
             ;
-        ADDEBUG() << __FUNCTION__ << " ======== RANK(A) = " << A.colPivHouseholderQr().rank();
         PGDeconvolution<ndim,2>( this, A, re_names, std::make_tuple( "PGD2", "d12-PGD2", "||A*b-x||" ) );
     }
 }
