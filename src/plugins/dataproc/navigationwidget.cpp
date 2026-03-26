@@ -1548,7 +1548,7 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 if ( processor ) {
                     processor->fetch( folium );
-                    flist.push_back( { std::move(folium), processor } );
+                    flist.emplace_back( std::move(folium), processor );
                 }
             }
             for ( const auto& p: flist ) {
