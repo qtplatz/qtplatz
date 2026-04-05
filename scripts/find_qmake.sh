@@ -7,7 +7,7 @@ function find_qmake() {
 
     case "${__uname}" in
 		Linux*|MINGW64_NT*)
-			local hints=( "6.7.3" "6.5.3" "5.15.2" )
+			local hints=( "6.10.3" "6.7.3" "6.5.3" "5.15.2" )
 			;;
 		Darwin*)
 			local hints=(

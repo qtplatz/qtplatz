@@ -303,7 +303,7 @@ if ( WITH_RDKIT )
 endif()
 
 ############# RDKIT_JARS ##############
-find_package( RDKit_jar )
+find_package( RDKit_jar QUIET )
 
 if ( RDKit_JAR_FOUND )
   foreach( _jar ${RDKit_JAR_FILES})
