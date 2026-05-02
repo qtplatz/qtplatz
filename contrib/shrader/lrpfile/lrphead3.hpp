@@ -27,6 +27,8 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace shrader {
 
@@ -34,7 +36,10 @@ namespace shrader {
         enum {  data_size = 256  };
     public:
         ~lrphead3();
-        lrphead3( std::istream& in, size_t fsize );
+        lrphead3();
+        lrphead3( const lrphead3& );
+
+        bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
 
         int32_t flags() const;
@@ -44,7 +49,8 @@ namespace shrader {
     private:
         std::array< char, data_size > data_;
         bool loaded_;
+        friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const lrphead3& );
+        friend lrphead3 tag_invoke( const boost::json::value_to_tag< lrphead3 >&, const boost::json::value& jv );
     };
 
 }
-

@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrptic.hpp"
+#include <adportable/debug.hpp>
 #include <array>
 #include <iostream>
 
@@ -57,7 +58,22 @@ lrptic::~lrptic()
 {
 }
 
-lrptic::lrptic(std::istream& in, size_t fsize) : loaded_( false )
+lrptic::lrptic() : loaded_( false )
+                   , flags_( 0 )
+                   , nextptr_( 0 )
+                 , tic_{ 0 }
+{
+}
+
+lrptic::lrptic( const lrptic& t ) : loaded_( t.loaded_ )
+                                  , flags_( t.flags_ )
+                                  , nextptr_( t.nextptr_ )
+                                  , tic_( t.tic_ )
+{
+}
+
+bool
+lrptic::load(std::istream& in, size_t fsize)
 {
     static_assert(sizeof( detail::MasterTIC ) == lrptic::master_data_size
                   , "struct 'detail::MasterTIC' not alinged, check declaration.");
@@ -66,7 +82,7 @@ lrptic::lrptic(std::istream& in, size_t fsize) : loaded_( false )
                   , "struct 'detail::BlockTIC' not alinged, check declaration.");
 
     auto pos = in.tellg();
-    std::cout << "pos: " << pos << std::endl;
+    ADDEBUG() << "pos: " << pos;
 
     detail::MasterTIC master;
 
@@ -82,7 +98,7 @@ lrptic::lrptic(std::istream& in, size_t fsize) : loaded_( false )
 
         } else {
             in.seekg( pos );
-            return;
+            return false;
         }
     }
 
@@ -102,24 +118,25 @@ lrptic::lrptic(std::istream& in, size_t fsize) : loaded_( false )
             if ( !in.fail() && block->flags == block_record_type ) {
 
                 for ( int i = 0; i < 50 && block->tic[ i ].Ptr > 0; ++i ) {
-                    lrptic::TIC d = { block->tic[i].RT, block->tic[i].Tic, block->tic[i].Ptr - 1, block->tic[i].Overload };
-                    tic_.push_back( d );
+                    tic_.emplace_back( block->tic[i].RT, block->tic[i].Tic, block->tic[i].Ptr - 1, block->tic[i].Overload );
                 }
+
             } else {
                 in.seekg( pos ); // rewind
-                return;
+                return false;
             }
         }
     }
+    return true;
 }
 
-int32_t 
+int32_t
 lrptic::flags() const
 {
     return flags_;
 }
 
-int32_t 
+int32_t
 lrptic::nextptr() const
 {
     return nextptr_;

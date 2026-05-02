@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
 ** Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@MS-Cheminformatics.com
@@ -32,21 +32,27 @@ namespace shrader {
 
 	class datafile_factory : public adcontrols::datafile_factory
 	                       , public adplugin::plugin {
+        static std::shared_ptr< datafile_factory > instance_;
 	public:
 		datafile_factory();
 		~datafile_factory(void);
 
-		const char * mimeTypes() const;
-        const wchar_t * name() const;
-        bool access( const wchar_t * filename, adcontrols::access_mode ) const;
-        adcontrols::datafile * open( const wchar_t * filename, bool readonly ) const;
-        void close( adcontrols::datafile * );
+        static adplugin::plugin * instance();
+
+		const char * mimeTypes() const override;
+        const wchar_t * name() const override;
+        bool access( const wchar_t * filename, adcontrols::access_mode ) const override;
+        bool access( const std::filesystem::path& filename, adcontrols::access_mode ) const override;
+
+        adcontrols::datafile * open( const wchar_t * filename, bool readonly ) const override;
+        adcontrols::datafile * open( const std::filesystem::path& filename, bool readonly ) const override;
+        void close( adcontrols::datafile * ) override;
         // adplugin::plugin
     public:
-        const char * iid() const;
-        void accept( adplugin::visitor& v, const char * adplugin );
+        const char * iid() const override;
+        void accept( adplugin::visitor& v, const char * adplugin ) override;
     private:
-        void * query_interface_workaround( const char * typnam );
+        void * query_interface_workaround( const char * typnam ) override;
 	};
 
 }

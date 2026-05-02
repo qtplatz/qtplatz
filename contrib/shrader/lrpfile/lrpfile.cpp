@@ -32,7 +32,39 @@
 #include "lrptic.hpp"
 #include "msdata.hpp"
 #include <boost/format.hpp>
+#include <boost/json.hpp>
+#include <adportable/debug.hpp>
+#include <chrono>
 #include <istream>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <ctime>
+
+namespace shrader {
+
+    class lrpfile::impl {
+    public:
+        impl() : loaded_( false )
+               , header_( std::make_unique< lrpheader >() )
+               , header2_( std::make_unique< lrphead2 >() )
+               , header3_( std::make_unique< lrphead3 >() )
+               , instsetup_( std::make_unique< shrader::instsetup >() )
+               , lrpcalib_( std::make_unique< shrader::lrpcalib >() )
+               , simions_( std::make_unique< shrader::simions >() )
+               , lrptic_( std::make_unique< shrader::lrptic >() )
+            {}
+        bool loaded_;
+        std::unique_ptr< shrader::lrpheader > header_;
+        std::unique_ptr< shrader::lrphead2 > header2_;
+        std::unique_ptr< shrader::lrphead3 > header3_;
+        std::unique_ptr< shrader::instsetup > instsetup_;
+        std::unique_ptr< shrader::lrpcalib > lrpcalib_;
+        std::unique_ptr< shrader::simions > simions_;
+        std::unique_ptr< shrader::lrptic > lrptic_;
+        std::vector< std::shared_ptr< shrader::msdata > > msdata_;
+    };
+}
 
 using namespace shrader;
 
@@ -40,171 +72,284 @@ lrpfile::~lrpfile()
 {
 }
 
-lrpfile::lrpfile( std::istream& in, size_t fsize ) : loaded_( false )
+lrpfile::lrpfile() : impl_( std::make_unique< impl >() )
 {
-    header_ = std::make_shared< shrader::lrpheader >( in, fsize );
-    header2_ = std::make_shared< shrader::lrphead2 >( in, fsize );
-    header3_ = std::make_shared< shrader::lrphead3 >( in, fsize );
-    instsetup_ = std::make_shared< shrader::instsetup >( in, fsize );
-    lrpcalib_ = std::make_shared< shrader::lrpcalib >( in, fsize );
-    simions_ = std::make_shared< shrader::simions >( in, fsize );
-    if ( ! (*simions_ ) )
-        simions_.reset();
-    lrptic_ = std::make_shared< shrader::lrptic >( in, fsize );
-    if ( *lrptic_ ) {
-        for ( auto& tic: lrptic_->tic() ) {
-            in.seekg( tic.ptr );
-            msdata_.push_back( std::make_shared< shrader::msdata >( in, fsize ) );
+}
+
+
+bool
+lrpfile::load( std::istream& in, size_t fsize )
+{
+    ADDEBUG() << "-------- lrpfile load --------";
+
+    if ( impl_->header_->load( in, fsize ) &&
+         impl_->header2_->load( in, fsize ) &&
+         impl_->header3_->load( in, fsize ) ) {
+
+        impl_->instsetup_->load( in, fsize );
+        impl_->lrpcalib_->load( in, fsize );
+        impl_->simions_->load( in, fsize );
+
+        if ( impl_->lrptic_->load( in, fsize ) ) {
+            for ( auto& tic: impl_->lrptic_->tic() ) {
+                in.seekg( tic.ptr );
+                impl_->msdata_.emplace_back( std::make_shared< shrader::msdata >( in, fsize ) );
+            }
         }
+        ADDEBUG() << "-------- lrpfile loaded --------";
+        return true;
     }
+    return false;
 }
 
 lrpfile::operator bool() const
 {
-    return loaded_;
+    return impl_->loaded_;
 }
 
 const shrader::lrptic *
 lrpfile::lrptic() const
 {
-    return lrptic_.get();
+    return impl_->lrptic_.get();
 }
 
 const shrader::msdata *
 lrpfile::operator []( size_t idx ) const
 {
-    if ( msdata_.size() > idx )
-        return msdata_[ idx ].get();
+    if ( impl_->msdata_.size() > idx )
+        return impl_->msdata_[ idx ].get();
     return 0;
 }
 
-void
-lrpfile::dump( std::ostream& of ) const
+const shrader::lrpheader&
+lrpfile::header() const
 {
-    if ( header_ && *header_ ) {
-        of << "flags: " << header_->flags() << std::endl;
-        of << boost::format( "version: %1%\t%2%" ) % header_->version() % header_->data_type_code() << std::endl;
-        of << boost::format( "analdate: %1%" ) % header_->analdate() << std::endl;
-        of << boost::format( "analtime: %1%" ) % header_->analtime() << std::endl;
-        of << boost::format( "instrument: %1%" ) % header_->instrument() << std::endl;
-        of << boost::format( "operator: %1%" ) % header_->operator_name() << std::endl;
-        of << boost::format( "calfile: %1%" ) % header_->calfile() << std::endl;
-        of << boost::format( "library: %1%" ) % header_->library() << std::endl;
-        of << boost::format( "libcaldate: %1%" ) % header_->libcaldate() << std::endl;
-        of << boost::format( "interfacetype: %1%\t%2%" ) % header_->interfacetype() % header_->interfacetype_code() << std::endl;
-        of << boost::format( "rawdatatype: %1%\t%2%" ) % header_->rawdatatype() % header_->rawdatatype_code() << std::endl;
-        of << boost::format( "secondDemention: %1%" ) % header_->SecondDmension() << std::endl;
-        of << boost::format( "AltTicPtr: %1%" ) % header_->AltTicPtr() << std::endl;
-        of << boost::format( "nscans: %1%" ) % header_->nscans() << std::endl;
-        of << boost::format( "setupptr: %1%" ) % header_->setupptr() << std::endl;
-        of << boost::format( "calptr: %1%" ) % header_->calptr() << std::endl;
-        of << boost::format( "simptr: %1%" ) % header_->simptr() << std::endl;
-        of << boost::format( "scanptr: %1%" ) % header_->scanptr() << std::endl;
-        of << boost::format( "ticptr: %1%" ) % header_->ticptr() << std::endl;
-        of << boost::format( "miscptr: %1%" ) % header_->miscptr() << std::endl;
-        of << boost::format( "labelptr %1%" ) % header_->labelptr() << std::endl;
+    return *impl_->header_;
+}
+
+const shrader::lrphead2&
+lrpfile::header2() const
+{
+    return *impl_->header2_;
+}
+
+const shrader::lrphead3&
+lrpfile::header3() const
+{
+    return *impl_->header3_;
+}
+
+const shrader::instsetup&
+lrpfile::instsetup() const
+{
+    return *impl_->instsetup_;
+}
+
+const shrader::lrpcalib&
+lrpfile::lrpcalib() const
+{
+    return *impl_->lrpcalib_;
+}
+
+const shrader::simions&
+lrpfile::simions() const
+{
+    return *impl_->simions_;
+}
+
+const shrader::lrptic&
+lrpfile::liptic() const
+{
+    return *impl_->lrptic_;
+}
+
+const std::vector< std::shared_ptr< shrader::msdata > >&
+lrpfile::msdata() const
+{
+    return impl_->msdata_;
+}
+
+size_t lrpfile::number_of_spectra() const
+{
+    return impl_->msdata_.size();
+}
+
+lrpfile::iterator lrpfile::begin()
+{
+    return impl_->msdata_.begin();
+}
+
+lrpfile::iterator lrpfile::end()
+{
+    return impl_->msdata_.end();
+}
+
+lrpfile::const_iterator lrpfile::begin() const
+{
+    return impl_->msdata_.begin();
+}
+
+lrpfile::const_iterator lrpfile::end() const
+{
+    return impl_->msdata_.end();
+}
+
+std::string
+lrpfile::time_of_injection() const
+{
+    std::tm tm{};
+    std::istringstream in( header().analdate() );
+    in >> std::get_time( &tm, "%m/%d/%Y" );
+
+    std::tm lt{0};
+    time_t t = time(0);
+    localtime_r(&t, &lt);
+
+    // "analdate":"5/30/2025" "analtime":"17:17:24" --> 2025-05-30T17:17:24+0900 (in case at JST area)
+    return std::format( "{:04d}-{:02d}-{:02d}T{}{:+03d}{:02d}"
+                        , tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
+                        , header().analtime()
+                        , lt.tm_gmtoff / 3600
+                        , (lt.tm_gmtoff / 60) % 60 );
+}
+
+void
+lrpfile::dump( std::ostream& of, size_t limit ) const
+{
+    if ( impl_->header_ && header() ) {
+        of << "---------------------- header ------------------------" << std::endl;
+        of << "flags: " << header().flags() << std::endl;
+        of << boost::format( "version: %1%\t%2%" ) % header().version() % header().data_type_code() << std::endl;
+        of << boost::format( "analdate: %1%" ) % header().analdate() << std::endl;
+        of << boost::format( "analtime: %1%" ) % header().analtime() << std::endl;
+        of << boost::format( "instrument: %1%" ) % header().instrument() << std::endl;
+        of << boost::format( "operator: %1%" ) % header().operator_name() << std::endl;
+        of << boost::format( "calfile: %1%" ) % header().calfile() << std::endl;
+        of << boost::format( "library: %1%" ) % header().library() << std::endl;
+        of << boost::format( "libcaldate: %1%" ) % header().libcaldate() << std::endl;
+        of << boost::format( "interfacetype: %1%\t%2%" ) % header().interfacetype() % header().interfacetype_code() << std::endl;
+        of << boost::format( "rawdatatype: %1%\t%2%" ) % header().rawdatatype() % header().rawdatatype_code() << std::endl;
+        of << boost::format( "secondDemention: %1%" ) % header().SecondDmension() << std::endl;
+        of << boost::format( "AltTicPtr: %1%" ) % header().AltTicPtr() << std::endl;
+        of << boost::format( "nscans: %1%" ) % header().nscans() << std::endl;
+        of << boost::format( "setupptr: %1%" ) % header().setupptr() << std::endl;
+        of << boost::format( "calptr: %1%" ) % header().calptr() << std::endl;
+        of << boost::format( "simptr: %1%" ) % header().simptr() << std::endl;
+        of << boost::format( "scanptr: %1%" ) % header().scanptr() << std::endl;
+        of << boost::format( "ticptr: %1%" ) % header().ticptr() << std::endl;
+        of << boost::format( "miscptr: %1%" ) % header().miscptr() << std::endl;
+        of << boost::format( "labelptr %1%" ) % header().labelptr() << std::endl;
     }
-    if ( header2_ && *header2_ ) {
-        of << "flags: " << header2_->flags() << std::endl;
-        of << boost::format( "descline1: %1%" ) % header2_->descline1() << std::endl;
-        of << boost::format( "descline2: %1%" ) % header2_->descline2() << std::endl;
-        of << boost::format( "client: %1%" ) % header2_->client() << std::endl;
-        auto pistd = header2_->istd();
+    if ( impl_->header2_ && header2() ) {
+        of << "---------------------- header2 ------------------------" << std::endl;
+        of << "flags: " << header2().flags() << std::endl;
+        of << boost::format( "descline1: %1%" ) % header2().descline1() << std::endl;
+        of << boost::format( "descline2: %1%" ) % header2().descline2() << std::endl;
+        of << boost::format( "client: %1%" ) % header2().client() << std::endl;
+        auto pistd = impl_->header2_->istd();
         of << "istd (ng): ";
         for ( size_t i = 0; i < 13; ++i )
             of << pistd[ i ] << ", ";
         of << std::endl;
     }
 
-    if ( header3_ && *header3_) {
-        of << "flags: " << header3_->flags() << std::endl;
-        of << boost::format( "installation title: %1%" ) % header3_->instaltitle() << std::endl;
-        of << boost::format( "inlet: %1%" ) % header3_->inlet() << std::endl;
-        of << boost::format( "comments: %1%" ) % header3_->comments() << std::endl;
+    if ( impl_->header3_ && header3() ) {
+        of << "---------------------- header3 ------------------------" << std::endl;
+        of << "flags: " << header3().flags() << std::endl;
+        of << boost::format( "installation title: %1%" ) % header3().instaltitle() << std::endl;
+        of << boost::format( "inlet: %1%" ) % header3().inlet() << std::endl;
+        of << boost::format( "comments: %1%" ) % header3().comments() << std::endl;
     }
 
-    if ( instsetup_ && *instsetup_ ) {
-        of << "flags:\t" << instsetup_->flags() << std::endl;
-        of << "ionization:\t" << instsetup_->ionization() << std::endl;
-        of << "\tIonization method code:\t" << instsetup_->describe_ionization() << std::endl;
-        of << "#### upperdrive:\t" << instsetup_->upperdrive() << "\tUpper mass drive" << std::endl;
-        of << "#### lowerdrive:\t" << instsetup_->lowerdrive() << "\tLower mass drive" << std::endl;
-        of << "umasslim:\t" << double(instsetup_->umasslim()) / 65536 << "\tUpper mass limit of scan" << std::endl;
-        of << "lmasslim:\t" << double(instsetup_->lmasslim()) / 65536 << "\tLower mass limit of scan" << std::endl;
-        of << "ucallim:\t" << double(instsetup_->ucallim()) / 65536 << "\tUpper mass limit of calibration" << std::endl;
-        of << "lcallim:\t" << double(instsetup_->lcallim()) / 65536 << "\tLower mass limit of calibration" << std::endl;
-        of << "aves:\t" << instsetup_->aves() << "\tNumber A/D readings per D/A step" << std::endl;
-        of << "#### stepsize:\t" << instsetup_->stepsize() << "\tStep size between data points" << std::endl;
-        of << "scanspeed:\t" << instsetup_->scanspeed() << "\tScan/second" << std::endl;
-        of << "scancycle:\t" << instsetup_->scancycle() << "\tInterscan delay (msec)" << std::endl;
-        of << "caltable:\t" << instsetup_->caltable() << "\tCalibration table used" << std::endl;
-        of << "scanmode:\t" << instsetup_->scanmode() << "\tScanning filed code:\t" << instsetup_->describe_scanmode() << std::endl;
-        of << "scanlaw:\t" << instsetup_->scanlaw() << "\tScan law code:\t" << instsetup_->describe_scanlaw() << std::endl;
-        of << "resolution:\t" << instsetup_->resolution() << "\tInstrument resolution" << std::endl;
-        of << "reswindow:\t" << instsetup_->reswindow() << "\tPeak width used for peak detection" << std::endl;
-        of << "calslope:\t" << instsetup_->calslope() << "\tCalibration slope (linear scan only)" << std::endl;
-        of << "calinter:\t" << instsetup_->calinter() << "\tCalibration intercept(linear scan only)" << std::endl;
-        of << "#### clockbaud:\t" << instsetup_->clockbaud() << "\tClock baud rate in seconds/data point" << std::endl;
-        of << "overload:\t" << instsetup_->overload() << "\tMaximum intensity(A/D max - baseline value)" << std::endl;
-        of << "timewindow:\t" << instsetup_->timewindow() << "\tnot used" << std::endl;
-        of << "masswindow:\t" << instsetup_->masswindow() << "\tMass window for selected ion monitoring" << std::endl;
-        of << "inttime:\t" << instsetup_->inttime() << "\tIntegration time for selected ion monitoring" << std::endl;
-        of << "method:\t" << instsetup_->method() << "\tMethod name" << std::endl;
-        of << "autosamproc:\t" << instsetup_->autosamproc() << "\tAutosampler procedure name" << std::endl;
-        of << "gcproc:\t" << instsetup_->gcproc() << "\tGC procedure name" << std::endl;
-        of << "TOFDrift:\t" << instsetup_->TOFDrift() << "\tTOF correction factor" << std::endl;
-        of << "samplesize:\t" << instsetup_->samplesize() << "\tSample size" << std::endl;
-        of << "sampleunits:\t" << instsetup_->sampleunits() << "\tSample size units" << std::endl;
-        of << "peakcentroid:\t" << instsetup_->peakcentroid() << "\tCentroiding method:\t" << instsetup_->describe_peakcentroid() << std::endl;
-        of << "pkintensity:\t" << instsetup_->pkintensity() << "\tIntensity method (0 = height, 1 = area)" << std::endl;
-        of << "inithreshold:\t" << instsetup_->inithreshold() << "\tThreshold at low mass (as A/D value)" << std::endl;
-        of << "fnlthreshold:\t" << instsetup_->fnlthreshold() << "\tThreshold at high mass (as A/D value)" << std::endl;
-        of << "HVolt:\t" << instsetup_->HVolt() << "\tAccelerating voltage" << std::endl;
-        of << "HVscanBValue:\t" << instsetup_->HVscanBValue() << "\tCalibration intercept for HV scan" << std::endl;
-        of << "Peakthres:\t" << instsetup_->Peakthres() << "\tCentroiding algorithm threshod(%)" << std::endl;
-        of << "baseline:\t" << instsetup_->baseline() << "\tMeasured instrument baseline" << std::endl;
-        of << "noise:\t" << instsetup_->noise() << "\tMeassured instrument baseline noise" << std::endl;
-        of << "linkcorrection:\t" << instsetup_->linkcorrection() << "\tMass correction for linked scans" << std::endl;
-        of << "valley:\t" << instsetup_->valley() << "\tCentroiding algorithm valle(%)" << std::endl;
-        of << "minpeakwidth:\t" << instsetup_->minpeakwidth() << "\tCentroiding algorithm minimum peak width(%)" << std::endl;
-        of << "sampletype:\t" << instsetup_->sampletype() << "\t0:solid, 1:Solid by Dry Weight, 2: Liquid, 3: Gas" << std::endl;
-        of << "unitscode:\t" << instsetup_->unitscode() << "\tSample size units( 0:ug, 3:Kg)" << std::endl;
-        of << "dryweight:\t" << instsetup_->dryweight() << "\tPercent dry weight" << std::endl;
-        of << "linkmass:\t" << instsetup_->linkmass() << "\tLink mass" << std::endl;
-        of << "SIMfield:\t" << instsetup_->SIMfield() << "\tSwitching Field for SIM" << std::endl;
-        of << "SIMBset:\t" << instsetup_->SIMBset() << "\tMagnet Field reference value used for EF SIM" << std::endl;
-        of << "SIMBfield:\t" << instsetup_->SIMBfield() << "\tMagnet field value used for EF SIM" << std::endl;
-        of << "Slitcouple:\t" << instsetup_->Slitcouple() << "\tSlits coupled?" << std::endl;
-        of << "Maxmassrange:\t" << instsetup_->Maxmassrange() << "\tMaximum mass range for instrument" << std::endl;
-        of << "HvscanBDrive:\t" << instsetup_->HvscanBDrive() << "\tMagnet field reference used of HV scan" << std::endl;
-        of << "SIMCalOK:\t" << instsetup_->SIMCalOK() << "\tSIM calibration OK" << std::endl;
-        of << "Maxvolt:\t" << instsetup_->Maxvolt() << "\tMaximum High voltage for instrument" << std::endl;
-        of << "PeakFilter:\t" << instsetup_->PeakFilter() << "\t" << std::endl;
-        of << "TwoWayScan:\t" << instsetup_->TwoWayScan() << "\t" << std::endl;
+    if ( impl_->instsetup_ && instsetup() ) {
+        of << "---------------------- instsetup ------------------------" << std::endl;
+        of << "flags:\t" << instsetup().flags() << std::endl;
+        of << "ionization:\t" << instsetup().ionization() << std::endl;
+        of << "\tIonization method code:\t" << instsetup().describe_ionization() << std::endl;
+        of << "#### upperdrive:\t" << instsetup().upperdrive() << "\tUpper mass drive" << std::endl;
+        of << "#### lowerdrive:\t" << instsetup().lowerdrive() << "\tLower mass drive" << std::endl;
+        of << "umasslim:\t" << double(instsetup().umasslim()) / 65536 << "\tUpper mass limit of scan" << std::endl;
+        of << "lmasslim:\t" << double(instsetup().lmasslim()) / 65536 << "\tLower mass limit of scan" << std::endl;
+        of << "ucallim:\t" << double(instsetup().ucallim()) / 65536 << "\tUpper mass limit of calibration" << std::endl;
+        of << "lcallim:\t" << double(instsetup().lcallim()) / 65536 << "\tLower mass limit of calibration" << std::endl;
+        of << "aves:\t" << instsetup().aves() << "\tNumber A/D readings per D/A step" << std::endl;
+        of << "#### stepsize:\t" << instsetup().stepsize() << "\tStep size between data points" << std::endl;
+        of << "scanspeed:\t" << instsetup().scanspeed() << "\tScan/second" << std::endl;
+        of << "scancycle:\t" << instsetup().scancycle() << "\tInterscan delay (msec)" << std::endl;
+        of << "caltable:\t" << instsetup().caltable() << "\tCalibration table used" << std::endl;
+        of << "scanmode:\t" << instsetup().scanmode() << "\tScanning filed code:\t" << instsetup().describe_scanmode() << std::endl;
+        of << "scanlaw:\t" << instsetup().scanlaw() << "\tScan law code:\t" << instsetup().describe_scanlaw() << std::endl;
+        of << "resolution:\t" << instsetup().resolution() << "\tInstrument resolution" << std::endl;
+        of << "reswindow:\t" << instsetup().reswindow() << "\tPeak width used for peak detection" << std::endl;
+        of << "calslope:\t" << instsetup().calslope() << "\tCalibration slope (linear scan only)" << std::endl;
+        of << "calinter:\t" << instsetup().calinter() << "\tCalibration intercept(linear scan only)" << std::endl;
+        of << "#### clockbaud:\t" << instsetup().clockbaud() << "\tClock baud rate in seconds/data point" << std::endl;
+        of << "overload:\t" << instsetup().overload() << "\tMaximum intensity(A/D max - baseline value)" << std::endl;
+        of << "timewindow:\t" << instsetup().timewindow() << "\tnot used" << std::endl;
+        of << "masswindow:\t" << instsetup().masswindow() << "\tMass window for selected ion monitoring" << std::endl;
+        of << "inttime:\t" << instsetup().inttime() << "\tIntegration time for selected ion monitoring" << std::endl;
+        of << "method:\t" << instsetup().method() << "\tMethod name" << std::endl;
+        of << "autosamproc:\t" << instsetup().autosamproc() << "\tAutosampler procedure name" << std::endl;
+        of << "gcproc:\t" << instsetup().gcproc() << "\tGC procedure name" << std::endl;
+        of << "TOFDrift:\t" << instsetup().TOFDrift() << "\tTOF correction factor" << std::endl;
+        of << "samplesize:\t" << instsetup().samplesize() << "\tSample size" << std::endl;
+        of << "sampleunits:\t" << instsetup().sampleunits() << "\tSample size units" << std::endl;
+        of << "peakcentroid:\t" << instsetup().peakcentroid() << "\tCentroiding method:\t" << instsetup().describe_peakcentroid() << std::endl;
+        of << "pkintensity:\t" << instsetup().pkintensity() << "\tIntensity method (0 = height, 1 = area)" << std::endl;
+        of << "inithreshold:\t" << instsetup().inithreshold() << "\tThreshold at low mass (as A/D value)" << std::endl;
+        of << "fnlthreshold:\t" << instsetup().fnlthreshold() << "\tThreshold at high mass (as A/D value)" << std::endl;
+        of << "HVolt:\t" << instsetup().HVolt() << "\tAccelerating voltage" << std::endl;
+        of << "HVscanBValue:\t" << instsetup().HVscanBValue() << "\tCalibration intercept for HV scan" << std::endl;
+        of << "Peakthres:\t" << instsetup().Peakthres() << "\tCentroiding algorithm threshod(%)" << std::endl;
+        of << "baseline:\t" << instsetup().baseline() << "\tMeasured instrument baseline" << std::endl;
+        of << "noise:\t" << instsetup().noise() << "\tMeassured instrument baseline noise" << std::endl;
+        of << "linkcorrection:\t" << instsetup().linkcorrection() << "\tMass correction for linked scans" << std::endl;
+        of << "valley:\t" << instsetup().valley() << "\tCentroiding algorithm valle(%)" << std::endl;
+        of << "minpeakwidth:\t" << instsetup().minpeakwidth() << "\tCentroiding algorithm minimum peak width(%)" << std::endl;
+        of << "sampletype:\t" << instsetup().sampletype() << "\t0:solid, 1:Solid by Dry Weight, 2: Liquid, 3: Gas" << std::endl;
+        of << "unitscode:\t" << instsetup().unitscode() << "\tSample size units( 0:ug, 3:Kg)" << std::endl;
+        of << "dryweight:\t" << instsetup().dryweight() << "\tPercent dry weight" << std::endl;
+        of << "linkmass:\t" << instsetup().linkmass() << "\tLink mass" << std::endl;
+        of << "SIMfield:\t" << instsetup().SIMfield() << "\tSwitching Field for SIM" << std::endl;
+        of << "SIMBset:\t" << instsetup().SIMBset() << "\tMagnet Field reference value used for EF SIM" << std::endl;
+        of << "SIMBfield:\t" << instsetup().SIMBfield() << "\tMagnet field value used for EF SIM" << std::endl;
+        of << "Slitcouple:\t" << instsetup().Slitcouple() << "\tSlits coupled?" << std::endl;
+        of << "Maxmassrange:\t" << instsetup().Maxmassrange() << "\tMaximum mass range for instrument" << std::endl;
+        of << "HvscanBDrive:\t" << instsetup().HvscanBDrive() << "\tMagnet field reference used of HV scan" << std::endl;
+        of << "SIMCalOK:\t" << instsetup().SIMCalOK() << "\tSIM calibration OK" << std::endl;
+        of << "Maxvolt:\t" << instsetup().Maxvolt() << "\tMaximum High voltage for instrument" << std::endl;
+        of << "PeakFilter:\t" << instsetup().PeakFilter() << "\t" << std::endl;
+        of << "TwoWayScan:\t" << instsetup().TwoWayScan() << "\t" << std::endl;
     }
 
-    if ( lrpcalib_ && *lrpcalib_ ) {
-        of << "flags:\t" << lrpcalib_->flags() << std::endl;
-        for ( int i = 0; i < lrpcalib_->cal_size; ++i ) {
-            auto& cal = lrpcalib_->cal()[i];
+    if ( impl_->lrpcalib_ && lrpcalib() ) {
+        of << "---------------------- lrpcalib ------------------------" << std::endl;
+        of << "flags:\t" << impl_->lrpcalib_->flags() << std::endl;
+        for ( int i = 0; i < impl_->lrpcalib_->cal_size; ++i ) {
+            auto& cal = impl_->lrpcalib_->cal()[i];
             of << "mass:\t" << double(cal.m) / 65536 << ", intensity:\t" << cal.i << ", coeffa: "
                << cal.coeffa << ", coeffb: " << cal.coeffb << std::endl;
         }
-        of << "type:\t" << lrpcalib_->type() << std::endl;
+        of << "type:\t" << impl_->lrpcalib_->type() << std::endl;
     }
 
-    if ( lrptic_ && *lrptic_ ) {
-        of << "----------- TIC -------------- " << lrptic_->tic().size() << std::endl;
-        of << "nexttpr:\t" << lrptic_->nextptr() << std::endl;
-        for ( auto& tic: lrptic_->tic() ) {
+    if ( impl_->lrptic_ && *impl_->lrptic_ ) {
+        of << "---------------------- lrptic ------------------------" << std::endl;
+        of << "----------- TIC -------------- " << impl_->lrptic_->tic().size() << std::endl;
+        of << "nexttpr:\t" << impl_->lrptic_->nextptr() << std::endl;
+        for ( auto& tic: impl_->lrptic_->tic() ) {
             of << boost::format( "\ttime: %.3fs\tintens: %d\toffs: 0x%x\toverload: %d\n" )
                 % (double( tic.time ) / 1000.0) % tic.intensity % tic.ptr % tic.overload;
         }
         of << "----------- END of TIC --------------" << std::endl;
     }
-    of << "total: " << msdata_.size() << " spectra." << std::endl;
+    of << std::endl;
+    of << "---------------------- msdata ------------------------" << std::endl;
+    of << "total: " << impl_->msdata_.size() << " spectra." << std::endl;
     size_t scan = 0;
-    for ( auto& msdata : msdata_ ) {
+    for ( auto& msdata : impl_->msdata_ ) {
+        if ( scan >= limit )
+            break;
         if ( msdata ) {
             size_t nblocks = msdata->size();
             of << "scan: " << ++scan;
@@ -244,18 +389,31 @@ lrpfile::getTIC( std::vector< double >& time, std::vector< double >& intens ) co
     time.clear();
     intens.clear();
 
-    if ( lrptic_ && *lrptic_ ) {
-        for ( auto& tic : lrptic_->tic() ) {
-            time.push_back( double( tic.time ) / 1000.0 );
-            intens.push_back( tic.intensity );
+    if ( impl_->lrptic_ && *impl_->lrptic_ ) {
+        for ( auto& tic : impl_->lrptic_->tic() ) {
+            time.emplace_back( double( tic.time ) / 1000.0 );
+            intens.emplace_back( tic.intensity );
         }
         return true;
     }
     return false;
 }
 
+ticc_t
+lrpfile::get_ticc() const
+{
+    if ( lrptic() && *lrptic() ) {
+        ticc_t ticc;
+        for ( auto& tic : lrptic()->tic() )
+            ticc.emplace_back( double( tic.time ) / 1000.0, tic.intensity, tic.ptr, tic.overload );
+        return ticc;
+    }
+    return {};
+}
+
+
 bool
-lrpfile::getMS( const msdata& msdata, std::vector< double >& time, std::vector< double >& intens ) const
+lrpfile::getMS( const class msdata& msdata, std::vector< double >& time, std::vector< double >& intens ) const
 {
     time.clear();
     intens.clear();
@@ -263,7 +421,7 @@ lrpfile::getMS( const msdata& msdata, std::vector< double >& time, std::vector< 
     if ( msdata.is_profile( msdata.flags( 0 ) ) ) {
 
         size_t nblocks = msdata.size();
-    
+
         for ( int blk = 0; blk < nblocks; ++blk ) {
 
             //auto flags = msdata.flags( blk );
@@ -271,12 +429,14 @@ lrpfile::getMS( const msdata& msdata, std::vector< double >& time, std::vector< 
             auto xrange = std::make_pair( msdata.xlow( blk ), msdata.xhigh( blk ) );
             auto range = std::make_pair( double( xrange.first ) / 16, double( xrange.second ) / 16 );
 
+            // ADDEBUG() << "xrange: " << xrange << "\trange: " << range << "\tnions = " << nions;
+
             double sampInterval = ((range.second - range.first) / (nions - 1));
             auto i = msdata.intensities( blk );
 
             for ( int n = 0; n < i.second; ++n ) {
-                time.push_back( range.first + n * sampInterval );
-                intens.push_back( i.first[ n ] );
+                time.emplace_back( range.first + n * sampInterval );
+                intens.emplace_back( i.first[ n ] );
             }
 
         }

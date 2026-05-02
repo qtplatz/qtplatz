@@ -47,7 +47,17 @@ lrpcalib::~lrpcalib()
 {
 }
 
-lrpcalib::lrpcalib(std::istream& in, size_t fsize) : loaded_( false )
+lrpcalib::lrpcalib() : loaded_( false )
+{
+}
+
+lrpcalib::lrpcalib( const lrpcalib& t ) : loaded_( t.loaded_ )
+                                        , data_( t.data_ )
+{
+}
+
+bool
+lrpcalib::load(std::istream& in, size_t fsize)
 {
     if ( ( fsize - in.tellg() ) >= data_size ) {
         in.read( data_.data(), data_.size() );
@@ -56,7 +66,7 @@ lrpcalib::lrpcalib(std::istream& in, size_t fsize) : loaded_( false )
     }
 }
 
-int32_t 
+int32_t
 lrpcalib::flags() const
 {
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::calib, flags ));
@@ -68,9 +78,8 @@ lrpcalib::cal() const
     return reinterpret_cast<const CAL *>(data_.data() + offsetof( detail::calib, cal ));
 }
 
-std::string 
+std::string
 lrpcalib::type() const
 {
     return std::string( data_.data() + offsetof( detail::calib, type ), 8 );
 }
-

@@ -40,9 +40,12 @@ namespace shrader {
 
     public:
         ~lrptic();
-        lrptic( std::istream& in, size_t fsize );
+        lrptic();
+        lrptic( const lrptic& );
+
+        bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
-        
+
         struct TIC {
             int32_t time; // ms
             int32_t intensity;
@@ -52,7 +55,7 @@ namespace shrader {
 
         int32_t flags() const;
         int32_t nextptr() const;
-        const std::vector< int32_t >& ptrs() const;
+        // const std::vector< int32_t >& ptrs() const;
         const std::vector< TIC >& tic() const;
     private:
         bool loaded_;
@@ -62,4 +65,3 @@ namespace shrader {
     };
 
 }
-

@@ -28,10 +28,16 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace shrader {
 
-    namespace detail { struct msdata; }
+    namespace detail {
+        struct msdata;
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const msdata& );
+        msdata tag_invoke( const boost::json::value_to_tag< detail::msdata >&, const boost::json::value& jv );
+    }
 
     class msdata {
         enum {
@@ -67,4 +73,3 @@ namespace shrader {
     };
 
 }
-

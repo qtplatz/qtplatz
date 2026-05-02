@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrphead3.hpp"
+#include <boost/algorithm/string.hpp>
 #include <cstddef>
 #include <istream>
 
@@ -45,36 +46,70 @@ lrphead3::~lrphead3()
 {
 }
 
-lrphead3::lrphead3(std::istream& in, size_t fsize) : loaded_( false )
+lrphead3::lrphead3() : loaded_( false )
+                       , data_{ 0 }
+{
+}
+
+lrphead3::lrphead3( const lrphead3& t ) : loaded_( t.loaded_ )
+                                        , data_( t.data_ )
+{
+}
+
+bool
+lrphead3::load(std::istream& in, size_t fsize)
 {
     if ( ( fsize - in.tellg() ) >= data_size ) {
         in.read( data_.data(), data_.size() );
         if ( !in.fail() )
             loaded_ = true;
     }
+    return loaded_;
 }
 
-int32_t 
+int32_t
 lrphead3::flags() const
 {
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::header3, flags ));
 }
 
-std::string 
+std::string
 lrphead3::instaltitle() const
 {
-    return std::string( data_.data() + offsetof( detail::header3, instaltitle ), 80 );
+    auto a = std::string( data_.data() + offsetof( detail::header3, instaltitle ), 80 );
+    std::erase( a, '\0' );
+    return boost::trim_copy( a );
 }
 
-std::string 
+std::string
 lrphead3::inlet() const
 {
-    return std::string( data_.data() + offsetof( detail::header3, inlet ), 80 );
+    auto a = std::string( data_.data() + offsetof( detail::header3, inlet ), 80 );
+    std::erase( a, '\0' );
+    return boost::trim_copy( a );
 }
 
-std::string 
+std::string
 lrphead3::comments() const
 {
-    return std::string( data_.data() + offsetof( detail::header3, comments ), 142 );
+    auto a = std::string( data_.data() + offsetof( detail::header3, comments ), 142 );
+    std::erase( a, '\0' );
+    return boost::trim_copy( a );
 }
 
+namespace shrader {
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const lrphead3& t )
+    {
+        auto p = reinterpret_cast< const detail::header3 *>( t.data_.data() );
+        jv = {{ "header3"
+                    , {
+                    { "flags",            p->flags }
+                    , { "instaltitle",      t.instaltitle().c_str() }
+                    , { "inlet",            t.inlet().c_str() }
+                    , { "comments",         t.comments().c_str() }
+                    }
+            }};
+    }
+
+}

@@ -22,23 +22,23 @@
 **
 **************************************************************************/
 
+//#include "datafile_factory.hpp"
+//#include "shrader_lrpfile_global.hpp"
+//#include <boost/filesystem.hpp>
+
+#include <compiler/decl_export.h>
+#include <adplugin/plugin.hpp>
 #include "datafile_factory.hpp"
-#include "shrader_lrpfile_global.hpp"
-#include <boost/filesystem.hpp>
+#include <boost/dll/alias.hpp>
 
-extern "C" {
-    SHRADER_LRPFILE_LIBRARY_EXPORT adcontrols::datafile_factory * datafile_factory();
-	SHRADER_LRPFILE_LIBRARY_EXPORT adplugin::plugin * adplugin_plugin_instance();
+namespace adcontrols {
+    class datafile_factory;
 }
 
-adplugin::plugin *
-adplugin_plugin_instance()
-{
-#if defined _MSC_VER
-    // Workaround for boost/VC bug #6320 according to following artcile
-    // https://svn.boost.org/trac/boost/ticket/6320
-    boost::filesystem::path p("dummy");
-#endif   
-    return new shrader::datafile_factory();
+namespace adcontrols {
+    class datafile_factory;
 }
 
+namespace shrader {
+    BOOST_DLL_ALIAS( datafile_factory::instance,  adplugin_instance )
+}

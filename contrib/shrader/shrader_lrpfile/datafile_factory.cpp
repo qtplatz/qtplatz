@@ -1,5 +1,5 @@
 /**************************************************************************
-** Copyright (C) 2010-2012 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
 ** Copyright (C) MS-Cheminformatics LLC / Advanced Instrumentation Project
 *
 ** Contact: toshi.hondo@MS-Cheminformatics.com
@@ -26,8 +26,11 @@
 #include "datafile.hpp"
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include <adplugin/visitor.hpp>
+#include <memory>
 
 using namespace shrader;
+
+std::shared_ptr< datafile_factory > datafile_factory::instance_( 0 );
 
 datafile_factory::datafile_factory()
 {
@@ -45,10 +48,20 @@ datafile_factory::close( adcontrols::datafile * p )
    delete p;
 }
 
+//datafile_factory *
+adplugin::plugin *
+datafile_factory::instance()
+{
+    static std::once_flag flag;
+
+    std::call_once( flag, [] () { instance_ = std::make_shared< datafile_factory >(); } );
+    return instance_.get();
+}
+
 const char *
 datafile_factory::mimeTypes() const
 {
-	return 
+	return
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>\n\
   <mime-type type=\"application/d\">\n\
@@ -71,8 +84,27 @@ datafile_factory::access( const wchar_t * filename, adcontrols::access_mode ) co
 	return datafile::is_valid_datafile( filename );
 }
 
+bool
+datafile_factory:: access( const std::filesystem::path& filename, adcontrols::access_mode ) const
+{
+	return datafile::is_valid_datafile( filename );
+}
+
+
 adcontrols::datafile *
 datafile_factory::open( const wchar_t * filename, bool readonly ) const
+{
+    auto p = new shrader::datafile();
+
+	if ( p->_open( filename, readonly ) )
+		return p;
+	delete p;
+
+    return 0;
+}
+
+adcontrols::datafile *
+datafile_factory::open( const std::filesystem::path& filename, bool readonly ) const
 {
     auto p = new shrader::datafile();
 
@@ -87,7 +119,7 @@ datafile_factory::open( const wchar_t * filename, bool readonly ) const
 // adplugin::plugin implementation
 
 const char *
-datafile_factory::iid() const 
+datafile_factory::iid() const
 {
     return "com.ms-cheminfo.qtplatz.adplugins.datafile_factory.lrpfile";
 }

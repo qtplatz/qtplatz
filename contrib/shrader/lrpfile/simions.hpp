@@ -34,7 +34,9 @@ namespace shrader {
         enum {  data_size = 256  };
     public:
         ~simions();
-        simions( std::istream& in, size_t fsize );
+        simions();
+        simions( const simions& );
+        bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
         int32_t flags() const;
     private:
@@ -43,4 +45,3 @@ namespace shrader {
     };
 
 }
-

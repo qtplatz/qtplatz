@@ -34,7 +34,10 @@ namespace shrader {
         enum {  data_size = 256 };
     public:
         ~instsetup();
-        instsetup( std::istream& in, size_t fsize );
+        instsetup();
+        instsetup( const instsetup& );
+
+        bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
 
         int32_t flags() const;		 // Long 4 Record type code = 2
@@ -106,4 +109,3 @@ namespace shrader {
     };
 
 }
-

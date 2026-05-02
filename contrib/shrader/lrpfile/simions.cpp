@@ -77,7 +77,13 @@ simions::~simions()
 {
 }
 
-simions::simions(std::istream& in, size_t fsize) : loaded_( false )
+simions::simions() : loaded_( false )
+                   , data_{ 0 }
+{
+}
+
+bool
+simions::load(std::istream& in, size_t fsize)
 {
     auto pos = in.tellg();
 
@@ -86,16 +92,16 @@ simions::simions(std::istream& in, size_t fsize) : loaded_( false )
         if ( !in.fail() ) {
             if ( flags() == 38 ) { // TIC block
                 in.seekg( pos ); // rewind
-                return;
+                return false;
             }
             loaded_ = true;
         }
     }
+    return loaded_;
 }
 
-int32_t 
+int32_t
 simions::flags() const
 {
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::qmasterllib, flags ));
 }
-

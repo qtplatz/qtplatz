@@ -37,7 +37,10 @@ namespace shrader {
         };
     public:
         ~lrpcalib();
-        lrpcalib( std::istream& in, size_t fsize );
+        lrpcalib();
+        lrpcalib( const lrpcalib& );
+
+        bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
 
         struct CAL {
@@ -53,9 +56,8 @@ namespace shrader {
         std::string type() const;
 
     private:
-        std::array< char, data_size > data_;
         bool loaded_;
+        std::array< char, data_size > data_;
     };
 
 }
-

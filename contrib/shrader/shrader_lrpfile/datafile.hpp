@@ -25,6 +25,7 @@
 #ifndef DATAFILE_HPP
 #define DATAFILE_HPP
 
+#include "chromatogram.hpp"
 #include <adcontrols/datafile.hpp>
 #include <adcontrols/lcmsdataset.hpp>
 #include <boost/noncopyable.hpp>
@@ -44,8 +45,11 @@ namespace shrader {
 
 	class datafile : public adcontrols::datafile
 		           , public adcontrols::LCMSDataset
-				   , boost::noncopyable {
+                   , public std::enable_shared_from_this< datafile > {
+        datafile& operator=( const datafile & ) = delete;
+        datafile( const datafile& ) = delete;
 	public:
+		~datafile();
 		datafile();
 
 		//--------- implement adcontrols::datafile ----------------
@@ -53,6 +57,8 @@ namespace shrader {
 		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
         virtual boost::any fetch( const std::string& path, const std::string& dataType ) const override;
 		virtual adcontrols::datafile::factory_type factory() override;
+
+        // LCMSDataset
 		virtual size_t getFunctionCount() const override;
 		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
 		virtual size_t getChromatogramCount() const override;
@@ -64,17 +70,23 @@ namespace shrader {
                                , std::vector< adcontrols::Chromatogram >&
                                , std::function< bool (long curr, long total ) > /* progress */
                                , int begPos = 0
-                               , int endPos = (-1) ) const override { (void)begPos; (void)endPos; return false; }
+                               , int endPos = (-1) ) const override;
 		bool hasProcessedSpectrum( int /* fcn */, int /* idx */) const override { return false; }
 
+        // v3 data support
+        size_t dataReaderCount() const override;
+        const adcontrols::DataReader * dataReader( size_t idx ) const override;
+        const adcontrols::DataReader * dataReader( const boost::uuids::uuid& ) const override;
+        std::vector < std::shared_ptr< adcontrols::DataReader > > dataReaders( bool allPossible = false ) const override;
+        // AcquiredDataset
+        int dataformat_version() const override { return 3; }
+
 		//<-------------------------------------
-		bool _open( const std::wstring&, bool );
-		static bool is_valid_datafile( const std::wstring& );
+		bool _open( const std::filesystem::path&, bool );
+		static bool is_valid_datafile( const std::filesystem::path& );
 	private:
-        std::shared_ptr< shrader::lrpfile > lrpfile_;
-		std::shared_ptr< adcontrols::ProcessedDataset > processedDataset_;
-        std::wstring root_filename_;
-        std::map< std::wstring, size_t > dataIds_;
+        class impl;
+        std::unique_ptr< impl > impl_;
 	};
 
 }

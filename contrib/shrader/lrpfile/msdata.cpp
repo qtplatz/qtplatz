@@ -24,6 +24,10 @@
 
 #include "msdata.hpp"
 #include <iostream>
+#include <boost/json.hpp>
+#include <adportable/json_helper.hpp>
+#include <adportable/json/extract.hpp>
+#include <adportable/debug.hpp>
 
 namespace shrader {
     namespace detail {
@@ -66,27 +70,31 @@ msdata::msdata(std::istream& in, size_t fsize) : loaded_( false )
                   , "struct 'msdata' not alinged to 256 octets, check declaration.");
 
     int16_t scan = 0;
+
     while ( ( fsize - in.tellg() ) >= block_size ) {
-        //auto pos = in.tellg();
+
         auto d = std::make_shared< detail::msdata >();
         in.read( reinterpret_cast<char *>(d.get()), block_size );
-        //const detail::msdata * pdata = d.get();
+
         if ( in.fail() )
-            return;
-        if ( (d->flags & 0x0f) != record_type_code ) 
             return;
 
         if ( scan == 0 ) // 1-orign value
             scan = d->scan;
 
-        if ( scan != d->scan )
+        if ( (d->flags & 0x0f) != record_type_code )
             return;
 
-        data_.push_back( d );
+        if ( scan != d->scan ) {
+            // ADDEBUG() << boost::json::value_from(*d);
+            return;
+        }
+
+        data_.emplace_back( d );
     }
 }
 
-int16_t 
+int16_t
 msdata::flags( size_t block ) const
 {
     if ( data_.size() > block )
@@ -156,3 +164,38 @@ msdata::ions( size_t block ) const
     return std::make_pair( nullptr, 0 );
 }
 
+namespace shrader {
+    namespace detail {
+        void
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const msdata& t )
+        {
+            jv = {{ "msdata"
+                    , {
+                        { "scan", t.scan }
+                        , { "flags", t.flags }
+                        , { "threshold", t.threshold }
+                        , { "nions", t.nions }
+                        , { "xlow", t.xlow }
+                        , { "u", boost::json::value_from( t.u.profile ) }
+                    }
+                }};
+        }
+
+        detail::msdata
+        tag_invoke( const boost::json::value_to_tag< msdata >&, const boost::json::value& jv )
+        {
+            detail::msdata _;
+            if ( jv.is_object() ) {
+                using namespace adportable::json;
+                auto obj = jv.as_object();
+                // extract( obj,  reinterpret_cast< unsigned& >(_.algo_),       "algo" );
+                // extract( obj,  _.threshold_, "threshold" );
+                // extract( obj,  _.boundary_,  "boundary" );
+                // extract( obj,  _.eq_,        "eq" );
+            }
+
+            return _;
+        }
+
+    } // details
+}

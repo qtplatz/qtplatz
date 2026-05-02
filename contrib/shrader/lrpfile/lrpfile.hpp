@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -39,40 +39,51 @@ namespace shrader {
     class lrptic;
     class msdata;
 
+    using tic_t = std::tuple< double, double, int32_t, int32_t >; // time, intensity, ptr, overload
+    using ticc_t = std::vector< tic_t >;
+    enum { tic_time, tic_intensity, tic_ptr, tic_overload };
+
     class lrpfile {
         lrpfile( const lrpfile& ) = delete;
         lrpfile& operator = (const lrpfile&) = delete;
     public:
         ~lrpfile();
-        lrpfile( std::istream& in, size_t fsize );
+        lrpfile();
+
         typedef std::vector< std::shared_ptr< shrader::msdata > >::iterator iterator;
         typedef std::vector< std::shared_ptr< shrader::msdata > >::const_iterator const_iterator;
 
+        bool load( std::istream& in, size_t fsize );
         operator bool () const;
-        void dump( std::ostream& ) const;
+
+        void dump( std::ostream&, size_t limit = (-1) ) const;
 
         const shrader::lrptic * lrptic() const;
         const msdata * operator []( size_t idx ) const;
-        size_t number_of_spectra() const { return msdata_.size(); }
-        iterator begin() { return msdata_.begin(); }
-        iterator end() { return msdata_.end(); }
-        const_iterator begin() const { return msdata_.begin(); }
-        const_iterator end() const { return msdata_.end(); }
+        size_t number_of_spectra() const;
+        iterator begin();
+        iterator end();
+        const_iterator begin() const;
+        const_iterator end() const;
+
+        const shrader::lrpheader& header() const;
+        const shrader::lrphead2& header2() const;
+        const shrader::lrphead3& header3() const;
+        const shrader::instsetup& instsetup() const;
+        const shrader::lrpcalib& lrpcalib() const;
+        const shrader::simions& simions() const;
+        const shrader::lrptic& liptic() const;
+        const std::vector< std::shared_ptr< shrader::msdata > >& msdata() const;
+
+        std::string time_of_injection() const;
 
         bool getTIC( std::vector< double >& time, std::vector< double >& intens ) const;
-        bool getMS( const msdata&, std::vector< double >& time, std::vector< double >& intens ) const;
+        bool getMS( const class msdata&, std::vector< double >& time, std::vector< double >& intens ) const;
+        ticc_t get_ticc() const;
 
     private:
-        bool loaded_;
-        std::shared_ptr< shrader::lrpheader > header_;
-        std::shared_ptr< shrader::lrphead2 > header2_;
-        std::shared_ptr< shrader::lrphead3 > header3_;
-        std::shared_ptr< shrader::instsetup > instsetup_;
-        std::shared_ptr< shrader::lrpcalib > lrpcalib_;
-        std::shared_ptr< shrader::simions > simions_;
-        std::shared_ptr< shrader::lrptic > lrptic_;
-        std::vector< std::shared_ptr< shrader::msdata > > msdata_;
+        class impl;
+        std::unique_ptr< impl > impl_;
     };
 
 }
-

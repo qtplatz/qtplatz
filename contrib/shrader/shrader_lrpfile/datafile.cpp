@@ -23,14 +23,17 @@
 **************************************************************************/
 
 #include "datafile.hpp"
+#include "data_reader.hpp"
 #include "../lrpfile/lrpfile.hpp"
 #include "../lrpfile/lrptic.hpp"
 #include "../lrpfile/msdata.hpp"
+#include "datareader.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
@@ -42,10 +45,34 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 #include <vector>
+#include <filesystem>
+
+namespace shrader {
+
+    class datafile::impl {
+    public:
+        impl() : lrpfile_{0}
+               , processedDataset_{0}
+               , root_filename_{}
+               , vChro_{}
+            {};
+        std::shared_ptr< shrader::lrpfile > lrpfile_;
+		std::shared_ptr< adcontrols::ProcessedDataset > processedDataset_;
+        std::wstring root_filename_;
+        std::map< std::wstring, size_t > dataIds_;
+        std::map< std::string, std::shared_ptr< adcontrols::Chromatogram > > vChro_;
+        std::shared_ptr< adcontrols::DataReader > dataReader_;
+        shrader::ticc_t ticc_;
+    };
+}
 
 using namespace shrader;
 
-datafile::datafile()
+datafile::~datafile()
+{
+}
+
+datafile::datafile() : impl_( std::make_unique< impl >() )
 {
 }
 
@@ -54,11 +81,12 @@ void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // AcquireDataset <LCMSDataset>
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	sub.subscribe( *this );
 
     // subscribe processed dataset
-	if ( processedDataset_ )
-		sub.subscribe( *processedDataset_ );
+	if ( impl_->processedDataset_ )
+		sub.subscribe( *impl_->processedDataset_ );
 }
 
 boost::any
@@ -71,26 +99,31 @@ datafile::fetch( const std::string& foliumGuid, const std::string& dataType ) co
 boost::any
 datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) const
 {
-	(void)dataType;
-	boost::any any;
+    ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << foliumGuid << "\t" << dataType;
 
-    auto it = dataIds_.find( foliumGuid );
-
-    if ( it != dataIds_.end() ) {
-
-        auto ms = std::make_shared< adcontrols::MassSpectrum >();
-
-        if ( getSpectrum( 0, int(it->second), *ms, 0 ) )
-            any = ms;
-
+    {
+        auto it = impl_->vChro_.find ( adportable::utf::to_utf8( foliumGuid ) );
+        if ( it != impl_->vChro_.end() ) {
+            return it->second;
+        }
     }
-	return any;
+
+    {
+        auto it = impl_->dataIds_.find( foliumGuid );
+        if ( it != impl_->dataIds_.end() ) {
+            auto ms = std::make_shared< adcontrols::MassSpectrum >();
+            if ( getSpectrum( 0, int(it->second), *ms, 0 ) )
+                return ms;
+        }
+    }
+	return {};
 }
 
 //virtual
 adcontrols::datafile::factory_type
 datafile::factory()
 {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	return 0;
 }
 
@@ -98,6 +131,7 @@ datafile::factory()
 size_t
 datafile::getFunctionCount() const
 {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	return 1;
 }
 
@@ -105,13 +139,15 @@ datafile::getFunctionCount() const
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
-    return lrpfile_->number_of_spectra();
+    ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << impl_->lrpfile_->number_of_spectra();
+    return impl_->lrpfile_->number_of_spectra();
 }
 
 //virtual
 size_t
 datafile::getChromatogramCount() const
 {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ############## ";
 	return 0;
 }
 
@@ -119,14 +155,30 @@ datafile::getChromatogramCount() const
 bool
 datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 {
-    if ( lrpfile_ ) {
-        std::vector< double > time, intens;
-        lrpfile_->getTIC( time, intens );
-        c.resize( time.size() );
-        c.setTimeArray( time.data() );
-        c.setIntensityArray( intens.data() );
+    if ( not impl_->ticc_.empty() ) {
+        c.resize( impl_->ticc_.size() );
+        for ( size_t idx = 0; idx < impl_->ticc_.size(); ++idx ) {
+            const auto& tic = impl_->ticc_.at( idx );
+            c.setDatum( idx, { get<0>( tic ), get<1>( tic ) } );
+        }
+        c.setMinimumTime( std::get< 0 >( impl_->ticc_.front() ) );
+        c.setMaximumTime( std::get< 0 >( impl_->ticc_.back() ) );
+        c.set_time_of_injection_iso8601( impl_->lrpfile_->time_of_injection() );
+        ADDEBUG() << "############# " << impl_->lrpfile_->time_of_injection()
+                  << "\t" << c.time_of_injection();
         return true;
     }
+
+    // if ( impl_->lrpfile_ ) {
+    //     std::vector< double > time, intens;
+    //     impl_->lrpfile_->getTIC( time, intens );
+    //     if ( not c.display_name() )
+    //         c.set_display_name( "TIC.1" );
+    //     c.resize( time.size() );
+    //     c.setTimeArray( time.data(), time.size() );
+    //     c.setIntensityArray( intens.data(), intens.size() );
+    //     return true;
+    // }
 	return false;
 }
 
@@ -134,12 +186,14 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 bool
 datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
-    if ( lrpfile_ && unsigned( idx ) < lrpfile_->number_of_spectra() ) {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 
-        if ( auto msdata = (*lrpfile_)[ idx ] ) {
+    if ( impl_->lrpfile_ && unsigned( idx ) < impl_->lrpfile_->number_of_spectra() ) {
+
+        if ( auto msdata = (*impl_->lrpfile_)[ idx ] ) {
 
             std::vector< double > time, intens;
-            if ( lrpfile_->getMS( *msdata, time, intens ) ) {
+            if ( impl_->lrpfile_->getMS( *msdata, time, intens ) ) {
 
                 ms.resize( time.size() );
                 ms.setMassArray( time.data() );
@@ -157,36 +211,52 @@ datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, u
 /////////////////////////
 
 bool
-datafile::_open( const std::wstring& filename, bool )
+datafile::_open( const std::filesystem::path& path, bool )
 {
-    boost::filesystem::path path( filename );
+    // boost::filesystem::path path( filename );
+    ADDEBUG() << "######### shrader::datafile::" << __FUNCTION__ << "( " << path << ") ##############";
 
-    if ( boost::filesystem::exists( path ) ) {
+    if ( std::filesystem::exists( path ) ) {
 
-        size_t fsize = boost::filesystem::file_size( path );
-        boost::filesystem::ifstream in( path, std::ios_base::binary );
+        size_t fsize = std::filesystem::file_size( path );
+        std::ifstream in( path, std::ios_base::binary );
 
-        if ( (lrpfile_ = std::make_shared< shrader::lrpfile >( in, fsize )) ) {
+        if (( impl_->lrpfile_ = std::make_shared< shrader::lrpfile >() )) {
 
-            portfolio::Portfolio portfolio;
-            portfolio.create_with_fullpath( filename );
+            if ( impl_->lrpfile_->load( in, fsize ) ) {
+                impl_->ticc_ = impl_->lrpfile_->get_ticc();
 
-            auto folder = portfolio.addFolder( L"Spectra" );
+                ADDEBUG() << "######### _open( " << path << ") ##############";
+                impl_->dataReader_ = std::make_shared< local::data_reader >( "lrpfile.1", 0, impl_->lrpfile_ );
+
+                portfolio::Portfolio portfolio;
+                portfolio.create_with_fullpath( path.string()  );
+                if ( auto folder = portfolio.addFolder( L"Chromatograms" ) ) {
+                    if ( auto chro = std::make_shared< adcontrols::Chromatogram >() ) {
+                        getTIC( -1, *chro );
+                        ADDEBUG() << std::format("----------- chro.size= {}, {} -- {}"
+                                                 , chro->size(), chro->time(0), chro->time( chro->size() - 1 ) );
+                        auto folium = folder.addFolium( "TIC.1" ).assign( chro, chro->dataClass() );
+                        impl_->vChro_.emplace( folium.id<char>(),  chro );
+                    }
+                }
+
+                if ( auto folder = portfolio.addFolder( L"Spectra" ) ) {
+                }
 #if 0
-            for ( size_t i = 0; i < spcfile_->number_of_subfiles(); ++i ) {
-                // auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                auto folium = folder.addFolium( ( boost::wformat( L"Spectrum(%1%)" ) % ( i + 1 ) ).str() );
-                folium.assign( boost::any(), adcontrols::MassSpectrum::dataClass() ); // set empty data, it will be fixed by 'fetch'
-                dataIds_[ folium.id() ] = i;
-            }
+                for ( size_t i = 0; i < spcfile_->number_of_subfiles(); ++i ) {
+                    // auto ms = std::make_shared< adcontrols::MassSpectrum >();
+                    auto folium = folder.addFolium( ( boost::wformat( L"Spectrum(%1%)" ) % ( i + 1 ) ).str() );
+                    folium.assign( boost::any(), adcontrols::MassSpectrum::dataClass() ); // set empty data, it will be fixed by 'fetch'
+                    dataIds_[ folium.id() ] = i;
+                }
 #endif
-            processedDataset_.reset( new adcontrols::ProcessedDataset );
-            processedDataset_->xml( portfolio.xml() );
+                impl_->processedDataset_.reset( new adcontrols::ProcessedDataset );
+                impl_->processedDataset_->xml( portfolio.xml() );
 
-            return true;
-
+                return true;
+            }
         }
-
     }
     return false;
 }
@@ -194,20 +264,64 @@ datafile::_open( const std::wstring& filename, bool )
 size_t
 datafile::posFromTime( double ) const
 {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	return 0;
 }
 
 double
 datafile::timeFromPos( size_t ) const
 {
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	return 0;
 }
 
+bool
+datafile::getChromatograms( const std::vector< std::tuple<int, double, double> >&
+                            , std::vector< adcontrols::Chromatogram >&
+                            , std::function< bool (long curr, long total ) > /* progress */
+                            , int begPos
+                            , int endPos ) const
+{
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    return false;
+}
+
+size_t
+datafile::dataReaderCount() const
+{
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    return 1;
+}
+
+const adcontrols::DataReader *
+datafile::dataReader( size_t idx ) const
+{
+    ADDEBUG() << "############# " << __FUNCTION__ << " ############## NOT IMPL #######";
+    return {};
+}
+
+const adcontrols::DataReader *
+datafile::dataReader( const boost::uuids::uuid& ) const
+{
+    ADDEBUG() << "############# " << __FUNCTION__ << " ############## NOT IMPL #######";
+    return {};
+}
+
+std::vector < std::shared_ptr< adcontrols::DataReader > >
+datafile::dataReaders( bool allPossible ) const
+{
+    return { impl_->dataReader_ };
+    // std::vector < std::shared_ptr< adcontrols::DataReader > > vec;
+    // vec.emplace_back( std::make_shared< local::data_reader >( "traceid.1", 1, impl_->lrpfile_ ) );
+    // ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << vec.size();
+    // return vec;
+}
+
+
 //static
 bool
-datafile::is_valid_datafile( const std::wstring& filename )
+datafile::is_valid_datafile( const std::filesystem::path& path )
 {
-	boost::filesystem::path path( filename );
 	if ( path.extension() == L".lrp" || path.extension() == L".LRP" )
 		return true;
 	return false;

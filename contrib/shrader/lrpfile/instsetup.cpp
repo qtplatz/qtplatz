@@ -98,13 +98,20 @@ instsetup::~instsetup()
 {
 }
 
-instsetup::instsetup(std::istream& in, size_t fsize) : loaded_( false )
+instsetup::instsetup() : loaded_( false )
+                       , data_{ 0 }
+{
+}
+
+bool
+instsetup::load( std::istream& in, size_t fsize )
 {
     if ( ( fsize - in.tellg() ) >= data_size ) {
         in.read( data_.data(), data_.size() );
         if ( !in.fail() )
             loaded_ = true;
     }
+    return loaded_;
 }
 
 int32_t
@@ -479,7 +486,7 @@ instsetup::describe_scanmode() const
     case 8: o << "Quad 3"; break;
     case 16: o << "Magnet 2"; break;
     case 32: o << "Time of Flight"; break;
-    } 
+    }
     return o.str();
 }
 
@@ -495,7 +502,7 @@ instsetup::describe_scanlaw() const
     case 8: o << ", Exponential"; break;
     case 16: o << ", Quadratic"; break;
     case 32: o << ", Misc"; break;
-    } 
+    }
     return o.str();
 }
 
@@ -510,8 +517,6 @@ instsetup::describe_peakcentroid() const
     case 2: o << "Half Area"; break;
     case 3: o << "Center at 1/2 peak height"; break;
     case 4: o << "Hall Probe"; break;
-    } 
+    }
     return o.str();
 }
-
-
