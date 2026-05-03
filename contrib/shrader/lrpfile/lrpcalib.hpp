@@ -27,8 +27,13 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <tuple>
+#include <optional>
 
 namespace shrader {
+
+    using cal_data = std::tuple< int32_t, float, double, double >;
+    enum { cal_mass, cal_intens, cal_coeff_a, cal_coeff_b };
 
     class lrpcalib {
         enum {
@@ -36,6 +41,8 @@ namespace shrader {
             , record_type_code = 3
         };
     public:
+        enum { cal_size = 10 };
+
         ~lrpcalib();
         lrpcalib();
         lrpcalib( const lrpcalib& );
@@ -43,17 +50,9 @@ namespace shrader {
         bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
 
-        struct CAL {
-            int32_t m; // mass * 65536
-            float i;
-            double coeffa;
-            double coeffb;
-        };
-        enum { cal_size = 10 };
-
         int32_t flags() const;
-        const CAL * cal() const;
         std::string type() const;
+        cal_data cal_data( size_t idx ) const;
 
     private:
         bool loaded_;

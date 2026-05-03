@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,23 +23,22 @@
 **************************************************************************/
 
 #include "lrpfile.hpp"
-#include "lrpheader.hpp"
-#include "lrphead2.hpp"
-#include "lrphead3.hpp"
 #include "instsetup.hpp"
 #include "lrpcalib.hpp"
-#include "simions.hpp"
+#include "lrphead2.hpp"
+#include "lrphead3.hpp"
+#include "lrpheader.hpp"
 #include "lrptic.hpp"
 #include "msdata.hpp"
+#include "simions.hpp"
+#include <adportable/debug.hpp>
 #include <boost/format.hpp>
 #include <boost/json.hpp>
-#include <adportable/debug.hpp>
-#include <chrono>
-#include <istream>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <istream>
+#include <sstream>
 
 namespace shrader {
 
@@ -80,23 +79,28 @@ lrpfile::lrpfile() : impl_( std::make_unique< impl >() )
 bool
 lrpfile::load( std::istream& in, size_t fsize )
 {
-    ADDEBUG() << "-------- lrpfile load --------";
-
     if ( impl_->header_->load( in, fsize ) &&
          impl_->header2_->load( in, fsize ) &&
          impl_->header3_->load( in, fsize ) ) {
 
-        impl_->instsetup_->load( in, fsize );
-        impl_->lrpcalib_->load( in, fsize );
-        impl_->simions_->load( in, fsize );
+        if ( not impl_->instsetup_->load( in, fsize ) )
+            ADDEBUG() << "## instsetup load failed ##";
+        if ( not impl_->lrpcalib_->load( in, fsize ) )
+            ADDEBUG() << "## lrpcalib load failed ##";
+        if ( not impl_->simions_->load( in, fsize ) )
+            ADDEBUG() << "## simions load failed ##";
+        if ( not impl_->lrptic_->load( in, fsize ) )
+            ADDEBUG() << "## lrptic load failed ##";
 
-        if ( impl_->lrptic_->load( in, fsize ) ) {
+        if ( impl_->lrptic_ && *impl_->lrptic_ ) {
             for ( auto& tic: impl_->lrptic_->tic() ) {
-                in.seekg( tic.ptr );
-                impl_->msdata_.emplace_back( std::make_shared< shrader::msdata >( in, fsize ) );
+                if ( auto data = std::make_shared< shrader::msdata >() ) {
+                    if ( data->load( in, fsize, tic.ptr ) ) {
+                        impl_->msdata_.emplace_back( std::move( data ) );
+                    }
+                }
             }
         }
-        ADDEBUG() << "-------- lrpfile loaded --------";
         return true;
     }
     return false;
@@ -107,11 +111,11 @@ lrpfile::operator bool() const
     return impl_->loaded_;
 }
 
-const shrader::lrptic *
-lrpfile::lrptic() const
-{
-    return impl_->lrptic_.get();
-}
+// const shrader::lrptic *
+// lrpfile::lrptic() const
+// {
+//     return impl_->lrptic_.get();
+// }
 
 const shrader::msdata *
 lrpfile::operator []( size_t idx ) const
@@ -158,7 +162,7 @@ lrpfile::simions() const
 }
 
 const shrader::lrptic&
-lrpfile::liptic() const
+lrpfile::lrptic() const
 {
     return *impl_->lrptic_;
 }
@@ -268,8 +272,8 @@ lrpfile::dump( std::ostream& of, size_t limit ) const
         of << "\tIonization method code:\t" << instsetup().describe_ionization() << std::endl;
         of << "#### upperdrive:\t" << instsetup().upperdrive() << "\tUpper mass drive" << std::endl;
         of << "#### lowerdrive:\t" << instsetup().lowerdrive() << "\tLower mass drive" << std::endl;
-        of << "umasslim:\t" << double(instsetup().umasslim()) / 65536 << "\tUpper mass limit of scan" << std::endl;
         of << "lmasslim:\t" << double(instsetup().lmasslim()) / 65536 << "\tLower mass limit of scan" << std::endl;
+        of << "umasslim:\t" << double(instsetup().umasslim()) / 65536 << "\tUpper mass limit of scan" << std::endl;
         of << "ucallim:\t" << double(instsetup().ucallim()) / 65536 << "\tUpper mass limit of calibration" << std::endl;
         of << "lcallim:\t" << double(instsetup().lcallim()) / 65536 << "\tLower mass limit of calibration" << std::endl;
         of << "aves:\t" << instsetup().aves() << "\tNumber A/D readings per D/A step" << std::endl;
@@ -321,19 +325,23 @@ lrpfile::dump( std::ostream& of, size_t limit ) const
         of << "PeakFilter:\t" << instsetup().PeakFilter() << "\t" << std::endl;
         of << "TwoWayScan:\t" << instsetup().TwoWayScan() << "\t" << std::endl;
     }
+    of << std::endl;
 
     if ( impl_->lrpcalib_ && lrpcalib() ) {
         of << "---------------------- lrpcalib ------------------------" << std::endl;
         of << "flags:\t" << impl_->lrpcalib_->flags() << std::endl;
         for ( int i = 0; i < impl_->lrpcalib_->cal_size; ++i ) {
-            auto& cal = impl_->lrpcalib_->cal()[i];
-            of << "mass:\t" << double(cal.m) / 65536 << ", intensity:\t" << cal.i << ", coeffa: "
-               << cal.coeffa << ", coeffb: " << cal.coeffb << std::endl;
+            auto cal = impl_->lrpcalib_->cal_data( i );
+            of << std::format( "\tmass: {:.7g}\tintensity: {:7g}\tcoeff_a: {:7g}\tcoeff_b: {:7g}\n"
+                               , std::get<cal_mass>(cal) / 65536.0
+                               , std::get<cal_intens>(cal)
+                               , std::get<cal_coeff_a>(cal)
+                               , std::get<cal_coeff_b>(cal) );
         }
         of << "type:\t" << impl_->lrpcalib_->type() << std::endl;
     }
-
-    if ( impl_->lrptic_ && *impl_->lrptic_ ) {
+#if 0
+    if ( impl_->lrptic_ && lrptic() ) {
         of << "---------------------- lrptic ------------------------" << std::endl;
         of << "----------- TIC -------------- " << impl_->lrptic_->tic().size() << std::endl;
         of << "nexttpr:\t" << impl_->lrptic_->nextptr() << std::endl;
@@ -344,6 +352,7 @@ lrpfile::dump( std::ostream& of, size_t limit ) const
         of << "----------- END of TIC --------------" << std::endl;
     }
     of << std::endl;
+#endif
     of << "---------------------- msdata ------------------------" << std::endl;
     of << "total: " << impl_->msdata_.size() << " spectra." << std::endl;
     size_t scan = 0;
@@ -402,21 +411,29 @@ lrpfile::getTIC( std::vector< double >& time, std::vector< double >& intens ) co
 ticc_t
 lrpfile::get_ticc() const
 {
-    if ( lrptic() && *lrptic() ) {
+    if ( lrptic() && lrptic() ) {
         ticc_t ticc;
-        for ( auto& tic : lrptic()->tic() )
+        for ( auto& tic : lrptic().tic() )
             ticc.emplace_back( double( tic.time ) / 1000.0, tic.intensity, tic.ptr, tic.overload );
         return ticc;
     }
     return {};
 }
 
+bool
+lrpfile::get_massSpectrum( int64_t rowid )
+{
+    ADDEBUG() << " ## " << __FUNCTION__ << " ## ";
+    return false;
+}
 
 bool
 lrpfile::getMS( const class msdata& msdata, std::vector< double >& time, std::vector< double >& intens ) const
 {
     time.clear();
     intens.clear();
+
+    ADDEBUG() << " ## " << __FUNCTION__ << " ## ";
 
     if ( msdata.is_profile( msdata.flags( 0 ) ) ) {
 

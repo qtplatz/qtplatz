@@ -34,10 +34,29 @@
 namespace shrader {
 
     namespace detail {
-        struct msdata;
-        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const msdata& );
-        msdata tag_invoke( const boost::json::value_to_tag< detail::msdata >&, const boost::json::value& jv );
-    }
+        struct block;
+        void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const block& );
+        block tag_invoke( const boost::json::value_to_tag< detail::block >&, const boost::json::value& jv );
+
+#pragma pack(1)
+        struct block {
+            struct ION { int32_t m; int32_t i; };
+            struct SRM { int32_t m; int32_t i; };
+            int16_t scan;       // Integer 2 Scan number
+            int16_t flags;      // Integer 2 Record type code = 5
+            int16_t threshold;  // Integer 2 D/A threshold in effect at start of scan
+            int16_t nions;      // Integer 2 Number of ions in this record
+            int32_t xlow;       // lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
+            int32_t xhigh;      // himass/hitime Long 4 High mass*65536 (or time*16) stored in this record
+            union {
+                ION ion[30];
+                SRM srm[30];
+                int32_t profile[60];
+            } u;
+            //ION(30/60) User 240 Mass (or time) / intensity pairs
+        };
+#pragma pack()
+    } // detail
 
     class msdata {
         enum {
@@ -46,7 +65,10 @@ namespace shrader {
         };
     public:
         ~msdata();
-        msdata( std::istream& in, size_t fsize );
+        msdata();
+        msdata( const msdata& );
+
+        bool load( std::istream& in, size_t fsize, int64_t pos );
         inline operator bool () const { return loaded_; }
 
         inline static bool is_internal_reference( int16_t flags ) { return flags & 0x20 ? true : false; } // else internal
@@ -66,9 +88,10 @@ namespace shrader {
         size_t size() const;
         std::pair< const int32_t *, size_t > intensities( size_t block ) const;
         std::pair< const std::pair< int32_t, int32_t >*, size_t > ions( size_t block ) const;
+        const std::vector< detail::block >& blocks() const { return data_; };
 
     private:
-        std::vector< std::shared_ptr< detail::msdata > > data_;
+        std::vector< detail::block > data_;
         bool loaded_;
     };
 

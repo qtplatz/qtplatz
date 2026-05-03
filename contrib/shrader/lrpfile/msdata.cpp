@@ -30,32 +30,32 @@
 #include <adportable/debug.hpp>
 
 namespace shrader {
-    namespace detail {
-#pragma pack(1)
-        struct ION {
-            int32_t m;
-            int32_t i;
-        };
-        struct SRM {
-            int32_t m;
-            int32_t i;
-        };
-        struct msdata {
-            int16_t scan;       // Integer 2 Scan number
-            int16_t flags;      // Integer 2 Record type code = 5
-            int16_t threshold;  // Integer 2 D/A threshold in effect at start of scan
-            int16_t nions;      // Integer 2 Number of ions in this record
-            int32_t xlow;       // lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
-            int32_t xhigh;      // himass/hitime Long 4 High mass*65536 (or time*16) stored in this record
-            union {
-                ION ion[30];
-                SRM srm[30];
-                int32_t profile[60];
-            } u;
-            //ION(30/60) User 240 Mass (or time) / intensity pairs
-        };
-#pragma pack()
-    }
+//     namespace detail {
+// #pragma pack(1)
+//         struct ION {
+//             int32_t m;
+//             int32_t i;
+//         };
+//         struct SRM {
+//             int32_t m;
+//             int32_t i;
+//         };
+//         struct msdata {
+//             int16_t scan;       // Integer 2 Scan number
+//             int16_t flags;      // Integer 2 Record type code = 5
+//             int16_t threshold;  // Integer 2 D/A threshold in effect at start of scan
+//             int16_t nions;      // Integer 2 Number of ions in this record
+//             int32_t xlow;       // lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
+//             int32_t xhigh;      // himass/hitime Long 4 High mass*65536 (or time*16) stored in this record
+//             union {
+//                 ION ion[30];
+//                 SRM srm[30];
+//                 int32_t profile[60];
+//             } u;
+//             //ION(30/60) User 240 Mass (or time) / intensity pairs
+//         };
+// #pragma pack()
+//     }
 }
 
 using namespace shrader;
@@ -64,41 +64,53 @@ msdata::~msdata()
 {
 }
 
-msdata::msdata(std::istream& in, size_t fsize) : loaded_( false )
+msdata::msdata() : loaded_( false )
+                 , data_{ 0 }
 {
-    static_assert(sizeof( detail::msdata ) == msdata::block_size
+    static_assert(sizeof( detail::block ) == msdata::block_size
                   , "struct 'msdata' not alinged to 256 octets, check declaration.");
+}
 
-    int16_t scan = 0;
+msdata::msdata( const msdata& t ) : loaded_( t.loaded_ )
+                                  , data_( t.data_ )
+{
+}
+
+bool
+msdata::load( std::istream& in, size_t fsize, int64_t pos )
+{
+    if ( ( fsize - pos ) < block_size )
+        return 0;
+
+    int scan = 0;
+    in.seekg( pos );
 
     while ( ( fsize - in.tellg() ) >= block_size ) {
 
-        auto d = std::make_shared< detail::msdata >();
-        in.read( reinterpret_cast<char *>(d.get()), block_size );
-
-        if ( in.fail() )
-            return;
-
-        if ( scan == 0 ) // 1-orign value
-            scan = d->scan;
-
-        if ( (d->flags & 0x0f) != record_type_code )
-            return;
-
-        if ( scan != d->scan ) {
-            // ADDEBUG() << boost::json::value_from(*d);
-            return;
+        detail::block d;
+        in.read( reinterpret_cast<char *>( &d ), block_size );
+        if ( in.fail() ) {
+            ADDEBUG() << "## Error: file read failed. ";
+            return 0; // io error
+        }
+        if ( scan == 0 && ( ( d.flags & 0x0f) == record_type_code ) ) {
+            scan = d.scan;
         }
 
-        data_.emplace_back( d );
+        if ( ( (d.flags & 0x0f) != record_type_code ) || scan != d.scan ) {
+            return data_.size();
+        } else {
+            data_.emplace_back( std::move( d ) );
+        }
     }
+    return data_.size();
 }
 
 int16_t
 msdata::flags( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->flags;
+        return data_[ block ].flags;
     return 0;
 }
 
@@ -106,7 +118,7 @@ int16_t
 msdata::scan( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->scan;
+        return data_[ block ].scan;
     return -1;
 }
 
@@ -114,7 +126,7 @@ int16_t
 msdata::threshold( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->threshold;
+        return data_[ block ].threshold;
     return -1;
 }
 
@@ -122,7 +134,7 @@ int16_t
 msdata::nions( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->nions;
+        return data_[ block ].nions;
     return 0;
 }
 
@@ -130,7 +142,7 @@ int32_t
 msdata::xlow( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->xlow;
+        return data_[ block ].xlow;
     return -1;
 }
 
@@ -138,7 +150,7 @@ int32_t
 msdata::xhigh( size_t block ) const
 {
     if ( data_.size() > block )
-        return data_[ block ]->xhigh;
+        return data_[ block ].xhigh;
     return -1;
 }
 
@@ -152,7 +164,7 @@ std::pair< const int32_t *, size_t >
 msdata::intensities( size_t block ) const
 {
     if ( data_.size() > block )
-        return std::make_pair( data_[ block ]->u.profile, data_[ block ]->nions );
+        return std::make_pair( data_[ block ].u.profile, data_[ block ].nions );
     return std::make_pair( nullptr, 0 );
 }
 
@@ -160,16 +172,16 @@ std::pair< const std::pair< int32_t, int32_t >*, size_t >
 msdata::ions( size_t block ) const
 {
     if ( data_.size() > block )
-        return std::make_pair( reinterpret_cast< const std::pair< int32_t, int32_t >* >(data_[ block ]->u.ion), data_[ block ]->nions );
+        return std::make_pair( reinterpret_cast< const std::pair< int32_t, int32_t >* >(data_[ block ].u.ion), data_[ block ].nions );
     return std::make_pair( nullptr, 0 );
 }
 
 namespace shrader {
     namespace detail {
         void
-        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const msdata& t )
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const block& t )
         {
-            jv = {{ "msdata"
+            jv = {{ "block"
                     , {
                         { "scan", t.scan }
                         , { "flags", t.flags }
@@ -181,10 +193,10 @@ namespace shrader {
                 }};
         }
 
-        detail::msdata
-        tag_invoke( const boost::json::value_to_tag< msdata >&, const boost::json::value& jv )
+        detail::block
+        tag_invoke( const boost::json::value_to_tag< block >&, const boost::json::value& jv )
         {
-            detail::msdata _;
+            detail::block _;
             if ( jv.is_object() ) {
                 using namespace adportable::json;
                 auto obj = jv.as_object();

@@ -46,6 +46,7 @@
 #include <boost/format.hpp>
 #include <vector>
 #include <filesystem>
+#include <iostream>
 
 namespace shrader {
 
@@ -139,7 +140,6 @@ datafile::getFunctionCount() const
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << impl_->lrpfile_->number_of_spectra();
     return impl_->lrpfile_->number_of_spectra();
 }
 
@@ -147,7 +147,6 @@ datafile::getSpectrumCount( int /* fcn */ ) const
 size_t
 datafile::getChromatogramCount() const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ############## ";
 	return 0;
 }
 
@@ -164,21 +163,9 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
         c.setMinimumTime( std::get< 0 >( impl_->ticc_.front() ) );
         c.setMaximumTime( std::get< 0 >( impl_->ticc_.back() ) );
         c.set_time_of_injection_iso8601( impl_->lrpfile_->time_of_injection() );
-        ADDEBUG() << "############# " << impl_->lrpfile_->time_of_injection()
-                  << "\t" << c.time_of_injection();
+        ADDEBUG() << "############# time of injection: " << c.time_of_injection();
         return true;
     }
-
-    // if ( impl_->lrpfile_ ) {
-    //     std::vector< double > time, intens;
-    //     impl_->lrpfile_->getTIC( time, intens );
-    //     if ( not c.display_name() )
-    //         c.set_display_name( "TIC.1" );
-    //     c.resize( time.size() );
-    //     c.setTimeArray( time.data(), time.size() );
-    //     c.setIntensityArray( intens.data(), intens.size() );
-    //     return true;
-    // }
 	return false;
 }
 
@@ -188,7 +175,11 @@ datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, u
 {
     ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 
+    const auto& liptic = impl_->lrpfile_->lrptic();
+#if 0
     if ( impl_->lrpfile_ && unsigned( idx ) < impl_->lrpfile_->number_of_spectra() ) {
+
+
 
         if ( auto msdata = (*impl_->lrpfile_)[ idx ] ) {
 
@@ -205,6 +196,7 @@ datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, u
             }
         }
     }
+#endif
     return false;
 }
 
@@ -224,9 +216,10 @@ datafile::_open( const std::filesystem::path& path, bool )
         if (( impl_->lrpfile_ = std::make_shared< shrader::lrpfile >() )) {
 
             if ( impl_->lrpfile_->load( in, fsize ) ) {
-                impl_->ticc_ = impl_->lrpfile_->get_ticc();
 
-                ADDEBUG() << "######### _open( " << path << ") ##############";
+                impl_->lrpfile_->dump( std::cerr, 0 );
+
+                impl_->ticc_ = impl_->lrpfile_->get_ticc();
                 impl_->dataReader_ = std::make_shared< local::data_reader >( "lrpfile.1", 0, impl_->lrpfile_ );
 
                 portfolio::Portfolio portfolio;
@@ -234,8 +227,6 @@ datafile::_open( const std::filesystem::path& path, bool )
                 if ( auto folder = portfolio.addFolder( L"Chromatograms" ) ) {
                     if ( auto chro = std::make_shared< adcontrols::Chromatogram >() ) {
                         getTIC( -1, *chro );
-                        ADDEBUG() << std::format("----------- chro.size= {}, {} -- {}"
-                                                 , chro->size(), chro->time(0), chro->time( chro->size() - 1 ) );
                         auto folium = folder.addFolium( "TIC.1" ).assign( chro, chro->dataClass() );
                         impl_->vChro_.emplace( folium.id<char>(),  chro );
                     }
@@ -243,14 +234,7 @@ datafile::_open( const std::filesystem::path& path, bool )
 
                 if ( auto folder = portfolio.addFolder( L"Spectra" ) ) {
                 }
-#if 0
-                for ( size_t i = 0; i < spcfile_->number_of_subfiles(); ++i ) {
-                    // auto ms = std::make_shared< adcontrols::MassSpectrum >();
-                    auto folium = folder.addFolium( ( boost::wformat( L"Spectrum(%1%)" ) % ( i + 1 ) ).str() );
-                    folium.assign( boost::any(), adcontrols::MassSpectrum::dataClass() ); // set empty data, it will be fixed by 'fetch'
-                    dataIds_[ folium.id() ] = i;
-                }
-#endif
+
                 impl_->processedDataset_.reset( new adcontrols::ProcessedDataset );
                 impl_->processedDataset_->xml( portfolio.xml() );
 

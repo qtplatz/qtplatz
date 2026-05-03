@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "lrpcalib.hpp"
+#include <adportable/debug.hpp>
 #include <cstddef>
 #include <istream>
 
@@ -30,9 +31,16 @@ namespace shrader {
     namespace detail {
 
 #pragma pack(1)
+        struct CAL {
+            int32_t m; // mass * 65536
+            float i;
+            double coeffa;
+            double coeffb;
+        };
+
         struct calib {
             int32_t flags;
-            shrader::lrpcalib::CAL cal[ 10 ];
+            CAL cal[ 10 ];
             char type[ 8 ];
             char dummy[ 4 ];
         };
@@ -57,13 +65,15 @@ lrpcalib::lrpcalib( const lrpcalib& t ) : loaded_( t.loaded_ )
 }
 
 bool
-lrpcalib::load(std::istream& in, size_t fsize)
+lrpcalib::load( std::istream& in, size_t fsize )
 {
+    loaded_ = false;
     if ( ( fsize - in.tellg() ) >= data_size ) {
         in.read( data_.data(), data_.size() );
-        if ( !in.fail() )
+        if ( not in.fail() )
             loaded_ = true;
     }
+    return loaded_;
 }
 
 int32_t
@@ -72,10 +82,14 @@ lrpcalib::flags() const
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::calib, flags ));
 }
 
-const lrpcalib::CAL *
-lrpcalib::cal() const
+cal_data
+lrpcalib:: cal_data( size_t idx ) const
 {
-    return reinterpret_cast<const CAL *>(data_.data() + offsetof( detail::calib, cal ));
+    if ( idx < cal_size ) {
+        auto p = reinterpret_cast<const detail::CAL *>(data_.data() + offsetof( detail::calib, cal ));
+        return { p[idx].m, p[idx].i, p[idx].coeffa, p[idx].coeffb };
+    }
+    return {};
 }
 
 std::string

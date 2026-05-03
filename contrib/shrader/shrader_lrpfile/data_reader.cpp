@@ -23,6 +23,7 @@
  **************************************************************************/
 
 #include "data_reader.hpp"
+#include "msdata.hpp"
 #include <lrpfile.hpp>
 #include <lrptic.hpp>
 #include "chromatogram.hpp"
@@ -202,8 +203,7 @@ data_reader::end() const
 adcontrols::DataReader::const_iterator
 data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############" << std::format( "seconds={}, fcn={}", seconds, fcn );
-    const auto& tic = impl_->lrpfile_->lrptic()->tic();;
+    const auto& tic = impl_->lrpfile_->lrptic().tic();;
     auto it = std::lower_bound( tic.begin(), tic.end(), int(seconds * 1000), []( const auto& a, int value ){
         return a.time < value;
     });
@@ -220,6 +220,7 @@ data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) co
                   << std::format( "seconds={}, fcn={}", seconds, fcn);
         return iter;
     }
+    ADDEBUG() << "\t## " << __FUNCTION__ << std::format( " -- {} s on fcn {} data not found", seconds, fcn );
     return end();
 }
 
@@ -228,7 +229,7 @@ data_reader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
     assert( ispec == TriggerNumber );
-    const auto& tic = impl_->lrpfile_->lrptic()->tic();
+    const auto& tic = impl_->lrpfile_->lrptic().tic();
     if ( 0 <= pos && pos <= tic.size() )
         return tic[ pos ].time / 1000.0;
     return -1.0;
@@ -299,7 +300,7 @@ data_reader::elapsed_time( int64_t rowid ) const
 {
     ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     if ( 0 <= rowid && rowid < impl_->lrpfile_->number_of_spectra() ) {
-        return double( impl_->lrpfile_->lrptic()->tic()[ rowid ].time ) / 1000.0;
+        return double( impl_->lrpfile_->lrptic().tic()[ rowid ].time ) / 1000.0;
     }
     return -1;
 }
@@ -315,7 +316,7 @@ double
 data_reader::time_since_inject( int64_t rowid ) const
 {
     ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
-    const auto& tic = impl_->lrpfile_->lrptic()->tic();;
+    const auto& tic = impl_->lrpfile_->lrptic().tic();;
     if ( rowid < tic.size() ) {
         return double( tic[rowid].time ) / 1000.0;
     }
@@ -342,7 +343,25 @@ data_reader::getData( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::getSpectrum( int64_t rowid ) const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    auto get_blocks = [&]( int64_t rowid ){
+        return impl_->lrpfile_->msdata().at( rowid )->blocks();
+    };
+    auto header_mass_range = [&]()->std::pair<double,double>{
+        return {double(impl_->lrpfile_->instsetup().lmasslim())/65536.0
+                , double( impl_->lrpfile_->instsetup().umasslim()) /65536.0 };
+    };
+
+    if ( rowid > impl_->lrpfile_->msdata().size() )
+        return {};
+
+    auto mass_range = header_mass_range();
+    ADDEBUG() << "mass_range: " << mass_range;
+
+    for ( const auto& block: get_blocks( rowid ) ) {
+        ADDEBUG() << boost::json::value_from( block );
+    }
+
+#if 0
     if ( auto msdata = (*impl_->lrpfile_)[ rowid ] ) {
         std::vector< double > time, intens;
         if ( impl_->lrpfile_->getMS( *msdata, time, intens ) ) {
@@ -358,6 +377,7 @@ data_reader::getSpectrum( int64_t rowid ) const
             }
         }
     }
+#endif
     return nullptr;
 }
 
@@ -366,7 +386,7 @@ data_reader::readSpectrum( const const_iterator& it ) const
 {
     if ( it->rowid() < impl_->lrpfile_->number_of_spectra() ) {
         if ( auto reader = it.dataReader() ) {
-            ADDEBUG() << "## DataReader " << __FUNCTION__ << " =============== fournd reader: " << reader->display_name();
+            ADDEBUG() << "## DataReader " << __FUNCTION__ << " =============== found reader: " << reader->display_name();
             return reader->getSpectrum( it->rowid() );
         }
     }
