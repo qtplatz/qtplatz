@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,6 +27,8 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace shrader {
 
@@ -39,9 +41,14 @@ namespace shrader {
         bool load( std::istream& in, size_t fsize );
         inline operator bool () const { return loaded_; }
         int32_t flags() const;
+
+        const std::array< char, data_size >& rp() const { return data_; };
     private:
         std::array< char, data_size > data_;
         bool loaded_;
+
+        friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const simions& );
+        friend simions tag_invoke( const boost::json::value_to_tag< simions >&, const boost::json::value& jv );
     };
 
 }

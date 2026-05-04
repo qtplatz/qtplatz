@@ -46,6 +46,8 @@ namespace shrader {
         std::string instaltitle() const;
         std::string inlet() const;
         std::string comments() const;
+
+        const std::array< char, data_size >& rp() const { return data_; };
     private:
         std::array< char, data_size > data_;
         bool loaded_;

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <string>
 #include <array>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace shrader {
 
@@ -102,10 +104,12 @@ namespace shrader {
         std::string describe_scanmode() const;
         std::string describe_scanlaw() const;
         std::string describe_peakcentroid() const;
-
+        const std::array< char, data_size >& rp() const { return data_; };
     private:
         std::array< char, data_size > data_;
         bool loaded_;
+        friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const instsetup& );
+        friend instsetup tag_invoke( const boost::json::value_to_tag< instsetup >&, const boost::json::value& jv );
     };
 
 }

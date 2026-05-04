@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2015 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2015 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,7 +28,8 @@
 #include <cstdint>
 #include <string>
 #include <tuple>
-#include <optional>
+#include <boost/json/fwd.hpp>
+#include <boost/json/value_to.hpp>
 
 namespace shrader {
 
@@ -53,10 +54,13 @@ namespace shrader {
         int32_t flags() const;
         std::string type() const;
         cal_data cal_data( size_t idx ) const;
-
+        const std::array< char, data_size >& rp() const { return data_; };
     private:
         bool loaded_;
         std::array< char, data_size > data_;
+
+        friend void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const lrpcalib& );
+        friend lrpcalib tag_invoke( const boost::json::value_to_tag< lrpcalib >&, const boost::json::value& jv );
     };
 
 }

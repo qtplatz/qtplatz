@@ -53,18 +53,20 @@ namespace shrader {
 		datafile();
 
 		//--------- implement adcontrols::datafile ----------------
-		virtual void accept( adcontrols::dataSubscriber& ) override;
-		virtual boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
-        virtual boost::any fetch( const std::string& path, const std::string& dataType ) const override;
-		virtual adcontrols::datafile::factory_type factory() override;
+		void accept( adcontrols::dataSubscriber& ) override;
+		boost::any fetch( const std::wstring& path, const std::wstring& dataType ) const override;
+        boost::any fetch( const std::string& path, const std::string& dataType ) const override;
+        adcontrols::datafile::factory_type factory() override;
+
+        bool export_rawdata( const adcontrols::datafile& ) const override;
 
         // LCMSDataset
-		virtual size_t getFunctionCount() const override;
-		virtual size_t getSpectrumCount( int fcn = 0 ) const override;
-		virtual size_t getChromatogramCount() const override;
-		virtual bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
-		virtual bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid ) const override;
-        virtual size_t posFromTime( double ) const override;
+		size_t getFunctionCount() const override;
+		size_t getSpectrumCount( int fcn = 0 ) const override;
+		size_t getChromatogramCount() const override;
+		bool getTIC( int fcn, adcontrols::Chromatogram& ) const override;
+		bool getSpectrum( int fcn, size_t idx, adcontrols::MassSpectrum&, uint32_t objid ) const override;
+        size_t posFromTime( double ) const override;
 		double timeFromPos( size_t ) const override;
 		bool getChromatograms( const std::vector< std::tuple<int, double, double> >&
                                , std::vector< adcontrols::Chromatogram >&
@@ -84,6 +86,8 @@ namespace shrader {
 		//<-------------------------------------
 		bool _open( const std::filesystem::path&, bool );
 		static bool is_valid_datafile( const std::filesystem::path& );
+
+        std::shared_ptr< const lrpfile > lrpfile() const;
 	private:
         class impl;
         std::unique_ptr< impl > impl_;

@@ -92,6 +92,8 @@ lrpfile::load( std::istream& in, size_t fsize )
         if ( not impl_->lrptic_->load( in, fsize ) )
             ADDEBUG() << "## lrptic load failed ##";
 
+
+
         if ( impl_->lrptic_ && *impl_->lrptic_ ) {
             for ( auto& tic: impl_->lrptic_->tic() ) {
                 if ( auto data = std::make_shared< shrader::msdata >() ) {

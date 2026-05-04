@@ -70,6 +70,8 @@ namespace shrader {
         std::string interfacetype_code() const;
         std::string rawdatatype_code() const;
 
+        const std::array< char, data_size >& rp() const { return data_; };
+
     private:
         std::array< char, data_size > data_;
         bool loaded_;

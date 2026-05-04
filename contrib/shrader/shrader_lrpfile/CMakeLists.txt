@@ -26,6 +26,9 @@ add_library( shrader_lrpfile SHARED
   datafile_factory.hpp
   datafile.cpp datafile.hpp
   data_reader.cpp data_reader.hpp
+  data_reader_ex.cpp data_reader_ex.hpp
+  export_to_adfs.cpp export_to_adfs.hpp
+  helper.cpp helper.hpp
 )
 
 target_link_libraries( shrader_lrpfile LINK_PUBLIC
@@ -33,7 +36,10 @@ target_link_libraries( shrader_lrpfile LINK_PUBLIC
   lrpfile
   adplugin
   adcontrols
-  portfolio )
+  portfolio
+  adfs
+  adutils
+)
 
 set_target_properties( ${PROJECT_NAME}
   PROPERTIES

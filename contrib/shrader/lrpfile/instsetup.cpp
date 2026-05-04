@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "instsetup.hpp"
+#include "lrphead3.hpp"
 #include <sstream>
 #include <cstddef>
 
@@ -100,6 +101,11 @@ instsetup::~instsetup()
 
 instsetup::instsetup() : loaded_( false )
                        , data_{ 0 }
+{
+}
+
+instsetup::instsetup( const instsetup& t ) : loaded_( t.loaded_ )
+                                           , data_( t.data_ )
 {
 }
 
@@ -519,4 +525,80 @@ instsetup::describe_peakcentroid() const
     case 4: o << "Hall Probe"; break;
     }
     return o.str();
+}
+
+namespace shrader {
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const instsetup& t )
+    {
+        const auto& _ = *(reinterpret_cast< const detail::instsetup *>( t.data_.data() ));
+        jv = {{ "instsetup"
+                    , {{ "flags",            _.flags }                       // Long 4 Record type code = 2
+                       , { "ionization",     _.ionization }                   // Long 4 Ionization method code
+                       , { "upperdrive",     _.upperdrive }                   // Long 4 Upper mass drive
+                       , { "lowerdrive",     _.lowerdrive }                  // Long 4 Lower mass drive
+                       , { "umasslim",       _.umasslim    }                   	 // Long 4 Upper mass limit of scan * 65536
+                       , { "lmasslim",       _.lmasslim   }                  	 // Long 4 Lower mass limit of scan * 65536
+                       , { "ucallim",        _.ucallim    }                	 // Long 4 Upper mass limit of calibration * 65536
+                       , { "lcallim",        _.lcallim    }                 	 // Long 4 Lower mass limit of calibration * 65536
+                       , { "aves",           _.aves       }                    // Long 4 Number A/D readings per D/A step
+                       , { "stepsize",       _.stepsize   }                 	 // Long 4 Step size between data points
+                       , { "scanspeed",     _.scanspeed   }                 // Single 4 Scans/second (1/scantime)
+                       , { "scancycle",     _.scancycle   }                 // Single 4 Interscan delay (msec)
+                       , { "caltable",      _.caltable    }               	 // Long 4 Calibration table used ? (0 or 1)
+                       , { "scanmode",      _.scanmode    }               	 // Long 4 Scanning field code
+                       , { "scanlaw",       _.scanlaw     }              	 // Long 4 Scan law code
+                       , { "resolution",    _.resolution  }                 // Long 4 Instrument resolution
+                       , { "reswindow",     _.reswindow   }                 //  Single 4 Peak width used for peak detection
+                       , { "calslope",      _.calslope    }                 // Single 4 Calibration slope (linear scan only)
+                       , { "calinter",      _.calinter    }                 // Single 4 Calibration intercept (linear scan only)
+                       , { "clockbaud",     _.clockbaud    }                // Single 4 Clock baud rate in seconds / data point
+                       , { "overload",      _.overload     }              	 // Long 4 Maximum intensity (A/D max. - baseline value)
+                       , { "timewindow",    _.timewindow   }                // Long 4 not used
+                       , { "masswindow",    _.masswindow   }                // Single 4 Mass window for selected ion monitoring
+                       , { "inttime",       _.inttime      }                // Single 4 Integration time for selected ion monitoring
+                       , { "method",        _.method[8]    }                // String 8 Method name
+                       , { "autosamproc",   _.autosamproc  }               // String 8 Autosampler procedure name
+                       , { "gcproc",        _.gcproc[8]    }                // String 8 GC procedure name
+                       , { "TOFDrift",      _.TOFDrift     }              	 // Double 8 TOF correction factor
+                       , { "samplesize",    _.samplesize   }                  // Single 4 Sample size
+                       , { "sampleunits",   _.sampleunits  }            // String 16 Sample size units
+                       , { "peakcentroid",  _.peakcentroid }                // Integer 2 Centroiding method
+                       , { "pkintensity",   _.pkintensity  }                // Integer 2 Intensity method (height = 0, area = 1)
+                       , { "inithreshold",  _.inithreshold }                // Single 4 Threshold at low mass (as A/D value)
+                       , { "fnlthreshold",  _.fnlthreshold }                // Single 4 Threshold at high mass (as A/D value)
+                       , { "HVolt",         _.HVolt        }           	 // Double 8 Accelerating voltage
+                       , { "HVscanBValue",  _.HVscanBValue }                // Double 8 Calibration intercept for HV scan
+                       , { "Peakthres",     _.Peakthres    }                // Single 4 Centroiding algorithm threshold (%)
+                       , { "baseline",      _.baseline       }             	 // Single 4 Measured instrument baseline
+                       , { "noise",         _.noise          }         	 // Single 4 Measured instrument baseline noise
+                       , { "linkcorrection",_.linkcorrection }              // Single 4 Mass correction for linked scans
+                       , { "valley",        _.valley         }          	 // Single 4 Centroiding algorithm valley (%)
+                       , { "minpeakwidth",  _.minpeakwidth   }              // Single 4 Centroiding algorithm minimum peak width (%)
+                       , { "sampletype",    _.sampletype     }              // Integer 2 0=Solid, 1=Solid by Dry Weight, 2=Liquid, 3=Gas
+                       , { "unitscode",     _.unitscode      }              // Integer 2 Sample size units (0=ug, 3=Kg)
+                       , { "dryweight",     _.dryweight      }              // Integer 2 Percent dry weight
+                       , { "linkmass",      _.linkmass       }            	 // Single 4 Link mass
+                       , { "SIMfield",      _.SIMfield       }           	 // Integer 2 Switching Field for SIM
+                       , { "SIMBset",       _.SIMBset        }           	 // Long 4 Magnet Field reference value used for EF SIM
+                       , { "SIMBfield",     _.SIMBfield      }              // Double 8 Magnet field value used for EF SIM
+                       , { "Slitcouple",    _.Slitcouple     }              // Integer 2 Silts coupled ?
+                       , { "Maxmassrange",  _.Maxmassrange   }              // Double 8 Maximum mass range for instrument
+                       , { "HvscanBDrive",  _.HvscanBDrive   }              // Long 4 Magnet field reference used for HV scan
+                       , { "SIMCalOK",      _.SIMCalOK       }            	 // Integer 2 SIM calibration OK
+                       , { "Maxvolt",       _.Maxvolt        }           	 // Single 4 Maximum High voltage for instrument
+                       , { "PeakFilter",    _.PeakFilter     }              // Integer 2
+                       , { "TwoWayScan",    _.TwoWayScan     }              // Integer 2
+                }
+            }
+        };
+    }
+
+    instsetup
+    tag_invoke( const boost::json::value_to_tag< instsetup >&, const boost::json::value& jv )
+    {
+        return {};
+    }
+
 }

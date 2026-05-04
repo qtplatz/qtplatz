@@ -50,6 +50,8 @@ namespace shrader {
         std::string descline2() const;          // Second line of description
         std::string client() const;             // Submitting client
         const int32_t * istd() const; // Internal standard amounts ( in nanograms )
+
+        const std::array< char, data_size >& rp() const { return data_; };
     private:
         std::array< char, data_size > data_;
         bool loaded_;

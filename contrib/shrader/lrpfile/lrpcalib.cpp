@@ -97,3 +97,18 @@ lrpcalib::type() const
 {
     return std::string( data_.data() + offsetof( detail::calib, type ), 8 );
 }
+
+namespace shrader {
+
+    void
+    tag_invoke( const boost::json::value_from_tag, boost::json::value&, const lrpcalib& t )
+    {
+    }
+
+    lrpcalib
+    tag_invoke( const boost::json::value_to_tag< lrpcalib >&, const boost::json::value& jv )
+    {
+        return {};
+    }
+
+}

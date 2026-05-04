@@ -22,7 +22,7 @@
  **
  **************************************************************************/
 
-#include "data_reader.hpp"
+#include "data_reader_ex.hpp"
 #include "msdata.hpp"
 #include <chrono>
 #include <lrpcalib.hpp>
@@ -33,6 +33,9 @@
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/iso8601.hpp>
+#include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
+#include <adportable/bzip2.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
@@ -51,40 +54,39 @@
 #include <lrptic.hpp>
 
 namespace shrader {
-    namespace local {
+    namespace lrp_ex {
 
         class data_reader::impl {
         public:
-            impl( std::shared_ptr< const lrpfile > file, int fcn )
-                : lrpfile_( file )
-                , fcn_( fcn )
-                , objtext_( std::format("{}.lrp.ms-cheminfo.com",  fcn_ ) ) {
+            impl() {
             }
-            std::shared_ptr< const lrpfile > lrpfile_;
+            std::weak_ptr< adfs::sqlite > db_;
             int fcn_;
+
+            std::shared_ptr< const lrpfile > lrpfile_;
             std::string traceid_;
-            const std::string objtext_;
 
             constexpr const static boost::uuids::uuid uuid_ = {
-                0xA8, 0xD2, 0xA0, 0xCA, 0xEC, 0x3E, 0x4D, 0xE0,
-                0xAE, 0x9E, 0xFA, 0x53, 0x82, 0x60, 0xAC, 0xAD
+                0xd5, 0x0f, 0x25, 0xd9, 0x0b, 0xf4, 0x4f, 0xc1
+                , 0x88, 0xfa, 0xe2, 0xe3, 0xc2, 0x9d, 0xfb, 0xc0
             };
+            const static std::string objtext__;
             std::string display_name_;
         };
+
+        std::string const data_reader::impl::objtext__ = "1.adfs.lrp.ms-cheminfo.com";
     }
 }
 
-using namespace shrader::local;
+using namespace shrader::lrp_ex;
 
 data_reader::~data_reader()
 {
 }
 
-data_reader::data_reader( const char * traceid
-                          , int fcn
-                          , std::shared_ptr< const shrader::lrpfile > lrpfile )
+data_reader::data_reader( const char * traceid )
     : adcontrols::DataReader( traceid )
-    , impl_( std::make_unique< impl >( lrpfile, fcn ) )
+    , impl_( std::make_unique< impl >() )
 {
     impl_->traceid_ = traceid;
     // lrpfile->dump( std::cerr, 1 );
@@ -103,11 +105,11 @@ data_reader::data_reader( const char * traceid
     // o << (impl_->scan_protocol_.polarity() == polarity_negative ? "(−)"
     //       : impl_->scan_protocol_.polarity() == polarity_positive ? "(+)"
     //       : "(?)");
-    ADDEBUG() << "##########################################";
-    ADDEBUG() << boost::json::value_from( lrpfile->header() );
-    ADDEBUG() << boost::json::value_from( lrpfile->header2() );
-    ADDEBUG() << boost::json::value_from( lrpfile->header3() );
-    impl_->display_name_ = std::format( "lrp.{}", boost::trim_copy( lrpfile->header().instrument() ) );
+    // ADDEBUG() << "##########################################";
+    // ADDEBUG() << boost::json::value_from( lrpfile->header() );
+    // ADDEBUG() << boost::json::value_from( lrpfile->header2() );
+    // ADDEBUG() << boost::json::value_from( lrpfile->header3() );
+    // impl_->display_name_ = std::format( "lrp.{}", boost::trim_copy( lrpfile->header().instrument() ) );
 }
 
 
@@ -133,6 +135,43 @@ bool
 data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+
+    impl_->db_ = db;
+    if ( auto db = impl_->db_.lock() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT rowid,elapsed_time,npos,fcn,events,data FROM AcquiredData WHERE objuuid=?" );
+        sql.bind(1) = impl::uuid_;
+        while ( sql.step() == adfs::sqlite_row ) {
+            try {
+                auto rowid = sql.get_column_value< int64_t >( 0 );
+                auto elapsed_time = sql.get_column_value< int64_t >( 1 ); // ns
+                auto pos = sql.get_column_value< int64_t >( 2 );
+                auto fcn = sql.get_column_value< int64_t >( 3 );
+                auto events = sql.get_column_value< int64_t >( 4 );
+                auto xdata = sql.get_column_value< adfs::blob >( 5 );
+#if 0
+                if ( auto doc = serializer::deserialize( reinterpret_cast< const char * >(xdata.data()), xdata.size() ) ) {
+                    impl_->xml_document_holder_.emplace_back( doc );
+                    if ( auto node = doc->select_node( "spectrum" ) ) {
+                        auto var = mzMLReader{}( node.node() );
+                        auto spc = std::visit( overloaded{
+                                []( std::shared_ptr< mzMLChromatogram > )->std::shared_ptr< mzMLSpectrum >{ return nullptr; }
+                                    , []( std::shared_ptr< mzMLSpectrum> t ) { return t; }
+                                    }, var );
+                        if ( spc ) {
+                            spc->set_protocol_id( fcn );
+                            impl_->scan_indices_.emplace_back( rowid, elapsed_time, pos, fcn, spc->get_scan_id(), spc );
+                        }
+                    }
+                } else {
+                    ADDEBUG() << "--------- deerialize failed -----------";
+                }
+#endif
+            } catch ( const boost::exception& ex ) {
+                ADDEBUG() << "Exception: " << ex;
+            }
+        }
+    }
     return true;
 }
 
@@ -142,17 +181,30 @@ data_reader::finalize()
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
 }
 
+//static
+const boost::uuids::uuid&
+data_reader::__objuuid__()
+{
+    return impl::uuid_;
+}
+
+//static
+const std::string&
+data_reader::__objtext__()
+{
+    return impl::objtext__;
+}
+
 const boost::uuids::uuid&
 data_reader::objuuid() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================= " << impl_->uuid_;
     return impl_->uuid_;
 }
 
 const std::string&
 data_reader::objtext() const
 {
-    return impl_->objtext_;
+    return impl_->objtext__;
 }
 
 int64_t

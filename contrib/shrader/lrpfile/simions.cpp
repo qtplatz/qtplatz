@@ -82,6 +82,11 @@ simions::simions() : loaded_( false )
 {
 }
 
+simions::simions( const simions& t ) : loaded_( t.loaded_ )
+                                     , data_( t.data_ )
+{
+}
+
 bool
 simions::load(std::istream& in, size_t fsize)
 {

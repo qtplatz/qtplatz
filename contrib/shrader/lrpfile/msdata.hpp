@@ -86,8 +86,8 @@ namespace shrader {
         int32_t xhigh( size_t block = 0 ) const;  // mass * 65536 | time * 16
 
         size_t size() const;
-        std::pair< const int32_t *, size_t > intensities( size_t block ) const;
-        std::pair< const std::pair< int32_t, int32_t >*, size_t > ions( size_t block ) const;
+        // std::pair< const int32_t *, size_t > intensities( size_t block ) const;
+        // std::pair< const std::pair< int32_t, int32_t >*, size_t > ions( size_t block ) const;
         const std::vector< detail::block >& blocks() const { return data_; };
 
     private:

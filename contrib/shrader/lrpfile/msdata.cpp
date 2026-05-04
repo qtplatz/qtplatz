@@ -160,22 +160,6 @@ msdata::size() const
     return data_.size();
 }
 
-std::pair< const int32_t *, size_t >
-msdata::intensities( size_t block ) const
-{
-    if ( data_.size() > block )
-        return std::make_pair( data_[ block ].u.profile, data_[ block ].nions );
-    return std::make_pair( nullptr, 0 );
-}
-
-std::pair< const std::pair< int32_t, int32_t >*, size_t >
-msdata::ions( size_t block ) const
-{
-    if ( data_.size() > block )
-        return std::make_pair( reinterpret_cast< const std::pair< int32_t, int32_t >* >(data_[ block ].u.ion), data_[ block ].nions );
-    return std::make_pair( nullptr, 0 );
-}
-
 namespace shrader {
     namespace detail {
         void

@@ -82,7 +82,6 @@ lrptic::load(std::istream& in, size_t fsize)
                   , "struct 'detail::BlockTIC' not alinged, check declaration.");
 
     auto pos = in.tellg();
-    ADDEBUG() << "pos: " << pos;
 
     detail::MasterTIC master;
 

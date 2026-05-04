@@ -24,6 +24,7 @@
 
 #include "datafile.hpp"
 #include "data_reader.hpp"
+#include "export_to_adfs.hpp"
 #include "../lrpfile/lrpfile.hpp"
 #include "../lrpfile/lrptic.hpp"
 #include "../lrpfile/msdata.hpp"
@@ -122,19 +123,16 @@ datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) 
 adcontrols::datafile::factory_type
 datafile::factory()
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    ADDEBUG() << "############# " << __FUNCTION__ << " NOT IMPL ##############";
 	return 0;
 }
 
-//virtual
 size_t
 datafile::getFunctionCount() const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	return 1;
 }
 
-//virtual
 size_t
 datafile::getSpectrumCount( int /* fcn */ ) const
 {
@@ -148,7 +146,6 @@ datafile::getChromatogramCount() const
 	return 0;
 }
 
-//virtual
 bool
 datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 {
@@ -171,30 +168,7 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 bool
 datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " NOT IMPL ##############";
-
-    const auto& liptic = impl_->lrpfile_->lrptic();
-#if 0
-    if ( impl_->lrpfile_ && unsigned( idx ) < impl_->lrpfile_->number_of_spectra() ) {
-
-
-
-        if ( auto msdata = (*impl_->lrpfile_)[ idx ] ) {
-
-            std::vector< double > time, intens;
-            if ( impl_->lrpfile_->getMS( *msdata, time, intens ) ) {
-
-                ms.resize( time.size() );
-                ms.setMassArray( time.data() );
-                ms.setIntensityArray( intens.data() );
-
-                ms.setAcquisitionMassRange( time.front(), time.back() );
-
-                return true;
-            }
-        }
-    }
-#endif
+    ADDEBUG() << "############# " << __FUNCTION__ << " NOT IMPL ##############";  // V2 file -- no longer supported
     return false;
 }
 
@@ -203,9 +177,6 @@ datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, u
 bool
 datafile::_open( const std::filesystem::path& path, bool )
 {
-    // boost::filesystem::path path( filename );
-    ADDEBUG() << "######### shrader::datafile::" << __FUNCTION__ << "( " << path << ") ##############";
-
     if ( std::filesystem::exists( path ) ) {
 
         size_t fsize = std::filesystem::file_size( path );
@@ -246,14 +217,14 @@ datafile::_open( const std::filesystem::path& path, bool )
 size_t
 datafile::posFromTime( double ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##  NOT IMPL  ############";
 	return 0;
 }
 
 double
 datafile::timeFromPos( size_t ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##  NOT IMPL  ############";
 	return 0;
 }
 
@@ -264,7 +235,7 @@ datafile::getChromatograms( const std::vector< std::tuple<int, double, double> >
                             , int begPos
                             , int endPos ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    ADDEBUG() << "############# " << __FUNCTION__ << " ##  NOT IMPL  ############";
     return false;
 }
 
@@ -307,4 +278,18 @@ datafile::is_valid_datafile( const std::filesystem::path& path )
 	if ( path.extension() == L".lrp" || path.extension() == L".LRP" )
 		return true;
 	return false;
+}
+
+std::shared_ptr< const lrpfile >
+datafile::lrpfile() const
+{
+    return impl_->lrpfile_;
+}
+
+bool
+datafile::export_rawdata( const adcontrols::datafile& db ) const
+{
+    auto sqlite = db.sqlite();
+    export_to_adfs exporter( std::move( sqlite ) );
+    return exporter( *this );
 }
