@@ -412,6 +412,8 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         }
                     }
 
+                    ADDEBUG() << "------ proto.get() = " << proto.get();
+
                     auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                     double tof = t.time( t.getIndexFromMass( mol.mass() ) );
                     auto molid = mol.molid(); // property< boost::uuids::uuid >( "molid" );
@@ -484,6 +486,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
             std::pair< double, double > time_range =
                 std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
                                 , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
+            ADDEBUG() << "\ttime_range: " << time_range;
 
             for ( auto& xc : temp ) {
                 xc.pChr->setIsCounting( isCounting );

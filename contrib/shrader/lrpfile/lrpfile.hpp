@@ -56,7 +56,7 @@ namespace shrader {
         bool load( std::istream& in, size_t fsize );
         operator bool () const;
 
-        void dump( std::ostream&, size_t limit = (-1) ) const;
+        void dump( std::ostream&, size_t limit = 0 ) const;
 
         // const shrader::lrptic * lrptic() const;
         const msdata * operator []( size_t idx ) const;
@@ -77,10 +77,6 @@ namespace shrader {
 
         std::string time_of_injection() const;
 
-        bool getTIC( std::vector< double >& time, std::vector< double >& intens ) const;
-        bool getMS( const class msdata&, std::vector< double >& time, std::vector< double >& intens ) const;
-
-        bool get_massSpectrum( int64_t rowid );
         ticc_t get_ticc() const;
 
     private:

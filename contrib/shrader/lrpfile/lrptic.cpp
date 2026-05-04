@@ -59,8 +59,8 @@ lrptic::~lrptic()
 }
 
 lrptic::lrptic() : loaded_( false )
-                   , flags_( 0 )
-                   , nextptr_( 0 )
+                 , flags_( 0 )
+                 , nextptr_( 0 )
                  , tic_{ 0 }
 {
 }

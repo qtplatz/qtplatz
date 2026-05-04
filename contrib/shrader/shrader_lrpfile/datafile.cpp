@@ -30,14 +30,14 @@
 #include "datareader.hpp"
 #include <adcontrols/chromatogram.hpp>
 #include <adcontrols/datasubscriber.hpp>
-#include <adcontrols/processeddataset.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
+#include <adcontrols/processeddataset.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/utf.hpp>
-#include <adportfolio/portfolio.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
+#include <adportfolio/portfolio.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/any.hpp>
@@ -82,7 +82,6 @@ void
 datafile::accept( adcontrols::dataSubscriber& sub )
 {
     // AcquireDataset <LCMSDataset>
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
 	sub.subscribe( *this );
 
     // subscribe processed dataset
@@ -100,8 +99,7 @@ datafile::fetch( const std::string& foliumGuid, const std::string& dataType ) co
 boost::any
 datafile::fetch( const std::wstring& foliumGuid, const std::wstring& dataType ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << foliumGuid << "\t" << dataType;
-
+    // ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << foliumGuid << "\t" << dataType;
     {
         auto it = impl_->vChro_.find ( adportable::utf::to_utf8( foliumGuid ) );
         if ( it != impl_->vChro_.end() ) {
@@ -173,7 +171,7 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
 bool
 datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, uint32_t /* objid */) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
+    ADDEBUG() << "############# " << __FUNCTION__ << " NOT IMPL ##############";
 
     const auto& liptic = impl_->lrpfile_->lrptic();
 #if 0
@@ -217,7 +215,7 @@ datafile::_open( const std::filesystem::path& path, bool )
 
             if ( impl_->lrpfile_->load( in, fsize ) ) {
 
-                impl_->lrpfile_->dump( std::cerr, 0 );
+                // impl_->lrpfile_->dump( std::cerr, 0 );
 
                 impl_->ticc_ = impl_->lrpfile_->get_ticc();
                 impl_->dataReader_ = std::make_shared< local::data_reader >( "lrpfile.1", 0, impl_->lrpfile_ );

@@ -392,22 +392,6 @@ lrpfile::dump( std::ostream& of, size_t limit ) const
     }
 }
 
-bool
-lrpfile::getTIC( std::vector< double >& time, std::vector< double >& intens ) const
-{
-    time.clear();
-    intens.clear();
-
-    if ( impl_->lrptic_ && *impl_->lrptic_ ) {
-        for ( auto& tic : impl_->lrptic_->tic() ) {
-            time.emplace_back( double( tic.time ) / 1000.0 );
-            intens.emplace_back( tic.intensity );
-        }
-        return true;
-    }
-    return false;
-}
-
 ticc_t
 lrpfile::get_ticc() const
 {
@@ -418,46 +402,4 @@ lrpfile::get_ticc() const
         return ticc;
     }
     return {};
-}
-
-bool
-lrpfile::get_massSpectrum( int64_t rowid )
-{
-    ADDEBUG() << " ## " << __FUNCTION__ << " ## ";
-    return false;
-}
-
-bool
-lrpfile::getMS( const class msdata& msdata, std::vector< double >& time, std::vector< double >& intens ) const
-{
-    time.clear();
-    intens.clear();
-
-    ADDEBUG() << " ## " << __FUNCTION__ << " ## ";
-
-    if ( msdata.is_profile( msdata.flags( 0 ) ) ) {
-
-        size_t nblocks = msdata.size();
-
-        for ( int blk = 0; blk < nblocks; ++blk ) {
-
-            //auto flags = msdata.flags( blk );
-            auto nions = msdata.nions( blk );
-            auto xrange = std::make_pair( msdata.xlow( blk ), msdata.xhigh( blk ) );
-            auto range = std::make_pair( double( xrange.first ) / 16, double( xrange.second ) / 16 );
-
-            // ADDEBUG() << "xrange: " << xrange << "\trange: " << range << "\tnions = " << nions;
-
-            double sampInterval = ((range.second - range.first) / (nions - 1));
-            auto i = msdata.intensities( blk );
-
-            for ( int n = 0; n < i.second; ++n ) {
-                time.emplace_back( range.first + n * sampInterval );
-                intens.emplace_back( i.first[ n ] );
-            }
-
-        }
-        return true;
-    }
-    return false;
 }

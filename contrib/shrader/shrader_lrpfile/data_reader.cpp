@@ -24,12 +24,15 @@
 
 #include "data_reader.hpp"
 #include "msdata.hpp"
+#include <chrono>
+#include <lrpcalib.hpp>
 #include <lrpfile.hpp>
 #include <lrptic.hpp>
 #include "chromatogram.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/iso8601.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
@@ -117,14 +120,12 @@ data_reader::__uuid__()
 const std::string&
 data_reader::traceid() const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     return impl_->traceid_;
 }
 
 std::string
 data_reader::abbreviated_display_name() const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     return impl_->display_name_;
 }
 
@@ -170,21 +171,12 @@ data_reader::display_name() const
 size_t
 data_reader::fcnCount() const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     return 1; //impl_->mzml_->getFunctionCount();
 }
 
 size_t
 data_reader::size( int fcn /* segmented fcn */ ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ############## " << impl_->lrpfile_->number_of_spectra();;
-    // return std::accumulate( impl_->mzml_->scan_indices().begin()
-    //                         , impl_->mzml_->scan_indices().end()
-    //                         , 0
-    //                         , [&]( const auto& a, const auto& b ){
-    //                             return (b.second->protocol_id() == impl_->fcn_ ? 1 : 0) + a;
-    //                         });
-    // return impl_->mzml_->getSpectrumCount( fcn );
     return impl_->lrpfile_->number_of_spectra();
 }
 
@@ -216,8 +208,6 @@ data_reader::findPos( double seconds, int fcn, bool closest, TimeSpec tspec ) co
                 ++rowid;
         }
         auto iter = adcontrols::DataReader_iterator( this, rowid, impl_->fcn_ );
-        ADDEBUG() << "############# " << __FUNCTION__ << " ##############"
-                  << std::format( "seconds={}, fcn={}", seconds, fcn);
         return iter;
     }
     ADDEBUG() << "\t## " << __FUNCTION__ << std::format( " -- {} s on fcn {} data not found", seconds, fcn );
@@ -249,39 +239,27 @@ data_reader::TIC( int fcn ) const
 int64_t
 data_reader::next( int64_t rowid ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     return next( rowid, impl_->fcn_ );
 }
 
 int64_t
 data_reader::next( int64_t rowid, int fcn ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     if ( (rowid + 1) < impl_->lrpfile_->number_of_spectra() ) {
         return ++rowid;
     }
-    // if ( (rowid + 1) < impl_->mzml_->scan_indices().size() ) {
-    //     auto it = impl_->mzml_->scan_indices().begin() + rowid + 1;
-    //     while ( it != impl_->mzml_->scan_indices().end() ) {
-    //         if ( it->second->protocol_id() == fcn )
-    //             return std::distance( impl_->mzml_->scan_indices().begin(), it );
-    //         ++it;
-    //     }
-    // }
     return (-1);
 }
 
 int64_t
 data_reader::prev( int64_t rowid ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     return prev( rowid, impl_->fcn_ );
 }
 
 int64_t
 data_reader::prev( int64_t rowid, int fcn ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     if ( rowid )
         return --rowid;
     return 0;
@@ -290,7 +268,6 @@ data_reader::prev( int64_t rowid, int fcn ) const
 int64_t
 data_reader::pos( int64_t rowid ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     // convert rowid --> pos, a.k.a. trigger number since injected.
     return rowid;
 }
@@ -315,7 +292,6 @@ data_reader::epoch_time( int64_t rowid ) const
 double
 data_reader::time_since_inject( int64_t rowid ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
     const auto& tic = impl_->lrpfile_->lrptic().tic();;
     if ( rowid < tic.size() ) {
         return double( tic[rowid].time ) / 1000.0;
@@ -346,6 +322,7 @@ data_reader::getSpectrum( int64_t rowid ) const
     auto get_blocks = [&]( int64_t rowid ){
         return impl_->lrpfile_->msdata().at( rowid )->blocks();
     };
+
     auto header_mass_range = [&]()->std::pair<double,double>{
         return {double(impl_->lrpfile_->instsetup().lmasslim())/65536.0
                 , double( impl_->lrpfile_->instsetup().umasslim()) /65536.0 };
@@ -353,32 +330,75 @@ data_reader::getSpectrum( int64_t rowid ) const
 
     if ( rowid > impl_->lrpfile_->msdata().size() )
         return {};
-
-    auto mass_range = header_mass_range();
-    ADDEBUG() << "mass_range: " << mass_range;
-
-    for ( const auto& block: get_blocks( rowid ) ) {
-        ADDEBUG() << boost::json::value_from( block );
-    }
-
 #if 0
-    if ( auto msdata = (*impl_->lrpfile_)[ rowid ] ) {
-        std::vector< double > time, intens;
-        if ( impl_->lrpfile_->getMS( *msdata, time, intens ) ) {
-            if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
-                ms->resize( time.size() );
-                ms->setMassArray( time.data() );
-                ms->setIntensityArray( intens.data() );
-                // for ( size_t i = 0; i < ms->size(); ++i ) {
-                //     ADDEBUG() << std::make_tuple( ms->mass( i ), ms->intensity( i ) );
-                // }
-                ms->setAcquisitionMassRange( time.front(), time.back() );
-                return ms;
+    if ( impl_->lrpfile_->lrpcalib() ) {
+        for ( size_t i = 0; i < impl_->lrpfile_->lrpcalib().cal_size; ++i ) {
+            auto cal = impl_->lrpfile_->lrpcalib().cal_data( i );
+            if ( std::get<0>(cal) ) {
+                ADDEBUG() << std::format( "Calibration: mass = {}, intens = {}, coeff a = {}, b = {}\n"
+                                          , double(std::get< cal_mass >( cal ))/65535.0
+                                          , std::get< cal_intens > ( cal )
+                                          , std::get< cal_coeff_a > ( cal )
+                                          , std::get< cal_coeff_b > ( cal ) )
+                          << ADDEBUG() << boost::json::value_from( get_blocks( rowid ).at( 0 ) );
             }
         }
     }
 #endif
-    return nullptr;
+    auto mass_range = header_mass_range();
+    // ADDEBUG() << "mass_range: " << mass_range;
+
+    const auto& blocks = get_blocks( rowid );
+    auto numSamples = std::accumulate( blocks.begin(), blocks.end()
+                                       , size_t(0), [](const auto& a, const auto& b){
+                                           return a + b.nions; });
+    // ADDEBUG() << "nSamples: " << numSamples << ", " << get_blocks( rowid ).size();
+
+    auto cal = impl_->lrpfile_->lrpcalib().cal_data( 0 );
+
+    auto mass_at = [&]( size_t idx )->double{
+        // assume time squared scan law (TOF Eq.)
+        const double f = double( idx ) / double( numSamples - 1 );
+        const double s0 = std::sqrt( mass_range.first );
+        const double s1 = std::sqrt( mass_range.second );
+        const double s = s0 + f * ( s1 - s0 );
+        return s * s;
+    };
+
+    auto local_mass_at = []( size_t idx, const detail::block& blk ){
+        auto range = std::make_pair( double(blk.xlow) / 16.0, double(blk.xhigh) / 16.0 );
+        return range.first + idx * (range.second - range.first) / (blk.nions - 1);
+    };
+
+    std::vector< std::pair< double, double > > vec;
+    size_t idx{0};
+    for ( const auto& block: get_blocks( rowid ) ) {
+        if ( block.xlow == 0 && block.xhigh == 0 ) {
+            for ( size_t i = 0; i < block.nions; ++i ) {
+                vec.emplace_back( mass_at( idx++ ), block.u.profile[ i ] );
+            }
+        } else { // legacy code
+            for ( size_t i = 0; i < block.nions; ++i )
+                vec.emplace_back( local_mass_at( i, block ), block.u.profile[ i ] );
+        }
+    }
+    if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
+        for ( const auto& datum: vec )
+            *ms << datum;
+        ms->setAcquisitionMassRange( mass_range.first, mass_range.second );
+        ms->getMSProperty().setTrigNumber( blocks.at(0).scan );
+        ms->getMSProperty().setInstMassRange( header_mass_range() );
+        if ( auto& lrptic = impl_->lrpfile_->lrptic() ) {
+            const auto milliseconds = lrptic.tic().at( rowid ).time;
+            ms->getMSProperty().setTimeSinceInjection( milliseconds, adcontrols::metric::milli );
+            auto time_of_injection = impl_->lrpfile_->time_of_injection();
+            if ( auto tp = adportable::iso8601::parse( time_of_injection.begin(), time_of_injection.end() ) ) {
+                ms->getMSProperty().setTimePoint( *tp + std::chrono::milliseconds( milliseconds ) );
+            }
+        }
+        return ms;
+    }
+    return {};
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
@@ -386,14 +406,9 @@ data_reader::readSpectrum( const const_iterator& it ) const
 {
     if ( it->rowid() < impl_->lrpfile_->number_of_spectra() ) {
         if ( auto reader = it.dataReader() ) {
-            ADDEBUG() << "## DataReader " << __FUNCTION__ << " =============== found reader: " << reader->display_name();
             return reader->getSpectrum( it->rowid() );
         }
     }
-    // if ( it->rowid() < impl_->mzml_->scan_indices().size() ) {
-    //     const auto& datum = impl_->mzml_->scan_indices()[ it->rowid() ];
-    //     return datum.second->toMassSpectrum( *datum.second );
-    // }
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " =============== return nullptr";
     return {};
 }
@@ -408,63 +423,28 @@ data_reader::getChromatogram( int fcn, double time, double width ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::coaddSpectrum( const_iterator&& first, const_iterator&& last ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
-    auto ms = std::make_shared< adcontrols::MassSpectrum >();
-    for ( auto it = first; it != last; it++ ) {
-        if ( auto msdata = (*impl_->lrpfile_)[it->rowid()] ) {
-            std::vector< double > time, intens;
-            if ( impl_->lrpfile_->getMS( *msdata, time, intens ) ) {
-                if ( ms->size() == 0 ) {
-                    ms->resize( time.size() );
-                    ms->setMassArray( time.data() );
-                    ms->setIntensityArray( intens.data() );
-                    ms->setAcquisitionMassRange( time.front(), time.back() );
-                } else {
-                    for ( size_t i = 0; i < ms->size(); ++i ) {
-                        ms->setIntensity( i, ms->intensity(i) + intens[i] );
-                    }
-                }
-            }
+    if ( auto ms = getSpectrum( first->rowid() ) ) {
+        ++first;
+        for ( auto it = first; it != last; ++it ) {
+            auto rhs = getSpectrum( it->rowid() );
+            *ms += *rhs;
         }
+        return ms;
     }
-    return ms;
-
-    // auto it = impl_->mzml_->scan_indices().begin() + first.rowid();
-    // if ( it->second->protocol_id() != impl_->fcn_ )
-    //     throw std::invalid_argument("protocol id missmatch");
-
-    // auto ms = it->second->toMassSpectrum( *it->second );
-    // std::vector< double > intensities ( ms->size(), 0 );
-    // last++; // advance for pointing end
-
-    // for ( auto it = first; it != last; it++ ) {
-    //     const auto sp = impl_->mzml_->scan_indices()[ it.rowid() ].second;
-    //     if ( sp->protocol_id() != impl_->fcn_ ) {
-    //         ADDEBUG() << "Internal error -- protocol id missmatch " << std::format("{} != {}", sp->protocol_id(), impl_->fcn_);
-    //         continue;
-    //     }
-    //     const auto& secondi = sp->dataArrays().second;
-    //     std::visit([&](auto arg){
-    //         for ( size_t i = 0; i < secondi.length(); ++i )
-    //             intensities[i] += *arg++;
-    //     }, secondi.data() );
-    // }
-    // ms->setIntensityArray( std::move( intensities ) );
-    // return ms;
     return {};
 }
 
 std::shared_ptr< adcontrols::MassSpectrometer >
 data_reader::massSpectrometer() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " NOT IMPL ==================";
     return {}; // spectrometer_;
 }
 
 adcontrols::DataInterpreter *
 data_reader::dataInterpreter() const
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " NOT IMPL ==================";
     return {}; // interpreter_.get();
 }
 

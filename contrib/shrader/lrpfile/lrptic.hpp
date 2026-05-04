@@ -55,7 +55,6 @@ namespace shrader {
 
         int32_t flags() const;
         int32_t nextptr() const;
-        // const std::vector< int32_t >& ptrs() const;
         const std::vector< TIC >& tic() const;
     private:
         bool loaded_;
