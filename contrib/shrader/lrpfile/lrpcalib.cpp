@@ -24,6 +24,7 @@
 
 #include "lrpcalib.hpp"
 #include <adportable/debug.hpp>
+#include <boost/json.hpp>
 #include <cstddef>
 #include <istream>
 
@@ -100,9 +101,32 @@ lrpcalib::type() const
 
 namespace shrader {
 
+    namespace detail {
+        void
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const CAL& t )
+        {
+            jv = {{ "m", t.m }
+                  , { "i", t.i }
+                  , { "coeffa", t.coeffa }
+                  , { "coeffb", t.coeffb }
+            };
+        }
+    } // detail
+
     void
-    tag_invoke( const boost::json::value_from_tag, boost::json::value&, const lrpcalib& t )
+    tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const lrpcalib& t )
     {
+        auto p = reinterpret_cast<const detail::calib *>(t.data_.data());
+
+        detail::CAL a;
+
+        jv = {{ "calib"
+                    , {{ "flags", p->flags }
+                       , { "cal", boost::json::value_from( p->cal ) }
+                       , { "type", p->type }
+                       , { "dummy", p->dummy }
+                }
+            }};
     }
 
     lrpcalib

@@ -23,7 +23,7 @@
 **************************************************************************/
 
 #include "datafile.hpp"
-#include "data_reader.hpp"
+#include "lrp_reader.hpp"
 #include "export_to_adfs.hpp"
 #include "../lrpfile/lrpfile.hpp"
 #include "../lrpfile/lrptic.hpp"
@@ -175,7 +175,7 @@ datafile::getSpectrum( int /* fcn*/, size_t idx, adcontrols::MassSpectrum& ms, u
 /////////////////////////
 
 bool
-datafile::_open( const std::filesystem::path& path, bool )
+datafile::lrp_open( const std::filesystem::path& path, bool )
 {
     if ( std::filesystem::exists( path ) ) {
 
@@ -185,8 +185,6 @@ datafile::_open( const std::filesystem::path& path, bool )
         if (( impl_->lrpfile_ = std::make_shared< shrader::lrpfile >() )) {
 
             if ( impl_->lrpfile_->load( in, fsize ) ) {
-
-                // impl_->lrpfile_->dump( std::cerr, 0 );
 
                 impl_->ticc_ = impl_->lrpfile_->get_ticc();
                 impl_->dataReader_ = std::make_shared< local::data_reader >( "lrpfile.1", 0, impl_->lrpfile_ );

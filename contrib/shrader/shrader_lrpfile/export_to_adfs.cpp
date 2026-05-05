@@ -24,12 +24,15 @@
 **************************************************************************/
 
 #include "export_to_adfs.hpp"
+#include "data_reader.hpp"
 #include "datafile.hpp"
-#include "adutils/acquireddata.hpp"
-#include "adutils/acquireddata_v3.hpp"
 #include "datafile_factory.hpp"
-#include "datareader.hpp"
-#include "data_reader_ex.hpp"
+//#include "datareader.hpp"
+#include <adportable/iso8601.hpp>
+#include <adutils/acquireddata.hpp>
+#include <adutils/acquireddata_v3.hpp>
+#include <boost/beast/core/file_base.hpp>
+#include <ctime>
 #include <lrpfile.hpp>
 #include <lrpheader.hpp>
 #include <lrphead2.hpp>
@@ -61,9 +64,9 @@ namespace shrader {
             sql.exec( "DROP TABLE IF EXISTS AcquiredConf" );
             sql.exec(
                 "CREATE TABLE AcquiredConf ("
-                " objuuid              UUID"
+                " objuuid              UUID"  //
                 ",objtext              TEXT"
-                ",pobjuuid             UUID"
+                ",pobjuuid             UUID"  // uuid
                 ",dataInterpreterClsid TEXT"
                 ",trace_method         INTEGER"
                 ",spectrometer         INTEGER"
@@ -74,31 +77,6 @@ namespace shrader {
                 ",axis_x_decimals      INTEGER"
                 ",axis_y_decimals      INTEGER"
                 ",UNIQUE (objuuid,trace_id)"
-                ")"
-                );
-        }
-
-        void create_lrptic_table() const {
-            adfs::stmt sql( *db_ );
-            sql.exec( "DROP TABLE IF EXISTS lrptic" );
-            sql.exec(
-                "CREATE TABLE lrptic ("
-                " ptr        INTEGER PRIMARY KEY"
-                ", time      INTEGER"
-                ", intensity INTEGER"
-                ", overload  INTEGER"
-                ")"
-                );
-        }
-
-        void create_msdata_table() const {
-            adfs::stmt sql( *db_ );
-            sql.exec( "DROP TABLE IF EXISTS msdata" );
-            sql.exec(
-                "CREATE TABLE msdata ("
-                " id INTEGER PRIMARY KEY AUTOINCREMENT"
-                ",scan INTEGER"
-                ",block BLOB"
                 ")"
                 );
         }
@@ -143,12 +121,6 @@ export_to_adfs::operator()( const datafile& _ )
     sql << datum_t{ "create_date", value_t( std::chrono::system_clock::now() ) };
     sql << datum_t{ "datafile_factory", value_t( std::string(datafile_factory::instance()->iid() ) ) };
 
-    // std::unique_ptr< shrader::lrpheader > header_;  // 256 o
-    // std::unique_ptr< shrader::lrphead2 > header2_;  // 256 o
-    // std::unique_ptr< shrader::lrphead3 > header3_;  // 256 o
-    // std::unique_ptr< shrader::instsetup > instsetup_; // 256 o
-    // std::unique_ptr< shrader::lrpcalib > lrpcalib_;  // 256 o
-    // std::unique_ptr< shrader::simions > simions_;    // 256 o
     if ( auto lrp = _.lrpfile() ) {
 
         if ( auto d = lrp->header() )
@@ -167,8 +139,7 @@ export_to_adfs::operator()( const datafile& _ )
             sql << datum_t{ "calib", value_t( block_to_string( d.rp() ) ) };  // bzip2, base64
 
         if ( auto d = lrp->simions() )
-            sql << datum_t{ "calib", value_t( block_to_string( d.rp() ) ) };  // bzip2, base64
-
+            sql << datum_t{ "simions", value_t( block_to_string( d.rp() ) ) };  // bzip2, base64
     }
 
     do {
@@ -194,53 +165,44 @@ export_to_adfs::operator()( const datafile& _ )
             // ADDEBUG() << "\t traceid: " << reader.second->traceid();
             sql.bind( col++ ) = lrp_ex::data_reader::__objuuid__(); // objid; <-- 6a6df573-...
             sql.bind( col++ ) = lrp_ex::data_reader::__objtext__(); // d.objtext; <-- 1.admzml.ms-cheminfo.com
-            sql.bind( col++ ) = boost::uuids::uuid{0}; // d.pobjid;
-            sql.bind( col++ ) = std::string( "TSSlrp" ); // dataInterpreterClsid
-            sql.bind( col++ ) = int64_t( adacquire::SignalObserver::eTRACE_SPECTRA ); // trace_method
+            sql.bind( col++ ) = boost::uuids::uuid{0};        // d.pobjid;
+            sql.bind( col++ ) = std::string( "TSS.lrp" );          // dataInterpreterClsid
+            sql.bind( col++ ) = int64_t( adacquire::SignalObserver::eTRACE_SPECTRA );    // trace_method
             sql.bind( col++ ) = int64_t( adacquire::SignalObserver::eMassSpectrometer ); // spectrometer
             sql.bind( col++ ) = reader->trace_id();
-            sql.bind( col++ ) = std::string{};            // trace_display_name/
-            sql.bind( col++ ) = std::string("Time");      // axis_x_label
-            sql.bind( col++ ) = std::string("Count");     // axis_y_label
-            sql.bind( col++ ) = 2;                        // axis_x_decimals
-            sql.bind( col++ ) = 0;                        // axis_y_decimals
+            sql.bind( col++ ) = std::string{};                      // trace_display_name/
+            sql.bind( col++ ) = std::string("Time");              // axis_x_label
+            sql.bind( col++ ) = std::string("Count");             // axis_y_label
+            sql.bind( col++ ) = 2;                                  // axis_x_decimals
+            sql.bind( col++ ) = 0;                                  // axis_y_decimals
             if ( sql.step() != adfs::sqlite_done )
                 ADDEBUG() << sql.errmsg();
         };
     } while ( 0 );
 
-    // TIC
     if ( auto lrp = _.lrpfile() ) {
-        impl_->create_lrptic_table();
-        bool success = sql.prepare(
-            "INSERT OR REPLACE INTO lrptic VALUES( :ptr,:time,:tic,:overload )" );
+        auto time_of_injection = lrp->time_of_injection();
+        auto tp = adportable::iso8601::parse( time_of_injection.begin(), time_of_injection.end() );
 
-        for ( const auto& tic: lrp->lrptic().tic() ) {
-            int col = 1;
-            sql.bind( col++ ) = tic.ptr;
-            sql.bind( col++ ) = tic.time;
-            sql.bind( col++ ) = tic.intensity;
-            sql.bind( col++ ) = tic.overload;
-            if ( sql.step() != adfs::sqlite_done )
-                ADDEBUG() << sql.errmsg();
-        }
-    }
+        auto tIt = lrp->lrptic().tic().begin();
 
-    // msdata
-    if ( auto lrp = _.lrpfile() ) {
-        impl_->create_msdata_table();
-        bool success = sql.prepare(
-            "INSERT OR REPLACE INTO msdata VALUES(:scan,:block )" );
-        for ( const auto& msdata: lrp->msdata() ) {
+        for ( auto it = lrp->msdata().begin(); it != lrp->msdata().end(); ++it, ++tIt ) {
+            double time_since_injection = double(tIt->time) / 1000.0;
+            const auto& msdata = *it;
             const char * rp = reinterpret_cast< const char * >(msdata->blocks().data());
-            auto blob = bzip2_compress( std::string( rp, msdata->blocks().size() * sizeof( detail::block ) ) );
-            int col = 1;
-            sql.bind( col++ ) = int( msdata->blocks().at(0).scan);
-            sql.bind( col++ ) = adfs::blob( blob.size(), blob.data() );
-            if ( sql.step() != adfs::sqlite_done )
-                ADDEBUG() << sql.errmsg();
+            auto data = bzip2_compress( std::string( rp, msdata->blocks().size() * sizeof( detail::block ) ) );
+            auto meta = bzip2_compress( std::string( reinterpret_cast< const char *>(&(*tIt)), sizeof( lrptic::TIC ) ) );
+            adutils::v3::AcquiredData::insert( *impl_->db_
+                                               , lrp_ex::data_reader::__objuuid__()
+                                               , uint64_t( tIt->time ) * 1000'000    // elapsed_time (ms -> ns)
+                                               , (*tp + std::chrono::milliseconds( tIt->time ) ).time_since_epoch().count() // epoch time
+                                               , msdata->blocks().at(0).scan // pos
+                                               , 0 // fcn
+                                               , 0 // ndata -- not in use
+                                               , 0 // events
+                                               , data
+                                               , meta );
         }
     }
-
     return true;
 }

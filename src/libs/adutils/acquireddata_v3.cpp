@@ -41,7 +41,7 @@ AcquiredData::insert( adfs::sqlite& db
                       , uint64_t epoch_time
                       , uint64_t pos
                       , uint32_t fcn
-                      , uint32_t ndata 
+                      , uint32_t ndata
                       , uint32_t events
                       , const std::string& data
                       , const std::string& meta )
@@ -50,8 +50,8 @@ AcquiredData::insert( adfs::sqlite& db
 
 	sql.prepare( "INSERT INTO AcquiredData VALUES( :objuuid, :elapsed_time, :epoch_time, :npos, :fcn, :events, :data, :meta )" );
 
-    std::string xdata;
-    adportable::bzip2::compress( xdata, reinterpret_cast<const char *>( data.data() ), data.size() );
+    // std::string xdata;
+    // adportable::bzip2::compress( xdata, reinterpret_cast<const char *>( data.data() ), data.size() );
 
     sql.bind( 1 ) = objid;
     sql.bind( 2 ) = elapsed_time;
@@ -93,6 +93,6 @@ AcquiredData::create_table_v3( adfs::sqlite& db )
 )"
              ) )
         return true;
-    
+
     return false;
 }

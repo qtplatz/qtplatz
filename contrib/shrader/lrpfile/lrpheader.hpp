@@ -40,6 +40,7 @@ namespace shrader {
         lrpheader( const lrpheader& t);
 
         bool load( std::istream& in, size_t fsize );
+        bool load( std::string&& );
 
         inline operator bool () const { return loaded_; }
 

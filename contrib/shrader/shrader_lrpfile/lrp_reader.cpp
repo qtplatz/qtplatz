@@ -22,7 +22,7 @@
  **
  **************************************************************************/
 
-#include "data_reader_ex.hpp"
+#include "lrp_reader.hpp"
 #include "msdata.hpp"
 #include <chrono>
 #include <lrpcalib.hpp>
@@ -33,9 +33,6 @@
 #include <adcontrols/msproperty.hpp>
 #include <adportable/debug.hpp>
 #include <adportable/iso8601.hpp>
-#include <adfs/sqlite.hpp>
-#include <adportable/debug.hpp>
-#include <adportable/bzip2.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/json.hpp>
 #include <boost/format.hpp>
@@ -54,62 +51,48 @@
 #include <lrptic.hpp>
 
 namespace shrader {
-    namespace lrp_ex {
+    namespace local {
 
         class data_reader::impl {
         public:
-            impl() {
+            impl( std::shared_ptr< const lrpfile > file, int fcn )
+                : lrpfile_( file )
+                , fcn_( fcn )
+                , objtext_( std::format("{}.lrp.ms-cheminfo.com",  fcn_ ) ) {
             }
-            std::weak_ptr< adfs::sqlite > db_;
-            int fcn_;
-
             std::shared_ptr< const lrpfile > lrpfile_;
+            int fcn_;
             std::string traceid_;
+            const std::string objtext_;
 
             constexpr const static boost::uuids::uuid uuid_ = {
-                0xd5, 0x0f, 0x25, 0xd9, 0x0b, 0xf4, 0x4f, 0xc1
-                , 0x88, 0xfa, 0xe2, 0xe3, 0xc2, 0x9d, 0xfb, 0xc0
+                0xA8, 0xD2, 0xA0, 0xCA, 0xEC, 0x3E, 0x4D, 0xE0,
+                0xAE, 0x9E, 0xFA, 0x53, 0x82, 0x60, 0xAC, 0xAD
             };
-            const static std::string objtext__;
             std::string display_name_;
         };
-
-        std::string const data_reader::impl::objtext__ = "1.adfs.lrp.ms-cheminfo.com";
     }
 }
 
-using namespace shrader::lrp_ex;
+using namespace shrader::local;
 
 data_reader::~data_reader()
 {
 }
 
-data_reader::data_reader( const char * traceid )
+data_reader::data_reader( const char * traceid
+                          , int fcn
+                          , std::shared_ptr< const shrader::lrpfile > lrpfile )
     : adcontrols::DataReader( traceid )
-    , impl_( std::make_unique< impl >() )
+    , impl_( std::make_unique< impl >( lrpfile, fcn ) )
 {
     impl_->traceid_ = traceid;
-    // lrpfile->dump( std::cerr, 1 );
-    // auto jv = boost::json::parse( traceid );
-    // impl_->traceid_ = boost::json::serialize( jv );
-    // impl_->scan_protocol_ = boost::json::value_to< scan_protocol >( jv );
-    // impl_->protocol_key_ = impl_->scan_protocol_.protocol_key();
 
-    // std::ostringstream o;
-    // o << boost::format("MS%d") % impl_->scan_protocol_.ms_level();
-    // if ( impl_->scan_protocol_.ms_level() == 2 ) { // pscan
-    //     o << boost::format( " %.1f[%.1fV] " )
-    //         % impl_->scan_protocol_.precursor_mz()
-    //         % impl_->scan_protocol_.collision_energy();
-    // }
-    // o << (impl_->scan_protocol_.polarity() == polarity_negative ? "(−)"
-    //       : impl_->scan_protocol_.polarity() == polarity_positive ? "(+)"
-    //       : "(?)");
-    // ADDEBUG() << "##########################################";
-    // ADDEBUG() << boost::json::value_from( lrpfile->header() );
-    // ADDEBUG() << boost::json::value_from( lrpfile->header2() );
-    // ADDEBUG() << boost::json::value_from( lrpfile->header3() );
-    // impl_->display_name_ = std::format( "lrp.{}", boost::trim_copy( lrpfile->header().instrument() ) );
+    ADDEBUG() << "##########################################";
+    ADDEBUG() << boost::json::value_from( lrpfile->header() );
+    ADDEBUG() << boost::json::value_from( lrpfile->header2() );
+    ADDEBUG() << boost::json::value_from( lrpfile->header3() );
+    impl_->display_name_ = std::format( "lrp.{}", boost::trim_copy( lrpfile->header().instrument() ) );
 }
 
 
@@ -135,43 +118,6 @@ bool
 data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-
-    impl_->db_ = db;
-    if ( auto db = impl_->db_.lock() ) {
-        adfs::stmt sql( *db );
-        sql.prepare( "SELECT rowid,elapsed_time,npos,fcn,events,data FROM AcquiredData WHERE objuuid=?" );
-        sql.bind(1) = impl::uuid_;
-        while ( sql.step() == adfs::sqlite_row ) {
-            try {
-                auto rowid = sql.get_column_value< int64_t >( 0 );
-                auto elapsed_time = sql.get_column_value< int64_t >( 1 ); // ns
-                auto pos = sql.get_column_value< int64_t >( 2 );
-                auto fcn = sql.get_column_value< int64_t >( 3 );
-                auto events = sql.get_column_value< int64_t >( 4 );
-                auto xdata = sql.get_column_value< adfs::blob >( 5 );
-#if 0
-                if ( auto doc = serializer::deserialize( reinterpret_cast< const char * >(xdata.data()), xdata.size() ) ) {
-                    impl_->xml_document_holder_.emplace_back( doc );
-                    if ( auto node = doc->select_node( "spectrum" ) ) {
-                        auto var = mzMLReader{}( node.node() );
-                        auto spc = std::visit( overloaded{
-                                []( std::shared_ptr< mzMLChromatogram > )->std::shared_ptr< mzMLSpectrum >{ return nullptr; }
-                                    , []( std::shared_ptr< mzMLSpectrum> t ) { return t; }
-                                    }, var );
-                        if ( spc ) {
-                            spc->set_protocol_id( fcn );
-                            impl_->scan_indices_.emplace_back( rowid, elapsed_time, pos, fcn, spc->get_scan_id(), spc );
-                        }
-                    }
-                } else {
-                    ADDEBUG() << "--------- deerialize failed -----------";
-                }
-#endif
-            } catch ( const boost::exception& ex ) {
-                ADDEBUG() << "Exception: " << ex;
-            }
-        }
-    }
     return true;
 }
 
@@ -181,30 +127,17 @@ data_reader::finalize()
     ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
 }
 
-//static
-const boost::uuids::uuid&
-data_reader::__objuuid__()
-{
-    return impl::uuid_;
-}
-
-//static
-const std::string&
-data_reader::__objtext__()
-{
-    return impl::objtext__;
-}
-
 const boost::uuids::uuid&
 data_reader::objuuid() const
 {
+    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ================= " << impl_->uuid_;
     return impl_->uuid_;
 }
 
 const std::string&
 data_reader::objtext() const
 {
-    return impl_->objtext__;
+    return impl_->objtext_;
 }
 
 int64_t
@@ -434,6 +367,7 @@ data_reader::getSpectrum( int64_t rowid ) const
                 vec.emplace_back( local_mass_at( i, block ), block.u.profile[ i ] );
         }
     }
+
     if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
         for ( const auto& datum: vec )
             *ms << datum;

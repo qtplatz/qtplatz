@@ -29,35 +29,6 @@
 #include <adportable/json/extract.hpp>
 #include <adportable/debug.hpp>
 
-namespace shrader {
-//     namespace detail {
-// #pragma pack(1)
-//         struct ION {
-//             int32_t m;
-//             int32_t i;
-//         };
-//         struct SRM {
-//             int32_t m;
-//             int32_t i;
-//         };
-//         struct msdata {
-//             int16_t scan;       // Integer 2 Scan number
-//             int16_t flags;      // Integer 2 Record type code = 5
-//             int16_t threshold;  // Integer 2 D/A threshold in effect at start of scan
-//             int16_t nions;      // Integer 2 Number of ions in this record
-//             int32_t xlow;       // lomass/lotime Long 4 Low mass*65536 (or time*16) stored in this record
-//             int32_t xhigh;      // himass/hitime Long 4 High mass*65536 (or time*16) stored in this record
-//             union {
-//                 ION ion[30];
-//                 SRM srm[30];
-//                 int32_t profile[60];
-//             } u;
-//             //ION(30/60) User 240 Mass (or time) / intensity pairs
-//         };
-// #pragma pack()
-//     }
-}
-
 using namespace shrader;
 
 msdata::~msdata()

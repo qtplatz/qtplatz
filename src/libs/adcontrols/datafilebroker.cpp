@@ -158,7 +158,7 @@ datafileBrokerImpl::open( const std::filesystem::path& path, bool readonly, erro
             return it->second->open( path, readonly );
     }
     if ( ec ) {
-        ec->assign( -1, "No data factory installed" );
+        ec->assign( -1, "No datafile factory installed" );
     }
     return 0;
 }

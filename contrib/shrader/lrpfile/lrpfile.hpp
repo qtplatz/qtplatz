@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <variant>
 
 namespace shrader {
 
@@ -42,6 +43,7 @@ namespace shrader {
     using tic_t = std::tuple< double, double, int32_t, int32_t >; // time, intensity, ptr, overload
     using ticc_t = std::vector< tic_t >;
     enum { tic_time, tic_intensity, tic_ptr, tic_overload };
+    using value_type = std::variant< lrpheader, lrphead2, lrphead3, instsetup, lrpcalib, simions >;
 
     class lrpfile {
         lrpfile( const lrpfile& ) = delete;
@@ -50,21 +52,15 @@ namespace shrader {
         ~lrpfile();
         lrpfile();
 
-        typedef std::vector< std::shared_ptr< shrader::msdata > >::iterator iterator;
-        typedef std::vector< std::shared_ptr< shrader::msdata > >::const_iterator const_iterator;
-
         bool load( std::istream& in, size_t fsize );
+        bool xload( value_type, const std::string& );
+
         operator bool () const;
 
         void dump( std::ostream&, size_t limit = 0 ) const;
 
-        // const shrader::lrptic * lrptic() const;
         const msdata * operator []( size_t idx ) const;
         size_t number_of_spectra() const;
-        iterator begin();
-        iterator end();
-        const_iterator begin() const;
-        const_iterator end() const;
 
         const shrader::lrpheader& header() const;
         const shrader::lrphead2& header2() const;

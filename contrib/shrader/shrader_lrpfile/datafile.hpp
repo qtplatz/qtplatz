@@ -84,7 +84,7 @@ namespace shrader {
         int dataformat_version() const override { return 3; }
 
 		//<-------------------------------------
-		bool _open( const std::filesystem::path&, bool );
+		bool lrp_open( const std::filesystem::path&, bool );
 		static bool is_valid_datafile( const std::filesystem::path& );
 
         std::shared_ptr< const lrpfile > lrpfile() const;

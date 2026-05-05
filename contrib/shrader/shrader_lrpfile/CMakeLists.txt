@@ -22,13 +22,13 @@ add_definitions(-DSHRADER_LRPFILE_LIBRARY)
 
 add_library( shrader_lrpfile SHARED
   shrader_lrpfile.cpp
-  datafile_factory.cpp
-  datafile_factory.hpp
-  datafile.cpp datafile.hpp
-  data_reader.cpp data_reader.hpp
-  data_reader_ex.cpp data_reader_ex.hpp
-  export_to_adfs.cpp export_to_adfs.hpp
-  helper.cpp helper.hpp
+  datafile_factory.cpp   datafile_factory.hpp
+  datareader_factory.cpp datareader_factory.hpp
+  datafile.cpp           datafile.hpp
+  lrp_reader.cpp         lrp_reader.hpp
+  data_reader.cpp        data_reader.hpp
+  export_to_adfs.cpp     export_to_adfs.hpp
+  helper.cpp             helper.hpp
 )
 
 target_link_libraries( shrader_lrpfile LINK_PUBLIC

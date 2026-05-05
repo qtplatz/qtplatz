@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include "datafile_factory.hpp"
+#include "datareader_factory.hpp"
 #include "datafile.hpp"
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include <adplugin/visitor.hpp>
@@ -96,7 +97,7 @@ datafile_factory::open( const wchar_t * filename, bool readonly ) const
 {
     auto p = new shrader::datafile();
 
-	if ( p->_open( filename, readonly ) )
+	if ( p->lrp_open( filename, readonly ) )
 		return p;
 	delete p;
 
@@ -108,7 +109,7 @@ datafile_factory::open( const std::filesystem::path& filename, bool readonly ) c
 {
     auto p = new shrader::datafile();
 
-	if ( p->_open( filename, readonly ) )
+	if ( p->lrp_open( filename, readonly ) )
 		return p;
 	delete p;
 
@@ -128,6 +129,7 @@ void
 datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
 	v.visit( this, adplugin );
+    datareader_factory::instance()->accept( v, adplugin );
 }
 
 void *

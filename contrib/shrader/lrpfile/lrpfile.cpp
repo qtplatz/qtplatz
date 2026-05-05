@@ -65,6 +65,8 @@ namespace shrader {
     };
 }
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+
 using namespace shrader;
 
 lrpfile::~lrpfile()
@@ -92,8 +94,6 @@ lrpfile::load( std::istream& in, size_t fsize )
         if ( not impl_->lrptic_->load( in, fsize ) )
             ADDEBUG() << "## lrptic load failed ##";
 
-
-
         if ( impl_->lrptic_ && *impl_->lrptic_ ) {
             for ( auto& tic: impl_->lrptic_->tic() ) {
                 if ( auto data = std::make_shared< shrader::msdata >() ) {
@@ -108,16 +108,25 @@ lrpfile::load( std::istream& in, size_t fsize )
     return false;
 }
 
+bool
+lrpfile::xload( value_type t, const std::string& data )
+{
+    std::istringstream in( data );
+    std::visit(overloaded{
+            [](auto arg) { std::cout << arg << ' '; }
+                , [&](lrpheader) { impl_->header_->load( in, data.size() ); }
+                , [&](lrphead2)  { impl_->header2_->load( in, data.size() ); }
+                , [&](lrphead3)  { impl_->header3_->load( in, data.size() ); }
+                , [&](class instsetup) { impl_->instsetup_->load( in, data.size() ); }
+                , [&](class lrpcalib)  { impl_->lrpcalib_->load( in, data.size() ); }
+                , [&](class simions)   { impl_->simions_->load( in, data.size() ); }
+                }, t);
+}
+
 lrpfile::operator bool() const
 {
     return impl_->loaded_;
 }
-
-// const shrader::lrptic *
-// lrpfile::lrptic() const
-// {
-//     return impl_->lrptic_.get();
-// }
 
 const shrader::msdata *
 lrpfile::operator []( size_t idx ) const
@@ -180,26 +189,6 @@ size_t lrpfile::number_of_spectra() const
     return impl_->msdata_.size();
 }
 
-lrpfile::iterator lrpfile::begin()
-{
-    return impl_->msdata_.begin();
-}
-
-lrpfile::iterator lrpfile::end()
-{
-    return impl_->msdata_.end();
-}
-
-lrpfile::const_iterator lrpfile::begin() const
-{
-    return impl_->msdata_.begin();
-}
-
-lrpfile::const_iterator lrpfile::end() const
-{
-    return impl_->msdata_.end();
-}
-
 std::string
 lrpfile::time_of_injection() const
 {
@@ -217,6 +206,18 @@ lrpfile::time_of_injection() const
                         , header().analtime()
                         , lt.tm_gmtoff / 3600
                         , (lt.tm_gmtoff / 60) % 60 );
+}
+
+ticc_t
+lrpfile::get_ticc() const
+{
+    if ( lrptic() && lrptic() ) {
+        ticc_t ticc;
+        for ( auto& tic : lrptic().tic() )
+            ticc.emplace_back( double( tic.time ) / 1000.0, tic.intensity, tic.ptr, tic.overload );
+        return ticc;
+    }
+    return {};
 }
 
 void
@@ -392,16 +393,4 @@ lrpfile::dump( std::ostream& of, size_t limit ) const
             }
         }
     }
-}
-
-ticc_t
-lrpfile::get_ticc() const
-{
-    if ( lrptic() && lrptic() ) {
-        ticc_t ticc;
-        for ( auto& tic : lrptic().tic() )
-            ticc.emplace_back( double( tic.time ) / 1000.0, tic.intensity, tic.ptr, tic.overload );
-        return ticc;
-    }
-    return {};
 }

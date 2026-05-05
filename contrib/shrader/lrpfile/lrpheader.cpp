@@ -90,6 +90,13 @@ lrpheader::load(std::istream& in, size_t fsize)
     return loaded_;
 }
 
+bool
+lrpheader::load( std::string&& data )
+{
+    std::istringstream in( data );
+    return load( in, data.size() );
+}
+
 int32_t
 lrpheader::flags() const
 {

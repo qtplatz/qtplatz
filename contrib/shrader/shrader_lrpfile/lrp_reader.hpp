@@ -37,20 +37,16 @@ namespace adcontrols { class MassSpectrometer; }
 
 namespace shrader {
 
-    namespace lrp_ex {
+    namespace local {
 
         class data_reader : public adcontrols::DataReader {
 
         public:
             virtual ~data_reader( void );
-            data_reader( const char * traceid );
+            data_reader( const char * traceid, int fcn, std::shared_ptr< const lrpfile >  );
 
             static std::vector< std::string > traceid_list();
             static const boost::uuids::uuid& __uuid__();
-
-            static const boost::uuids::uuid& __objuuid__();
-            static const std::string& __objtext__();
-
             const std::string& traceid() const;
 
             // <===== adcontrols::DataReader

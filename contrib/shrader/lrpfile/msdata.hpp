@@ -53,7 +53,6 @@ namespace shrader {
                 SRM srm[30];
                 int32_t profile[60];
             } u;
-            //ION(30/60) User 240 Mass (or time) / intensity pairs
         };
 #pragma pack()
     } // detail
@@ -71,12 +70,12 @@ namespace shrader {
         bool load( std::istream& in, size_t fsize, int64_t pos );
         inline operator bool () const { return loaded_; }
 
-        inline static bool is_internal_reference( int16_t flags ) { return flags & 0x20 ? true : false; } // else internal
-        inline static bool is_profile( int16_t flags ) { return flags & 0x80 ? true : false; }       // b7, else raw (time?)
-        inline static bool is_SIM( int16_t flags ) { return flags & 0x40 ? true : false; }           // b6, else scan
-        inline static bool is_mass_array( int16_t flags ) { return flags & 0x10 ? true : false; }    // b4 (mass|time)
-        inline static bool is_SRM( int16_t flags ) { return (flags & 0x70) == 0x70 ? true : false; } // b0(mass),1(intrn),2(sim)
-        inline static bool is_negative_ion( int16_t flags ) { return flags & 0x4000 ? true : false; }
+        inline static bool is_profile( int16_t flags )            { return flags  & 0x0080 ? true : false; } // b7, else raw (time?)
+        inline static bool is_SIM( int16_t flags )                { return flags  & 0x0040 ? true : false; } // b6, else scan
+        inline static bool is_internal_reference( int16_t flags ) { return flags  & 0x0020 ? true : false; }
+        inline static bool is_mass_array( int16_t flags )         { return flags  & 0x0010 ? true : false; } // b4 (mass|time)
+        inline static bool is_SRM( int16_t flags )                { return (flags & 0x0070) == 0x70 ? true : false; } // b0(mass),1(intrn),2(sim)
+        inline static bool is_negative_ion( int16_t flags )       { return flags  & 0x4000 ? true : false; }
 
         int16_t scan( size_t block = 0 ) const;
         int16_t flags( size_t block = 0 ) const;
@@ -86,8 +85,6 @@ namespace shrader {
         int32_t xhigh( size_t block = 0 ) const;  // mass * 65536 | time * 16
 
         size_t size() const;
-        // std::pair< const int32_t *, size_t > intensities( size_t block ) const;
-        // std::pair< const std::pair< int32_t, int32_t >*, size_t > ions( size_t block ) const;
         const std::vector< detail::block >& blocks() const { return data_; };
 
     private:

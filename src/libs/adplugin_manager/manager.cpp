@@ -146,7 +146,8 @@ namespace adplugin {
                     if ( auto plugin = factory() ) {
                         pluginspecs_.insert( adpluginspec );
                         plugin->setConfig( adpluginspec, context, lib.location().string() );
-                        plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) ); // reverse order
+                        plugins_.emplace( plugins_.begin()
+                                          , std::make_shared< plugin_data >( plugin->pThis(), std::move( lib ) ) ); // reverse order
                         plugin->accept( *this, adpluginspec.c_str() );
                         return true;
                     }
@@ -159,7 +160,8 @@ namespace adplugin {
         bool install( boost::dll::shared_library&& dll, std::function<adplugin::plugin *()> instance ) {
             if ( auto plugin = instance() ) {
                 plugin->setConfig( "", "", dll.location().string() );
-                plugins_.emplace( plugins_.begin(), std::make_shared< plugin_data >( plugin->pThis(), std::move( dll ) ) ); // reverse order
+                plugins_.emplace( plugins_.begin()
+                                  , std::make_shared< plugin_data >( plugin->pThis(), std::move( dll ) ) ); // reverse order
 #if _MSC_VER
                 plugin->accept(*this, dll.location().string().c_str());
 #else

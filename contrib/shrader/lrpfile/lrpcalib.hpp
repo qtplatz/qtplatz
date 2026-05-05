@@ -33,6 +33,8 @@
 
 namespace shrader {
 
+    namespace detail { struct CAL; }
+
     using cal_data = std::tuple< int32_t, float, double, double >;
     enum { cal_mass, cal_intens, cal_coeff_a, cal_coeff_b };
 
