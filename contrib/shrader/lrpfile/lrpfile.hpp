@@ -54,6 +54,7 @@ namespace shrader {
 
         bool load( std::istream& in, size_t fsize );
         bool xload( value_type, const std::string& );
+        void append( std::string&& data, std::string&& meta );
 
         operator bool () const;
 
@@ -74,6 +75,7 @@ namespace shrader {
         std::string time_of_injection() const;
 
         ticc_t get_ticc() const;
+        void tic_set_loaded( bool );
 
     private:
         class impl;

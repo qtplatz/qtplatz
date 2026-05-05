@@ -118,8 +118,6 @@ namespace shrader {
     {
         auto p = reinterpret_cast<const detail::calib *>(t.data_.data());
 
-        detail::CAL a;
-
         jv = {{ "calib"
                     , {{ "flags", p->flags }
                        , { "cal", boost::json::value_from( p->cal ) }

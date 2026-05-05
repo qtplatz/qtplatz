@@ -139,11 +139,11 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids:
             ADDEBUG() << "--------- calib found ---------";
             impl_->lrpfile_->xload( lrpcalib{}, string_to_block( std::get< std::string >( sigs["calib"] ) ) );
         }
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header2() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header3() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header2() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header3() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
 
         sql.prepare( "SELECT rowid,elapsed_time,npos,fcn,events,data,meta FROM AcquiredData WHERE objuuid=?" );
         sql.bind(1) = impl::uuid_;
@@ -156,16 +156,14 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids:
                 auto events = sql.get_column_value< int64_t >( 4 );
 
                 auto data = bzip2_decompress( sql.get_column_value< adfs::blob >( 5 ) );
-                std::istringstream is( data );
-
                 auto meta = bzip2_decompress( sql.get_column_value< adfs::blob >( 6 ) );
-
-                // ADDEBUG() << std::make_tuple( rowid, elapsed_time, pos, fcn, events, data.size(), meta.size() );
+                impl_->lrpfile_->append( std::move( data ), std::move( meta ) );
 
             } catch ( const boost::exception& ex ) {
                 ADDEBUG() << "Exception: " << ex;
             }
         }
+        impl_->lrpfile_->tic_set_loaded( true );
     }
     return true;
 }

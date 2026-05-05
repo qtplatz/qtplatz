@@ -121,7 +121,21 @@ lrpfile::xload( value_type t, const std::string& data )
                 , [&](class lrpcalib)  { impl_->lrpcalib_->load( in, data.size() ); }
                 , [&](class simions)   { impl_->simions_->load( in, data.size() ); }
                 }, t);
+    return true;
 }
+
+void
+lrpfile::append( std::string&& data, std::string&& meta )
+{
+    if ( auto p = std::make_shared< shrader::msdata >() ) {
+        std::istringstream in( data );
+        p->load( in, data.size(), 0 );
+        impl_->msdata_.emplace_back( std::move( p ) );
+    }
+    impl_->lrptic_->append( std::move( meta ) );
+
+}
+
 
 lrpfile::operator bool() const
 {
@@ -218,6 +232,12 @@ lrpfile::get_ticc() const
         return ticc;
     }
     return {};
+}
+
+void
+lrpfile::tic_set_loaded( bool f )
+{
+    impl_->lrptic_->set_loaded( f );
 }
 
 void

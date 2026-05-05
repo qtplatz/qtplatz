@@ -151,3 +151,15 @@ lrptic::tic() const
 {
     return tic_;
 }
+
+void
+lrptic::append( std::string&& t )
+{
+    tic_.emplace_back( *reinterpret_cast< lrptic::TIC * >( t.data() ) );
+}
+
+void
+lrptic:: set_loaded( bool f )
+{
+    loaded_ = f;
+}

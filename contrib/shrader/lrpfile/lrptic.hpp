@@ -44,18 +44,20 @@ namespace shrader {
         lrptic( const lrptic& );
 
         bool load( std::istream& in, size_t fsize );
+        void set_loaded( bool );
         inline operator bool () const { return loaded_; }
-
+#pragma pack(1)
         struct TIC {
             int32_t time; // ms
             int32_t intensity;
             int32_t ptr;
             int32_t overload;
         };
-
+#pragma pack()
         int32_t flags() const;
         int32_t nextptr() const;
         const std::vector< TIC >& tic() const;
+        void append( std::string&& );
     private:
         bool loaded_;
         int32_t flags_;
