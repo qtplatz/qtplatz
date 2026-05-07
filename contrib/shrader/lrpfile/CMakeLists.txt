@@ -11,6 +11,7 @@ add_library( lrpfile
   simions.cpp    simions.hpp
   lrptic.cpp     lrptic.hpp
   msdata.cpp     msdata.hpp
+  mass_assign.cpp mass_assign.hpp
   )
 
 target_include_directories( lrpfile PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )

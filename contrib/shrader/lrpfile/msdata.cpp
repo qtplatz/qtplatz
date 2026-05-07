@@ -23,11 +23,13 @@
 **************************************************************************/
 
 #include "msdata.hpp"
-#include <iostream>
 #include <boost/json.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
 #include <adportable/debug.hpp>
+#include <algorithm>
+#include <iostream>
+#include <span>
 
 using namespace shrader;
 
@@ -129,6 +131,47 @@ size_t
 msdata::size() const
 {
     return data_.size();
+}
+
+std::vector< int32_t >
+msdata::intensities() const
+{
+    auto inflate_block = []( const detail::block& b
+                             , std::vector< int32_t>& y
+                             , std::int64_t& pos
+                             , bool& seen_index ){
+        if (b.nions < 0 || b.nions > 60)
+            throw std::runtime_error("invalid nions");
+        auto encoded = std::span<const int32_t>(b.u.profile, static_cast<std::size_t>(b.nions) );
+        for (int32_t v : encoded) {
+            if ( v < 0 ) {
+                pos = static_cast<std::int64_t>(-v) - 1; // 1-origin -> 0-origin
+                if (pos < 0)
+                    throw std::runtime_error("invalid index marker");
+
+                if (static_cast<std::size_t>(pos) > y.size())
+                    y.resize(static_cast<std::size_t>(pos), 0);
+
+                seen_index = true;
+            } else {
+                if ( not seen_index)
+                    throw std::runtime_error("profile value before index marker");
+
+                if (static_cast<std::size_t>(pos) >= y.size())
+                    y.resize(static_cast<std::size_t>(pos) + 1, 0);
+                y[static_cast<std::size_t>(pos++)] = v;
+            }
+        }
+    };
+
+    std::vector< int32_t > y;
+    std::int64_t pos = (-1);
+    bool seen_index = false;
+
+    for ( const auto& block: this->blocks() ) {
+        inflate_block( block, y, pos, seen_index );
+    }
+    return y;
 }
 
 namespace shrader {

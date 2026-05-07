@@ -33,10 +33,10 @@ namespace shrader {
 
 #pragma pack(1)
         struct CAL {
-            int32_t m; // mass * 65536
-            float i;
-            double coeffa;
-            double coeffb;
+            int32_t m;     // manual: "Number indices in segment"; meaning uncertain
+            float i;       // manual: "Number turns"; clearly not literal laps in some files
+            double coeffa; // manual: "Segment start time"; uncertain
+            double coeffb; // manual: "MT Conversion factor"; likely calibration-related
         };
 
         struct calib {
@@ -71,7 +71,8 @@ lrpcalib::load( std::istream& in, size_t fsize )
     loaded_ = false;
     if ( ( fsize - in.tellg() ) >= data_size ) {
         in.read( data_.data(), data_.size() );
-        if ( not in.fail() )
+        auto d = reinterpret_cast< const detail::calib * >( data_.data() );
+        if ( not in.fail() && d->flags == record_type_code )
             loaded_ = true;
     }
     return loaded_;

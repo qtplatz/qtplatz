@@ -28,6 +28,7 @@
 #include <lrpcalib.hpp>
 #include <lrpfile.hpp>
 #include <lrptic.hpp>
+#include <mass_assign.hpp>
 #include "chromatogram.hpp"
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/msproperty.hpp>
@@ -304,42 +305,26 @@ data_reader::getData( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::getSpectrum( int64_t rowid ) const
 {
-    auto get_blocks = [&]( int64_t rowid ){
-        return impl_->lrpfile_->msdata().at( rowid )->blocks();
-    };
-
     auto header_mass_range = [&]()->std::pair<double,double>{
         return {double(impl_->lrpfile_->instsetup().lmasslim())/65536.0
                 , double( impl_->lrpfile_->instsetup().umasslim()) /65536.0 };
     };
+    const auto upperdrive = impl_->lrpfile_->instsetup().upperdrive();
+    const auto stepsize  = impl_->lrpfile_->instsetup().stepsize();
+    const auto clockbaud = impl_->lrpfile_->instsetup().clockbaud();
+    const auto scanlaw = impl_->lrpfile_->instsetup().scanlaw();
+    double dt = stepsize * clockbaud;
+    ADDEBUG() << "############# spectral time step: " << std::format( "{}, stepsize={}, clockbaud={}", dt, stepsize, clockbaud );
 
     if ( rowid > impl_->lrpfile_->msdata().size() )
         return {};
-#if 0
-    if ( impl_->lrpfile_->lrpcalib() ) {
-        for ( size_t i = 0; i < impl_->lrpfile_->lrpcalib().cal_size; ++i ) {
-            auto cal = impl_->lrpfile_->lrpcalib().cal_data( i );
-            if ( std::get<0>(cal) ) {
-                ADDEBUG() << std::format( "Calibration: mass = {}, intens = {}, coeff a = {}, b = {}\n"
-                                          , double(std::get< cal_mass >( cal ))/65535.0
-                                          , std::get< cal_intens > ( cal )
-                                          , std::get< cal_coeff_a > ( cal )
-                                          , std::get< cal_coeff_b > ( cal ) )
-                          << ADDEBUG() << boost::json::value_from( get_blocks( rowid ).at( 0 ) );
-            }
-        }
+
+    if ( rowid < 0 || rowid >= impl_->lrpfile_->msdata().size()) {
+        return {};
     }
-#endif
+    auto y = impl_->lrpfile_->msdata().at( rowid )->intensities();
+    auto numSamples = y.size();
     auto mass_range = header_mass_range();
-    // ADDEBUG() << "mass_range: " << mass_range;
-
-    const auto& blocks = get_blocks( rowid );
-    auto numSamples = std::accumulate( blocks.begin(), blocks.end()
-                                       , size_t(0), [](const auto& a, const auto& b){
-                                           return a + b.nions; });
-    // ADDEBUG() << "nSamples: " << numSamples << ", " << get_blocks( rowid ).size();
-
-    auto cal = impl_->lrpfile_->lrpcalib().cal_data( 0 );
 
     auto mass_at = [&]( size_t idx )->double{
         // assume time squared scan law (TOF Eq.)
@@ -350,29 +335,21 @@ data_reader::getSpectrum( int64_t rowid ) const
         return s * s;
     };
 
-    auto local_mass_at = []( size_t idx, const detail::block& blk ){
-        auto range = std::make_pair( double(blk.xlow) / 16.0, double(blk.xhigh) / 16.0 );
-        return range.first + idx * (range.second - range.first) / (blk.nions - 1);
-    };
+    shrader::mass_assign mass_assigner( *impl_->lrpfile_ );
 
     std::vector< std::pair< double, double > > vec;
-    size_t idx{0};
-    for ( const auto& block: get_blocks( rowid ) ) {
-        if ( block.xlow == 0 && block.xhigh == 0 ) {
-            for ( size_t i = 0; i < block.nions; ++i ) {
-                vec.emplace_back( mass_at( idx++ ), block.u.profile[ i ] );
-            }
-        } else { // legacy code
-            for ( size_t i = 0; i < block.nions; ++i )
-                vec.emplace_back( local_mass_at( i, block ), block.u.profile[ i ] );
-        }
+    for ( size_t i = 0; i < y.size(); ++i ) {
+        if ( i < 10 )
+            ADDEBUG() << i << "\t" << mass_assigner( i ) << ", " << mass_at(i);
+        vec.emplace_back( mass_at( i ), y.at( i ) );
+        // vec.emplace_back( mass_assigner( i ), y.at( i ) );
     }
 
     if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
         for ( const auto& datum: vec )
             *ms << datum;
         ms->setAcquisitionMassRange( mass_range.first, mass_range.second );
-        ms->getMSProperty().setTrigNumber( blocks.at(0).scan );
+        ms->getMSProperty().setTrigNumber( impl_->lrpfile_->msdata().at( rowid )->blocks().at(0).scan );
         ms->getMSProperty().setInstMassRange( header_mass_range() );
         if ( auto& lrptic = impl_->lrpfile_->lrptic() ) {
             const auto milliseconds = lrptic.tic().at( rowid ).time;

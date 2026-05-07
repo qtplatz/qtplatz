@@ -143,7 +143,10 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids:
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header2() );
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header3() );
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
-        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
+        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
+        ADDEBUG() << "mass range: " << std::make_tuple(impl_->lrpfile_->instsetup().lmasslim()
+                                                       , impl_->lrpfile_->instsetup().umasslim() );
+        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
 
         sql.prepare( "SELECT rowid,elapsed_time,npos,fcn,events,data,meta FROM AcquiredData WHERE objuuid=?" );
         sql.bind(1) = impl::uuid_;

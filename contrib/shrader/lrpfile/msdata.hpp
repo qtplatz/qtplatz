@@ -86,6 +86,7 @@ namespace shrader {
 
         size_t size() const;
         const std::vector< detail::block >& blocks() const { return data_; };
+        std::vector< int32_t > intensities() const;
 
     private:
         std::vector< detail::block > data_;
