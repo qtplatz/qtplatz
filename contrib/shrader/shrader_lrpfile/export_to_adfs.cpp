@@ -27,6 +27,7 @@
 #include "data_reader.hpp"
 #include "datafile.hpp"
 #include "datafile_factory.hpp"
+#include "constants.hpp"
 //#include "datareader.hpp"
 #include <adportable/iso8601.hpp>
 #include <adutils/acquireddata.hpp>
@@ -204,5 +205,18 @@ export_to_adfs::operator()( const datafile& _ )
                                                , meta );
         }
     }
+
+    do {
+        using namespace shreader::spectrometer;
+        sql.prepare( "INSERT OR REPLACE INTO Spectrometer ( id, scanType, description, fLength ) VALUES ( ?,?,?,? )" );
+        sql.bind( 1 ) = iids::uuid_massspectrometer; // 9568b15d-73b6-48ed-a1c7-ac56a308f712;
+        sql.bind( 2 ) = 0;  // scanType
+        sql.bind( 3 ) = std::string( names::objtext_massspectrometer );
+        sql.bind( 4 ) = 1; // arbitrary flight length
+
+        if ( sql.step() != adfs::sqlite_done )
+            ADDEBUG() << "sqlite error";
+    } while ( 0 );
+
     return true;
 }

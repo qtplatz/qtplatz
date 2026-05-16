@@ -29,6 +29,7 @@ add_library( shrader_lrpfile SHARED
   data_reader.cpp        data_reader.hpp
   export_to_adfs.cpp     export_to_adfs.hpp
   helper.cpp             helper.hpp
+  massspectrometer.cpp   massspectrometer.hpp
 )
 
 target_link_libraries( shrader_lrpfile LINK_PUBLIC

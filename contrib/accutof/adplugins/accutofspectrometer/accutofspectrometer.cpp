@@ -68,15 +68,15 @@ namespace accutof { namespace spectrometer {
 }
 
 #if 0
-extern "C" {
-    DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
-}
+// extern "C" {
+//     DECL_EXPORT adplugin::plugin * adplugin_plugin_instance();
+// }
 
-adplugin::plugin *
-adplugin_plugin_instance()
-{
-    return accutof::spectrometer::accutofspectrometer_plugin::instance();
-}
+// adplugin::plugin *
+// adplugin_plugin_instance()
+// {
+//     return accutof::spectrometer::accutofspectrometer_plugin::instance();
+// }
 #else
 namespace accutof {
     BOOST_DLL_ALIAS( accutof::spectrometer::accutofspectrometer_plugin::instance,  adplugin_instance )

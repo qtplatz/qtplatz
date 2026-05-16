@@ -51,15 +51,15 @@ namespace adcontrols {
 
         [[ deprecated ("use setSampInterval") ]] void fSampInterval( double );
         void setSampInterval( double );
-        double fSampInterval() const; // (this returns nSamplingDelay_ * fSampInterval_)
-        double fSampDelay() const;
+        double fSampInterval() const;
+        double fSampDelay() const;  // nSamplingDelay * fSampInterval
         void horPos( double );
         double horPos() const;
         void setDelayTime( double );
         double delayTime() const;
         size_t numberOfTriggers() const;
         void setNumberOfTriggers( size_t );
-        
+
     private:
         int32_t nSamplingDelay_; // [[deprecated("use delayTime_")]]see delayTime_, which might be negative
         uint32_t nSamples_;
@@ -69,7 +69,7 @@ namespace adcontrols {
         double fsampInterval_; // seconds
         double horPos_;        // seconds
         double delayTime_;     // digitizer delay time (seconds), this can be negative!
-        
+
     private:
         friend class SamplingInfo_archive< SamplingInfo >;
         friend class SamplingInfo_archive< const SamplingInfo >;
@@ -79,4 +79,3 @@ namespace adcontrols {
 }
 
 BOOST_CLASS_VERSION( adcontrols::SamplingInfo, 7 )
-

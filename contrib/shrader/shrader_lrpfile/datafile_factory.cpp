@@ -25,6 +25,10 @@
 #include "datafile_factory.hpp"
 #include "datareader_factory.hpp"
 #include "datafile.hpp"
+#include "massspectrometer.hpp"
+#include "constants.hpp"
+#include <adcontrols/massspectrometerbroker.hpp>
+#include <adcontrols/massspectrometer_factory.hpp>
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include <adplugin/visitor.hpp>
 #include <memory>
@@ -130,6 +134,13 @@ datafile_factory::accept( adplugin::visitor& v, const char * adplugin )
 {
 	v.visit( this, adplugin );
     datareader_factory::instance()->accept( v, adplugin );
+
+    using namespace shreader::spectrometer;
+
+    if ( auto factory =
+         std::make_shared< adcontrols::massspectrometer_factory_type< MassSpectrometer > >( names::objtext_massspectrometer, iids::uuid_massspectrometer ) ) {
+        adcontrols::MassSpectrometerBroker::register_factory( factory.get() );
+    }
 }
 
 void *

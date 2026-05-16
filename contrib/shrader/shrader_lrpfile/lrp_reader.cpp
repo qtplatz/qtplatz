@@ -23,7 +23,7 @@
  **************************************************************************/
 
 #include "lrp_reader.hpp"
-#include "msdata.hpp"
+#include "helper.hpp"
 #include <chrono>
 #include <lrpcalib.hpp>
 #include <lrpfile.hpp>
@@ -39,10 +39,7 @@
 #include <boost/format.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <algorithm>
-#include <numeric>
-#include <stdexcept>
 #include <format>
-#include <iostream>
 #include <lrpheader.hpp>
 #include <lrphead2.hpp>
 #include <lrphead3.hpp>
@@ -305,63 +302,7 @@ data_reader::getData( int64_t rowid ) const
 std::shared_ptr< adcontrols::MassSpectrum >
 data_reader::getSpectrum( int64_t rowid ) const
 {
-    auto header_mass_range = [&]()->std::pair<double,double>{
-        return {double(impl_->lrpfile_->instsetup().lmasslim())/65536.0
-                , double( impl_->lrpfile_->instsetup().umasslim()) /65536.0 };
-    };
-    const auto upperdrive = impl_->lrpfile_->instsetup().upperdrive();
-    const auto stepsize  = impl_->lrpfile_->instsetup().stepsize();
-    const auto clockbaud = impl_->lrpfile_->instsetup().clockbaud();
-    const auto scanlaw = impl_->lrpfile_->instsetup().scanlaw();
-    double dt = stepsize * clockbaud;
-    ADDEBUG() << "############# spectral time step: " << std::format( "{}, stepsize={}, clockbaud={}", dt, stepsize, clockbaud );
-
-    if ( rowid > impl_->lrpfile_->msdata().size() )
-        return {};
-
-    if ( rowid < 0 || rowid >= impl_->lrpfile_->msdata().size()) {
-        return {};
-    }
-    auto y = impl_->lrpfile_->msdata().at( rowid )->intensities();
-    auto numSamples = y.size();
-    auto mass_range = header_mass_range();
-
-    auto mass_at = [&]( size_t idx )->double{
-        // assume time squared scan law (TOF Eq.)
-        const double f = double( idx ) / double( numSamples - 1 );
-        const double s0 = std::sqrt( mass_range.first );
-        const double s1 = std::sqrt( mass_range.second );
-        const double s = s0 + f * ( s1 - s0 );
-        return s * s;
-    };
-
-    shrader::mass_assign mass_assigner( *impl_->lrpfile_ );
-
-    std::vector< std::pair< double, double > > vec;
-    for ( size_t i = 0; i < y.size(); ++i ) {
-        if ( i < 10 )
-            ADDEBUG() << i << "\t" << mass_assigner( i ) << ", " << mass_at(i);
-        vec.emplace_back( mass_at( i ), y.at( i ) );
-        // vec.emplace_back( mass_assigner( i ), y.at( i ) );
-    }
-
-    if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {
-        for ( const auto& datum: vec )
-            *ms << datum;
-        ms->setAcquisitionMassRange( mass_range.first, mass_range.second );
-        ms->getMSProperty().setTrigNumber( impl_->lrpfile_->msdata().at( rowid )->blocks().at(0).scan );
-        ms->getMSProperty().setInstMassRange( header_mass_range() );
-        if ( auto& lrptic = impl_->lrpfile_->lrptic() ) {
-            const auto milliseconds = lrptic.tic().at( rowid ).time;
-            ms->getMSProperty().setTimeSinceInjection( milliseconds, adcontrols::metric::milli );
-            auto time_of_injection = impl_->lrpfile_->time_of_injection();
-            if ( auto tp = adportable::iso8601::parse( time_of_injection.begin(), time_of_injection.end() ) ) {
-                ms->getMSProperty().setTimePoint( *tp + std::chrono::milliseconds( milliseconds ) );
-            }
-        }
-        return ms;
-    }
-    return {};
+    return shrader::make_spectrum( rowid, *impl_->lrpfile_ );
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >

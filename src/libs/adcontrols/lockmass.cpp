@@ -45,6 +45,7 @@
 #include <adportable/json_helper.hpp>
 #include <cstring>
 #include <chrono>
+#include <limits>
 
 using namespace adcontrols;
 using namespace adcontrols::lockmass;
@@ -248,6 +249,13 @@ mslock::findReferences( mslock& lk,  const adcontrols::MassSpectrum& ms, int idx
     const double matchedMass = segs[ fcn ].mass( idx );
     const double matchedTime = segs[ fcn ].time( idx );
 
+    // const auto& tms = segs[ fcn ];
+    if ( matchedMass < 0.5 ) {
+        ADDEBUG() << std::format( "idx={}, fcn={}, matchedMass={}, matchedTime={}, size={}"
+                                  , idx, fcn, matchedMass, matchedTime, ms.size() );
+        return false;
+    }
+
     const auto& annots = segs[ fcn ].annotations();
 
     auto pred1 = [&]( const auto& a){ return a.index() == idx; };
@@ -292,11 +300,18 @@ mslock::fit()
 
     posix_time_ = std::chrono::duration_cast< std::chrono::nanoseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
 
+    // sanity check
+    for ( const auto& ref: references_ ) {
+        if ( ref.matchedMass() <= std::numeric_limits<double>::epsilon() ) {
+            ADDEBUG() << "mslock::fit() error -- no matchedMass: " << boost::json::value_from( ref );
+            return false;
+        }
+    }
+
     if ( references_.size() == 1 ) {
         auto& ref = references_[0];
         double error = ref.matchedMass() - ref.exactMass();
         double relativeError = error / ref.matchedMass();
-
         fitter_ = std::vector< double >{  relativeError };
         return true;
 
@@ -320,7 +335,6 @@ mslock::operator()( MassSpectrum& ms, bool applyToAll ) const
 {
     if ( applyToAll ) {
         std::pair< double, double > range(1000000.0, 0.0);
-
         for ( auto& fms : adcontrols::segment_wrapper<>( ms ) ) {
             fitter_( fms );
             range.first = std::min( fms.mass( 0 ), range.first );

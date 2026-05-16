@@ -28,13 +28,17 @@
 #include <sstream>
 
 namespace adfs { class blob; }
+namespace adcontrols { class MassSpectrum; }
 
 namespace shrader {
+    class lrpfile;
 
     std::string bzip2_compress( std::string&& );
     std::string bzip2_decompress( const std::string& compressed );
     std::string bzip2_decompress( adfs::blob );
     std::string block_to_string( const std::array< char, 256 >& data );
     std::string string_to_block( const std::string& );
+
+    std::shared_ptr< adcontrols::MassSpectrum > make_spectrum( int64_t rowid, const lrpfile& );
 
 }

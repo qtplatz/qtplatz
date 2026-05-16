@@ -441,7 +441,7 @@ Targeting::setup( const TargetingMethod& m )
                         , scharge
                         , x.formula()
                         , x.synonym() );
-                    ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();
+                    // ADDEBUG() << "###<" << charge << ">" << impl_->active_formula_.back();
                 }
             } else {
                 for ( uint32_t charge = charge_range.first; charge <= charge_range.second; ++charge ) {

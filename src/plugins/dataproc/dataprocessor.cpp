@@ -1058,6 +1058,8 @@ Dataprocessor::doMSLock( portfolio::Folium& folium
 
     // apply profile and peakinfo contained in the folium
     if ( mslock.fit() ) {
+        ADDEBUG() << "## mslock: " << boost::json::value_from( mslock );
+
         if ( mslock( *ms ) ) {
             ms->addDescription( adcontrols::description( L"process", L"mslock" ) );
 

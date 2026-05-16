@@ -412,7 +412,7 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
                         }
                     }
 
-                    ADDEBUG() << "------ proto.get() = " << proto.get();
+                    // ADDEBUG() << "------ proto.get() = " << proto.get();
 
                     auto& t = adcontrols::segment_wrapper< const adcontrols::MassSpectrum >( *sp )[ proto.get() ];
                     double tof = t.time( t.getIndexFromMass( mol.mass() ) );
