@@ -200,7 +200,7 @@ export_to_adfs::operator()( const datafile& _ )
                                                , msdata->blocks().at(0).scan // pos
                                                , 0 // fcn
                                                , 0 // ndata -- not in use
-                                               , 0 // events
+                                               , ((it == lrp->msdata().begin()) ? adacquire::SignalObserver::wkEvent_INJECT : 0) // events
                                                , data
                                                , meta );
         }
