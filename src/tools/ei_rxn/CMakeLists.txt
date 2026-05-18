@@ -39,11 +39,14 @@ add_executable( ${PROJECT_NAME}
   allchem.cpp allchem.hpp
   printer.cpp printer.hpp
   drawer.cpp drawer.hpp
-  html.cpp html.hpp
+  resultwriter.cpp resultwriter.hpp
+  product_record.hpp
 )
 
 target_link_libraries( ${PROJECT_NAME} LINK_PUBLIC
   adportable
+  adfs
+  adutils
   "${Boost_LIBRARIES}"
   RDKit::Catalogs
   RDKit::ChemReactions

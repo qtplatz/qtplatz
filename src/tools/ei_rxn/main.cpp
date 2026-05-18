@@ -1,3 +1,28 @@
+// -*- C++ -*-
+/**************************************************************************
+**
+** MIT License
+** Copyright (c) 2021-2022 Toshinobu Hondo, Ph.D
+
+** Permission is hereby granted, free of charge, to any person obtaining a copy
+** of this software and associated documentation files (the "Software"), to deal
+** in the Software without restriction, including without limitation the rights
+** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+** copies of the Software, and to permit persons to whom the Software is
+** furnished to do so, subject to the following conditions:
+
+** The above copyright notice and this permission notice shall be included in all
+** copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+**************************************************************************/
+
 #include <algorithm>
 #include <fstream>
 #include <Geometry/point.h>
@@ -24,26 +49,10 @@
 #include "allchem.hpp"
 #include "drawer.hpp"
 #include "printer.hpp"
-#include "html.hpp"
+#include "resultwriter.hpp"
+#include "product_record.hpp"
 #include <boost/program_options.hpp>
 #include <iostream>
-
-// std::vector<int> get_all_hit_bonds(RDKit::ROMol &mol,
-//                                    const std::vector<int> &hit_atoms) {
-//   std::vector<int> hit_bonds;
-//   for (int i : hit_atoms) {
-//     for (int j : hit_atoms) {
-//       if (i > j) {
-//           RDKit::Bond *bnd = mol.getBondBetweenAtoms(i, j);
-//           if (bnd) {
-//               hit_bonds.emplace_back(bnd->getIdx());
-//         }
-//       }
-//     }
-//   }
-//   return hit_bonds;
-// }
-
 
 std::vector<std::pair<std::string, std::string>> ei_rules = {
     { "C-C cleavage cation left",
@@ -197,11 +206,11 @@ make_unique_products( product_list&& products )
     return unique;
 }
 
-struct product_record {
-    RDKit::ROMOL_SPTR mol;
-    std::string smiles;
-    std::set< std::string > origins;
-};
+// struct product_record {
+//     RDKit::ROMOL_SPTR mol;
+//     std::string smiles;
+//     std::set< std::string > origins;
+// };
 
 int
 main(int argc, char **argv)
@@ -231,7 +240,7 @@ main(int argc, char **argv)
     // auto __thf = "C1CCOC1"_smiles;
     std::string smiles = "C1CCOC1";
     std::vector< std::string > synonyms = { "THF", "Tetrahydrofuran" };
-    if ( vm.count( "smiles" ) == 0 ) {
+    if ( vm.count( "smiles" ) ) {
         smiles = vm[ "smiles" ].as< std::string >();
         synonyms.clear();
     }
@@ -239,12 +248,6 @@ main(int argc, char **argv)
         synonyms = vm[ "synonyms" ].as< std::vector< std::string > >();
     }
 
-    std::cerr << "smiles: " << smiles << std::endl;
-    std::cerr << "synonyms:" << std::endl;
-    for ( const auto& synonym: synonyms )
-        std::cerr << "\t" << synonym << std::endl;
-
-    // C1CCOC1
     using namespace RDKit;
     std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
 
@@ -282,7 +285,7 @@ main(int argc, char **argv)
     }
 
     auto output = vm["output"].as<std::string>();
-    //if ( output == "-" || std::filesystem::path( output ).extension() != ".db" ) {
+    if ( output == "-" || std::filesystem::path( output ).extension() != ".db" ) {
 
         for ( const auto& [key, product]: unique ) {
             auto mass = RDKit::Descriptors::calcExactMW( *product.mol );
@@ -292,5 +295,10 @@ main(int argc, char **argv)
                 std::cout << origin << ", ";
             std::cout << std::endl;
         }
-    //}
+    } else {
+        resultWriter writer;
+        if ( writer.open( std::filesystem::path( output ) ) ) {
+            writer.write( *analyte, synonyms, unique );
+        }
+    }
 }
