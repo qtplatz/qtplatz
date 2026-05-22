@@ -46,6 +46,7 @@ namespace {
             "CREATE TABLE IF NOT EXISTS analyte ( "
             "id INTEGER PRIMARY KEY "
             ", canonical_smiles TEXT NOT NULL UNIQUE"
+            ", InChIKey"
             ", formula TEXT"
             ", exact_mass REAL"
             ", comment TEXT"
@@ -153,11 +154,11 @@ resultWriter::write( const RDKit::ROMol& analyte
     //              ",exact_mass = excluded.exact_mass"
     //              ",comment    = excluded.comment" );
     sql.prepare( "INSERT OR REPLACE INTO analyte "
-                 "(canonical_smiles,formula,exact_mass,comment) VALUES (?,?,?,?)" );
+                 "(canonical_smiles,formula,exact_mass,InChIKey) VALUES (?,?,?,?)" );
     sql.bind( 1 ) = key;
     sql.bind( 2 ) = RDKit::Descriptors::calcMolFormula( analyte );
     sql.bind( 3 ) = RDKit::Descriptors::calcExactMW( analyte );
-    sql.bind( 4 ) = std::string(); // comment
+    sql.bind( 4 ) = RDKit::MolToInchiKey( analyte );
     if ( sql.step() != adfs::sqlite_done )
         ADDEBUG() << sql.errmsg();
     sql.reset();

@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "helper.hpp"
+#include "mass_assign.hpp"
 #include <lrpfile.hpp>
 #include <instsetup.hpp>
 #include <lrpcalib.hpp>
@@ -110,6 +111,7 @@ namespace shrader {
         auto numSamples = y.size();
         auto mass_range = header_mass_range();
 
+#if 0
         // check shrader::massspectrometer class -- also has same code
         auto mass_at = [&]( size_t idx )->double{
             // assume time squared scan law (TOF Eq.)
@@ -119,13 +121,14 @@ namespace shrader {
             const double s = s0 + f * ( s1 - s0 );
             return s * s;
         };
-
+#endif
         // mass_assign class is not yet working -- asking to KANOMAX for CAL interpretation
-        // shrader::mass_assign mass_assigner( *impl_->lrpfile_ );
+        shrader::mass_assign mass_assigner( lrpfile );
 
         std::vector< std::pair< double, double > > vec;
         for ( size_t i = 0; i < y.size(); ++i ) {
-            vec.emplace_back( mass_at( i ), y.at( i ) );
+            //vec.emplace_back( mass_at( i ), y.at( i ) );
+            vec.emplace_back( mass_assigner( i ), y.at( i ) );
         }
 
         if ( auto ms = std::make_shared< adcontrols::MassSpectrum >() ) {

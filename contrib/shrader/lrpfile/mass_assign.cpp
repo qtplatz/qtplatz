@@ -63,46 +63,30 @@ mass_assign::mass_assign( const class lrpfile& file )
 double
 mass_assign::time( size_t idx ) const
 {
+    const auto t0 = std::get< cal_intens >( impl_->cal_ ); // float
+    return double( t0 ) + double( idx ) * impl_->dt_;
     return double(idx) * impl_->dt_ * 1.0e-9;
 }
 
 double
 mass_assign::operator()( std::size_t idx ) const
 {
-    const auto a = std::get< cal_coeff_a >( impl_->cal_ );  // seconds
-    const auto b = std::get< cal_coeff_b >( impl_->cal_ );  // seconds / sqrt(Da)
+    const auto npts = std::get< cal_mass >( impl_->cal_ );      // point count, e.g. 9027
+    const auto t0 = std::get< cal_intens >( impl_->cal_ ); // float
+    const auto a0 = std::get< cal_coeff_a >( impl_->cal_ );  // seconds
+    const auto a1 = std::get< cal_coeff_b >( impl_->cal_ );  // seconds / sqrt(Da)
     const auto adc_delay = std::get< cal_mass >( impl_->cal_ );  // seconds / sqrt(Da)
-    const double t = double (adc_delay + idx ) * impl_->dt_;
 
-    if ( t <= 0 || b == 0 ) {
+    if ( idx >= static_cast< std::size_t >( npts ) || a1 == 0 ) {
         return 0.0;
     }
 
-    // const double x = (t - a) / b;
-    const double x = (t - a) / b;
-    if ( idx < 20 )
-        ADDEBUG() << "mass_assign: " << std::format( "idx={}, t={} --> mass={}", idx, t, x*x )
-                  << "\t" << impl_->cal_;
+    const double t = double( t0 ) + double( idx ) * impl_->dt_;
+    const double x = ( t - a0 ) / a1;
+
+    if ( x <= 0 ) {
+        return 0.0;
+    }
 
     return x * x;
 }
-
-#if 0
-double
-mass_assign::mass( size_t idx ) const
-{
-
-    const double t_ns = double(idx) * impl_->dt_ns_;
-    const double dt = t_ns - std::get< cal_coeff_a >( impl_->cal_ );
-    auto m = std::get< cal_coeff_b >( impl_->cal_ ) * dt * dt;
-
-    ADDEBUG() << "mass_assign: " << std::format( "t_ns={}, idx={}, dt={}, a={}, b={}, m={}"
-                                                 , t_ns
-                                                 , idx
-                                                 , dt
-                                                 , std::get< cal_coeff_a >( impl_->cal_ )
-                                                 , std::get< cal_coeff_b >( impl_->cal_ )
-                                                 , m );
-    return m;
-}
-#endif

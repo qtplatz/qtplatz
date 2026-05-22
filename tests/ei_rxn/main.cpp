@@ -1,30 +1,6 @@
-// -*- C++ -*-
-/**************************************************************************
-**
-** MIT License
-** Copyright (c) 2021-2022 Toshinobu Hondo, Ph.D
-
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-
-** The above copyright notice and this permission notice shall be included in all
-** copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-**************************************************************************/
-
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <Geometry/point.h>
 #include <GraphMol/Atom.h>
 #include <GraphMol/ChemReactions/Reaction.h>
@@ -49,10 +25,24 @@ SOFTWARE.
 #include "allchem.hpp"
 #include "drawer.hpp"
 #include "printer.hpp"
-#include "resultwriter.hpp"
-#include "product_record.hpp"
-#include <boost/program_options.hpp>
-#include <iostream>
+#include "html.hpp"
+
+std::vector<int> get_all_hit_bonds(RDKit::ROMol &mol,
+                                   const std::vector<int> &hit_atoms) {
+  std::vector<int> hit_bonds;
+  for (int i : hit_atoms) {
+    for (int j : hit_atoms) {
+      if (i > j) {
+          RDKit::Bond *bnd = mol.getBondBetweenAtoms(i, j);
+          if (bnd) {
+              hit_bonds.emplace_back(bnd->getIdx());
+        }
+      }
+    }
+  }
+  return hit_bonds;
+}
+
 
 std::vector<std::pair<std::string, std::string>> ei_rules = {
     { "C-C cleavage cation left",
@@ -81,12 +71,6 @@ std::vector<std::pair<std::string, std::string>> ei_rules = {
 
     { "perfluoro C-C cleavage right",
       "[C:1]([F])([F])-[C:2]([F])([F])>>[C:1]([F])([F]).[C+:2]([F])[F]" }
-
-    , { "alcohol dehydration neutral loss H2O",
-      "[C:1]-[C:2]-[O:3]>>[C:1]=[C:2]" }
-
-    , { "geminal dihalide loss halogen radical",
-        "[C:1]([Cl,Br,I:2])[Cl,Br,I:3]>>[C+:1][Cl,Br,I:2].[Cl,Br,I:3]" }
 };
 
 class Rule {
@@ -108,6 +92,8 @@ public:
     const std::string& smarts() const { return smarts_; }
     const std::optional< RDKit::ChemicalReaction >& rxn() const { return rxn_; }
 };
+
+constexpr const int max_depth = 10;
 
 using product_type = std::pair< RDKit::ROMOL_SPTR, std::string >;
 using product_list = std::vector< product_type >;
@@ -212,56 +198,24 @@ make_unique_products( product_list&& products )
     return unique;
 }
 
-// struct product_record {
-//     RDKit::ROMOL_SPTR mol;
-//     std::string smiles;
-//     std::set< std::string > origins;
-// };
+struct product_record {
+    RDKit::ROMOL_SPTR mol;
+    std::string smiles;
+    std::set< std::string > origins;
+};
 
 int
 main(int argc, char **argv)
 {
-    namespace po = boost::program_options;
-    po::variables_map vm;
-    po::options_description description( argv[0] );
-    {
-        description.add_options()
-            ( "help,h",      "Display this help message" )
-            ( "smiles",       po::value< std::string >(),  "smiles" )
-            ( "output,o",     po::value< std::string >()->default_value("-"), "output file, '-' for stdout" )
-            ( "synonyms",   po::value< std::vector< std::string > >()->multitoken(), "synonyms" )
-            ;
-        po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
-        po::notify(vm);
-    }
-
-    if ( vm.count( "help" ) ) {
-        std::cerr << description << std::endl;
-        std::cerr << std::endl;
-        std::cerr << "example usage: "
-                  << std::format( "{} --smiles=C1CCOC1 --synonyms THF Tetrahydrofuran\n",  argv[0] );
-        return 0;
-    }
-
-    // auto __thf = "C1CCOC1"_smiles;
-    std::string smiles = "C1CCOC1";
-    std::vector< std::string > synonyms = { "THF", "Tetrahydrofuran" };
-    if ( vm.count( "smiles" ) ) {
-        smiles = vm[ "smiles" ].as< std::string >();
-        synonyms.clear();
-    }
-    if ( vm.count( "synonyms" ) ) {
-        synonyms = vm[ "synonyms" ].as< std::vector< std::string > >();
-    }
-
+    // C1CCOC1
     using namespace RDKit;
-    std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
+    auto __thf = "C1CCOC1"_smiles;
 
     std::vector< Rule > rules;
     for ( const auto& rule: ei_rules )
         rules.emplace_back( rule );
 
-    auto products = enumerate_products( rules, *analyte, 2 );
+    auto products = enumerate_products( rules, *__thf, 2 );
     products = make_unique_products( std::move( products ) );
 
     // for ( const auto& product: products ) {
@@ -290,21 +244,13 @@ main(int argc, char **argv)
         }
     }
 
-    auto output = vm["output"].as<std::string>();
-    if ( output == "-" || std::filesystem::path( output ).extension() != ".db" ) {
-
-        for ( const auto& [key, product]: unique ) {
-            auto mass = RDKit::Descriptors::calcExactMW( *product.mol );
-            std::cout << std::format( "{:4f}\t{:16s}", mass, RDKit::MolToSmiles( *product.mol ) );
-            std::cout << "\torigins: ";
-            for ( const auto origin: product.origins )
-                std::cout << origin << ", ";
-            std::cout << std::endl;
-        }
-    } else {
-        resultWriter writer;
-        if ( writer.open( std::filesystem::path( output ) ) ) {
-            writer.write( *analyte, synonyms, unique );
-        }
+    std::cout << "==================================" << std::endl;
+    for ( const auto& [key, product]: unique ) {
+        auto mass = RDKit::Descriptors::calcExactMW( *product.mol );
+        std::cout << std::format( "{:4f}\t{:16s}", mass, RDKit::MolToSmiles( *product.mol ) );
+        std::cout << "\torigins: ";
+        for ( const auto origin: product.origins )
+            std::cout << origin << ", ";
+        std::cout << std::endl;
     }
 }
