@@ -27,7 +27,6 @@
 
 #include "constants.hpp"
 #include <adcontrols/massspectrometer.hpp>
-#include <admtcontrols/scanlaw.hpp>
 #include <adcontrols/massspectrometer_factory.hpp>
 #include <adplugin/plugin.hpp>
 #include <memory>
@@ -40,7 +39,6 @@ namespace adcontrols {
 }
 namespace adfs { class filesystem; }
 namespace boost { namespace uuids { struct uuid; } }
-namespace admtcontrols { class ScanLaw; class OrbitProtocol; }
 
 namespace shrader {
 

@@ -26,6 +26,7 @@
 #pragma once
 
 #include <adfs/sqlite.hpp>
+#include <memory>
 
 namespace shrader {
 

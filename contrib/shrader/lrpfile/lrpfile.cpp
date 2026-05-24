@@ -212,18 +212,16 @@ size_t lrpfile::number_of_spectra() const
 std::string
 lrpfile::time_of_injection() const
 {
-#ifdef _WIN32
-    localtime_s( &lt, &t );
+    std::tm tm{};
 
+    std::istringstream in( header().analdate() );
+    in >> std::get_time( &tm, "%m/%d/%Y" );
+#ifdef _WIN32
     TIME_ZONE_INFORMATION tz{};
     GetTimeZoneInformation( &tz );
     // bias is minutes west of UTC
     long gmtoff = -static_cast<long>( tz.Bias ) * 60;
 #else
-    std::tm tm{};
-    std::istringstream in( header().analdate() );
-    in >> std::get_time( &tm, "%m/%d/%Y" );
-
     std::tm lt{0};
     time_t t = time(0);
     localtime_r(&t, &lt);

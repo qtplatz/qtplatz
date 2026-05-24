@@ -28,6 +28,7 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <string>
 
 namespace shrader {
 
