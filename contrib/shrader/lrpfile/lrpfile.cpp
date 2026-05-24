@@ -39,6 +39,9 @@
 #include <iostream>
 #include <istream>
 #include <sstream>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace shrader {
 
@@ -209,6 +212,14 @@ size_t lrpfile::number_of_spectra() const
 std::string
 lrpfile::time_of_injection() const
 {
+#ifdef _WIN32
+    localtime_s( &lt, &t );
+
+    TIME_ZONE_INFORMATION tz{};
+    GetTimeZoneInformation( &tz );
+    // bias is minutes west of UTC
+    long gmtoff = -static_cast<long>( tz.Bias ) * 60;
+#else
     std::tm tm{};
     std::istringstream in( header().analdate() );
     in >> std::get_time( &tm, "%m/%d/%Y" );
@@ -216,13 +227,14 @@ lrpfile::time_of_injection() const
     std::tm lt{0};
     time_t t = time(0);
     localtime_r(&t, &lt);
-
-    // "analdate":"5/30/2025" "analtime":"17:17:24" --> 2025-05-30T17:17:24+0900 (in case at JST area)
+    long gmtoff = lt.tm_gmtoff;
+#endif
+    // "analdate":"5/30/2025" "analtime":"17:17:24" --> 2025-05-30T17:17:24+0900
     return std::format( "{:04d}-{:02d}-{:02d}T{}{:+03d}{:02d}"
                         , tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
                         , header().analtime()
-                        , lt.tm_gmtoff / 3600
-                        , (lt.tm_gmtoff / 60) % 60 );
+                        , gmtoff / 3600
+                        , (gmtoff / 60) % 60 );
 }
 
 ticc_t
