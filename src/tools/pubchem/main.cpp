@@ -44,6 +44,21 @@ namespace po = boost::program_options;
 
 namespace {
 
+    struct pub_handler {
+        void operator()( boost::beast::http::response< boost::beast::http::string_body > res
+                         , const std::string& target ) {
+            ADDEBUG() << "\n## target:\t" << target;
+            ADDEBUG() << "## response: \n\t" << res.body().data();
+
+            boost::system::error_code ec;
+            auto jv = boost::json::parse( res.body(), ec );
+            if ( !ec ) {
+                std::cout << "\n" << jv << std::endl;
+            }
+        }
+    };
+
+    //-----------------------
     struct pug_requester {
         const int version_;
         const std::string host_;
@@ -61,19 +76,8 @@ namespace {
             ctx_.set_default_verify_paths();
             boost::certify::enable_native_https_server_verification(ctx_);
         }
-
         void operator()( const std::string& target ) const {
             boost::asio::io_context ioc;
-            // boost::asio::ssl::context ctx{ boost::asio::ssl::context::tlsv12_client };
-
-            // // verify SSL context
-            // {
-            //     ctx.set_verify_mode(boost::asio::ssl::verify_peer |
-            //                         boost::asio::ssl::context::verify_fail_if_no_peer_cert);
-            //     ctx.set_default_verify_paths();
-            //     boost::certify::enable_native_https_server_verification(ctx);
-            // }
-
             auto future = std::make_shared< session >( boost::asio::make_strand(ioc)
                                                        ,  ctx_ )->run(host_
                                                                       , port_
@@ -90,8 +94,26 @@ namespace {
             if ( !ec ) {
                 std::cout << "\n" << jv << std::endl;
             }
-
         }
+
+        void operator()( const std::string& target
+                         , std::function<void( boost::beast::http::response< boost::beast::http::string_body >
+                                               , std::string )> handler ) const {
+            boost::asio::io_context ioc;
+            auto future = std::make_shared< session >( boost::asio::make_strand(ioc)
+                                                       ,  ctx_ )->run(host_
+                                                                      , port_
+                                                                      , target.c_str()
+                                                                      , version_ );
+            ioc.run();
+
+            auto res = future.get();
+            ADDEBUG() << "\n## target:\t" << target;
+            ADDEBUG() << "## response: \n\t" << res.body().data();
+            handler( res, target );
+        }
+
+
     };
 
 }
@@ -117,12 +139,13 @@ main( int argc, char * argv [] )
             ( "property",      po::value< std::string >()->default_value( "CanonicalSMILES,MolecularFormula,InChiKey" ), "")
             ( "output",      po::value< std::string >()->default_value( "JSON" ), "XML|ASNT|ASNB|JSON|JSONP[?callback=<callback name>]|SDF|CSV|PNG|TXT")
             ( "autocomplete,a", "autocomplete; pug if not specified" )
+            ( "cas",  po::value< std::string >(),  "CAS number such as '57-14-7'")
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
     }
 
-    if ( vm.count( "help" ) || vm.count( "identifier" ) == 0 ) {
+    if ( vm.count( "help" ) || (vm.count( "identifier" ) == 0 && vm.count( "cas") == 0) ) {
         std::cout << description << std::endl;
         std::cout << argv[0] << " specify identifer such as: " << std::endl;
         std::cout << "\tpug --identifier APAP" << std::endl;
@@ -133,32 +156,40 @@ main( int argc, char * argv [] )
     auto const host = vm[ "host" ].as< std::string >().c_str();
     auto const port = vm[ "port" ].as< std::string >().c_str();
     int version = vm[ "version" ].as< std::string >() == "1.0" ? 10 : 11;  // "1.0"
+    pug_requester pug( version, host, port );
 
-    std::vector< std::string > identifiers = vm[ "identifier" ].as< std::vector< std::string > >();
-    bool autocomplete = vm.count( "autocomplete" );
+    if ( vm.count( "identifier" ) ) {
+        std::vector< std::string > identifiers = vm[ "identifier" ].as< std::vector< std::string > >();
+        bool autocomplete = vm.count( "autocomplete" );
 
-    pug_requester pub( version, host, port );
 
-    for ( auto identifier: identifiers ) {
+        for ( auto identifier: identifiers ) {
 
-        std::ostringstream o;
-        o << "/rest";
-        if ( autocomplete ) {
-            o << "/autocomplete"
-              << "/" << vm[ "domain" ].as< std::string >()             // compound
-              << "/" << identifier
-              << "/json?limit=20";
-        } else {
-            o << "/pug"
-              << "/" << vm[ "domain" ].as< std::string >()             // compound
-              << "/" << vm[ "namespace" ].as< std::string >()          // name
-              << "/" << identifier
-              << "/property/" << vm[ "property" ].as< std::string >()  // CanonicalSMILES
-              << "/" << vm[ "output" ].as< std::string >();             // JSON
+            std::ostringstream o;
+            o << "/rest";
+            if ( autocomplete ) {
+                o << "/autocomplete"
+                  << "/" << vm[ "domain" ].as< std::string >()             // compound
+                  << "/" << identifier
+                  << "/json?limit=20";
+            } else {
+                o << "/pug"
+                  << "/" << vm[ "domain" ].as< std::string >()             // compound
+                  << "/" << vm[ "namespace" ].as< std::string >()          // name
+                  << "/" << identifier
+                  << "/property/" << vm[ "property" ].as< std::string >()  // CanonicalSMILES
+                  << "/" << vm[ "output" ].as< std::string >();             // JSON
+            }
+
+            auto target = o.str();
+            pug( target );
         }
-
-        auto target = o.str();
-        pub( target );
     }
+    if ( vm.count( "cas" ) ) {
+        auto target = std::format("/rest/pug/compound/name/{}/cids/JSON", vm["cas"].as< std::string >() );
+        ADDEBUG() << "----------------------------";
+        pug( target, pub_handler{} );
+    }
+
     return 0;
 }
