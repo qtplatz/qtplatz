@@ -22,6 +22,7 @@
 **
 **************************************************************************/
 
+#include <adportable/debug.hpp>
 #include <boost/program_options.hpp>
 #include <algorithm>
 #include <cmath>

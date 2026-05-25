@@ -40,9 +40,12 @@ namespace adportable {
     class csv_reader::impl {
     public:
         std::ifstream istrm_;
-        impl( const std::string& file ) : istrm_( file ) {
+        std::istream& inf_;
+        impl( const std::string& file ) : istrm_( file ), inf_( istrm_) {
         }
-        impl( std::ifstream&& inf ) : istrm_( std::move( inf ) ) {
+        impl( std::ifstream&& inf ) : istrm_( std::move( inf ) ), inf_(istrm_) {
+        }
+        impl( std::istream& inf ) : inf_( inf ) {
         }
     };
 
@@ -73,6 +76,9 @@ namespace adportable {
         // int
         template<> template<> int to_value<int>::operator()(const std::string& v) const { try { return stoi(v); } catch ( ... ){}; return {}; }
 
+        // // int64_t
+        // template<> template<> int to_value<int64_t>::operator()(const std::string& v) const { try { return stoll(v); } catch ( ... ){}; return {}; }
+
         // double
         template<> template<> double to_value<double>::operator()(const std::string& v) const { try { return stod(v); } catch ( ... ){}; return {}; }
 
@@ -81,7 +87,7 @@ namespace adportable {
     struct integer {};
     struct real    {};
     struct null    {};
-    static inline auto as_parser(integer) { return x3::int_    ;  }
+    static inline auto as_parser(integer)   { return x3::int_    ;  }
     static inline auto as_parser(real)    { return x3::double_ ;  }
 
     template < typename... specs > struct type_parser_list {};
@@ -123,6 +129,11 @@ csv_reader::csv_reader( std::ifstream&& ins )
 {
 }
 
+csv_reader::csv_reader( std::istream& ins )
+    : impl_( std::make_unique< impl >( ins ) )
+{
+}
+
 void
 csv_reader::rewind()
 {
@@ -132,7 +143,7 @@ csv_reader::rewind()
 bool
 csv_reader::read( list_type& list )
 {
-    return impl_ && read( impl_->istrm_, list );
+    return impl_ && read( impl_->inf_, list );
 }
 
 bool
@@ -150,7 +161,7 @@ csv_reader::read( std::istream& istrm, list_type& list )
                     if ( value.type() == typeid( std::string ) ) {
                         const auto& a = boost::get< std::string >( value );
                         variant_type t;
-                        if ( type_parser_list< real, integer, null >()( a, t ) ) {
+                        if ( type_parser_list< integer, real, null >()( a, t ) ) {
                             value = std::move( t );
                         }
                     }

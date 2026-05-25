@@ -23,8 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **************************************************************************/
 
-#include <algorithm>
-#include <fstream>
+#include <adportable/debug.hpp>
+#include <adportable/csv_reader.hpp>
 #include <Geometry/point.h>
 #include <GraphMol/Atom.h>
 #include <GraphMol/ChemReactions/Reaction.h>
@@ -52,6 +52,7 @@ SOFTWARE.
 #include "resultwriter.hpp"
 #include "product_record.hpp"
 #include <boost/program_options.hpp>
+#include <boost/variant/detail/apply_visitor_unary.hpp>
 #include <iostream>
 
 std::vector<std::pair<std::string, std::string>> ei_rules = {
@@ -212,11 +213,146 @@ make_unique_products( product_list&& products )
     return unique;
 }
 
-// struct product_record {
-//     RDKit::ROMOL_SPTR mol;
-//     std::string smiles;
-//     std::set< std::string > origins;
-// };
+struct predict {
+
+    std::pair< std::unique_ptr< RDKit::RWMol >, std::map< std::string, product_record > >
+    operator()( const std::string& smiles ) {
+        using namespace RDKit;
+        std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
+        return (*this)( std::move( analyte ) );
+    }
+
+    std::pair< std::unique_ptr< RDKit::RWMol >, std::map< std::string, product_record > >
+    operator()( std::unique_ptr< RDKit::RWMol >&& analyte ) {
+        std::vector< Rule > rules;
+        for ( const auto& rule: ei_rules )
+            rules.emplace_back( rule );
+
+        auto products = enumerate_products( rules, *analyte, 2 );
+        products = make_unique_products( std::move( products ) );
+
+        std::map< std::string, product_record > unique;
+
+        for ( auto& [mol, origin] : products ) {
+
+            if ( not mol )
+                continue;
+
+            auto key = RDKit::MolToSmiles( *mol, true );
+
+            auto it = unique.find( key );
+
+            if ( it == unique.end() ) {
+                product_record rec;
+                rec.mol = mol;
+                rec.smiles = key;
+                rec.origins.insert( origin );
+                unique.emplace( key, std::move( rec ) );
+            } else {
+                it->second.origins.insert( origin );
+            }
+        }
+        // writeResult( output, *analyte, synonyms, unique );
+        return { std::move( analyte ), std::move( unique ) };
+    }
+
+    static void writeResult( const std::string& output
+                             , const RDKit::RWMol& analyte
+                             , const std::map< std::string, product_record >& unique
+                             , const std::vector< std::string >& synonyms ) {
+
+        if ( output == "-" || std::filesystem::path( output ).extension() != ".db" ) {
+
+            for ( const auto& [key, product]: unique ) {
+                auto mass = RDKit::Descriptors::calcExactMW( *product.mol );
+                std::cout << std::format( "{:4f}\t{:16s}", mass, RDKit::MolToSmiles( *product.mol ) );
+                std::cout << "\torigins: ";
+                for ( const auto origin: product.origins )
+                    std::cout << origin << ", ";
+                std::cout << std::endl;
+            }
+        } else {
+            resultWriter writer;
+            if ( writer.open( std::filesystem::path( output ) ) ) {
+                writer.write( analyte, synonyms, unique );
+            }
+        }
+    }
+
+};
+
+struct string_visitor : boost::static_visitor<std::string> {
+    std::string operator()( const auto& v ) const {
+        return std::to_string( v );
+    }
+    std::string operator()( const std::string& v ) const {
+        return v;
+    }
+    std::string operator()( const boost::spirit::x3::unused_type& ) const {
+        return {};
+    }
+};
+
+class smiles_reader {
+public:
+    ~smiles_reader() {}
+    smiles_reader() {}
+
+    ssize_t find_smiles_column( const adportable::csv::list_type& list ) const {
+        for ( size_t i = 0; i < list.size(); ++i ) {
+            const auto& value = list.at(i);
+            if ( value.type() == typeid( std::string ) ) {
+                auto str = boost::get< std::string >( value );
+                if ( not str.empty() ) {
+                    try {
+                        std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( str ) );
+                        if ( mol )
+                            return i;
+                    } catch ( std::exception& ) {
+                        // ignore error
+                    }
+                }
+            }
+        }
+        return (-1);
+    }
+
+    std::vector< std::string >
+    make_synonyms( const adportable::csv::list_type& list, ssize_t smiles_column ) const {
+        std::vector< std::string > res{};
+        for ( size_t i = 0; i < list.size(); ++i ) {
+            if ( i != smiles_column )
+                res.emplace_back( boost::apply_visitor( string_visitor(), list[i] ) );
+        }
+        return {};
+    }
+
+    void operator()( std::istream& inf
+                     , const std::function<void( std::unique_ptr< RDKit::RWMol >&&
+                                                 , std::vector< std::string >&& )> forwarder ) const {
+        adportable::csv::csv_reader reader{};
+        adportable::csv::list_type list;
+        ssize_t smiles_column = (-1);
+        while ( reader.read( inf, list ) && inf.good() ) {
+            if ( smiles_column == (-1) )
+                smiles_column = find_smiles_column( list );
+            if ( smiles_column >= 0 ) {
+                for ( const auto& value: list ) {
+                    auto smiles = boost::get< std::string >( list.at( smiles_column ) );
+                    try {
+                        std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( smiles ) );
+                        if ( mol ) {
+                            auto synonyms = make_synonyms( list, smiles_column );
+                            forwarder( std::move( mol ), std::move( synonyms ) );
+                        }
+                    } catch ( std::exception& ex ) {
+                    }
+                }
+            }
+        }
+    }
+};
+
 
 int
 main(int argc, char **argv)
@@ -230,6 +366,7 @@ main(int argc, char **argv)
             ( "smiles",       po::value< std::string >(),  "smiles" )
             ( "output,o",     po::value< std::string >()->default_value("-"), "output file, '-' for stdout" )
             ( "synonyms",   po::value< std::vector< std::string > >()->multitoken(), "synonyms" )
+            ( "csv", po::value< std::string >(),  "read given csv file" )
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
@@ -243,17 +380,42 @@ main(int argc, char **argv)
         return 0;
     }
 
-    // auto __thf = "C1CCOC1"_smiles;
-    std::string smiles = "C1CCOC1";
-    std::vector< std::string > synonyms = { "THF", "Tetrahydrofuran" };
-    if ( vm.count( "smiles" ) ) {
-        smiles = vm[ "smiles" ].as< std::string >();
-        synonyms.clear();
-    }
-    if ( vm.count( "synonyms" ) ) {
-        synonyms = vm[ "synonyms" ].as< std::vector< std::string > >();
+    if ( vm.count( "csv" ) ) {
+        auto output = vm["output"].as<std::string>();
+        // forward functor
+        auto callback = [output](std::unique_ptr< RDKit::RWMol >&& mol, std::vector< std::string >&& synonyms ){
+            auto [analyte, unique] = predict{}( std::move( mol ) );
+            predict::writeResult( output, *analyte, unique, synonyms );
+        };
+        //<---
+
+        auto csv = vm[ "csv" ].as<std::string>();
+        smiles_reader reader{};
+        std::ifstream file;
+        if ( csv != "-" )
+            file.open( csv );
+        std::istream& inf = (csv == "-") ? std::cin : file;
+        reader( inf, callback );
+
+    } else {
+        std::string smiles = "C1CCOC1";
+        std::vector< std::string > synonyms = { "THF", "Tetrahydrofuran" };
+        if ( vm.count( "smiles" ) ) {
+            smiles = vm[ "smiles" ].as< std::string >();
+            synonyms.clear();
+        }
+        if ( vm.count( "synonyms" ) ) {
+            synonyms = vm[ "synonyms" ].as< std::vector< std::string > >();
+        }
+
+        auto [analyte, unique ] = predict{}( smiles );
+        predict::writeResult( vm["output"].as<std::string>()
+                              , *analyte
+                              , unique
+                              , synonyms );
     }
 
+#if 0
     using namespace RDKit;
     std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
 
@@ -263,10 +425,6 @@ main(int argc, char **argv)
 
     auto products = enumerate_products( rules, *analyte, 2 );
     products = make_unique_products( std::move( products ) );
-
-    // for ( const auto& product: products ) {
-    //     printer(std::format("{}:\t", product.second ))( *product.first );
-    // }
 
     std::map< std::string, product_record > unique;
 
@@ -307,4 +465,5 @@ main(int argc, char **argv)
             writer.write( *analyte, synonyms, unique );
         }
     }
+#endif
 }

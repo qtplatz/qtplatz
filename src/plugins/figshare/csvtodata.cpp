@@ -22,6 +22,7 @@
 **************************************************************************/
 
 #include "csvtodata.hpp"
+#include <adportable/debug.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/chromatogram.hpp>
 

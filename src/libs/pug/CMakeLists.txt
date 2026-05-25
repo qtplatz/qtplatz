@@ -40,9 +40,9 @@ add_library( ${PROJECT_NAME} SHARED
   http_client_async.hpp
 )
 
-add_executable( pubchem
-  main.cpp
-)
+#add_executable( pubchem
+#  main.cpp
+#)
 
 target_link_libraries( ${PROJECT_NAME}
   adportable
@@ -65,14 +65,14 @@ install( TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${_archive_destination} COMPONENT libraries
 )
 
-target_link_libraries( pubchem
-  adportable
-  ${PROJECT_NAME}
-  ${Boost_LIBRARIES}
-  certify::sshlib
-  OpenSSL::SSL
-  OpenSSL::Crypto
-  pug
-)
+#target_link_libraries( pubchem
+#  adportable
+#  ${PROJECT_NAME}
+#  ${Boost_LIBRARIES}
+#  certify::sshlib
+#  OpenSSL::SSL
+#  OpenSSL::Crypto
+#  pug
+#)
 
-install( TARGETS pubchem RUNTIME DESTINATION bin COMPONENT applications )
+#install( TARGETS pubchem RUNTIME DESTINATION bin COMPONENT applications )

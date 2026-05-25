@@ -28,7 +28,6 @@ SOFTWARE.
 //#if not defined WIN32 // MSVC++ 14 can not compile spirit::x3
 
 #include "adportable_global.h"
-#include "debug.hpp"
 #include <boost/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <memory>
@@ -39,7 +38,7 @@ namespace adportable {
 
         namespace x3 = boost::spirit::x3;
 
-        typedef boost::variant< x3::unused_type, std::string, double, int > variant_type;
+        typedef boost::variant< x3::unused_type, std::string, double, int> variant_type;
         typedef std::vector< variant_type > list_type;
         typedef std::vector< std::pair< variant_type, std::string > > list_string_type;
 
@@ -53,6 +52,7 @@ namespace adportable {
             csv_reader();
             csv_reader( const std::string& file );
             csv_reader( std::ifstream&& );
+            csv_reader( std::istream& );
             void rewind();
             bool skip( size_t nlines );
             bool skip( std::istream&, size_t nlines );
@@ -74,8 +74,9 @@ namespace adportable {
         };
         // std::string
         template<> template<typename V> std::string to_value<std::string>::operator()(const V& v) const;
-        template<> template<> int to_value<int>::operator()(const std::string& v) const;
         template<> template<> double to_value<double>::operator()(const std::string& v) const;
+        template<> template<> int to_value<int>::operator()(const std::string& v) const;
+        // template<> template<> int64_t to_value<int64_t>::operator()(const std::string& v) const { try { return std::stol(v); } catch ( ... ){}; return {}; }
 
         // visitor
         template< typename T >
