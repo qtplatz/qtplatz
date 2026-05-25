@@ -146,7 +146,7 @@ resultWriter::write( const RDKit::ROMol& analyte
 {
     adfs::stmt sql( *impl_->db_ );
     const auto key = RDKit::MolToSmiles( analyte, true );
-    ADDEBUG() << key;
+    // ADDEBUG() << key;
     // sql.prepare( "INSERT INTO analyte "
     //              "(canonical_smiles,formula,exact_mass,comment) VALUES (?,?,?,?) "
     //              "ON CONFLICT(canonical_smiles) DO UPDATE SET "
@@ -160,7 +160,7 @@ resultWriter::write( const RDKit::ROMol& analyte
     sql.bind( 3 ) = RDKit::Descriptors::calcExactMW( analyte );
     sql.bind( 4 ) = RDKit::MolToInchiKey( analyte );
     if ( sql.step() != adfs::sqlite_done )
-        ADDEBUG() << sql.errmsg();
+        ADDEBUG() << sql.errmsg() << "\tkey=" << key;
     sql.reset();
 
 

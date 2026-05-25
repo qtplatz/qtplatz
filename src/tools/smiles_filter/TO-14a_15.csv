@@ -1,10 +1,10 @@
 #name,CAS,formula,SMILES
-"1,1-Dimethylhydrazine",57-14-7,C2H8N2,CN(C)N
-"1,1,2-Trichloroethane",79-00-5,C2H3Cl3,ClC(Cl)CCl
-"1,2-Propyleneimine",75-55-8,C3H7N,CC1CN1
-"1,2,4-Trichlorobenzene",120-82-1,C6H3Cl3,Clc1ccc(Cl)c(Cl)c1
-"1,2-Dibromo-3-chloropropane",96-12-8,C3H5Br2Cl,BrCC(Br)CCl
-"1,2-Epoxybutane",106-88-7,C4H8O,CCC1CO1
+"1,1-Dimethylhydrazine","57-14-7","C2H8N2,CN(C)N"
+"1,1,2-Trichloroethane","79-00-5","C2H3Cl3,ClC(Cl)CCl"
+"1,2-Propyleneimine","75-55-8","C3H7N,CC1CN1"
+"1,2,4-Trichlorobenzene","120-82-1","C6H3Cl3,Clc1ccc(Cl)c(Cl)c1"
+"1,2-Dibromo-3-chloropropane","96-12-8","C3H5Br2Cl,BrCC(Br)CCl"
+"1,2-Epoxybutane","106-88-7","C4H8O,CCC1CO1"
 "1,3-Butadiene",106-99-0,C4H6,C=CC=C
 "1,3-Dichloropropene",542-75-6,C3H4Cl2,ClC=CCCl
 "1,3-Propane sultone",1120-71-4,C3H6O3S,O=S1(=O)OCCC1
