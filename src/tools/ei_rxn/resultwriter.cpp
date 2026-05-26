@@ -146,14 +146,8 @@ resultWriter::write( const RDKit::ROMol& analyte
 {
     adfs::stmt sql( *impl_->db_ );
     const auto key = RDKit::MolToSmiles( analyte, true );
-    // ADDEBUG() << key;
-    // sql.prepare( "INSERT INTO analyte "
-    //              "(canonical_smiles,formula,exact_mass,comment) VALUES (?,?,?,?) "
-    //              "ON CONFLICT(canonical_smiles) DO UPDATE SET "
-    //              "formula     = excluded.formula"
-    //              ",exact_mass = excluded.exact_mass"
-    //              ",comment    = excluded.comment" );
-    sql.prepare( "INSERT OR REPLACE INTO analyte "
+    //sql.prepare( "INSERT OR REPLACE INTO analyte "
+    sql.prepare( "INSERT INTO analyte "
                  "(canonical_smiles,formula,exact_mass,InChIKey) VALUES (?,?,?,?)" );
     sql.bind( 1 ) = key;
     sql.bind( 2 ) = RDKit::Descriptors::calcMolFormula( analyte );
@@ -164,6 +158,7 @@ resultWriter::write( const RDKit::ROMol& analyte
     sql.reset();
 
 
+    // debug
     // sql.prepare( "select * from analyte" );
     // while ( sql.step() == adfs::sqlite_row ) {
     //     ADDEBUG() << sql.get_column_value< int64_t >(0); // id
@@ -171,7 +166,8 @@ resultWriter::write( const RDKit::ROMol& analyte
     // }
     //---
 
-    sql.prepare( "INSERT OR REPLACE INTO synonym"
+    //sql.prepare( "INSERT OR REPLACE INTO synonym"
+    sql.prepare( "INSERT INTO synonym"
                  "(analyte_id,name) VALUES "
                  "((SELECT id FROM analyte WHERE canonical_smiles=?), ?)" );
     for ( const auto& synonym: synonyms ) {
@@ -183,7 +179,8 @@ resultWriter::write( const RDKit::ROMol& analyte
     }
 
     //--------
-    sql.prepare( "INSERT OR REPLACE INTO product "
+    //sql.prepare( "INSERT OR REPLACE INTO product "
+    sql.prepare( "INSERT INTO product "
                  "(analyte_id,canonical_smiles,formula,exact_mass,charge,origins,comment) VALUES "
                  "((SELECT id FROM analyte WHERE canonical_smiles=?),?,?,?,?,?,?)" );
 

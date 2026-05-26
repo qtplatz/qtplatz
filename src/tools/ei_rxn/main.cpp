@@ -325,16 +325,13 @@ public:
             if ( smiles_column == (-1) )
                 smiles_column = find_smiles_column( list );
             if ( smiles_column >= 0 ) {
-                for ( const auto& value: list ) {
-                    auto smiles = boost::get< std::string >( list.at( smiles_column ) );
-                    try {
-                        std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( smiles ) );
-                        if ( mol ) {
-                            auto synonyms = make_synonyms( list, smiles_column );
-                            forwarder( std::move( mol ), std::move( synonyms ) );
-                        }
-                    } catch ( std::exception& ex ) {
-                    }
+                auto smiles = boost::get< std::string >( list.at( smiles_column ) );
+                auto synonyms = make_synonyms( list, smiles_column );
+                try {
+                    std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( smiles ) );
+                    if ( mol )
+                        forwarder( std::move( mol ), std::move( synonyms ) );
+                } catch ( std::exception& ex ) {
                 }
             }
         }
@@ -403,55 +400,4 @@ main(int argc, char **argv)
                               , synonyms );
     }
 
-#if 0
-    using namespace RDKit;
-    std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
-
-    std::vector< Rule > rules;
-    for ( const auto& rule: ei_rules )
-        rules.emplace_back( rule );
-
-    auto products = enumerate_products( rules, *analyte, 2 );
-    products = make_unique_products( std::move( products ) );
-
-    std::map< std::string, product_record > unique;
-
-    for ( auto& [mol, origin] : products ) {
-
-        if ( not mol )
-            continue;
-
-        auto key = RDKit::MolToSmiles( *mol, true );
-
-        auto it = unique.find( key );
-
-        if ( it == unique.end() ) {
-            product_record rec;
-            rec.mol = mol;
-            rec.smiles = key;
-            rec.origins.insert( origin );
-            unique.emplace( key, std::move( rec ) );
-        } else {
-            it->second.origins.insert( origin );
-        }
-    }
-
-    auto output = vm["output"].as<std::string>();
-    if ( output == "-" || std::filesystem::path( output ).extension() != ".db" ) {
-
-        for ( const auto& [key, product]: unique ) {
-            auto mass = RDKit::Descriptors::calcExactMW( *product.mol );
-            std::cout << std::format( "{:4f}\t{:16s}", mass, RDKit::MolToSmiles( *product.mol ) );
-            std::cout << "\torigins: ";
-            for ( const auto origin: product.origins )
-                std::cout << origin << ", ";
-            std::cout << std::endl;
-        }
-    } else {
-        resultWriter writer;
-        if ( writer.open( std::filesystem::path( output ) ) ) {
-            writer.write( *analyte, synonyms, unique );
-        }
-    }
-#endif
 }
