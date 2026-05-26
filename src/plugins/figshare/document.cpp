@@ -176,7 +176,7 @@ document::JSTREST( const QByteArray& ba )
         ctx.set_default_verify_paths();
         boost::certify::enable_native_https_server_verification(ctx);
     }
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 
     auto res = future.get();
@@ -207,7 +207,7 @@ document::figshareREST( const QByteArray& ba )
         ctx.set_default_verify_paths();
         boost::certify::enable_native_https_server_verification(ctx);
     }
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
     auto res = future.get();
     emit figshareReply( QByteArray( res.body().data() ), QString::fromStdString( rest.url() ) );
@@ -251,7 +251,7 @@ document::figshare_rest( const adcontrols::figshareREST& rest, const std::string
 
     const auto& [port, host, body] = rest.urlx();
 
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, target, version );
+    auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, target, version );
     ioc.run();
 
     auto res = future.get();
@@ -291,7 +291,7 @@ document::figshare_download( const adcontrols::figshareREST& rest, const boost::
 
     const auto& [port, host, body] = adcontrols::figshareREST::parse_url( download_url );
 
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 
     auto res = future.get();
@@ -344,7 +344,7 @@ document::figshare_download( const boost::beast::http::response< boost::beast::h
         req.set( boost::beast::http::field::cookie, itCookie->value() );
 
         boost::asio::io_context ioc;
-        auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, req );
+        auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, req );
         ioc.run();
 
         auto res = future.get();

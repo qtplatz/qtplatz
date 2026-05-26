@@ -36,8 +36,8 @@ include_directories(
 )
 
 add_library( ${PROJECT_NAME} SHARED
-  http_client_async.cpp
-  http_client_async.hpp
+  http_client_async.cpp http_client_async.hpp
+  pug_requester.cpp pug_requester.hpp
 )
 
 #add_executable( pubchem

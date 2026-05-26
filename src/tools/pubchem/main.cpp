@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2016-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2016-2022 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2016-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2016-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,6 +23,10 @@
 **************************************************************************/
 
 #include <adportable/debug.hpp>
+#include <adportable/csv_reader.hpp>
+#include <pugixml.hpp>
+#include <xmlparser/pugiwrapper.hpp>
+#include <pug/pug_requester.hpp>
 #include <pug/http_client_async.hpp>
 #include <boost/program_options.hpp>
 #include <boost/beast/core.hpp>
@@ -38,93 +42,15 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <future>
+#include <iomanip>
 
 namespace po = boost::program_options;
-
-namespace {
-
-    struct pub_handler {
-        void operator()( boost::beast::http::response< boost::beast::http::string_body > res
-                         , const std::string& target ) {
-            ADDEBUG() << "\n## target:\t" << target;
-            ADDEBUG() << "## response: \n\t" << res.body().data();
-
-            boost::system::error_code ec;
-            auto jv = boost::json::parse( res.body(), ec );
-            if ( !ec ) {
-                std::cout << "\n" << jv << std::endl;
-            }
-        }
-    };
-
-    //-----------------------
-    struct pug_requester {
-        const int version_;
-        const std::string host_;
-        const std::string port_;
-        mutable boost::asio::ssl::context ctx_; //{ boost::asio::ssl::context::tlsv12_client };
-        pug_requester( int version
-                       , const std::string& host
-                       , const std::string& port) : version_( version )
-                                                  , host_( host )
-                                                  , port_( port )
-                                                  , ctx_( boost::asio::ssl::context::tlsv12_client ) {
-            // verify SSL context
-            ctx_.set_verify_mode(boost::asio::ssl::verify_peer |
-                                boost::asio::ssl::context::verify_fail_if_no_peer_cert);
-            ctx_.set_default_verify_paths();
-            boost::certify::enable_native_https_server_verification(ctx_);
-        }
-        void operator()( const std::string& target ) const {
-            boost::asio::io_context ioc;
-            auto future = std::make_shared< session >( boost::asio::make_strand(ioc)
-                                                       ,  ctx_ )->run(host_
-                                                                      , port_
-                                                                      , target.c_str()
-                                                                      , version_ );
-            ioc.run();
-
-            auto res = future.get();
-            std::cout << "\n## target:\t" << target << std::endl;
-            std::cout << "## response: \n\t" << res.body().data();
-
-            boost::system::error_code ec;
-            auto jv = boost::json::parse( res.body(), ec );
-            if ( !ec ) {
-                std::cout << "\n" << jv << std::endl;
-            }
-        }
-
-        void operator()( const std::string& target
-                         , std::function<void( boost::beast::http::response< boost::beast::http::string_body >
-                                               , std::string )> handler ) const {
-            boost::asio::io_context ioc;
-            auto future = std::make_shared< session >( boost::asio::make_strand(ioc)
-                                                       ,  ctx_ )->run(host_
-                                                                      , port_
-                                                                      , target.c_str()
-                                                                      , version_ );
-            ioc.run();
-
-            auto res = future.get();
-            ADDEBUG() << "\n## target:\t" << target;
-            ADDEBUG() << "## response: \n\t" << res.body().data();
-            handler( res, target );
-        }
-
-
-    };
-
-}
-
 
 int
 main( int argc, char * argv [] )
 {
     // https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/PFOS/property/CanonicalSMILES,MolecularFormula,InChiKey/JSON
     // https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/perfuluoroalkylethanol/json?limit=10
-
     po::variables_map vm;
     po::options_description description( argv[0] );
     {
@@ -140,12 +66,17 @@ main( int argc, char * argv [] )
             ( "output",      po::value< std::string >()->default_value( "JSON" ), "XML|ASNT|ASNB|JSON|JSONP[?callback=<callback name>]|SDF|CSV|PNG|TXT")
             ( "autocomplete,a", "autocomplete; pug if not specified" )
             ( "cas",  po::value< std::string >(),  "CAS number such as '57-14-7'")
+            ( "csv",  po::value< std::string >(),  "CSV file contains CAS in column")
+            ( "cas_column",  po::value< int >(),  "Column# for CAS in CSV file (start from zero)")
             ;
         po::store( po::command_line_parser( argc, argv ).options( description ).run(), vm );
         po::notify(vm);
     }
 
-    if ( vm.count( "help" ) || (vm.count( "identifier" ) == 0 && vm.count( "cas") == 0) ) {
+    if ( vm.count( "help" ) ||
+         (vm.count( "identifier" ) == 0 &&
+          vm.count( "cas") == 0 &&
+          vm.count( "csv" ) == 0) ) {
         std::cout << description << std::endl;
         std::cout << argv[0] << " specify identifer such as: " << std::endl;
         std::cout << "\tpug --identifier APAP" << std::endl;
@@ -156,12 +87,12 @@ main( int argc, char * argv [] )
     auto const host = vm[ "host" ].as< std::string >().c_str();
     auto const port = vm[ "port" ].as< std::string >().c_str();
     int version = vm[ "version" ].as< std::string >() == "1.0" ? 10 : 11;  // "1.0"
-    pug_requester pug( version, host, port );
+
+    pug::pug_requester pug( version, host, port );
 
     if ( vm.count( "identifier" ) ) {
         std::vector< std::string > identifiers = vm[ "identifier" ].as< std::vector< std::string > >();
         bool autocomplete = vm.count( "autocomplete" );
-
 
         for ( auto identifier: identifiers ) {
 
@@ -185,10 +116,62 @@ main( int argc, char * argv [] )
             pug( target );
         }
     }
+
     if ( vm.count( "cas" ) ) {
-        auto target = std::format("/rest/pug/compound/name/{}/cids/JSON", vm["cas"].as< std::string >() );
-        ADDEBUG() << "----------------------------";
-        pug( target, pub_handler{} );
+
+        struct pug_cas_handler {
+            std::optional< int >& cid_;
+            pug_cas_handler( std::optional< int >& cid ) : cid_( cid ) {}
+            void operator()( boost::beast::http::response< boost::beast::http::string_body > res
+                             , const std::string& target ) {
+                if ( target.contains( "cids/XML" ) ) {
+                    pugi::xml_document doc;
+                    if ( auto result = doc.load_string( res.body().data(), res.body().size() ) ) {
+                        if ( auto node = doc.select_node( "/IdentifierList/CID" ) ) {
+                            node.node().print( std::cout );
+                            cid_ = node.node().text().as_int();
+                        }
+                    }
+                } else {
+                    ADDEBUG() << "## response: \n\t" << res.body().data();
+                }
+            }
+        };
+
+        std::optional< int > cid;
+
+        auto target = std::format("/rest/pug/compound/name/{}/cids/XML", vm["cas"].as< std::string >() );
+        pug( target, pug_cas_handler(cid) );
+
+        if ( cid ) {
+            auto target = std::format("/rest/pug/compound/cid/{}/property/Title,CanonicalSMILES,MolecularFormula,ExactMass/JSON", *cid );
+            pug( target );
+        } else {
+            ADDEBUG() << "cid not found.";
+        }
+    }
+
+    if ( vm.count( "csv" ) && vm.count( "cas_column" ) ) {
+        const int cas_column = vm["cas_column"].as<int>();
+        auto filename = vm["csv"].as< std::string >();
+        std::ifstream file;
+        if ( filename != "-" )
+            file.open( filename );
+        std::istream& inf = (filename == "-") ? std::cin : file;
+        adportable::csv::csv_reader reader( inf );
+        adportable::csv::list_type list;
+
+        while ( reader.read( list ) && inf.good() ) {
+            if ( list.size() > cas_column &&
+                 list.at( cas_column ).type() == typeid( std::string ) ) {
+                auto cas = boost::get<std::string >(list.at( cas_column ) );
+                std::ostringstream o;
+                for ( const auto& value: list )
+                    o << value << "\t";
+                ADDEBUG() << "cas# " << cas;
+                ADDEBUG() << o.str();
+            }
+        }
     }
 
     return 0;

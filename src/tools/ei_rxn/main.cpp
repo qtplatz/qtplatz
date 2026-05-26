@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <adportable/debug.hpp>
 #include <adportable/csv_reader.hpp>
+#include <adportable/csv_string_visitor.hpp>
 #include <Geometry/point.h>
 #include <GraphMol/Atom.h>
 #include <GraphMol/ChemReactions/Reaction.h>
@@ -52,7 +53,6 @@ SOFTWARE.
 #include "resultwriter.hpp"
 #include "product_record.hpp"
 #include <boost/program_options.hpp>
-#include <boost/variant/detail/apply_visitor_unary.hpp>
 #include <iostream>
 
 std::vector<std::pair<std::string, std::string>> ei_rules = {
@@ -281,18 +281,6 @@ struct predict {
 
 };
 
-struct string_visitor : boost::static_visitor<std::string> {
-    std::string operator()( const auto& v ) const {
-        return std::to_string( v );
-    }
-    std::string operator()( const std::string& v ) const {
-        return v;
-    }
-    std::string operator()( const boost::spirit::x3::unused_type& ) const {
-        return {};
-    }
-};
-
 class smiles_reader {
 public:
     ~smiles_reader() {}
@@ -322,7 +310,7 @@ public:
         std::vector< std::string > res{};
         for ( size_t i = 0; i < list.size(); ++i ) {
             if ( i != smiles_column )
-                res.emplace_back( boost::apply_visitor( string_visitor(), list[i] ) );
+                res.emplace_back( boost::apply_visitor( adportable::csv::string_visitor(), list[i] ) );
         }
         return {};
     }

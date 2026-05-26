@@ -48,6 +48,7 @@ add_library( ${PROJECT_NAME} SHARED
   counting/threshold_finder.hpp
   counting/threshold_index.hpp
   csv_reader.cpp  csv_reader.hpp
+  csv_string_visitor.cpp csv_string_visitor.hpp
   timer.cpp
   timesquaredscanlaw.cpp
   utf.cpp

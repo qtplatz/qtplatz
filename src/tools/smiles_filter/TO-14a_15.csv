@@ -1,98 +1,98 @@
-#name,CAS,formula,SMILES
-"1,1-Dimethylhydrazine","57-14-7","C2H8N2,CN(C)N"
-"1,1,2-Trichloroethane","79-00-5","C2H3Cl3,ClC(Cl)CCl"
-"1,2-Propyleneimine","75-55-8","C3H7N,CC1CN1"
-"1,2,4-Trichlorobenzene","120-82-1","C6H3Cl3,Clc1ccc(Cl)c(Cl)c1"
-"1,2-Dibromo-3-chloropropane","96-12-8","C3H5Br2Cl,BrCC(Br)CCl"
-"1,2-Epoxybutane","106-88-7","C4H8O,CCC1CO1"
-"1,3-Butadiene",106-99-0,C4H6,C=CC=C
-"1,3-Dichloropropene",542-75-6,C3H4Cl2,ClC=CCCl
-"1,3-Propane sultone",1120-71-4,C3H6O3S,O=S1(=O)OCCC1
-"1,4-Dioxane",123-91-1,C4H8O2,C1COCCO1
-"1,4-Dichlorobenzene",106-46-7,C6H4Cl2,Clc1ccc(Cl)cc1
-"2,2,4-Trimethylpentane",540-84-1,C8H18,CC(C)CC(C)(C)C
-"2-Nitropropane",79-46-9,C3H7NO2,CC(C)[N+](=O)[O-]
-"Acetaldehyde",75-07-0,C2H4O,CC=O
-"Acetonitrile",75-05-8,C2H3N,CC#N
-"Acetophenone",98-86-2,C8H8O,CC(=O)c1ccccc1
-"Acrolein",107-02-8,C3H4O,C=CC=O
-"Acrylamide",79-06-1,C3H5NO,C=CC(=O)N
-"Acrylic acid",79-10-7,C3H4O2,C=CC(=O)O
-"Acrylonitrile",107-13-1,C3H3N,C=CC#N
-"Allyl chloride",107-05-1,C3H5Cl,C=CCCl
-"Aniline",62-53-3,C6H7N,Nc1ccccc1
-"Benzene",71-43-2,C6H6,c1ccccc1
-"Benzyl chloride",100-44-7,C7H7Cl,ClCc1ccccc1
-"Beta-Propiolactone",57-57-8,C3H4O2,O=C1CCO1
-"Bis(2-Chloroethyl)ether",111-44-4,C4H8Cl2O,ClCCOCCCl
-"Bis(chloromethyl) ether",542-88-1,C2H4Cl2O,ClCOCCl
-"Bromoform",75-25-2,CHBr3,BrC(Br)Br
-"Carbon disulfide",75-15-0,CS2,S=C=S
-"Carbon tetrachloride",56-23-5,CCl4,ClC(Cl)(Cl)Cl
-"Carbonyl sulfide",463-58-1,COS,O=C=S
-"Catechol",120-80-9,C6H6O2,Oc1ccccc1O
-"Chloroacetic acid",79-11-8,C2H3ClO2,O=C(O)CCl
-"Chlorobenzene",108-90-7,C6H5Cl,Clc1ccccc1
-"Chloroform",67-66-3,CHCl3,ClC(Cl)Cl
-"Chloromethyl methyl ether",107-30-2,C2H5ClO,COCCl
-"Chloroprene",126-99-8,C4H5Cl,C=C(Cl)C=C
-"Cresol isomer mixture",1319-77-3,C7H8O,Cc1ccccc1O
-"Cumene",98-82-8,C9H12,CC(C)c1ccccc1
-"Diazomethane",334-88-3,CH2N2,C=[N+]=[N-]
-"Diethyl sulfate",64-67-5,C4H10O4S,CCOS(=O)(=O)OCC
-"Dimethyl sulfate",77-78-1,C2H6O4S,COS(=O)(=O)OC
-"Dimethylcarbamyl chloride",79-44-7,C3H6ClNO,CN(C)C(=O)Cl
-"Epichlorohydrin",106-89-8,C3H5ClO,ClCC1CO1
-"Ethyl acrylate",140-88-5,C5H8O2,C=CC(=O)OCC
-"Ethyl carbamate",51-79-6,C3H7NO2,CCOC(=O)N
-"Ethyl chloride",75-00-3,C2H5Cl,CCCl
-"Ethylbenzene",100-41-4,C8H10,CCc1ccccc1
-"Ethylene dibromide",106-93-4,C2H4Br2,BrCCBr
-"Ethylene dichloride",107-06-2,C2H4Cl2,ClCCCl
-"Ethylene oxide",75-21-8,C2H4O,C1CO1
-"Ethyleneimine",151-56-4,C2H5N,C1CN1
-"Ethylidene dichloride",75-34-3,C2H4Cl2,CC(Cl)Cl
-"Formaldehyde",50-00-0,CH2O,C=O
-"Hexachlorobutadiene",87-68-3,C4Cl6,ClC(Cl)=C(Cl)C(Cl)=C(Cl)Cl
-"Hexachloroethane",67-72-1,C2Cl6,ClC(Cl)(Cl)C(Cl)(Cl)Cl
-"Hexane",110-54-3,C6H14,CCCCCC
-"Isophorone",78-59-1,C9H14O,CC1=CC(=O)CC(C)(C)C1
-"1,1,2,2-Tetrachloroethane",79-34-5,C2H2Cl4,ClC(Cl)C(Cl)Cl
-"Methanol",67-56-1,CH4O,CO
-"Methyl bromide",74-83-9,CH3Br,CBr
-"Methyl chloride",74-87-3,CH3Cl,CCl
-"Methyl chloroform",71-55-6,C2H3Cl3,CC(Cl)(Cl)Cl
-"Methyl ethyl ketone",78-93-3,C4H8O,CCC(C)=O
-"Methyl iodide",74-88-4,CH3I,CI
-"Methyl isobutyl ketone",108-10-1,C6H12O,CC(C)CC(C)=O
-"Methyl isocyanate",624-83-9,C2H3NO,CN=C=O
-"Methyl methacrylate",80-62-6,C5H8O2,COC(=O)C(=C)C
-"Methyl tert-butyl ether",1634-04-4,C5H12O,COC(C)(C)C
-"Methylene chloride",75-09-2,CH2Cl2,ClCCl
-"Methylhydrazine",60-34-4,CH6N2,CNN
-"m-Xylene",108-38-3,C8H10,Cc1cccc(C)c1
-"N,N-Dimethylaniline",121-69-7,C8H11N,CN(C)c1ccccc1
-"N,N-Dimethylformamide",68-12-2,C3H7NO,CN(C)C=O
-"Nitrobenzene",98-95-3,C6H5NO2,O=[N+]([O-])c1ccccc1
-"N-Nitrosodimethylamine",62-75-9,C2H6N2O,CN(C)N=O
-"N-Nitrosomorpholine",59-89-2,C4H8N2O2,O=NN1CCOCC1
-"N-Nitroso-N-methylurea",684-93-5,C2H5N3O2,CN(N=O)C(=O)N
-"o-Cresol",95-48-7,C7H8O,Cc1ccccc1O
-"o-Xylene",95-47-6,C8H10,Cc1ccccc1C
-"Phenol",108-95-2,C6H6O,Oc1ccccc1
-"Phosgene",75-44-5,CCl2O,O=C(Cl)Cl
-"Propionaldehyde",123-38-6,C3H6O,CCC=O
-"Propylene dichloride",78-87-5,C3H6Cl2,CC(Cl)CCl
-"Propylene oxide",75-56-9,C3H6O,CC1CO1
-"p-Xylene",106-42-3,C8H10,Cc1ccc(C)cc1
-"Styrene oxide",96-09-3,C8H8O,c1ccccc1C1CO1
-"Styrene",100-42-5,C8H8,C=Cc1ccccc1
-"Tetrachloroethylene",127-18-4,C2Cl4,ClC(Cl)=C(Cl)Cl
-"Toluene",108-88-3,C7H8,Cc1ccccc1
-"Trichloroethylene",79-01-6,C2HCl3,ClC=C(Cl)Cl
-"Triethylamine",121-44-8,C6H15N,CCN(CC)CC
-"Vinyl acetate",108-05-4,C4H6O2,CC(=O)OC=C
-"Vinyl bromide",593-60-2,C2H3Br,C=CBr
-"Vinyl chloride",75-01-4,C2H3Cl,C=CCl
-"Vinylidene chloride",75-35-4,C2H2Cl2,C=C(Cl)Cl
-"Xylenes isomer mixture",1330-20-7,C8H10,Cc1ccccc1C
+"1,1-Dimethylhydrazine","C2H8N2","57-14-7",X,
+"1,1,2-Trichloroethane","C2H3Cl3","79-00-5",X,X,X
+"1,2-Propyleneimine (2-methylaziridine)","C3H7N","75-55-8",X
+"1,2,4-Trichlorobenzene","C6H3Cl3","120-82-1",X,X,X
+"1,2-Dibromo-3-chloropropane","C3H5Br2Cl","96-12-8",X
+"1,2-Epoxybutane (1,2-butylene oxide)","C4H8O","106-88-7",X
+"1,3-Butadiene","C4H6","106-99-0",X,X
+"1,3-Dichloropropene","C3H4Cl2 (cis)","542-75-6",X,X,X
+"1,3-Propane sultone","C3H6O3S","1120-71-4",X
+"1,4-Dioxane (1,4-diethylene oxide)","C4H8O2","123-91-1",X
+"1,4-Dichlorobenzene (p- )","C6H4Cl2","106-46-7",X,X,X
+"2,2,4-Trimethyl pentane","C8H18","540-84-1",X
+"2-Nitropropane","C3H7NO2","79-46-9",X
+"Acetaldehyde (ethanal)","C2H4O",75-07-0",X
+"Acetonitrile (cyanomethane)","C2H3N",75-05-8",X,X
+"Acetophenone","C8H8O","98-86-2",X
+"Acrolein (2-propenal)","C3H4O","107-02-8",X,X
+"Acrylamide","C3H5NO","79-06-1",X
+"Acrylic acid","C3H4O2","79-10-7",X
+"Acrylonitrile (2-propenenitrile)","C3H3N","107-13-1",X,X
+"Allyl chloride (3-chloropropene)","C3H5Cl","107-05-1",X,X,X
+"Aniline (aminobenzene)","C6H7N","62-53-3",X
+"Benzene","C6H6","71-43-2",X,X,X
+"Benzyl chloride (a-chlorotoluene)","C7H7Cl","100-44-7",X,X,X
+"Beta-Propiolactone","C3H4O2","57-57-8",X
+"Bis(2-Chloroethyl)ether","C4H8Cl2O","111-44-4",X
+"Bis(chloromethyl) ether","C2H4Cl2O","542-88-1",X
+"Bromoform (tribromomethane)","CHBr3","75-25-2",X
+"Carbon disulfide","CS2","75-15-0",X
+"Carbon tetrachloride","CCl4","56-23-5",X,X,X
+"Carbonyl sulfide","COS","463-58-1",X
+"Catechol (o-hydroxyphenol)","C6H6O2","120-80-9",X
+"Catechol (o-hydroxyphenol)","C6H6O2","120-80-9",X
+"Chloroacetic acid","C2H3ClO2","79-11-8",X
+"Chlorobenzene","C6H5Cl","108-90-7",X,X,X
+"Chloroform","CHCl3","67-66-3",X,X,X
+"Chloromethyl methyl ether","C2H5ClO","107-30-2",X
+"Chloroprene (2-chloro-1,3-butadiene)","C4H5Cl","126-99-8",X
+"Cresylic acid (cresol isomer mixture)","C7H8O","1319-77-3",X
+"Cumene (isopropylbenzene)","C9Hl2","98-82-8",X
+"Diazomethane","CH2N2","334-88-3",X
+"Diethyl sulfate","C4H10O4S","64-67-5",X
+"Dimethyl sulfate","C2H6O4S","77-78-1",X
+"Dimethylcarbamyl chloride","C3H6ClNO","79-44-7",X
+"Epichlorohydrin (1-chloro-2,3-epoxy propane)","C3H5ClO","106-89-8",X
+"Ethyl acrylate","C5H8O2","140-88-5",X
+"Ethyl carbamate (urethane)","C3H7NO2","51-79-6",X
+"Ethyl chloride (chloroethane)","C2H5Cl","75-00-3",X,X
+"Ethylbenzene","C8H10","100-41-4",X,X,X
+"Ethylene dibromide (1,2-dibromoethane)","C2H4Br2","106-93-4",X,X,X
+"Ethylene dichloride (1,2-dichloroethane)","C2H4Cl2","107-06-2",X,X,X
+"Ethylene oxide","C2H4O","75-21-8",X
+"Ethyleneimine (aziridine)","C2H5N","151-56-4",X
+"Ethylidene dichloride (1,1-dichloroethane)","C2H4Cl2","75-34-3",X,X
+"Formaldehyde","CH2O","50-00-0",X
+"Hexachlorobutadiene","C4Cl6","87-68-3",X,X,X
+"Hexachloroethane","C2Cl6","67-72-1",X
+"Hexane","C6H14","110-54-3",X,X
+"Isophorone","C9H14O","78-59-1",X
+"l,l,2,2-Tetrachloroethane","C2H2Cl4","79-34-5",X,X,X
+"Methanol","CH4O","67-56-1",X,X
+"Methyl bromide (bromomethane)","CH3Br","74-83-9",X,X,X
+"Methyl chloride (chloromethane)","CH3Cl","74-87-3",X,X,X
+"Methyl chloroform (1,1,1-trichloroethane)","C2H3Cl3","71-55-6",X,X,X
+"Methyl ethyl ketone (2-butanone)","C4H8O","78-93-3",X,X
+"Methyl iodide (iodomethane)","CH3I","74-88-4",X
+"Methyl isobutyl ketone (hexone)","C6H12O","108-10-1",X
+"Methyl isocyanate","C2H3NO","624-83-9",X
+"Methyl methacrylate","C5H8O2","80-62-6",X
+"Methyl tert-butyl ether","C5H12O","1634-04-4",X
+"Methylene chloride","CH2Cl2","75-09-2",X,X,X
+"Methylhydrazine","CH6N2","60-34-4",X
+"m-Xylene","C8H10","108-38-3",X,X,X
+"N,N-Dimethylaniline","C8H11N","121-69-7",X
+"N,N-Dimethylformamide","C3H7NO","68-12-2",X
+"Nitrobenzene","C6H5NO2","98-95-3",X
+"N-Nitrosodimethylamine","C2H6N2O","62-75-9",X
+"N-Nitrosomorpholine","C4H8N2O2","59-89-2",X
+"N-Nitroso-N-methylurea","C2H5N3O2","684-93-5",X
+"o-Cresol","C7H8O","95-48-7",X
+"o-Xylene","C8H10","95-47-6",X,X,X
+"Phenol","C6H6O","108-95-2",X
+"Phosgene","CCl2O","75-44-5",X
+"Propionaldehyde","C2H5CHO","123-38-6",X
+"Propylene dichloride (1,2-dichloropropane)","C3H6Cl2","78-87-5",X,X,X
+"Propylene oxide","C3H6O","75-56-9",X
+"p-Xylene","C8H10","106-42-3",X,X,X
+"Styrene oxide","C8H8O","96-09-3",X
+"Styrene","C8H8","100-42-5",X,X,X
+"Tetrachloroethylene","C2Cl4","127-18-4",X,X,X
+"Toluene","C7H8","108-88-3",X,X,X
+"Trichloroethylene","C2HCl3","79-01-6",X,X,X
+"Triethylamine","C6H15N","121-44-8",X
+"Vinyl acetate","C4H6O2","108-05-4",X,X
+"Vinyl bromide (bromoethene)","C2H3Br","593-60-2",X
+"Vinyl chloride (chloroethene)","C2H3Cl","75-01-4",X,X,X
+"Vinylidene chloride (1,1-dichloroethylene)","C2H2Cl2","75-35-4",X,X,X
+"Xylenes (isomer & mixtures)","C8H10","1330-20-7",X,X,X

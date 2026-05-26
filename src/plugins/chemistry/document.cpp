@@ -589,7 +589,7 @@ document::PubChemREST( const QByteArray& ba )
 # else
     load_root_certificates(ctx);
 # endif
-    auto future = std::make_shared< session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
+    auto future = std::make_shared< pug::session >( boost::asio::make_strand(ioc),  ctx )->run( host, port, body, version );
     ioc.run();
 
     auto res = future.get();

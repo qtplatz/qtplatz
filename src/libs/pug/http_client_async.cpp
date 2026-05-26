@@ -42,6 +42,7 @@ namespace {
     }
 }
 
+using namespace pug;
 
 session::session(  boost::asio::any_io_executor ex,  boost::asio::ssl::context& ctx  )
     : resolver_( ex )

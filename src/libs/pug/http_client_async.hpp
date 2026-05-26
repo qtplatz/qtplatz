@@ -36,36 +36,37 @@
 
 // Performs an HTTP GET and prints the response
 
-class PUGSHARED_EXPORT session;
+namespace pug {
+    class PUGSHARED_EXPORT session;
 
-class session : public std::enable_shared_from_this<session> {
+    class session : public std::enable_shared_from_this<session> {
 
-    boost::asio::ip::tcp::resolver resolver_;
-    boost::beast::ssl_stream< boost::beast::tcp_stream > stream_;
-    boost::beast::flat_buffer buffer_; // (Must persist between reads)
-    boost::beast::http::request< boost::beast::http::empty_body > req_;
-    boost::beast::http::response< boost::beast::http::string_body > res_;
-    std::promise< boost::beast::http::response< boost::beast::http::string_body > > promise_;
-public:
-    // Objects are constructed with a strand to
-    // ensure that handlers do not execute concurrently.
-    // explicit session( boost::asio::io_context& ioc);
-    explicit session( boost::asio::any_io_executor ex,  boost::asio::ssl::context& ctx );
+        boost::asio::ip::tcp::resolver resolver_;
+        boost::beast::ssl_stream< boost::beast::tcp_stream > stream_;
+        boost::beast::flat_buffer buffer_; // (Must persist between reads)
+        boost::beast::http::request< boost::beast::http::empty_body > req_;
+        boost::beast::http::response< boost::beast::http::string_body > res_;
+        std::promise< boost::beast::http::response< boost::beast::http::string_body > > promise_;
+    public:
+        // Objects are constructed with a strand to
+        // ensure that handlers do not execute concurrently.
+        // explicit session( boost::asio::io_context& ioc);
+        explicit session( boost::asio::any_io_executor ex,  boost::asio::ssl::context& ctx );
 
-    // Start the asynchronous operation
-    std::future< boost::beast::http::response< boost::beast::http::string_body > >
-    run( const std::string& host, const std::string& port, const std::string& target, int version
-         , const std::string& accept = "application/json" );
+        // Start the asynchronous operation
+        std::future< boost::beast::http::response< boost::beast::http::string_body > >
+        run( const std::string& host, const std::string& port, const std::string& target, int version
+             , const std::string& accept = "application/json" );
 
-    std::future< boost::beast::http::response< boost::beast::http::string_body > >
-    run( const std::string& host, const std::string& port, const boost::beast::http::request< boost::beast::http::empty_body >& req );
+        std::future< boost::beast::http::response< boost::beast::http::string_body > >
+        run( const std::string& host, const std::string& port, const boost::beast::http::request< boost::beast::http::empty_body >& req );
 
-    void on_resolve( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type results );
-    void on_connect( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type::endpoint_type );
-    void on_write( boost::beast::error_code ec, std::size_t bytes_transferred );
-    void on_read( boost::beast::error_code ec, std::size_t bytes_transferred );
-    void on_handshake( boost::beast::error_code ec);
-    void on_shutdown( boost::beast::error_code ec);
-};
-
+        void on_resolve( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type results );
+        void on_connect( boost::beast::error_code ec, boost::asio::ip::tcp::resolver::results_type::endpoint_type );
+        void on_write( boost::beast::error_code ec, std::size_t bytes_transferred );
+        void on_read( boost::beast::error_code ec, std::size_t bytes_transferred );
+        void on_handshake( boost::beast::error_code ec);
+        void on_shutdown( boost::beast::error_code ec);
+    };
+}
 //------------------------------------------------------------------------------
