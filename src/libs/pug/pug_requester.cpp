@@ -45,14 +45,14 @@ namespace pug {
     void pug_handler::operator()( boost::beast::http::response< boost::beast::http::string_body > res
                                   , const std::string& target )
     {
-        std::cout << std::format( "\ntarget:\t{}", target ) << std::endl;
+        std::cout << std::format( "pug_handler got reply: target:\t{}", target ) << std::endl;
         if ( target.contains( "JSON" ) ) {
             boost::system::error_code ec;
             auto jv = boost::json::parse( res.body(), ec );
             if ( !ec ) {
-                std::cout << "\n" << jv << std::endl;
+                std::cout << jv << std::endl;
             } else {
-                std::cout << "\n" << ec << std::endl;
+                std::cout << ec << std::endl;
             }
         } else if ( target.contains( "XML" ) ) {
             pugi::xml_document doc;
@@ -60,8 +60,10 @@ namespace pug {
                 doc.print( std::cout );
                 std::cout << std::endl;
             }
-        } else
+        } else {
             std::cout << res.body().data() << std::endl;
+        }
+        std::cout << std::endl; // add blank line
     }
 
 

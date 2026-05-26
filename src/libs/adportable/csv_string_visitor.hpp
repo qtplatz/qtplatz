@@ -30,18 +30,24 @@ SOFTWARE.
 #include "adportable_global.h"
 #include <boost/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
-#include "csv_reader.hpp"
 #include <sstream>
 #include <iomanip>
+#include "csv_reader.hpp"
 
 namespace adportable {
     namespace csv {
+
         struct string_visitor : boost::static_visitor<std::string> {
             bool quoted_;
             string_visitor( bool quoted = false ) : quoted_( quoted ) {}
             std::string operator()( const auto& v ) const {
                 return std::to_string(v);
             }
+
+            std::string operator()( const boost::spirit::x3::unused_type& ) const {
+                return {};
+            }
+
             std::string operator()( const std::string& v ) const {
                 if ( quoted_ ) {
                     std::stringstream o;
@@ -51,11 +57,9 @@ namespace adportable {
                     return v;
                 }
             }
-            std::string operator()( const boost::spirit::x3::unused_type& ) const {
-                return {};
-            }
         };
-        // std::string make_csv_string( const list_string_type& list );
+
+        std::string make_csv_string( const list_type& list );
     }
 }
 //#endif

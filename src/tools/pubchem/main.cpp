@@ -24,6 +24,7 @@
 
 #include <adportable/debug.hpp>
 #include <adportable/csv_reader.hpp>
+#include <adportable/csv_string_visitor.hpp>
 #include <pugixml.hpp>
 #include <xmlparser/pugiwrapper.hpp>
 #include <pug/pug_requester.hpp>
@@ -43,6 +44,28 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+
+namespace {
+
+    struct pug_cas_handler {
+        std::optional< int >& cid_;
+        pug_cas_handler( std::optional< int >& cid ) : cid_( cid ) {}
+        void operator()( boost::beast::http::response< boost::beast::http::string_body > res
+                         , const std::string& target ) {
+            if ( target.contains( "cids/XML" ) ) {
+                pugi::xml_document doc;
+                if ( auto result = doc.load_string( res.body().data(), res.body().size() ) ) {
+                    if ( auto node = doc.select_node( "/IdentifierList/CID" ) ) {
+                        cid_ = node.node().text().as_int();
+                    }
+                }
+            } else {
+                ADDEBUG() << "## response: \n\t" << res.body().data();
+            }
+        }
+    };
+
+}
 
 namespace po = boost::program_options;
 
@@ -119,25 +142,6 @@ main( int argc, char * argv [] )
 
     if ( vm.count( "cas" ) ) {
 
-        struct pug_cas_handler {
-            std::optional< int >& cid_;
-            pug_cas_handler( std::optional< int >& cid ) : cid_( cid ) {}
-            void operator()( boost::beast::http::response< boost::beast::http::string_body > res
-                             , const std::string& target ) {
-                if ( target.contains( "cids/XML" ) ) {
-                    pugi::xml_document doc;
-                    if ( auto result = doc.load_string( res.body().data(), res.body().size() ) ) {
-                        if ( auto node = doc.select_node( "/IdentifierList/CID" ) ) {
-                            node.node().print( std::cout );
-                            cid_ = node.node().text().as_int();
-                        }
-                    }
-                } else {
-                    ADDEBUG() << "## response: \n\t" << res.body().data();
-                }
-            }
-        };
-
         std::optional< int > cid;
 
         auto target = std::format("/rest/pug/compound/name/{}/cids/XML", vm["cas"].as< std::string >() );
@@ -165,11 +169,18 @@ main( int argc, char * argv [] )
             if ( list.size() > cas_column &&
                  list.at( cas_column ).type() == typeid( std::string ) ) {
                 auto cas = boost::get<std::string >(list.at( cas_column ) );
-                std::ostringstream o;
-                for ( const auto& value: list )
-                    o << value << "\t";
-                ADDEBUG() << "cas# " << cas;
-                ADDEBUG() << o.str();
+
+                std::cout << "CSV: " << adportable::csv::make_csv_string( list ) << "\tCAS# " << cas << std::endl;
+
+                auto target = std::format("/rest/pug/compound/name/{}/cids/XML", cas );
+                std::optional< int > cid;
+                pug( target, pug_cas_handler(cid) );
+                if ( cid ) {
+                    auto target = std::format("/rest/pug/compound/cid/{}/property/Title,CanonicalSMILES,MolecularFormula,ExactMass/JSON", *cid );
+                    pug( target );
+                } else {
+                    std::cout << std::format( "cid for CAS# \"{}\" not found.", cas ) << std::endl;
+                }
             }
         }
     }

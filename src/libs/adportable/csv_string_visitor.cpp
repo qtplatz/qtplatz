@@ -24,19 +24,19 @@ SOFTWARE.
 **************************************************************************/
 
 #include "csv_string_visitor.hpp"
+#include "csv_reader.hpp"
 #include <boost/variant.hpp>
 #include <boost/spirit/home/x3.hpp>
-#include <iomanip>
 #include <sstream>
 
 namespace adportable {
     namespace csv {
         std::string
-        make_csv_string( const list_string_type& list )
+        make_csv_string( const list_type& list )
         {
             std::ostringstream o;
             for ( auto it = list.begin(); it != list.end(); ++it ) {
-                //o << boost::apply_visitor( quoted_string_visitor(), *it );
+                o << boost::apply_visitor( string_visitor(true), *it );
                 if ( it + 1 != list.end() )
                     o << ",";
             }
