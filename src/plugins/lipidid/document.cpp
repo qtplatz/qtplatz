@@ -83,7 +83,7 @@ namespace lipidid {
     class document::impl {
     public:
         ~impl() {
-            ADDEBUG() << "## lipidid::document::impl DTOR ##";
+            // ADDEBUG() << "## lipidid::document::impl DTOR ##";
         }
         impl() : settings_( std::make_unique< QSettings >( QSettings::IniFormat
                                                            , QSettings::UserScope
@@ -122,7 +122,7 @@ using lipidid::document;
 
 document::~document()
 {
-    ADDEBUG() << "## lipidid::document::" << __FUNCTION__ << " ##";
+    // ADDEBUG() << "## lipidid::document::" << __FUNCTION__ << " ##";
 }
 
 document::document(QObject *parent) : QObject(parent)

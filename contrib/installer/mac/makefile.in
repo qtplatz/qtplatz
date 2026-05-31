@@ -22,7 +22,6 @@ default:
 deploy:
 	${MAKE} app
 	${MAKE} deployqt
-	${MAKE} fix_plugin_rpath
 #	make rpath
 
 world:
@@ -95,7 +94,7 @@ test:
 list_rpath:
 	otool -l "./qtplatz.app/Contents/MacOS/qtplatz" | grep RPATH -A2
 	otool -l "./qtplatz.app/Contents/MacOS/adfile" | grep RPATH -A2
-	find qtplatz.app/Contents/PlugIns -name "*.dylib" -exec otool -l {} \; | grep RPATH -A3
+	find qtplatz.app/Contents/PlugIns -name "*.dylib" -exec otool -L {} \; | grep RPATH -A3
 
 #	echo "installed rpath for qtplatz ----->"
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2

@@ -39,6 +39,7 @@
 #include "scanlaw.hpp"
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
+#include <adportable/debug.hpp>
 #include <adportable/polfit.hpp>
 #include <adportable/timesquaredscanlaw.hpp>
 #include <adportable/utf.hpp>
@@ -119,14 +120,6 @@ MassSpectrometer::setAcceleratorVoltage( double acclVolts, double tDelay )
     acceleratorVoltage_ = acclVolts;
     tDelay_ = tDelay;
 }
-
-// void
-// MassSpectrometer::setScanLaw( double acclVolts, double tDelay, double fLength )
-// {
-//     acceleratorVoltage_ = acclVolts;
-//     tDelay_  = tDelay;
-//     fLength_ = fLength;
-// }
 
 double
 MassSpectrometer::acceleratorVoltage() const

@@ -28,6 +28,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <filesystem>
+#include <format>
+#include <regex>
 
 namespace {
 
@@ -52,24 +54,34 @@ namespace {
                                              , std::string&& insertor
                                              , const QString& lastDir, const char * extension ) { // must contains '.'
         std::ostringstream o;
-        auto leaf = std::filesystem::path( folium.filename<char>() ).parent_path().filename();
-        o << std::filesystem::path( folium.filename<char>() ).parent_path().filename().string(); // leaf
-        o << (insertor.empty() ? "_" : insertor);
-        o << std::filesystem::path( folium.filename<char>() ).stem().string();               // stem "pareint_dir__filename"
-        o << (insertor.empty() ? "_" : insertor);
-        o << (insertor.empty() ? "_" : insertor);
-        o << make_filename_string( folium ).string(); // replace '/' -> '_'
-        o << extension;
+        auto stem = std::filesystem::path( folium.filename<char>() ).stem().string();
+        if ( insertor.empty() )
+            insertor = "_";
+
+        // SFE10sSFC-JBA941_01_0800uL2,5%24,6MPa_He120mL_DC=0470FT-000_ARA_05,0uM_0,2uL_TL_E1-Skimmer1-1mm_93uA_0002_Seg1Ev1__3,_m_z_303.20_neg.svg
+        // Shimadzu 8060 CDF filename pattern
+        std::regex re(R"(_(\d+)_Seg\dEv\d)");
+        std::smatch matches;
+        std::string runno{};
+        if ( std::regex_search(stem, matches, re)) {
+            runno = matches[1];
+        }
+
+        o << std::filesystem::path( folium.filename<char>() ).parent_path().filename().string(); // parentDir 'YYYY-MM-DD'
+        o << std::format( "{}{}{}{}", insertor, runno, insertor, stem );
+        o << std::format( "{}{}{}", insertor, make_filename_string( folium ).string(), extension );      // replace '/' -> '_'
+
         auto dir  = make_directory_string( lastDir );
         if ( dir.empty() ) {
             dir = make_directory_string( QString::fromStdWString( folium.filename<wchar_t>() ) );
         }
         auto destname = dir / o.str();
         if ( std::filesystem::exists( destname ) ) {
-            int n(1);
+            int n{1};
             auto name = destname.replace_extension(); // remove extension
             do {
-                destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
+                destname = std::format( "{}({}){}", name.string(), n++, extension );
+                // destname = ( boost::format("%s(%d)%s") % name.string() % n++ % extension ).str();
             } while ( std::filesystem::exists( destname ) );
         }
         return destname;
