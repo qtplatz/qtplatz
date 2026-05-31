@@ -16,11 +16,13 @@ default:
 	@echo "################################################"
 	@echo "make app"
 	@echo "make deployqt"
+	@echo "make fix_plugin_rpath"
 	@echo "make dmg | make pkg"
 
 deploy:
-	make app
-	make deployqt
+	${MAKE} app
+	${MAKE} deployqt
+	${MAKE} fix_plugin_rpath
 #	make rpath
 
 world:
@@ -47,6 +49,13 @@ translations:
 
 dmg: qtplatz.app translations
 	hdiutil create ${TARGET} -srcfolder ./qtplatz.app
+
+fix_plugin_rpath:
+	for i in `find ./qtplatz.app/Contents/PlugIns -name "*.dylib"`; do \
+	  echo "$$i"; \
+	  otool -l "$$i" | grep -q "@executable_path/../Frameworks" || \
+	    install_name_tool -add_rpath @executable_path/../Frameworks "$$i"; \
+	done
 
 pkg: qtplatz.app translations
 	rm -f qtplatz-component.pkg qtplatz-@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_MICRO@-@VERSION_PATCH@.pkg
@@ -86,11 +95,8 @@ test:
 list_rpath:
 	otool -l "./qtplatz.app/Contents/MacOS/qtplatz" | grep RPATH -A2
 	otool -l "./qtplatz.app/Contents/MacOS/adfile" | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/PlugIns/MS-Cheminformatics/libadnetcdf.dylib | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/Frameworks/libnetcdf.19.dylib | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5_hl.310.dylib | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/Frameworks/libhdf5.310.dylib | grep RPATH -A2
-	otool -l ./qtplatz.app/Contents/Frameworks/libzstd.1.dylib | grep RPATH -A2
+	find qtplatz.app/Contents/PlugIns -name "*.dylib" -exec otool -l {} \; | grep RPATH -A3
+
 #	echo "installed rpath for qtplatz ----->"
 #	find ./qtplatz.app/Library/Python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@/site-packages/qtplatz -name "*.so" -exec otool -l {} \; | grep RPATH -A2
 #	echo "installed rpath for rdkit ---->"

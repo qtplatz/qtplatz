@@ -82,12 +82,24 @@ std::vector<std::pair<std::string, std::string>> ei_rules = {
 
     { "perfluoro C-C cleavage right",
       "[C:1]([F])([F])-[C:2]([F])([F])>>[C:1]([F])([F]).[C+:2]([F])[F]" }
-
+#if 0
     , { "alcohol dehydration neutral loss H2O",
-      "[C:1]-[C:2]-[O:3]>>[C:1]=[C:2]" }
-
+        "[C:1]-[C:2]-[O:3]>>[C:1]=[C:2]" }
+#else
+    , { "alcohol dehydration neutral loss H2O",
+        "[C;!R;H1,H2,H3:1]-[C;!R:2]-[OX2H:3]>>[C:1]=[C:2]" }
+#endif
     , { "geminal dihalide loss halogen radical",
         "[C:1]([Cl,Br,I:2])[Cl,Br,I:3]>>[C+:1][Cl,Br,I:2].[Cl,Br,I:3]" }
+};
+
+std::vector< std::pair<std::string, std::string> > neutral_losses = {
+    { "-H2O",                        // name
+      "[C:1][C:2][OX2H:3]>>[C:1]=[C:2]"  // alcohol only
+    }
+    , { "-CO2",
+        "[C:1][CX3:2](=O)[OX2H:3]>>[C:1]"
+    }
 };
 
 class Rule {
@@ -129,6 +141,7 @@ apply_rule( const Rule& rule, const RDKit::ROMol& reactant )
 
     for ( const auto& product_set: product_sets ) {
         for ( const auto& product: product_set ) {
+            RDKit::MolOps::symmetrizeSSSR( *product );
             products.emplace_back( product, rule.name() );
         }
     }
@@ -159,6 +172,8 @@ enumerate_products( const std::vector< Rule >& rules,
                     std::size_t generations )
 {
     product_list all_products;
+
+    all_products.emplace_back( boost::make_shared< RDKit::ROMol >( analyte ), "[M]+" );
 
     std::vector< RDKit::ROMOL_SPTR > current {
         boost::make_shared< RDKit::ROMol >( analyte )
@@ -213,20 +228,18 @@ make_unique_products( product_list&& products )
     return unique;
 }
 
-struct predict {
 
+class predict {
+public:
     std::pair< std::unique_ptr< RDKit::RWMol >, std::map< std::string, product_record > >
-    operator()( const std::string& smiles ) {
+    operator()( const std::string& smiles, const std::vector< Rule >& rules ) {
         using namespace RDKit;
         std::unique_ptr< RDKit::RWMol > analyte( RDKit::SmilesToMol( smiles ) );
-        return (*this)( std::move( analyte ) );
+        return (*this)( std::move( analyte ), rules );
     }
 
     std::pair< std::unique_ptr< RDKit::RWMol >, std::map< std::string, product_record > >
-    operator()( std::unique_ptr< RDKit::RWMol >&& analyte ) {
-        std::vector< Rule > rules;
-        for ( const auto& rule: ei_rules )
-            rules.emplace_back( rule );
+    operator()( std::unique_ptr< RDKit::RWMol >&& analyte, const std::vector< Rule >& rules ) {
 
         auto products = enumerate_products( rules, *analyte, 2 );
         products = make_unique_products( std::move( products ) );
@@ -235,8 +248,9 @@ struct predict {
 
         for ( auto& [mol, origin] : products ) {
 
-            if ( not mol )
+            if ( not mol ) {
                 continue;
+            }
 
             auto key = RDKit::MolToSmiles( *mol, true );
 
@@ -312,7 +326,7 @@ public:
             if ( i != smiles_column )
                 res.emplace_back( boost::apply_visitor( adportable::csv::string_visitor(), list[i] ) );
         }
-        return {};
+        return res;
     }
 
     void operator()( std::istream& inf
@@ -321,17 +335,16 @@ public:
         adportable::csv::csv_reader reader{};
         adportable::csv::list_type list;
         ssize_t smiles_column = (-1);
+        size_t rdCount = 0;
         while ( reader.read( inf, list ) && inf.good() ) {
             if ( smiles_column == (-1) )
                 smiles_column = find_smiles_column( list );
             if ( smiles_column >= 0 ) {
                 auto smiles = boost::get< std::string >( list.at( smiles_column ) );
                 auto synonyms = make_synonyms( list, smiles_column );
-                try {
-                    std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( smiles ) );
-                    if ( mol )
-                        forwarder( std::move( mol ), std::move( synonyms ) );
-                } catch ( std::exception& ex ) {
+                std::unique_ptr< RDKit::RWMol > mol( RDKit::SmilesToMol( smiles ) );
+                if ( mol ) {
+                    forwarder( std::move( mol ), std::move( synonyms ) );
                 }
             }
         }
@@ -365,12 +378,24 @@ main(int argc, char **argv)
         return 0;
     }
 
+    std::vector< Rule > rules;
+    for ( const auto& rule: ei_rules )
+        rules.emplace_back( rule );
+    for ( const auto& rule: neutral_losses )
+        rules.emplace_back( rule );
+
     if ( vm.count( "csv" ) ) {
         auto output = vm["output"].as<std::string>();
         // forward functor
-        auto callback = [output](std::unique_ptr< RDKit::RWMol >&& mol, std::vector< std::string >&& synonyms ){
-            auto [analyte, unique] = predict{}( std::move( mol ) );
-            predict::writeResult( output, *analyte, unique, synonyms );
+        auto callback = [output,&rules](std::unique_ptr< RDKit::RWMol >&& mol
+                                        , std::vector< std::string >&& synonyms ){
+            static size_t wrtCount = 0;
+            try {
+                auto [analyte, unique] = predict{}( std::move( mol ), rules );
+                predict::writeResult( output, *analyte, unique, synonyms );
+            } catch ( std::exception& ex ) {
+                ADDEBUG() << "## Exception: " << ex.what();
+            }
         };
         //<---
 
@@ -393,7 +418,7 @@ main(int argc, char **argv)
             synonyms = vm[ "synonyms" ].as< std::vector< std::string > >();
         }
 
-        auto [analyte, unique ] = predict{}( smiles );
+        auto [analyte, unique ] = predict{}( smiles, rules );
         predict::writeResult( vm["output"].as<std::string>()
                               , *analyte
                               , unique

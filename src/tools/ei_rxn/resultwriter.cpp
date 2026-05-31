@@ -189,12 +189,12 @@ resultWriter::write( const RDKit::ROMol& analyte
         for ( const auto& origin: product.origins ) {
             origins << origin << ";";
         }
-
+        auto prod_smiles = RDKit::MolToSmiles( *product.mol, true );
         sql.bind( 1 ) = key;
-        sql.bind( 2 ) = RDKit::MolToSmiles( *product.mol, true );
+        sql.bind( 2 ) = prod_smiles;
         sql.bind( 3 ) = RDKit::Descriptors::calcMolFormula( *product.mol );
         sql.bind( 4 ) = RDKit::Descriptors::calcExactMW( *product.mol ); // neutral mass
-        sql.bind( 5 ) = RDKit::MolOps::getFormalCharge( *product.mol );
+        sql.bind( 5 ) = (prod_smiles == key ) ? 1 : RDKit::MolOps::getFormalCharge( *product.mol );
         sql.bind( 6 ) = origins.str();
         if ( sql.step() != adfs::sqlite_done )
             ADDEBUG() << sql.errmsg();
