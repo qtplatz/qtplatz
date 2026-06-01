@@ -209,10 +209,21 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::MassSpectrum& ms )
     }
     for ( size_t i = 0; i < ms.getDescriptions().size(); ++i ) {
         auto desc = ms.getDescriptions()[ i ];
-        o << "<tr>"
-          << "<td>" << desc.key<char>() << "</td>"
-          << "<td>" << desc.text<char>() << "</td>"
-          << "</tr>";
+        if ( desc.encode() == adcontrols::Encode_JSON ) {
+            const auto& [key,value] = desc.keyValue();
+            auto jobj = QJsonDocument::fromJson( value.data() );
+            o << "<tr>"
+              << "<td>" << key << "</td>"
+              << "<td><pre>"
+              << jobj.toJson( QJsonDocument::Indented ).toStdString()
+              << "</pre></td>"
+              << "</tr>";
+        } else {
+            o << "<tr>"
+              << "<td>" << desc.key<char>() << "</td>"
+              << "<td>" << desc.text<char>() << "</td>"
+              << "</tr>";
+        }
     }
     o << "</table>";
 
@@ -400,6 +411,7 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::Chromatogram& chro )
 {
     o << "<br>";
     o << "<pre>Chromatogram (time of injection: " << chro.time_of_injection_iso8601() << ")</pre";
+    o << "<pre>dataGuid: (" << chro.dataGuid() << ")</pre";
     o << "<br>";
 
     for ( const auto& desc:  chro.getDescriptions() ) {
@@ -410,7 +422,16 @@ MSPropertyForm::render( std::ostream& o, const adcontrols::Chromatogram& chro )
               << key << "\n"
               << jobj.toJson( QJsonDocument::Indented ).toStdString()
               << "</pre>";
+        } else {
+            const auto& [key,value] = desc.keyValue();
+            o << "<pre>"
+              << std::format( "{}, {}", key, value )
+              << "</pre>";
         }
+    }
+    if ( auto genprop = chro.generatorProperty() ) {
+        auto jobj = QJsonDocument::fromJson( genprop->data() );
+        o << "<pre>GeneratorProperty:\n" << jobj.toJson( QJsonDocument::Indented ).toStdString() << "</pre>";
     }
 
 }

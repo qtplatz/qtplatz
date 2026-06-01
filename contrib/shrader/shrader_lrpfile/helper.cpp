@@ -25,6 +25,7 @@
 
 #include "helper.hpp"
 #include "mass_assign.hpp"
+#include "constants.hpp"
 #include <lrpfile.hpp>
 #include <instsetup.hpp>
 #include <lrpcalib.hpp>
@@ -122,7 +123,6 @@ namespace shrader {
             return s * s;
         };
 #endif
-        // mass_assign class is not yet working -- asking to KANOMAX for CAL interpretation
         shrader::mass_assign mass_assigner( lrpfile );
 
         std::vector< std::pair< double, double > > vec;
@@ -137,6 +137,7 @@ namespace shrader {
             ms->setAcquisitionMassRange( mass_range.first, mass_range.second );
             ms->getMSProperty().setTrigNumber( lrpfile.msdata().at( rowid )->blocks().at(0).scan );
             ms->getMSProperty().setInstMassRange( header_mass_range() );
+            ms->getMSProperty().setMassSpectrometerClsid( shreader::spectrometer::iids::uuid_massspectrometer );
             if ( auto& lrptic = lrpfile.lrptic() ) {
                 const auto milliseconds = lrptic.tic().at( rowid ).time;
                 ms->getMSProperty().setTimeSinceInjection( milliseconds, adcontrols::metric::milli );
@@ -149,13 +150,13 @@ namespace shrader {
             double delayT = int((std::sqrt( mass_range.first ) * 1.0e-6 / fSampInterval)) * fSampInterval; // workaround
             adcontrols::SamplingInfo sInfo(
                 /* double fSampInterval */ fSampInterval // seconds
-                , /* double delayTime   */ delayT // workaround
+                , /* double delayTime   */ mass_assigner.time( 0 ) // workaround
                 , /* int32_t nDelay     */ int32_t( delayT / fSampInterval )
                 , /* uint32_t nSamples  */ numSamples
                 , /* uint32_t nAvg      */ 1      // number of triggers to be averaged := not known
-                , /* uint32_t mode      */ 10 );  // nlaps for infitof, set arbitrary number
+                , /* uint32_t mode      */ 0 );  // nlaps for infitof, set arbitrary number
 
-            // ms->getMSProperty().setSamplingInfo( sInfo );
+            ms->getMSProperty().setSamplingInfo( sInfo );
 
             return ms;
         }

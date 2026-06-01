@@ -293,7 +293,7 @@ dataprocessor::massSpectrometer() const
             }
         }
     }
-    return impl_->spectrometer_;
+     return impl_->spectrometer_;
 }
 
 std::shared_ptr< adcontrols::MassSpectrum >
