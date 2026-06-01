@@ -29,6 +29,7 @@
 #include <adportable/debug.hpp>
 #include <adportable/json_helper.hpp>
 #include <adportable/json/extract.hpp>
+#include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -47,6 +48,7 @@ namespace adprocessor {
         std::string adduct_;
         std::string reader_name_;
         std::pair< std::string, boost::uuids::uuid > dataSource_;
+        boost::uuids::uuid dataGuid_;
 
         ~impl() {
             try {
@@ -58,7 +60,8 @@ namespace adprocessor {
 
         impl() : mass_( 0 )
                , mass_width_( 0 )
-               , dataSource_( { "", boost::uuids::uuid{} } ) {
+               , dataSource_( { "", boost::uuids::uuid{} } )
+               , dataGuid_({}) {
         }
 
         impl( const impl& t ) : jv_( t.jv_ )
@@ -69,11 +72,15 @@ namespace adprocessor {
                               , formula_( t.formula_ )
                               , adduct_( t.adduct_ )
                               , reader_name_( t.reader_name_ )
-                              , dataSource_( t.dataSource_ ) {
+                              , dataSource_( t.dataSource_ )
+                              , dataGuid_( t.dataGuid_ ) {
         }
 
-        impl( const adcontrols::Chromatogram& c ) : mass_( 0 )
-                                                  , mass_width_( 0 ) {
+        impl( const adcontrols::Chromatogram& c
+              , std::pair< std::string, boost::uuids::uuid >&& dataSource ) : mass_( 0 )
+                                                                            , mass_width_( 0 )
+                                                                            , dataSource_( dataSource )
+                                                                            , dataGuid_( c.dataGuid() ) {
 
             jv_ = adportable::json_helper::parse( c.generatorProperty() );
             if ( jv_.is_null() )
@@ -125,7 +132,7 @@ namespace adprocessor {
         }
         void setup( const boost::json::value& jv ) {
             if ( not jv.is_null() ) {
-                ADDEBUG() << "----------> generator_property::setup( jb ): " << jv;
+                // ADDEBUG() << "----------> generator_property::setup( jb ): " << jv;
                 using namespace adportable;
                 if ( auto gen  = json_helper::if_contains( jv, "generator.extract_by_peak_info" ) ) {
                     generator_ = "extract_by_peak_info"; // gen from mass peak
@@ -166,7 +173,9 @@ namespace adprocessor {
         return *this;
     }
 
-    generator_property::generator_property( const adcontrols::Chromatogram& c ) : impl_( std::make_unique< impl >( c ) )
+    generator_property::generator_property( const adcontrols::Chromatogram& c
+                                            , std::pair< std::string, boost::uuids::uuid >&& dataSource )
+        : impl_( std::make_unique< impl >( c, std::move( dataSource ) ) )
     {
     }
 
@@ -223,6 +232,11 @@ namespace adprocessor {
         return impl_->dataSource_;
     }
 
+    const boost::uuids::uuid&
+    generator_property::dataGuid() const
+    {
+        return impl_->dataGuid_;
+    }
 
     std::tuple< double, std::string, std::string >
     generator_property::get() const

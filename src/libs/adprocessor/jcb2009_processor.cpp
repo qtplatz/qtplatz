@@ -45,6 +45,9 @@
 #include <adportable/json_helper.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/string_generator.hpp>
 #include <boost/format.hpp>
 #include <memory>
 #include <optional>
@@ -102,11 +105,54 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     progress( 0, impl_->folio_.size() );
 
     for ( const auto& cfolium: impl_->folio_ ) {
-        jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_ );
+
+        //===========================
+        // if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( cfolium ) ) {
+        //     ADDEBUG() << "############### " << std::make_tuple( cfolium.name(), chro->dataGuid(), cfolium.uuid() );
+        //     ADDEBUG() << "############### number of peaks: " << chro->peaks().size();
+        // }
+        //===========================
+
 
         auto [gen,peaks] = jcb2009_helper::folium_accessor( cfolium )();
+        jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_, gen );
 
         for ( const auto& peak: peaks ) {
+
+            boost::json::object jv{
+                { "dataSource", {
+                        { "folium"
+                          , { { "name", gen.dataSource().first }
+                              ,{ "uuid", boost::uuids::to_string( gen.dataSource().second ) }
+                            }
+                        }
+                        , { "dataGuid", boost::uuids::to_string( gen.dataGuid() ) }
+                        , { "mass", gen.mass() }
+                        , { "mass_width", gen.mass_width() }
+                    }
+                }
+                , { "peak", {
+                        { "pkid", peak.peakId() }
+                        , { "pk_tR", peak.peakFlags() }
+                        , { "pk_start", peak.startTime() }
+                        , { "pk_end", peak.endTime() }
+                    }
+                }
+            };
+            // auto jv = boost::json::value{
+            //     "dataSource"
+            //     , { "folium" , {"name", gen.dataSource().first }, {"uuid", boost::uuids::to_string( gen.dataSource().second ) } }
+            //     , { "dataGuid", boost::uuids::to_string( gen.dataGuid() ) }
+            //     , { "mass", gen.mass() }
+            //     , { "mass_width", gen.mass_width() }
+            //     , "peak"
+            //     , { "pkid", peak.peakId() }
+            //     , { "pk_tR", peak.peakFlags() }
+            //     , { "pk_start", peak.startTime() }
+            //     , { "pk_end", peak.endTime() }
+            // };
+
+            ADDEBUG() << "### JSON:\n" << jv;
 
             adcontrols::jcb2009_peakresult pkResult( { gen.mass(), gen.mass_width(), gen.protocol() }
                                                      , peak
@@ -184,7 +230,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
 #endif
     progress(++nCurr, nCount );
-    ADDEBUG() << " gathering spectra: " << nCurr << "/" << nCount;
+    ADDEBUG() << " gathering spectra: " << (nCurr - 1) << "/" << nCount;
     // todo ---
     // get mass spectrum for peak retention time -- done
     // centroid spectrum, and color code for an ion, which the mass corresponding to a mass of chromatogram extracted.

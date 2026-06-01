@@ -88,7 +88,7 @@ std::tuple< generator_property, adcontrols::Peaks >
 folium_accessor::operator()() const
 {
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium_ ) ) {
-        return { generator_property{ *chro }, chro->peaks() };
+        return { generator_property{ *chro, { folium_.name<char>(), folium_.uuid() } }, chro->peaks() };
     }
     return {};
 }
@@ -96,16 +96,10 @@ folium_accessor::operator()() const
 adcontrols::Peaks
 folium_accessor::get_peaks() const
 {
-    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium_ ) )
+    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium_ ) ) {
+        ADDEBUG() << "get_peaks -- " << chro->peaks().size();
         return chro->peaks();
-    return {};
-}
-
-generator_property
-folium_accessor::get_generator_property() const
-{
-    if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium_ ) )
-        return generator_property( *chro );
+    }
     return {};
 }
 
@@ -138,6 +132,7 @@ namespace adprocessor {
             std::optional< std::string > formula_;
 
         public:
+#if 0
             impl( const portfolio::Folium& folium
                   , const adcontrols::ProcessMethod& m ) : folium_( folium )
                                                          , mass_( 0 ) {
@@ -150,9 +145,27 @@ namespace adprocessor {
                 }
 
                 if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    adprocessor::generator_property gprop( *chro );
+                    adprocessor::generator_property gprop( *chro, {folium.name<char>(), folium.uuid()} );
                     mass_ = gprop.mass();
                     formula_ = gprop.formula();
+                }
+            }
+#endif
+            impl( const portfolio::Folium& folium
+                  , const adcontrols::ProcessMethod& m
+                  , const generator_property& gp ) : folium_( folium )
+                                                   , mass_( 0 ) {
+
+                if ( auto tm = m.find< adcontrols::TargetingMethod >() ) {
+                    auto t = tm->tolerance( tm->toleranceMethod() );
+                    auto a = tm->findAlgorithm();
+                    auto m = tm->toleranceMethod();
+                    msFinder_ = { t, a, m };
+                }
+
+                if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+                    mass_ = gp.mass();
+                    formula_ = gp.formula();
                 }
             }
         };
@@ -161,10 +174,17 @@ namespace adprocessor {
         {
             delete impl_;
         }
-
+#if 0
         find_mass::find_mass( const portfolio::Folium& folium // chromatogram
                               , const adcontrols::ProcessMethod& m )
             : impl_( new impl( folium, m ) )
+        {
+        }
+#endif
+        find_mass::find_mass( const portfolio::Folium& folium
+                              , const adcontrols::ProcessMethod& m
+                              , const generator_property& gp )
+            : impl_( new impl( folium, m, gp ) )
         {
         }
 
@@ -249,7 +269,7 @@ namespace adprocessor {
                 }
 
                 if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    adprocessor::generator_property gprop( *chro );
+                    adprocessor::generator_property gprop( *chro, {folium.name<char>(), folium.uuid()} );
                     mass_ = gprop.mass();
                     formula_ = gprop.formula();
                 }

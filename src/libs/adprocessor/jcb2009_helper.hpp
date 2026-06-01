@@ -67,7 +67,6 @@ namespace adprocessor {
 
             std::tuple< generator_property, adcontrols::Peaks > operator()() const;
             adcontrols::Peaks get_peaks() const;
-            generator_property get_generator_property() const;
         };
 
         struct ms_accumulator {
@@ -79,7 +78,8 @@ namespace adprocessor {
         class find_mass {
         public:
             ~find_mass();
-            find_mass( const portfolio::Folium&, const adcontrols::ProcessMethod& );
+            // find_mass( const portfolio::Folium&, const adcontrols::ProcessMethod& );
+            find_mass( const portfolio::Folium&, const adcontrols::ProcessMethod&, const generator_property& gp );
 
             std::optional< std::pair< size_t, int > >
             operator()( const adcontrols::MassSpectrum& centroid, int proto );

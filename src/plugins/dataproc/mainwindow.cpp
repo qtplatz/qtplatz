@@ -1542,7 +1542,7 @@ MainWindow::handleMergeSelection( std::vector< portfolio::Folium > merge )
     for ( auto folium: merge ) {
         ADDEBUG() << "folium: " << folium.name();
         if ( auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
-            auto gp = adprocessor::generator_property( *chro );
+            auto gp = adprocessor::generator_property( *chro, {folium.name<char>(), folium.uuid()} );
             auto it = std::upper_bound( tuples.begin(), tuples.end(), gp
                                         , [](const auto& a, const auto& b){ return a.mass() < std::get<0>(b).mass(); });
             tuples.emplace( it, gp, folium );

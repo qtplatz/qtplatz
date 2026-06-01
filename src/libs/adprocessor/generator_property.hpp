@@ -42,6 +42,10 @@ namespace adcontrols {
     class descriptions;
 }
 
+namespace portfolio {
+    class Folium;
+}
+
 namespace adprocessor {
 
     class ADPROCESSORSHARED_EXPORT generator_property;
@@ -52,7 +56,8 @@ namespace adprocessor {
         generator_property();
         generator_property( const generator_property& );
         generator_property& operator = ( const generator_property& );
-        generator_property( const adcontrols::Chromatogram& );
+        generator_property( const adcontrols::Chromatogram&
+                            , std::pair< std::string, boost::uuids::uuid >&& dataSource );
         std::string generator() const;
         std::optional< std::string > formula() const;
         std::string adduct() const;
@@ -60,8 +65,9 @@ namespace adprocessor {
         double mass_width() const;
         const std::string& data_reader() const;
         int protocol() const;
-        void set_dataSource( std::pair< std::string, boost::uuids::uuid >&& );
+        void set_dataSource( std::pair< std::string, boost::uuids::uuid >&& ); // folium.name, folium.uuid
         std::pair< std::string, boost::uuids::uuid > dataSource() const;
+        const boost::uuids::uuid& dataGuid() const;
 
         std::tuple< double, std::string, std::string > get() const;
         const boost::json::value& value() const;

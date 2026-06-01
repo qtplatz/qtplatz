@@ -861,8 +861,7 @@ namespace { // anonymous
                 auto [processor, folium] = find_processor_t< portfolio::Folium >()( index );
                 processor->fetch( folium );
                 if ( auto v = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium ) ) {
-                    gv.emplace_back( adprocessor::generator_property( *v ) );
-                    gv.back().set_dataSource( { folium.name<char>(), folium.uuid() } );
+                    gv.emplace_back( adprocessor::generator_property( *v, {folium.name<char>(), folium.uuid()} ) );
                 }
             }
             try {
@@ -1041,7 +1040,7 @@ namespace { // anonymous
                 for ( auto folium: selected ) {
                     auto chro = portfolio::get< std::shared_ptr< adcontrols::Chromatogram > >( folium );
                     if ( chro ) {
-                        adprocessor::generator_property g( *chro );
+                        adprocessor::generator_property g( *chro, {folium.name<char>(), folium.uuid()} );
                         ADDEBUG() << g.mass();
                     } else {
                         ADDEBUG() << "chro null ptr";

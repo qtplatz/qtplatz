@@ -2064,7 +2064,7 @@ Dataprocessor::handleRemoveDuplicatedChromatograms( std::vector< portfolio::Foli
         fetch( folium );
         if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
 
-            adprocessor::generator_property prop( *chro );
+            adprocessor::generator_property prop( *chro, {folium.name<char>(), folium.uuid()} );
 
             if ( auto mass = prop.mass() ) {
 
