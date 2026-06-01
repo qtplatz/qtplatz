@@ -95,7 +95,7 @@ lrptic::load(std::istream& in, size_t fsize)
                 loaded_ = true;
                 flags_ = master.flags;
                 nextptr_ = ( master.nextptr - 1 ) != pos ? ( master.nextptr - 1 ) : 0;
-                ADDEBUG() << "##### master.nextptr, pos, nextptr_\t" << std::make_tuple(master.nextptr, pos, nextptr_);
+                // ADDEBUG() << "##### master.nextptr, pos, nextptr_\t" << std::make_tuple(master.nextptr, pos, nextptr_);
             } else {
                 in.seekg( pos );
                 return false;

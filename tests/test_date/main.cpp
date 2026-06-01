@@ -75,19 +75,21 @@ main()
     auto str = adportable::date_time::to_iso< std::chrono::nanoseconds >( tp, false );
 
     for ( auto s: { "2020-10-20T09:31:54+0900"
-                , "2020-10-20T09:31:54,125+0900"
-                , "2020-10-20T09:31:54,125197+0900"
-                , "2020-10-20T09:31:54,125197267+0900"
-                , "2020-10-20T09:31:54.125197267-0800"
-                , "2020-10-19T23:24:16,497177778Z"
-                , "2020-10-19T23:24:16.000077778Z" } ) {
+                    , "2025-11-18T16:10:5+0900"
+                    , "2025-11-18T16:10:5+0900"
+                    , "2020-10-20T09:31:54,125+0900"
+                    , "2020-10-20T09:31:54,125197+0900"
+                    , "2020-10-20T09:31:54,125197267+0900"
+                    , "2020-10-20T09:31:54.125197267-0800"
+                    , "2020-10-19T23:24:16,497177778Z"
+                    , "2020-10-19T23:24:16.000077778Z" } ) {
         auto str = std::string( s );
         if ( auto tp = adportable::iso8601::parse( str.begin(), str.end() ) ) {
             std::cout << str << "\t-->\t";
             std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( *tp ) << std::endl;
             auto dur = tp->time_since_epoch().count();
             auto tst_tp = std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >{} + std::chrono::nanoseconds( dur );
-            std::cout << adportable::date_time::to_iso< std::chrono::nanoseconds >( tst_tp, false ) << std::endl;
+            std::cout << "\t" << adportable::date_time::to_iso< std::chrono::nanoseconds >( tst_tp, false ) << std::endl;
         } else {
             std::cout << str << "\tparse failed\t" << std::endl;
         }

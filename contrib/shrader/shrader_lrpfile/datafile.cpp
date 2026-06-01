@@ -35,6 +35,9 @@
 #include <adcontrols/msproperty.hpp>
 #include <adcontrols/processeddataset.hpp>
 #include <adportable/debug.hpp>
+#include <date/date.h>
+#include <adportable/date_time.hpp>
+#include <adportable/iso8601.hpp>
 #include <adportable/utf.hpp>
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
@@ -45,9 +48,10 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
-#include <vector>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 namespace shrader {
 
@@ -157,8 +161,12 @@ datafile::getTIC( int /* fcn */, adcontrols::Chromatogram& c ) const
         }
         c.setMinimumTime( std::get< 0 >( impl_->ticc_.front() ) );
         c.setMaximumTime( std::get< 0 >( impl_->ticc_.back() ) );
-        c.set_time_of_injection_iso8601( impl_->lrpfile_->time_of_injection() );
-        ADDEBUG() << "############# time of injection: " << c.time_of_injection();
+        auto toi = impl_->lrpfile_->time_of_injection();
+        if ( auto tp = adportable::iso8601::parse( toi.begin(), toi.end() ) ) {
+            c.set_time_of_injection( *tp );
+        } else {
+            ADDEBUG() << "## .lrp file reader: time_of_injection parse failed";
+        }
         return true;
     }
 	return false;
@@ -204,6 +212,8 @@ datafile::lrp_open( const std::filesystem::path& path, bool )
 
                 impl_->processedDataset_.reset( new adcontrols::ProcessedDataset );
                 impl_->processedDataset_->xml( portfolio.xml() );
+
+                ADDEBUG() << std::format("TSS LRP file: {} success to open.", path.string() );
 
                 return true;
             }

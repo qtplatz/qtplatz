@@ -118,9 +118,9 @@ MassSpectrometer::initialSetup( adfs::sqlite& dbf, const boost::uuids::uuid& obj
     if ( sigs.find( "calib" ) != sigs.end() ) {
         impl_->lrpfile_.xload( lrpcalib{}, string_to_block( std::get< std::string >( sigs["calib"] ) ) );
     }
-    ADDEBUG() << "### MassSpectrometer::" << __FUNCTION__ << " ### "
-              << "mass range: " << std::make_tuple(impl_->lrpfile_.instsetup().lmasslim()
-                                                   , impl_->lrpfile_.instsetup().umasslim() );
+    // ADDEBUG() << "### MassSpectrometer::" << __FUNCTION__ << " ### "
+    //           << "mass range: " << std::make_tuple(impl_->lrpfile_.instsetup().lmasslim()
+    //                                                , impl_->lrpfile_.instsetup().umasslim() );
 }
 
 bool

@@ -89,7 +89,7 @@ data_reader::data_reader( const char * traceid )
     , impl_( std::make_unique< impl >() )
 {
     impl_->traceid_ = traceid;
-    ADDEBUG() << "#### << " << __FUNCTION__ << std::format( " data_reader({})", traceid );
+    // ADDEBUG() << "#### << " << __FUNCTION__ << std::format( " data_reader({})", traceid );
 }
 
 
@@ -114,8 +114,6 @@ data_reader::abbreviated_display_name() const
 bool
 data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids::uuid& objid, const std::string& objtext )
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
-
     impl_->db_ = db;
     if ( auto db = impl_->db_.lock() ) {
         adfs::stmt sql( *db );
@@ -136,17 +134,16 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids:
             impl_->lrpfile_->xload( instsetup{}, string_to_block( std::get< std::string >( sigs["instsetup"] ) ) );
         }
         if ( sigs.find( "calib" ) != sigs.end() ) {
-            ADDEBUG() << "--------- calib found ---------";
             impl_->lrpfile_->xload( lrpcalib{}, string_to_block( std::get< std::string >( sigs["calib"] ) ) );
         }
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header() );
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header2() );
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->header3() );
         // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
-        ADDEBUG() << "mass range: " << std::make_tuple(impl_->lrpfile_->instsetup().lmasslim()
-                                                       , impl_->lrpfile_->instsetup().umasslim() );
-        ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->lrpcalib() );
+        // ADDEBUG() << "mass range: " << std::make_tuple(impl_->lrpfile_->instsetup().lmasslim()
+        //                                                , impl_->lrpfile_->instsetup().umasslim() );
+        // ADDEBUG() << boost::json::value_from( impl_->lrpfile_->instsetup() );
 
         sql.prepare( "SELECT rowid,elapsed_time,npos,fcn,events,data,meta FROM AcquiredData WHERE objuuid=?" );
         sql.bind(1) = impl::uuid_;
@@ -174,7 +171,6 @@ data_reader::initialize( std::shared_ptr< adfs::sqlite > db, const boost::uuids:
 void
 data_reader::finalize()
 {
-    ADDEBUG() << "## DataReader " << __FUNCTION__ << " ==================";
 }
 
 //static

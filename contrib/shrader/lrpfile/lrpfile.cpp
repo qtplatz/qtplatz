@@ -68,6 +68,27 @@ namespace shrader {
     };
 }
 
+namespace {
+    std::string
+    normalize_lrp_time( const std::string& s )
+    {
+        int h{}, m{}, sec{};
+        char c1{}, c2{};
+
+        std::istringstream is{ s };
+        if ( is >> h >> c1 >> m >> c2 >> sec && c1 == ':' && c2 == ':' ) {
+            std::ostringstream o;
+            o << std::setfill('0')
+              << std::setw(2) << h << ':'
+              << std::setw(2) << m << ':'
+              << std::setw(2) << sec;
+            return o.str();
+        }
+        return s; // or throw/log
+    }
+}
+
+
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 
 using namespace shrader;
@@ -93,11 +114,11 @@ lrpfile::load( std::istream& in, size_t fsize )
         if ( not impl_->lrpcalib_->load( in, fsize ) )
             ADDEBUG() << "## lrpcalib load failed ##";
         if ( not impl_->simions_->load( in, fsize ) )
-            ADDEBUG() << "## simions load failed ##";
+            ; //ADDEBUG() << "## simions load failed ##";
         if ( not impl_->lrptic_->load( in, fsize ) )
             ADDEBUG() << "## lrptic load failed ##";
 
-        ADDEBUG() << "## lrpcalib load: " << boost::json::value_from( *impl_->lrpcalib_ );
+        // ADDEBUG() << "## lrpcalib load: " << boost::json::value_from( *impl_->lrpcalib_ );
 
         if ( impl_->lrptic_ && *impl_->lrptic_ ) {
             for ( auto& tic: impl_->lrptic_->tic() ) {
@@ -227,12 +248,15 @@ lrpfile::time_of_injection() const
     localtime_r(&t, &lt);
     long gmtoff = lt.tm_gmtoff;
 #endif
+    // 2025-11-18T16:10:5+0900
     // "analdate":"5/30/2025" "analtime":"17:17:24" --> 2025-05-30T17:17:24+0900
     return std::format( "{:04d}-{:02d}-{:02d}T{}{:+03d}{:02d}"
-                        , tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
-                        , header().analtime()
-                        , gmtoff / 3600
-                        , (gmtoff / 60) % 60 );
+                        , tm.tm_year + 1900     // YYYY
+                        , tm.tm_mon + 1         // MM
+                        , tm.tm_mday            // DD
+                        , normalize_lrp_time( header().analtime() )   // 17:17:24
+                        , gmtoff / 3600         // +09
+                        , (gmtoff / 60) % 60 ); // 00
 }
 
 ticc_t

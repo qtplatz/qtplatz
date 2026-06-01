@@ -295,6 +295,7 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
 MSChromatogramExtractor::time_of_injection() const
 {
+    ADDEBUG() << "---------- time_of_injection ---------------";
     if ( auto db = impl_->raw_->db() ) {
         adfs::stmt sql( *db );
         sql.prepare( "SELECT epoch_time,events FROM AcquiredData WHERE events >= ? ORDER BY epoch_time" );
@@ -304,6 +305,10 @@ MSChromatogramExtractor::time_of_injection() const
                 return std::chrono::system_clock::time_point() + std::chrono::nanoseconds( sql.get_column_value< int64_t >(0) );
         } else
             ADDEBUG() << "SQL Error : " << sql.errmsg();
+    } else {
+        adcontrols::Chromatogram c;
+        if ( impl_->raw_->getTIC(-1, c ) )
+            return c.time_of_injection();
     }
     return {}; // return epoch
 }

@@ -150,7 +150,7 @@ QuanSvgPlot::plot_spectrum( const QuanPlotData& data
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
     generator.setTitle( "QtPlatz Generated SVG" );
-    generator.setDescription( "Copyright (C) 2010-2017 MS-Cheminformataics, All rights reserved" );
+    generator.setDescription( "Copyright (C) 2010-2026 MS-Cheminformataics, All rights reserved" );
 
     QRectF rect( 0, 0, 350, 300 );
     generator.setViewBox( rect );
@@ -203,7 +203,7 @@ QuanSvgPlot::plot_chromatogram( const QuanPlotData& data, size_t idx, int fcn, c
     QBuffer buffer( &svg_ );
     generator.setOutputDevice( &buffer );
     generator.setTitle( "QtPlatz Generated SVG" );
-    generator.setDescription( "Copyright (C) 2013-2015 MS-Cheminformataics, All rights reserved" );
+    generator.setDescription( "Copyright (C) 2013-2026 MS-Cheminformataics, All rights reserved" );
 
     QRectF rect( 0, 0, 350, 300 );
     generator.setViewBox( rect );

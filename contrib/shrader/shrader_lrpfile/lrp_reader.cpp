@@ -86,10 +86,10 @@ data_reader::data_reader( const char * traceid
 {
     impl_->traceid_ = traceid;
 
-    ADDEBUG() << "##########################################";
-    ADDEBUG() << boost::json::value_from( lrpfile->header() );
-    ADDEBUG() << boost::json::value_from( lrpfile->header2() );
-    ADDEBUG() << boost::json::value_from( lrpfile->header3() );
+    //ADDEBUG() << "##########################################";
+    //ADDEBUG() << boost::json::value_from( lrpfile->header() );
+    //ADDEBUG() << boost::json::value_from( lrpfile->header2() );
+    //ADDEBUG() << boost::json::value_from( lrpfile->header3() );
     impl_->display_name_ = std::format( "lrp.{}", boost::trim_copy( lrpfile->header().instrument() ) );
 }
 
