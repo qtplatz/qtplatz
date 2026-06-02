@@ -207,6 +207,7 @@ namespace {
             return {};
         }
 
+        //====================================================
         void write( adcontrols::MSPeakInfo& t, const portfolio::Folium& f
                     , const std::optional< adcontrols::jcb2009::dataSource >& dataSource ) {
 
@@ -219,10 +220,30 @@ namespace {
             int64_t spid(0);
             adfs::stmt sql( *db_ );
             sql.begin();
-            sql.prepare( "INSERT INTO spectrum ( fileid, spname, sptype ) SELECT id,?,? FROM dataSource WHERE filename = ?" );
-            sql.bind(1) = f.name();
-            sql.bind(2) = std::string("");
-            sql.bind(3) = filename_;
+
+            sql.prepare( "INSERT INTO spectrum ("
+                         "fileid"
+                         ", spname"
+                         ", sptype"
+                         ", chromatogram_id"
+                         ", peakId"
+                         ", retentionTime"
+                         ", peakStartTime"
+                         ", peakEndTime"
+                         ", refDataGuid"
+                         ")"
+                         "SELECT "
+                         "c.fileid,?,?,c.id,?,?,?,?,c.dataGuid "
+                         "FROM chromatogram AS c "
+                         "WHERE c.dataGuid = ?" );
+            sql.bind( 1 ) = f.name();  // spname
+            sql.bind( 2 ) = std::string(); // sptype
+            sql.bind( 3 ) = dataSource ? dataSource->pk().pkid_ : (-1);
+            sql.bind( 4 ) = dataSource ? dataSource->pk().peakTime_ : (0.0);
+            sql.bind( 5 ) = dataSource ? dataSource->pk().peakStart_ : (0.0);
+            sql.bind( 6 ) = dataSource ? dataSource->pk().peakEnd_ : double(0);
+            sql.bind( 7 ) = dataSource ? dataSource->dataGuid() : boost::uuids::uuid{};
+
             if ( sql.step() == adfs::sqlite_done )
                 spid = db_->last_insert_rowid();
             else
