@@ -24,6 +24,7 @@
 **************************************************************************/
 
 #include "description.hpp"
+#include <boost/json/serialize.hpp>
 #include <ctime>
 #include <chrono>
 #include <adportable_serializer/portable_binary_oarchive.hpp>
@@ -152,6 +153,12 @@ description::description( std::pair< std::string, std::string >&& keyValue )
 
 }
 
+description::description( const std::string& key, const boost::json::value& jv )
+    : keyValue_{ key, boost::json::serialize( jv ) }
+    , encode_{ adcontrols::Encode_JSON }
+{
+}
+
 description::description( const description& t ) : posix_time_( t.posix_time_ )
 						                         , keyValue_( t.keyValue_ )
                                                  , encode_( t.encode_ )
@@ -245,6 +252,22 @@ namespace adcontrols {
             return t;
         }
         return {};
+    }
+
+    template<> boost::json::value
+    description::as<boost::json::value>() const
+    {
+        boost::system::error_code ec;
+        auto jv = boost::json::parse( keyValue_.second, ec );
+        if ( !ec )
+            return jv;
+        return {};
+    }
+
+    template<> std::string
+    description::as<std::string>() const
+    {
+        return keyValue_.second;
     }
 
 }

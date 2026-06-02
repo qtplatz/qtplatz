@@ -47,6 +47,7 @@ namespace adcontrols {
         description( const description& );
         description( const std::wstring& key, const std::wstring& text );
         description( std::pair< std::string, std::string >&& keyValue );
+        description( const std::string& key, const boost::json::value& );
 
         inline bool operator == ( const description& t ) const;
 
@@ -59,6 +60,7 @@ namespace adcontrols {
 
         adcontrols::TextEncode encode() const;
         void setEncode( adcontrols::TextEncode );
+        template< typename T > T as() const;
 
     private:
         uint64_t posix_time_;
@@ -74,6 +76,9 @@ namespace adcontrols {
         friend ADCONTROLSSHARED_EXPORT void tag_invoke( const boost::json::value_from_tag, boost::json::value&, const description& );
         friend ADCONTROLSSHARED_EXPORT description tag_invoke( const boost::json::value_to_tag< description >&, const boost::json::value& );
     };
+
+    template<> boost::json::value  description::as<boost::json::value>() const;
+    template<> std::string description::as<std::string>() const;
 
 }
 

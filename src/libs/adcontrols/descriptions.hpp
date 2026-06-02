@@ -74,6 +74,7 @@ namespace adcontrols {
        std::string toJson() const;
 
        std::optional< std::string > hasKey( const std::string& regex ) const;
+       std::vector< description >::const_iterator findKey( const std::string& key /* exact match */ ) const;
 
        static bool xml_archive( std::wostream&, const descriptions& );
        static bool xml_restore( std::wistream&, descriptions& );

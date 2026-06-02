@@ -26,9 +26,12 @@
 #include "sessionmanager.hpp"
 #include "dataprocessor.hpp"
 #include "datafolder.hpp"
+#include <adcontrols/jcb2009_peakresult.hpp>
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
+#include <adcontrols/description.hpp>
+#include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
@@ -42,9 +45,11 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adportfolio/portfolio.hpp>
+#include <adprocessor/generator_property.hpp>
 #include <adutils/processeddata_t.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
+#include <boost/parameter/aux_/preprocessor/impl/function_cast.hpp>
 #include <fstream>
 #include <iomanip>
 
@@ -136,17 +141,30 @@ namespace {
                       ",fileid INTEGER"
                       ",spname TEXT"
                       ",sptype TEXT"
+                      ",chromatogram_id INTEGER"
+                      ",peakId INTEGER"
+                      ",retentionTime REAL"
+                      ",peakStartTime REAL"
+                      ",peakEndTime REAL"
+                      ",refDataGuid UUID"   // chromatogram.dataGuid
                       ",UNIQUE( spname, id )"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
+                      ",FOREIGN KEY ( chromatogram_id ) REFERENCES chromatogram ( id )"
                       ")" );
 
             sql.exec( "CREATE TABLE chromatogram ("
                       "id INTEGER PRIMARY KEY"
                       ",fileid  INTEGER"
                       ",name    TEXT"
-                      ",injTime REAL"
+                      ",injTime INTEGER"
                       ",proto   INTEGER"
                       ",time_of_inject  TEXT"
+                      ",dataGuid UUID"
+                      ",foliumGuid UUID"
+                      ",mass       REAL"
+                      ",mass_width REAL"
+                      ",formula    TEXT"
+                      ",adduct     TEXT"
                       ",FOREIGN KEY ( fileid ) REFERENCES dataSource ( id )"
                       ")" );
 
@@ -189,7 +207,15 @@ namespace {
             return {};
         }
 
-        void write( adcontrols::MSPeakInfo& t, const portfolio::Folium& f ) {
+        void write( adcontrols::MSPeakInfo& t, const portfolio::Folium& f
+                    , const std::optional< adcontrols::jcb2009::dataSource >& dataSource ) {
+
+            if ( dataSource )
+                ADDEBUG() << "################  write MSPeakInfo ######################\n"
+                          << boost::json::value_from( *dataSource ) << std::endl;
+            else
+                ADDEBUG() << "################  write MSPeakInfo, which do not have dataSource ######################";
+
             int64_t spid(0);
             adfs::stmt sql( *db_ );
             sql.begin();
@@ -262,13 +288,38 @@ namespace {
             }
         }
 
-        void write( const adcontrols::MassSpectrum& t, const portfolio::Folium& f ) {
+        void write( const adcontrols::MassSpectrum& t, const portfolio::Folium& f
+                    , const std::optional< adcontrols::jcb2009::dataSource >& dataSource ) {
+            ADDEBUG() << "################  write MassSpectrum ######################";
+
             int64_t spid(0);
             adfs::stmt sql( *db_ );
             sql.begin();
-            sql.prepare( "INSERT INTO spectrum ( fileid, spname, sptype ) SELECT id,?,? FROM dataSource WHERE filename = ?" );
+            sql.prepare( "INSERT INTO spectrum ("
+                         ", fileid"
+                         ", spname"
+                         ", sptype"
+                         ", chromatogram_id"
+                         ", peakId"
+                         ", retentionTime"
+                         ", peakStartTime"
+                         ", peakEndTime"
+                         ", refDataGuid"
+                         ")"
+                         "SELECT"
+                         "c.fileid,?,?,c.id,?,?,c.dataGuid"
+                         "FROM chromatogram AS c"
+                         "WHERE c.dataGuid = ?" );
+
+            sql.prepare( "INSERT INTO spectrum ("
+                         "fileid"
+                         ", spname"
+                         ", sptype"
+                         ", chromatogram_id"
+                         ", refDataGuid"
+                         ") SELECT id,?,? FROM dataSource WHERE filename = ?" );
             sql.bind(1) = f.name();
-            sql.bind(2) = std::string("");
+            sql.bind(2) = std::string{};
             sql.bind(3) = filename_;
             if ( sql.step() == adfs::sqlite_done )
                 spid = db_->last_insert_rowid();
@@ -337,23 +388,46 @@ namespace {
             }
         }
 
+        // --------------------------------------
         void write( const adcontrols::Chromatogram& t, const portfolio::Folium& f ) {
+
+            // ADDEBUG() << "############### write Chromatogra ################## " << f.name();
             int64_t chroid(0);
+            adprocessor::generator_property genProp( t, { f.name< char >(), f.uuid() } );
+
             adfs::stmt sql( *db_ );
             sql.begin();
-            sql.prepare( "INSERT INTO chromatogram (fileid,name,injTime,proto,time_of_inject) SELECT id,?,?,?,? FROM dataSource WHERE filename = ?" );
-            sql.bind(1) = f.name();
-            sql.bind(2) = double(std::chrono::duration_cast< std::chrono::milliseconds >( t.time_of_injection().time_since_epoch() ).count()) / 1000.0;
+
+            sql.prepare( "INSERT INTO chromatogram ("
+                         "fileid"    // id
+                         ",name"     // 1
+                         ",injTime"  // 2
+                         ",proto"    // 3
+                         ",time_of_inject" // 4
+                         ",dataGuid"       // 5
+                         ",foliumGuid"     // 6
+                         ",mass, mass_width, formula, adduct) " // 7,8,9,10
+                         "SELECT id,?,?,?,?, ?,?, ?,?,?,? FROM dataSource WHERE filename=?" ); // 11
+            sql.bind(1) = f.name(); // == dataSource.folium().first
+            sql.bind(2) = // double(std::chrono::duration_cast< std::chrono::milliseconds >( t.time_of_injection().time_since_epoch() ).count()) / 1000.0;
+                std::chrono::duration_cast<std::chrono::milliseconds>( t.time_of_injection().time_since_epoch() ).count();
             sql.bind(3) = t.protocol();
             sql.bind(4) = t.time_of_injection_iso8601();
-            sql.bind(5) = filename_;
+            sql.bind(5) = t.dataGuid();  // == dataSource.dataGuid()
+            sql.bind(6) = f.uuid();      // == dataSource.folium().second
+            sql.bind(7) = genProp.mass();
+            sql.bind(8) = genProp.mass_width();
+            sql.bind(9) = genProp.formula() ? *genProp.formula() : std::string{};
+            sql.bind(10) = genProp.adduct();
+            sql.bind(11) = filename_;
+
             if ( sql.step() == adfs::sqlite_done )
                 chroid = db_->last_insert_rowid();
             else
                 ADDEBUG() << sql.errmsg();
             sql.commit();
 
-            ADDEBUG() << "-------- exporting Chromatogram chroid=" << chroid << ", name: " << f.name();
+            // ADDEBUG() << "-------- exporting Chromatogram chroid=" << chroid << ", name: " << f.name();
 
             using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >;
             for ( auto& a: f.attachments() ) {
@@ -367,11 +441,11 @@ namespace {
             // if not handled in within above loop
             __write( t.peaks(), chroid );
         }
-
-        template< typename T >
-        bool write( portfolio::Folium& f, portfolio::Folium& folium ) {
-            if ( auto data = portfolio::get< std::shared_ptr< T > >( f ) ) {
-                write( *data, folium );
+        ///----------------------
+        template< typename T, typename... Args >
+        bool write( portfolio::Folium& f, portfolio::Folium& folium, Args&&... args ) {
+            if ( auto data = portfolio::get< std::shared_ptr<T> >( f ) ) {
+                write( *data, folium, std::forward<Args>(args)... );
                 return true;
             }
             return false;
@@ -383,6 +457,20 @@ namespace {
 void
 peaklist_export::sqlite_export( const std::filesystem::path& path )
 {
+    auto findDataSource = [&]( const portfolio::Folium& a )->std::optional< adcontrols::jcb2009::dataSource >{
+        if ( auto t = portfolio::get< std::shared_ptr< adcontrols::MassSpectrum > >( a ) ) {
+            auto itSource = t->getDescriptions().findKey( "jcb2009_dataSource" );
+            if ( itSource != t->getDescriptions().end() ) {
+                auto json = itSource->as< boost::json::value >();
+                auto ds = boost::json::value_to< adcontrols::jcb2009::dataSource >( json );
+                ADDEBUG() << "######## dataSource value to =====> " << boost::json::value_from( ds )<< std::endl;
+                return std::optional< adcontrols::jcb2009::dataSource >(ds);
+            }
+        }
+        return {};
+    };
+
+
     auto db = std::make_shared< adfs::sqlite >();
     if ( db->open( path.string().c_str(), adfs::flags::opencreate ) ) {
         adfs::stmt sql( *db );
@@ -394,43 +482,46 @@ peaklist_export::sqlite_export( const std::filesystem::path& path )
         ADDEBUG() << "-------- sqlite_export -------";
 
         for ( auto& session : *SessionManager::instance() ) {
+
             if ( auto processor = session.processor() ) {
 
                 peaklist_writer writer( db, processor->filename() );
 
-                auto sfolio = processor->getPortfolio().findFolder( L"Spectra" );
-
-                for ( auto& folium: sfolio.folio() ) {
-                    if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                        if ( folium.empty() )
+                { // writing chromatogram
+                    auto cfolio = processor->getPortfolio().findFolder( L"Chromatograms" );
+                    for ( auto& folium: cfolio.folio() ) {
+                        if ( folium.attribute( L"isChecked" ) == L"true" ) {
                             processor->fetch( folium );
-                        portfolio::Folio atts = folium.attachments();
-                        auto it = std::find_if( atts.begin(), atts.end()
-                                                , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; });
-                        if ( it != atts.end() ) {
-                            portfolio::Folio a2 = it->attachments();
-                            auto it2 = std::find_if( a2.begin(), a2.end()
-                                                     , []( portfolio::Folium& f ) { return f.name() == Constants::F_MSPEAK_INFO; });
-                            auto success = ( it2 != a2.end() ) && writer.write<adcontrols::MSPeakInfo>( *it2, folium );
-                            if ( ! success )
-                                writer.write< adcontrols::MassSpectrum >( *it, folium );
+                            writer.write< adcontrols::Chromatogram >( folium, folium );
                         }
                     }
                 }
 
+                // wrting spectrum
+                {
+                    auto sfolio = processor->getPortfolio().findFolder( L"Spectra" );
 
-                using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >; //, std::shared_ptr< adcontrols::Chromatogram > >;
-
-                bool success( false );
-                auto cfolio = processor->getPortfolio().findFolder( L"Chromatograms" );
-                for ( auto& folium: cfolio.folio() ) {
-                    if ( folium.attribute( L"isChecked" ) == L"true" ) {
-                        if ( folium.empty() ) {
+                    for ( auto& folium: sfolio.folio() ) {
+                        if ( folium.attribute( L"isChecked" ) == L"true" ) {
                             processor->fetch( folium );
+                            auto dataSource = findDataSource( folium );
+
+                            portfolio::Folio atts = folium.attachments();
+                            auto it = std::find_if( atts.begin(), atts.end()
+                                                    , []( portfolio::Folium& f ) { return f.name() == Constants::F_CENTROID_SPECTRUM; });
+                            if ( it != atts.end() ) {
+                                portfolio::Folio a2 = it->attachments();
+                                auto it2 = std::find_if( a2.begin(), a2.end()
+                                                         , []( portfolio::Folium& f ) { return f.name() == Constants::F_MSPEAK_INFO; });
+                                auto success = ( it2 != a2.end() ) && writer.write<adcontrols::MSPeakInfo>( *it2, folium, dataSource );
+                                if ( ! success )
+                                    writer.write< adcontrols::MassSpectrum >( *it, folium, dataSource );
+                            }
                         }
-                        writer.write< adcontrols::Chromatogram >( folium, folium );
                     }
                 }
+                // using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult > >; //, std::shared_ptr< adcontrols::Chromatogram > >;
+                // bool success( false );
             }
         }
     }

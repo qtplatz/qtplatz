@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -42,14 +42,65 @@ namespace adcontrols {
 
     class ADCONTROLSSHARED_EXPORT jcb2009_peakresult;
 
+    namespace jcb2009 {
+        // dataSource attach to the MassSpectrum
+        struct Peak {
+            Peak();
+            Peak( const Peak& );
+            Peak( int32_t id, double tR, double st, double en );
+            int32_t pkid_;
+            double  peakTime_; // tR (s)
+            double peakStart_;
+            double peakEnd_;
+            friend ADCONTROLSSHARED_EXPORT void
+            tag_invoke( const boost::json::value_from_tag, boost::json::value&, const Peak& );
+            friend ADCONTROLSSHARED_EXPORT Peak
+            tag_invoke( const boost::json::value_to_tag< Peak >&, const boost::json::value& );
+        };
+
+        class dataSource {
+        public:
+            ~dataSource();
+            dataSource();
+            dataSource( const dataSource& );
+            dataSource( std::pair< std::string, boost::uuids::uuid >&& foliumGuid
+                        , const boost::uuids::uuid& dataGuid
+                        , const adcontrols::Peak& pk
+                        , const std::optional< std::string >& formula
+                        , const std::string& adduct
+                        , double mass
+                        , double mass_width
+                        , int32_t protocol = (-1));
+            const dataSource& operator=( const dataSource& );
+            const std::pair< std::string, boost::uuids::uuid >& folium() const;
+            const boost::uuids::uuid& dataGuid() const;
+            double mass() const;
+            double mass_width() const;
+            int32_t protocol() const;
+            std::string formula() const;
+            std::string adduct() const;
+            const Peak& pk() const;
+        private:
+            class impl;
+            std::unique_ptr< impl > impl_;
+            friend ADCONTROLSSHARED_EXPORT void
+            tag_invoke( const boost::json::value_from_tag, boost::json::value&, const dataSource& );
+            friend ADCONTROLSSHARED_EXPORT dataSource
+            tag_invoke( const boost::json::value_to_tag< dataSource >&, const boost::json::value& );
+        };
+    }
+
     class jcb2009_peakresult {
     public:
         jcb2009_peakresult();
         jcb2009_peakresult( const jcb2009_peakresult& );
-        // jcb2009_peakresult( const portfolio::Folium&, const adcontrols::Peak& );
-        jcb2009_peakresult( std::tuple< double, double, int >&& // mass, width, protocol
+
+        jcb2009_peakresult( double   // generator.mass
+                            , double // generator.mass_width
+                            , int    // protocol
                             , const adcontrols::Peak& peak
-                            , std::pair< std::string, boost::uuids::uuid >&& folder );
+                            , std::pair< std::string, boost::uuids::uuid >&& folder
+                            , const boost::uuids::uuid& dataGuid );
 
         void set_found_mass( const adcontrols::MSPeakInfoItem& );
         double tR() const;
@@ -63,8 +114,7 @@ namespace adcontrols {
         double matched_mass_width() const;
         double matched_mass_height() const;
         int protocol() const;
-        void set_chro_generator( std::tuple< double, double, double, double, double, double, std::string >&& ); // tR, pw, pa, ph, name
-        void set_chro_folder( std::tuple< std::string, boost::uuids::uuid >&&, int protocol ); // dataSource (name,uuid)
+        boost::uuids::uuid dataGuid() const;
 
         bool operator < ( const jcb2009_peakresult& ) const;
     private:
@@ -80,6 +130,8 @@ namespace adcontrols {
         double matched_mass_height_;
         int protocol_;
         std::pair< std::string, boost::uuids::uuid > dataSource_;
+        boost::uuids::uuid dataGuid_;
+        ssize_t pkid_;
 
         friend ADCONTROLSSHARED_EXPORT void
         tag_invoke( const boost::json::value_from_tag, boost::json::value&, const jcb2009_peakresult& );

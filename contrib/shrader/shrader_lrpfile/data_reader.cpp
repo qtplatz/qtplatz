@@ -272,11 +272,23 @@ data_reader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 std::shared_ptr< const adcontrols::Chromatogram >
 data_reader::TIC( int fcn ) const
 {
-    ADDEBUG() << "############# " << __FUNCTION__ << " ##############";
-    // if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
-    //     impl_->mzml_->getTIC( fcn, *chro );
-    //     return chro;
-    // }
+    if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
+        auto ticc = impl_->lrpfile_->get_ticc();
+        chro->resize( ticc.size() );
+        for ( size_t idx = 0; idx < ticc.size(); ++idx ) {
+            const auto& tic = ticc.at( idx );
+            chro->setDatum( idx, { get<0>( tic ), get<1>( tic ) } );
+        }
+        chro->setMinimumTime( std::get< 0 >( ticc.front() ) );
+        chro->setMaximumTime( std::get< 0 >( ticc.back() ) );
+        auto toi = impl_->lrpfile_->time_of_injection();
+        if ( auto tp = adportable::iso8601::parse( toi.begin(), toi.end() ) ) {
+            chro->set_time_of_injection( *tp );
+        } else {
+            ADDEBUG() << "## .lrp file reader: time_of_injection parse failed";
+        }
+        return chro;
+    }
     return nullptr;
 }
 

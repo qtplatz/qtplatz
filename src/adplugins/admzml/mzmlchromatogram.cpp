@@ -126,8 +126,8 @@ mzMLChromatogram::toChromatogram( const mzMLChromatogram& t )
     sp->setMinimumTime( sp->timeArray().front() );
     sp->setMaximumTime( sp->timeArray().back() );
 
-    sp->addDescription( { "id", t.node().select_node( "@id" ).attribute().value() } );
-    sp->addDescription( { "metadata", boost::json::serialize( mzml::to_value{}(t.node() ) ) } );
+    sp->addDescription( std::pair{ "id", t.node().select_node( "@id" ).attribute().value() } );
+    sp->addDescription( std::pair{ "metadata", boost::json::serialize( mzml::to_value{}(t.node() ) ) } );
     sp->set_display_name( t.node().select_node( "@id" ).attribute().value() );
 
     return sp;

@@ -168,7 +168,7 @@ MSSpectraWnd::handleSessionAdded( adprocessor::dataprocessor * processor )
 void
 MSSpectraWnd::handleSessionRemoved( const QString& file )
 {
-    qDebug() << __FUNCTION__ << file;
+    // qDebug() << __FUNCTION__ << file;
     impl_->plots_[ 0 ]->setData( nullptr, 0, QwtPlot::yLeft );
 }
 

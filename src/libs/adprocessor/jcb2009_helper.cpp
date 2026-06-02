@@ -84,11 +84,11 @@ folium_accessor::folium_accessor( const portfolio::Folium& folium ) : folium_( f
 {
 }
 
-std::tuple< generator_property, adcontrols::Peaks >
+std::tuple< generator_property, adcontrols::Peaks, std::shared_ptr< const adcontrols::Chromatogram > >
 folium_accessor::operator()() const
 {
     if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium_ ) ) {
-        return { generator_property{ *chro, { folium_.name<char>(), folium_.uuid() } }, chro->peaks() };
+        return { generator_property{ *chro, { folium_.name<char>(), folium_.uuid() } }, chro->peaks(), chro };
     }
     return {};
 }
@@ -132,25 +132,6 @@ namespace adprocessor {
             std::optional< std::string > formula_;
 
         public:
-#if 0
-            impl( const portfolio::Folium& folium
-                  , const adcontrols::ProcessMethod& m ) : folium_( folium )
-                                                         , mass_( 0 ) {
-
-                if ( auto tm = m.find< adcontrols::TargetingMethod >() ) {
-                    auto t = tm->tolerance( tm->toleranceMethod() );
-                    auto a = tm->findAlgorithm();
-                    auto m = tm->toleranceMethod();
-                    msFinder_ = { t, a, m };
-                }
-
-                if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
-                    adprocessor::generator_property gprop( *chro, {folium.name<char>(), folium.uuid()} );
-                    mass_ = gprop.mass();
-                    formula_ = gprop.formula();
-                }
-            }
-#endif
             impl( const portfolio::Folium& folium
                   , const adcontrols::ProcessMethod& m
                   , const generator_property& gp ) : folium_( folium )
@@ -174,13 +155,7 @@ namespace adprocessor {
         {
             delete impl_;
         }
-#if 0
-        find_mass::find_mass( const portfolio::Folium& folium // chromatogram
-                              , const adcontrols::ProcessMethod& m )
-            : impl_( new impl( folium, m ) )
-        {
-        }
-#endif
+
         find_mass::find_mass( const portfolio::Folium& folium
                               , const adcontrols::ProcessMethod& m
                               , const generator_property& gp )

@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2023 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2023 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -23,7 +23,6 @@
 **************************************************************************/
 
 #include "jcb2009_peakresult.hpp"
-// #include "generator_property.hpp"
 #include <adcontrols/annotation.hpp>
 #include <adcontrols/annotations.hpp>
 #include <adcontrols/chromatogram.hpp>
@@ -41,11 +40,237 @@
 #include <adportable/json/extract.hpp>
 #include <adportfolio/folium.hpp>
 #include <boost/json.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/format.hpp>
 #include <algorithm>
 #include <iterator>
 
 namespace adcontrols {
+
+    namespace jcb2009 {
+
+        Peak::Peak() : pkid_( 0 )
+                     , peakTime_  ( 0 )
+                     , peakStart_ ( 0 )
+                     , peakEnd_   ( 0 )
+        {
+        }
+        Peak::Peak( const Peak& t ) : pkid_( t.pkid_ )
+                                    , peakTime_( t.peakTime_ )
+                                    , peakStart_( t.peakStart_ )
+                                    , peakEnd_( t.peakEnd_ )
+        {
+        }
+
+        Peak::Peak( int pkid
+                    , double peakTime
+                    , double peakStart
+                    , double peakEnd ) : pkid_( pkid )
+                                       , peakTime_( peakTime )
+                                       , peakStart_( peakStart )
+                                       , peakEnd_( peakEnd )
+        {
+        }
+
+        class dataSource::impl {
+        public:
+            impl() : mass_ ( 0 )
+                     , mass_width_ ( 0 )
+                     , protocol_   ( -1 ) {
+            }
+            impl( const impl& t ) : folium_( t.folium_ )
+                                  , dataGuid_( t.dataGuid_ )
+                                  , mass_( t.mass_ )
+                                  , mass_width_( t.mass_width_ )
+                                  , protocol_( t.protocol_ )
+                                  , pk_( t.pk_ ) {
+            }
+
+            impl( const std::pair< std::string, boost::uuids::uuid >& foliumGuid
+                  , const boost::uuids::uuid& dataGuid
+                  , const adcontrols::Peak& pk
+                  , const std::string& formula
+                  , const std::string& adduct
+                  , double mass
+                  , double mass_width
+                  , int32_t protocol ) : folium_( std::move( foliumGuid ) )
+                                       , dataGuid_( dataGuid )
+                                       , mass_( mass )
+                                       , mass_width_ ( mass_width )
+                                       , protocol_( protocol )
+                                       , formula_( formula )
+                                       , adduct_ ( adduct ) {
+                pk_ = Peak{ pk.peakId(), pk.peakTime(), pk.startTime(), pk.endTime() };
+            }
+
+            std::pair< std::string, boost::uuids::uuid > folium_;
+            boost::uuids::uuid dataGuid_;
+            double mass_;
+            double mass_width_;
+            int32_t protocol_;
+            std::string formula_;
+            std::string adduct_;
+            Peak pk_;
+        };
+
+        dataSource::~dataSource()
+        {
+        }
+
+        dataSource::dataSource() : impl_( std::make_unique< impl >() )
+        {
+        }
+
+        dataSource::dataSource( const dataSource& t ) : impl_( std::make_unique< impl >( *t.impl_ ) )
+        {
+        }
+
+        const dataSource&
+        dataSource::operator = ( const dataSource& t )
+        {
+            (*this) = t;
+            return *this;
+        }
+
+        dataSource::dataSource( std::pair< std::string, boost::uuids::uuid >&& foliumGuid
+                                , const boost::uuids::uuid& dataGuid
+                                , const adcontrols::Peak& pk
+                                , const std::optional< std::string >& formula
+                                , const std::string& adduct
+                                , double mass
+                                , double mass_width
+                                , int32_t protocol ) : impl_( std::make_unique< impl >( foliumGuid
+                                                                                        , dataGuid
+                                                                                        , pk
+                                                                                        , formula ? *formula : ""
+                                                                                        , adduct
+                                                                                        , mass
+                                                                                        , mass_width
+                                                                                        , protocol ) )
+        {
+        }
+
+        const std::pair< std::string, boost::uuids::uuid >&
+        dataSource::folium() const
+        {
+            return impl_->folium_;
+        }
+
+        const boost::uuids::uuid&
+        dataSource::dataGuid() const
+        {
+            return impl_->dataGuid_;
+        }
+
+        double
+        dataSource::mass() const
+        {
+            return impl_->mass_;
+        }
+
+        double
+        dataSource::mass_width() const
+        {
+            return impl_->mass_width_;
+        }
+
+        int32_t
+        dataSource::protocol() const
+        {
+            return impl_->protocol_;
+        }
+
+        std::string
+        dataSource::formula() const
+        {
+            return impl_->formula_;
+        }
+
+        std::string
+        dataSource::adduct() const
+        {
+            return impl_->adduct_;
+        }
+
+        const Peak&
+        dataSource::pk() const
+        {
+            return impl_->pk_;
+        }
+
+        void
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const Peak& t )
+        {
+            jv = boost::json::object{
+                { "Peak", {  { "pkid", t.pkid_ }
+                             , { "peakTime", t.peakTime_ }
+                             , { "peakStart", t.peakStart_ }
+                             , { "peakEnd", t.peakEnd_ } } }};
+        }
+        Peak
+        tag_invoke( const boost::json::value_to_tag< Peak >&, const boost::json::value& jv )
+        {
+            Peak t;
+            if ( jv.kind() == boost::json::kind::object ) {
+                if ( auto peak = jv.as_object().if_contains( "Peak" ) ) {
+                    using namespace adportable::json;
+
+                    auto obj = peak->as_object();
+                    extract( obj, t.pkid_, "pkid" );
+                    extract( obj, t.peakTime_, "peakTime" );
+                    extract( obj, t.peakStart_, "peakStart" );
+                    extract( obj, t.peakEnd_, "peakEnd" );
+                }
+            }
+            return t;
+        }
+
+        ///
+        void
+        tag_invoke( const boost::json::value_from_tag, boost::json::value& jv, const dataSource& t )
+        {
+            jv = boost::json::object{
+                { "dataSource", {
+                        { "folium", {
+                                { "name", t.impl_->folium_.first }
+                                ,{ "uuid", boost::uuids::to_string( t.impl_->folium_.second ) }
+                            } } // "folium"
+                        , { "dataGuid", boost::uuids::to_string( t.impl_->dataGuid_ ) }
+                        , { "mass", t.impl_->mass_ }
+                        , { "mass_width", t.impl_->mass_ }
+                        , { "protocol", t.impl_->protocol_ }
+                        , { "Peak", boost::json::value_from( t.impl_->pk_ ) }
+                    }
+                } // dataSource
+            };
+        }
+
+        dataSource
+        tag_invoke( const boost::json::value_to_tag< dataSource >&, const boost::json::value& jv )
+        {
+            dataSource t;
+            if ( jv.kind() == boost::json::kind::object ) {
+                if ( auto p = jv.as_object().if_contains( "dataSource" ) ) {
+                    using namespace adportable::json;
+                    auto obj = p->as_object();
+                    if ( auto pfolium = obj.if_contains( "folium" ) ) {
+                        auto fobj = pfolium->as_object();
+                        extract( fobj, t.impl_->folium_.first, "name" );
+                        extract( fobj, t.impl_->folium_.second, "uuid" );
+                    }
+                    extract( obj, t.impl_->dataGuid_, "dataGuid" );
+                    extract( obj, t.impl_->mass_, "mass" );
+                    extract( obj, t.impl_->mass_width_, "mass_width" );
+                    extract( obj, t.impl_->protocol_, "protocol" );
+                    extract( obj, t.impl_->pk_, "Peak" );
+                }
+            }
+            // ADDEBUG() << "####### value_to<dataSource> loopback #########\n\n" << boost::json::value_from( t ) << "\n\n";
+            return t;
+        }
+    } // namesapce jcb2009
+
 
     jcb2009_peakresult::jcb2009_peakresult() : chro_tR_(0)
                                              , chro_peak_width_(0)
@@ -58,6 +283,8 @@ namespace adcontrols {
                                              , matched_mass_height_(0)
                                              , protocol_(0)
                                              , dataSource_{ "", {0} }
+                                             , dataGuid_({})
+                                             , pkid_( -1 )
     {
     }
 
@@ -74,23 +301,32 @@ namespace adcontrols {
         , matched_mass_height_( t.matched_mass_height_ )
         , protocol_( t.protocol_ )
         , dataSource_( t.dataSource_ )
+        , dataGuid_( t.dataGuid_ )
+        , pkid_ ( t.pkid_ )
     {
     }
 
-    jcb2009_peakresult::jcb2009_peakresult( std::tuple< double, double, int >&& gen
+    jcb2009_peakresult::jcb2009_peakresult( double mass
+                                            , double mass_width
+                                            , int protocol
                                             , const adcontrols::Peak& peak
-                                            , std::pair< std::string, boost::uuids::uuid >&& folder )
+                                            , std::pair< std::string, boost::uuids::uuid >&& folder
+                                            , const boost::uuids::uuid& dataGuid )
+        : chro_tR_         ( peak.peakTime() )
+        , chro_peak_width_ ( peak.peakWidth() )
+        , chro_peak_area_  ( peak.peakArea() )
+        , chro_peak_height_( peak.peakHeight() )
+        , chro_peak_name_  ( peak.name() )
+        , chro_generator_mass_( mass )
+        , chro_generator_mass_width_( mass_width )
+        , matched_mass_( 0 )
+        , matched_mass_width_( 0 )
+        , matched_mass_height_( 0 )
+        , protocol_( protocol )
+        , dataSource_      ( folder )
+        , dataGuid_ ( dataGuid )
+        , pkid_ ( peak.peakId() )
     {
-        chro_generator_mass_        = std::get< 0 >( gen ); // mass
-        chro_generator_mass_width_  = std::get< 1 >( gen ); // mass
-        protocol_                   = std::get< 2 >( gen );
-
-        chro_tR_                    = peak.peakTime();
-        chro_peak_width_            = peak.peakWidth();
-        chro_peak_area_             = peak.peakArea();
-        chro_peak_height_           = peak.peakHeight();
-        chro_peak_name_             = peak.name();
-        dataSource_                 = folder;
     }
 
     void
@@ -135,6 +371,7 @@ namespace adcontrols {
                         , { "protocol",             t.protocol_ }
                         , { "dataSource_name",      t.dataSource_.first }
                         , { "dataSource_uuid",      boost::uuids::to_string(t.dataSource_.second) }
+                        , { "dataGuid",      boost::uuids::to_string( t.dataGuid_ ) }
                 }
             }
         };
@@ -162,6 +399,7 @@ namespace adcontrols {
                 extract( obj, t.protocol_,                    "protocol");
                 extract( obj, t.dataSource_.first,            "dataSource_name");
                 extract( obj, t.dataSource_.second,           "dataSource_uuid");
+                extract( obj, t.dataGuid_,                    "dataGuid");
             }
         }
         return t;

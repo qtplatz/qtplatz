@@ -65,7 +65,9 @@ namespace adprocessor {
             const portfolio::Folium& folium_;
             folium_accessor( const portfolio::Folium& folium );
 
-            std::tuple< generator_property, adcontrols::Peaks > operator()() const;
+            std::tuple< generator_property
+                        , adcontrols::Peaks
+                        , std::shared_ptr< const adcontrols::Chromatogram > > operator()() const;
             adcontrols::Peaks get_peaks() const;
         };
 

@@ -232,6 +232,15 @@ descriptions::hasKey( const std::string& pattern ) const
     return {};
 }
 
+std::vector< description >::const_iterator
+descriptions::findKey( const std::string& key ) const
+{
+    return std::find_if( impl_->vec_.begin(), impl_->vec_.end()
+                         , [&]( const auto& a ){
+                             return a.template key< char >() == key;
+                         });
+}
+
 namespace adcontrols {
     /////////////////////// BINARY //////////////////////
     template<> void

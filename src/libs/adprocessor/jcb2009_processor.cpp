@@ -106,57 +106,27 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
 
     for ( const auto& cfolium: impl_->folio_ ) {
 
-        //===========================
-        // if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( cfolium ) ) {
-        //     ADDEBUG() << "############### " << std::make_tuple( cfolium.name(), chro->dataGuid(), cfolium.uuid() );
-        //     ADDEBUG() << "############### number of peaks: " << chro->peaks().size();
-        // }
-        //===========================
-
-
-        auto [gen,peaks] = jcb2009_helper::folium_accessor( cfolium )();
+        auto [gen,peaks, chro] = jcb2009_helper::folium_accessor( cfolium )();
         jcb2009_helper::find_mass find_mass( cfolium, *impl_->procm_, gen );
 
         for ( const auto& peak: peaks ) {
+            adcontrols::jcb2009::dataSource dataSource( gen.dataSource()
+                                                        , gen.dataGuid()
+                                                        , peak
+                                                        , gen.formula()
+                                                        , gen.adduct()
+                                                        , gen.mass()
+                                                        , gen.mass_width()
+                                                        , gen.protocol() );
+            ADDEBUG() << "############## generator_prop: \n" << boost::json::value_from( gen );
+            ADDEBUG() << "############## dataSource JSON:\n" << boost::json::value_from( dataSource );
 
-            boost::json::object jv{
-                { "dataSource", {
-                        { "folium"
-                          , { { "name", gen.dataSource().first }
-                              ,{ "uuid", boost::uuids::to_string( gen.dataSource().second ) }
-                            }
-                        }
-                        , { "dataGuid", boost::uuids::to_string( gen.dataGuid() ) }
-                        , { "mass", gen.mass() }
-                        , { "mass_width", gen.mass_width() }
-                    }
-                }
-                , { "peak", {
-                        { "pkid", peak.peakId() }
-                        , { "pk_tR", peak.peakFlags() }
-                        , { "pk_start", peak.startTime() }
-                        , { "pk_end", peak.endTime() }
-                    }
-                }
-            };
-            // auto jv = boost::json::value{
-            //     "dataSource"
-            //     , { "folium" , {"name", gen.dataSource().first }, {"uuid", boost::uuids::to_string( gen.dataSource().second ) } }
-            //     , { "dataGuid", boost::uuids::to_string( gen.dataGuid() ) }
-            //     , { "mass", gen.mass() }
-            //     , { "mass_width", gen.mass_width() }
-            //     , "peak"
-            //     , { "pkid", peak.peakId() }
-            //     , { "pk_tR", peak.peakFlags() }
-            //     , { "pk_start", peak.startTime() }
-            //     , { "pk_end", peak.endTime() }
-            // };
-
-            ADDEBUG() << "### JSON:\n" << jv;
-
-            adcontrols::jcb2009_peakresult pkResult( { gen.mass(), gen.mass_width(), gen.protocol() }
+            adcontrols::jcb2009_peakresult pkResult( gen.mass()
+                                                     , gen.mass_width()
+                                                     , gen.protocol()
                                                      , peak
-                                                     , { cfolium.name<char>(), cfolium.uuid() }  );
+                                                     , { cfolium.name<char>(), cfolium.uuid() }
+                                                     , chro->dataGuid() );
 
             int target_protocol = pkResult.protocol();
 
@@ -169,6 +139,14 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                                 % cfolium.name<char>() % std::get<0>(tR) % (std::get<2>(tR) - std::get<1>(tR))).str();
 
                 ms->addDescription( adcontrols::description( { "create", folname } ) );
+                ms->addDescription( adcontrols::description( "jcb2009_dataSource", boost::json::value_from( dataSource ) ) );
+                // ADDEBUG() << "------------------------->";
+                // auto it = ms->getDescriptions().findKey( "jdb2009_dataSource" );
+                // if ( it != ms->getDescriptions().end() ) {
+                //     ADDEBUG() << it->keyValue();
+                // } else
+                //     ADDEBUG() << "--- dataSource NOT FOUND";
+                // ADDEBUG() << "<-------------------------";
 
                 // apply MSLock
                 impl_->processor_->mslock( *ms, std::get<0>(tR) );
@@ -177,6 +155,7 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                 auto [pCentroid, pInfo] = centroid_processor( *impl_->procm_ )( *ms );
                 if ( pCentroid && pInfo ) {
                     pCentroid->addDescription( adcontrols::description( L"process", L"Centroid" ) );
+                    pCentroid->addDescription( adcontrols::description( "dataSource", boost::json::value_from( dataSource ) ) );
                     // adcontrols::annotation anno;
                     if ( auto idx = find_mass( *pCentroid, target_protocol ) ) {
                         using adcontrols::segments_helper;
@@ -194,10 +173,19 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
                                                                             , gen.mass() // exact mass
                                                                             , mass
                                                                             , boost::json::value_from( gen ) );
-                            segments_helper::addAnnotation( *pCentroid, { boost::json::value_from( mol ), mass, intensity, int( idx->first ) }, *idx );
+                            segments_helper::addAnnotation( *pCentroid
+                                                            , { boost::json::value_from( mol )
+                                                                , mass
+                                                                , intensity
+                                                                , int( idx->first ) }
+                                                            , *idx );
                         }
-                        segments_helper::addAnnotation( *pCentroid, { display_text, mass, intensity, int(idx->first) }, *idx );
-
+                        segments_helper::addAnnotation( *pCentroid
+                                                        , { display_text
+                                                            , mass
+                                                            , intensity
+                                                            , int(idx->first) }
+                                                        , *idx );
                         segments_helper::set_color( *pCentroid, idx->second, idx->first, 15 );
                     }
                     //
@@ -230,7 +218,6 @@ JCB2009_Processor::operator()( std::shared_ptr< const adcontrols::DataReader > r
     sfolium.addAttachment( adcontrols::constants::F_MSPEAK_INFO ).assign( pInfo, pInfo->dataClass() );
 #endif
     progress(++nCurr, nCount );
-    ADDEBUG() << " gathering spectra: " << (nCurr - 1) << "/" << nCount;
     // todo ---
     // get mass spectrum for peak retention time -- done
     // centroid spectrum, and color code for an ion, which the mass corresponding to a mass of chromatogram extracted.
