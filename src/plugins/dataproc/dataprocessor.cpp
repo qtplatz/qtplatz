@@ -25,6 +25,7 @@
 
 #include "dataprocessor.hpp"
 #include "constants.hpp"
+#include "dataprocconstants.hpp"
 #include "dataprochandler.hpp"
 #include "dataprocessworker.hpp"
 #include "document.hpp"
@@ -1327,6 +1328,30 @@ Dataprocessor::removePeaks( portfolio::Folium folium, std::vector< int >&& ids )
 }
 
 void
+Dataprocessor::findPeaks( portfolio::Folium folium, std::shared_ptr< const adcontrols::ProcessMethod > pm  )
+{
+    auto copy_peakmethod = []( std::shared_ptr< const adcontrols::ProcessMethod > pm  )->std::optional< adcontrols::PeakMethod > {
+        if ( pm )
+            return *(pm->find< adcontrols::PeakMethod >()); // copy
+        return {};
+    };
+
+    if ( auto method = copy_peakmethod( pm ) ) {
+        if ( auto chro = portfolio::get< adcontrols::ChromatogramPtr >( folium ) ) {
+            doChromatogramProcess{ chro, folium, this }( const_cast< const adcontrols::PeakMethod& >(*method) );
+            if ( auto fres = portfolio::find_first_of( folium.attachments()
+                                                       , []( const auto& a ){ return a.name() == Constants::F_PEAKRESULT; }) ) {
+                if ( auto pkres = portfolio::get< adcontrols::PeakResultPtr >( fres ) )
+                    folium.setAttribute( L"isChecked", pkres->peaks().size() > 0 ? L"true" : L"false" );
+            }
+        } else {
+            ADDEBUG() << "findPeaks: " << folium.name() << "\tno chromatogram found";
+        }
+    }
+    setModified( true );
+}
+
+void
 Dataprocessor::baselineCorrection( portfolio::Folium folium )
 {
     using dataTuple = std::tuple< std::shared_ptr< adcontrols::PeakResult >
@@ -1354,7 +1379,6 @@ void
 Dataprocessor::dftFilter( portfolio::Folium folium
                           , std::shared_ptr< adcontrols::ProcessMethod > pm )
 {
-    ADDEBUG() << "## " << __FUNCTION__ << " ## ";
     double freq = 10.0;
     if ( auto peakm = pm->find< adcontrols::PeakMethod >() ) {
         std::tie(std::ignore, freq) = peakm->noise_filter();

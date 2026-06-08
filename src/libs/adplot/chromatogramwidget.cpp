@@ -274,7 +274,7 @@ namespace adplot {
         template<class T> class TraceData {
         public:
             ~TraceData() { }
-			TraceData( plot& plot ) : curve_( plot ) { }
+			TraceData( plot& plot ) : curve_( plot, {} ) { }
             TraceData( const TraceData& t ) : curve_( t.curve_ ), rect_( t.rect_ ) { }
             void setData( std::shared_ptr<const T> ) {}
 			const QRectF& boundingRect() const { return rect_; };
@@ -311,9 +311,10 @@ namespace adplot {
         class ChromatogramData {
         public:
             ~ChromatogramData() { }
-			ChromatogramData( plot& plot ) : curve_( plot )
-                                           , yAxis_( QwtPlot::yLeft )
-                                           , yNormalize_( false ) {}
+			ChromatogramData( plot& plot
+                              , const QString& title ) : curve_( plot, title )
+                                                       , yAxis_( QwtPlot::yLeft )
+                                                       , yNormalize_( false ) {}
             ChromatogramData( const ChromatogramData& t ) : curve_( t.curve_ ), rect_( t.rect_ ), grab_( t.grab_ ), yAxis_( t.yAxis_ ) { }
 
             inline bool y2() const { return yAxis_ == QwtPlot::yRight; }
@@ -336,7 +337,11 @@ namespace adplot {
                     rect_.setCoords( range_x.first, 105.0, range_x.second, -5.0 );
                 else
                     rect_.setCoords( range_x.first, range_y.second, range_x.second, range_y.first ); // left,top, right,bottom
-
+                if ( auto display_name = cp->display_name() ) {
+                    curve_.p()->setTitle( QString::fromStdString( *display_name ) );
+                } else {
+                    curve_.p()->setTitle( "empty" );
+                }
                 curve_.p()->setYAxis( yAxis_ );
                 curve_.p()->setData( new xSeriesData( cp, rect_, yNormalize_ ) );
             }
@@ -615,7 +620,7 @@ ChromatogramWidget::setData( std::shared_ptr< const adcontrols::Chromatogram > c
         impl_->traces_.resize( idx + 1 );
 
     if ( ! boost::apply_visitor( isValid< ChromatogramData >(), impl_->traces_[ idx ] ) )
-        impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this );
+        impl_->traces_[ idx ] = std::make_unique< ChromatogramData >( *this, cp->display_name() ? QString::fromStdString( *cp->display_name() ) : "-----" );
 
     auto& trace = boost::get< std::unique_ptr< ChromatogramData > >( impl_->traces_ [ idx ] );
     if ( QwtPlot::isAxisValid( yAxis ) ) {

@@ -22,12 +22,13 @@
 **
 **************************************************************************/
 
-#include <string>
-#include <memory>
 #include <QString>
 #include <boost/uuid/uuid.hpp>
 #include <boost/optional.hpp>
 #include <adportfolio/folium.hpp>
+#include <filesystem>
+#include <memory>
+#include <string>
 
 
 namespace adcontrols { class MassSpectrum; class Chromatogram; class PeakResult; }
@@ -87,7 +88,7 @@ namespace dataproc {
         std::shared_ptr< adcontrols::Chromatogram > get_overlayChromatogram() const;
         std::shared_ptr< adcontrols::PeakResult > get_peakResult() const;
 
-        static QString make_display_name( const std::wstring& fullpath, const portfolio::Folium& );
+        static QString make_display_name( const std::filesystem::path& fullpath, const portfolio::Folium& );
         static QString make_display_name( Dataprocessor *, const portfolio::Folium& );
 
         template< typename container > static

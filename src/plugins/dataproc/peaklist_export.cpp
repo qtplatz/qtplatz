@@ -430,8 +430,7 @@ namespace {
                          ",mass, mass_width, formula, adduct) " // 7,8,9,10
                          "SELECT id,?,?,?,?, ?,?, ?,?,?,? FROM dataSource WHERE filename=?" ); // 11
             sql.bind(1) = f.name(); // == dataSource.folium().first
-            sql.bind(2) = // double(std::chrono::duration_cast< std::chrono::milliseconds >( t.time_of_injection().time_since_epoch() ).count()) / 1000.0;
-                std::chrono::duration_cast<std::chrono::milliseconds>( t.time_of_injection().time_since_epoch() ).count();
+            sql.bind(2) = std::chrono::duration_cast<std::chrono::milliseconds>( t.time_of_injection().time_since_epoch() ).count();
             sql.bind(3) = t.protocol();
             sql.bind(4) = t.time_of_injection_iso8601();
             sql.bind(5) = t.dataGuid();  // == dataSource.dataGuid()

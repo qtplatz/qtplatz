@@ -549,6 +549,7 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
                             , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
 
         for ( auto& r : impl_->results_ ) {
+            r->pChr_->set_time_of_injection( this->time_of_injection() );
             r->pChr_->setIsCounting( isCounting );
             r->pChr_->setMinimumTime( time_range.first );
             r->pChr_->setMaximumTime( time_range.second );

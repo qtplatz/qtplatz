@@ -1,7 +1,7 @@
 // This is a -*- C++ -*- header.
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -147,6 +147,7 @@ namespace dataproc {
         void findPeptide( const adprot::digestedPeptides& );
         void findSinglePeak( portfolio::Folium, std::pair< double, double > trange = { -1, 3600.0 } );
         void baselineCorrection( portfolio::Folium );
+        void findPeaks( portfolio::Folium, std::shared_ptr< const adcontrols::ProcessMethod > pm );
         void setAttribute( portfolio::Folium, std::pair< std::string, std::string >&& );
         void deleteRemovedItems();
         void dftFilter( portfolio::Folium, std::shared_ptr< adcontrols::ProcessMethod > ); // filter for chromatogram

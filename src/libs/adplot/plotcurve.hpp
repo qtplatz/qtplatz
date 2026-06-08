@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -25,6 +25,7 @@
 
 #include <qwt_plot_curve.h>
 #include <memory>
+#include <QString>
 
 template<class T> class QwtSeriesData;
 
@@ -35,7 +36,7 @@ namespace adplot {
     class PlotCurve {
     public:
         ~PlotCurve();
-        PlotCurve( plot& plot, const std::wstring& = L"" );
+        PlotCurve( plot& plot, const QString& );
         PlotCurve( const PlotCurve& );
         PlotCurve& operator = ( const PlotCurve& );
         void setStyle( QwtPlotCurve::CurveStyle );

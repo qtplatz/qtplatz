@@ -1,7 +1,7 @@
 // -*- C++ -*-
 /**************************************************************************
-** Copyright (C) 2010-2014 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2014 MS-Cheminformatics LLC
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC
 *
 ** Contact: info@ms-cheminfo.com
 **
@@ -32,8 +32,8 @@
 using namespace adplot;
 
 PlotCurve::PlotCurve( plot& plot
-                      , const std::wstring& title ) : curve_( new QwtPlotCurve( QString::fromStdWString( title ) ) )
-												   , series_( 0 )
+                      , const QString& title ) : curve_( new QwtPlotCurve( title ) )
+                                               , series_( 0 )
 {
     // curve_->setRenderHint( QwtPlotItem::RenderAntialiased );
     curve_->setPen( QPen( Qt::blue) );

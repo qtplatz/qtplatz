@@ -1965,10 +1965,13 @@ MSProcessingWnd::make_chromatograms_from_peaks( std::shared_ptr< const adcontrol
                     return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < left : a.time() < left;  });
 
                 if ( beg != pkseg.end() ) {
-                    auto end = std::lower_bound( beg, pkseg.end(), right, [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
-                        return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < right : a.time() < right; });
+                    auto end = std::lower_bound( beg, pkseg.end(), right
+                                                 , [&]( const adcontrols::MSPeakInfoItem& a, const double& right ) {
+                                                     return ( axis == adcontrols::hor_axis_mass ) ? a.mass() < right : a.time() < right; });
 
-                    auto bp = std::max_element( beg, end, []( const auto a, const auto b ){ return a.area() < b.area();} );
+                    auto bp = std::max_element( beg, end,
+                                                []( const auto a
+                                                    , const auto b ){ return a.area() < b.area();} );
 
                     xInfo.setMode( pkseg.mode() );
                     xInfo.setProtocol( pkseg.protocolId(), pkseg.nProtocols() );

@@ -38,61 +38,12 @@
 #include <boost/variant/static_visitor.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <filesystem>
+#include <variant>
 
-namespace dataproc {
-
-    struct datafolder::attachment_visitor : public boost::static_visitor< void > {
-        datafolder* this_;
-        const portfolio::Folium& folium_;
-        attachment_visitor( datafolder* t, const portfolio::Folium& f ) : this_( t ), folium_( f ) {}
-
-        template< typename T > void operator () ( T ) const {
-            ADDEBUG() << "unhandled attachment: " << folium_.name() << "\t" << typeid(T).name();
-        };
-
-        void operator () ( std::shared_ptr< adcontrols::PeakResult > ptr ) const {
-            this_->peakResult_ = ptr;
-        }
-
-        void operator () ( std::shared_ptr< adcontrols::MassSpectrum > ptr ) const {
-            if ( folium_.name() == Constants::F_PROFILED_HISTOGRAM ) {
-                this_->profiledHistogram_ = ptr;
-                if ( ptr ) {
-                    this_->overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *ptr );
-                    auto n = ptr->getMSProperty().samplingInfo().numberOfTriggers();
-                    for ( size_t i = 0; i < ptr->size(); ++i ) {
-                        this_->overlaySpectrum_->setIntensity( i, ptr->intensity( i ) * 1000.0 / n );
-                    }
-                }
-            } else if ( folium_.name() == Constants::F_CENTROID_SPECTRUM ) {
-                this_->centroid_ = ptr;
-            } else {
-                ADDEBUG() << "\t-- attachment <MassSpectrum> not handled: " << folium_.name();
-            }
-        }
-
-        void operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
-            // ADDEBUG() << "\t-- attachment <Chromatogram> not handled: " << folium_.name();
-        }
-    };
-
-    struct datafolder::folium_visitor : public boost::static_visitor< void > {
-        datafolder* this_;
-        const portfolio::Folium& folium_;
-        folium_visitor( datafolder* t, const portfolio::Folium& f ) : this_( t ), folium_( f ) {};
-
-        template< typename T > void operator () ( T ) const {
-            ADDEBUG() << "unhandled folium: " << folium_.name() << "\t" << typeid(T).name();
-        };
-        void operator () ( std::shared_ptr< adcontrols::Chromatogram > ptr ) const {
-            this_->chromatogram_ = ptr;
-            this_->isCounting_ = ( ptr && ptr->isCounting() );
-        }
-        void operator () ( std::shared_ptr< adcontrols::MassSpectrum > ptr ) const {
-            this_->primary_ = ptr;
-            this_->isCounting_ = ( ptr && ptr->isHistogram() );
-        }
-    };
+namespace {
+    // helper type for the visitor
+    template<class... Ts>
+    struct overloads : Ts... { using Ts::operator()...; };
 }
 
 using namespace dataproc;
@@ -116,12 +67,53 @@ datafolder::datafolder( const Dataprocessor * dp
                                   , std::shared_ptr< adcontrols::MassSpectrum >
                                   >;
 
-    if ( auto var = adutils::to_variant< dataTuple >()( static_cast< const boost::any& >( folium ) ) ) {
-        boost::apply_visitor( folium_visitor(this, folium), *var );
-
+    if ( auto var = adutils::to_std_variant< dataTuple >()( static_cast< const boost::any& >( folium ) ) ) {
+        const auto f_visitor = overloads{
+            [&]( std::shared_ptr< adcontrols::Chromatogram > ptr ) {
+                if ( not ptr->display_name() )
+                    ptr->set_display_name( folium.name<char>() );
+                this->chromatogram_ = ptr;
+                this->isCounting_ = ( ptr && ptr->isCounting() );
+            },
+            [&]( std::shared_ptr< adcontrols::MassSpectrum > ptr ) {
+                this->primary_ = ptr;
+                this->isCounting_ = ( ptr && ptr->isHistogram() );
+            },
+            []<typename T>( T ) {
+            }
+        };
+        std::visit( f_visitor, *var );
         for ( auto& a: folium.attachments() ) {
-            if ( auto var = adutils::to_variant< dataTuple >()(static_cast< const boost::any& >( a )) ) {
-                boost::apply_visitor( attachment_visitor( this, a ), *var );
+            if ( auto var = adutils::to_std_variant< dataTuple >()(static_cast< const boost::any& >( a )) ) {
+                // boost::apply_visitor( attachment_visitor( this, a ), *var );
+                const auto a_visitor = overloads{
+                    [&]< typename T > ( T ) {
+                        ADDEBUG() << "unhandled attachment: " << a.name() << "\t" << typeid(T).name();
+                    },
+                    [&]( std::shared_ptr< adcontrols::PeakResult > ptr ) {
+                        this->peakResult_ = ptr;
+                    },
+                    [&]( std::shared_ptr< adcontrols::MassSpectrum > ptr ) {
+                        if ( a.name() == Constants::F_PROFILED_HISTOGRAM ) {
+                            this->profiledHistogram_ = ptr;
+                            if ( ptr ) {
+                                this->overlaySpectrum_ = std::make_shared< adcontrols::MassSpectrum >( *ptr );
+                                auto n = ptr->getMSProperty().samplingInfo().numberOfTriggers();
+                                for ( size_t i = 0; i < ptr->size(); ++i ) {
+                                    this->overlaySpectrum_->setIntensity( i, ptr->intensity( i ) * 1000.0 / n );
+                                }
+                            }
+                        } else if ( a.name() == Constants::F_CENTROID_SPECTRUM ) {
+                            this->centroid_ = ptr;
+                        } else {
+                            ADDEBUG() << "\t-- attachment <MassSpectrum> not handled: " << folium_.name();
+                        }
+                    },
+                    [&]( std::shared_ptr< adcontrols::Chromatogram > ptr ) {
+                        // ADDEBUG() << "\t-- attachment <Chromatogram> not handled: " << folium_.name();
+                    }
+                };
+                std::visit( a_visitor, *var );
             }
         }
     }
@@ -159,11 +151,10 @@ datafolder::make_display_name( Dataprocessor * dp, const portfolio::Folium& foli
 }
 
 QString
-datafolder::make_display_name( const std::wstring& fullpath, const portfolio::Folium& folium )
+datafolder::make_display_name( const std::filesystem::path& path, const portfolio::Folium& folium )
 {
     const char inserter = ';';
 
-    std::filesystem::path path( fullpath );
     auto rpath = std::filesystem::relative( path, path / "../.." );
     std::wstring name = rpath.wstring() + wchar_t( inserter ) + boost::algorithm::trim_copy( folium.name() );
     return QString::fromStdWString( name );

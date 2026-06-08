@@ -1226,8 +1226,8 @@ MainWindow::OnInitialUpdate()
     connect( document::instance(),  &document::onSelectionExportTo, this, &MainWindow::handleSelectionExportTo );
 
     adprocessor::ProcessMediator::instance()->registerProcessMethodProvider( [this]( adcontrols::ProcessMethod& pm ){
-            getProcessMethod( pm );
-        } );
+        getProcessMethod( pm );
+    } );
 
     setSimpleDockWidgetArrangement();
 

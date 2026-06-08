@@ -30,6 +30,7 @@
 #include "document.hpp"
 #include "export_chromatogram.hpp"
 #include "export_spectrum.hpp"
+#include "peakmethod.hpp"
 #include "sessionmanager.hpp"
 #include "actionmanager.hpp"
 #include "utility.hpp"
@@ -42,6 +43,7 @@
 #include <adcontrols/massspectrum.hpp>
 #include <adcontrols/mspeakinfo.hpp>
 #include <adcontrols/mspeakinfoitem.hpp>
+#include <adcontrols/processmethod.hpp>
 #include <adutils/processeddata.hpp>
 #include <adutils/fsio2.hpp>
 #include <adlog/logger.hpp>
@@ -52,6 +54,7 @@
 #include <adportfolio/folder.hpp>
 #include <adportfolio/folium.hpp>
 #include <adprocessor/generator_property.hpp>
+#include <adprocessor/processmediator.hpp>
 #include <exception>
 #include <qtwrapper/qfiledialog.hpp>
 #include <qtwrapper/waitcursor.hpp>
@@ -1098,6 +1101,28 @@ namespace {
         }
     };
 
+    struct find_peaks_for_selected_folders {
+        const QModelIndexList& indices_;
+        find_peaks_for_selected_folders( const QModelIndexList& indices ) : indices_( indices ) {};
+        void operator()() const {
+            if ( auto pm = adprocessor::ProcessMediator::instance()->getProcessMethod() ) {
+                auto model = qobject_cast< const QStandardItemModel * >( indices_.at(0).model() );
+
+                for ( auto& index: indices_ ) {
+                    auto [ processor, folium ] = find_processor_t< portfolio::Folium >()( index );
+                    if ( processor && folium ) {
+                        processor->fetch( folium );
+                        processor->findPeaks( folium, pm );
+                        auto checked = folium.attribute( "isChecked" ) == "true" ? Qt::Checked : Qt::Unchecked;
+
+                        auto item = model->itemFromIndex( index );
+                        item->setCheckState( checked );
+                    }
+                }
+            }
+        }
+    };
+
 
     // collect baseline for selected folia
     struct correct_baseline_for_selected_folia {
@@ -1217,11 +1242,7 @@ namespace {
             for ( int row = 0; row < pitem->rowCount(); ++row ) {
                 if ( auto item = model.itemFromIndex( model.index( row, 0, parent ) ) ) {
                     if ( item->isCheckable() && item->checkState() == checkState ) {
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-                        indices.push_back( item->index() );
-#else
                         indices.emplace_back( item->index() );
-#endif
                     }
                 }
             }
@@ -1399,6 +1420,8 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
 
         // enable only Chromatograms was selected
         enable = selFolders.contains( "Chromatograms" );
+        menu.addAction( QString( "Find peaks" )
+                        , find_peaks_for_selected_folders( selRows ) )->setEnabled( enable );
         menu.addAction( QString( tr("Correct baselines") )
                         , correct_baselines_for_selected_folders( selRows ) )->setEnabled( enable );
 

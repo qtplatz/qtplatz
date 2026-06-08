@@ -31,6 +31,8 @@
 #include "make_filename.hpp"
 #include "mainwindow.hpp"
 #include "qtwidgets_name.hpp"
+#include "qwt_legend.h"
+#include "qwt_legend_data.h"
 #include "sessionmanager.hpp"
 #include "utility.hpp"
 #include <adcontrols/baselines.hpp>
@@ -112,6 +114,9 @@ namespace dataproc {
                 plot->setMinimumHeight( 80 );
                 plot->setItemLegendEnabled( false );
                 plot->axisWidget( QwtPlot::yLeft )->scaleDraw()->setMinimumExtent( 60 );
+                // auto legend = new QwtLegend();
+                // legend->setDefaultItemMode( QwtLegendData::ReadOnly );
+                // plot->insertLegend( legend, QwtPlot::RightLegend );
             });
 
             plots_[ 0 ]->link( plots_[ 1 ].get() );
@@ -444,8 +449,6 @@ ChromatogramWnd::handleSelections( const std::vector< portfolio::Folium >& folio
             }
         }
     }
-    // if ( !data.empty() )
-    //     data.emplace_front( impl_->datum_ );
 
     impl_->addOverlays( std::move( data ) );
     impl_->redraw();

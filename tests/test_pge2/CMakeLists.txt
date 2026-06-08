@@ -18,6 +18,10 @@ add_executable( test_pge2
   pge2.cpp
 )
 
+add_executable( test_ara-eta
+  ara-eta.cpp
+)
+
 add_executable( test_retention
   retention.cpp
 )

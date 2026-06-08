@@ -285,7 +285,7 @@ TraceData::setData( plot& plot, std::size_t size, const double * x, const double
 
     QRectF rect;
 
-    curves_.push_back( PlotCurve( plot ) );
+    curves_.push_back( PlotCurve( plot, {} ) );
     PlotCurve &curve = curves_[0];
     data_[ 0 ].setData( size, x, y );
     curve.p()->setData( new SeriesData( data_[ 0 ], rect ) );
