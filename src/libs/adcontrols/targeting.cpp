@@ -183,18 +183,14 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
             auto formula = std::get< impl::active_formula_formula >( aformula );
 
             std::string display_name;
-            if ( !synonym.empty() && synonym.size() < 8 ) {
+            if ( !synonym.empty() ) {
                 display_name = synonym;
-            } else {
-                auto v = ChemicalFormula::split( formula );
-                display_name = ( boost::format("%.1f")
-                                 % adcontrols::ChemicalFormula().getMonoIsotopicMass( v.at(0).first, false ) ).str();
             }
 
             using namespace adcontrols::cf;
-            display_name += " " + ChemicalFormula::formatFormulae( formula, {Charge{scharge}, RichText{true}, {"M"} } );
+            display_name += (display_name.empty() ? "" : " ") + ChemicalFormula::formatFormulae( formula, {Charge{scharge}, RichText{true}, {"M"} } );
 
-            //ADDEBUG() << "------------- Targeting::find_candidate: " << std::make_tuple( scharge, synonym, formula, display_name );
+            ADDEBUG() << "------------- Targeting::find_candidate: " << std::make_tuple( scharge, synonym, formula, display_name );
             candidates_.emplace_back( uint32_t( pos )
                                       , fcn
                                       , scharge
@@ -320,6 +316,7 @@ Targeting::operator()( MassSpectrum& ms )
                         , pri
                         , annotation::dataText // annotation::dataFormula
                         , annotation::flag_targeting } );
+                ADDEBUG() << "addAnnotation: " << candidate.display_name;
 
                 auto list = adcontrols::ChemicalFormula::split( candidate.formula );
                 double exactMass = adcontrols::ChemicalFormula().getMonoIsotopicMass( list ).first;

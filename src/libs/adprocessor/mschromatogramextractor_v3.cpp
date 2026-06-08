@@ -295,7 +295,6 @@ MSChromatogramExtractor::loadSpectra( const adcontrols::ProcessMethod * pm
 std::chrono::time_point< std::chrono::system_clock, std::chrono::nanoseconds >
 MSChromatogramExtractor::time_of_injection() const
 {
-    ADDEBUG() << "---------- time_of_injection ---------------";
     if ( auto db = impl_->raw_->db() ) {
         adfs::stmt sql( *db );
         sql.prepare( "SELECT epoch_time,events FROM AcquiredData WHERE events >= ? ORDER BY epoch_time" );
@@ -461,6 +460,11 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
         if ( temp.empty() )
             return false;
 
+        std::optional< double > sfe_injection_delay;
+        if ( auto tic = reader->TIC(0) ) {
+            sfe_injection_delay = tic->sfe_injection_delay();
+        }
+
         size_t nCount = reader->size( -1 ) * 2;
         size_t nProg(0);
         // Generate chromatograms
@@ -491,13 +495,17 @@ MSChromatogramExtractor::extract_by_mols( std::vector< std::shared_ptr< adcontro
             std::pair< double, double > time_range =
                 std::make_pair( impl_->spectra_.begin()->second->getMSProperty().timeSinceInjection()
                                 , impl_->spectra_.rbegin()->second->getMSProperty().timeSinceInjection() );
-            ADDEBUG() << "\ttime_range: " << time_range;
+            ADDEBUG() << "\ttime_range: " << time_range
+                      << "\tsfe delay: " << (sfe_injection_delay ? *sfe_injection_delay : 0);
+
 
             for ( auto& xc : temp ) {
                 xc.pChr->setIsCounting( isCounting );
                 xc.pChr->setMinimumTime( time_range.first );
                 xc.pChr->setMaximumTime( time_range.second );
                 // ADDEBUG() << "\tcreating chromatogram: " << (global_mslock ? "has lock" : "no lock");
+                if ( sfe_injection_delay )
+                    xc.pChr->set_sfe_injection_delay( true, *sfe_injection_delay );
                 if ( auto desc = impl_->desc_mslock() ) {
                     // ADDEBUG() << "\tdescreptor: " << desc->keyValue();
                     xc.pChr->addDescription( *desc );
@@ -531,6 +539,13 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
     const size_t nCounts = reader->size( -1 ) * 2;
     size_t nProg(0);
 
+    std::optional< double > sfe_injection_delay;
+    if ( auto tic = reader->TIC(-1) ) {
+        ADDEBUG() << "--------- found TIC -------------";
+        ADDEBUG() << (tic->sfe_injection_delay() ? std::format( "injection_delay={}", *tic->sfe_injection_delay() ) : std::format( "injection_delay not found" ));
+        sfe_injection_delay = tic->sfe_injection_delay();
+    }
+
     if ( loadSpectra( &pm, reader, -1, progress, nCounts, nProg ) ) {
 
         const bool isCounting = reader->isCounting();
@@ -558,6 +573,8 @@ MSChromatogramExtractor::extract_by_peak_info( std::vector< std::shared_ptr< adc
             if ( auto desc = impl_->desc_mslock() ) {
                 r->pChr_->addDescription( *desc );
             }
+            if ( sfe_injection_delay )
+                r->pChr_->set_sfe_injection_delay( true, *sfe_injection_delay );
             vec.emplace_back( std::move( r->pChr_ ) );
         }
         return true;

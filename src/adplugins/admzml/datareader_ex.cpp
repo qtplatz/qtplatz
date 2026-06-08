@@ -372,10 +372,17 @@ data_reader::findTime( int64_t pos, IndexSpec ispec, bool exactMatch ) const
 std::shared_ptr< const adcontrols::Chromatogram >
 data_reader::TIC( int fcn ) const
 {
-    // ADDEBUG() << "## " << __FUNCTION__ << " ##";
-    if ( auto chro = std::shared_ptr< adcontrols::Chromatogram >() ) {
-        // impl_->mzml_->getTIC( fcn, *chro );
-        // return chro;
+    if ( auto db = impl_->db_.lock() ) {
+        adfs::stmt sql( *db );
+        sql.prepare( "SELECT data from Chromatograms WHERE mode = 'TIC' AND dataUUID=?" );
+        sql.bind(1) = adcontrols::Chromatogram::__clsid__();
+        while ( sql.step() == adfs::sqlite_row ) {
+            auto blob = sql.get_column_value< adfs::blob >(0);
+            auto is = std::istringstream( bzip2_decompress( blob ) );
+            auto tic = std::make_shared< adcontrols::Chromatogram >();
+            adcontrols::Chromatogram::restore( is, *tic );
+            return tic;
+        }
     }
     return nullptr;
 }

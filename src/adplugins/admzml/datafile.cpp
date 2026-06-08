@@ -235,6 +235,7 @@ datafile::open( const std::filesystem::path& path, bool /* readonly */ )
     ADDEBUG() << "datafile::open(" << path << ")";
 
     impl_->mzml_ = std::make_unique< mzML >();
+
     portfolio::Portfolio portfolio;
 
     if ( path.extension() == ".adfs" ) {
