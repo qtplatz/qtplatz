@@ -190,7 +190,7 @@ Targeting::find_candidate( const MassSpectrum& ms, int fcn, adcontrols::ion_pola
             using namespace adcontrols::cf;
             display_name += (display_name.empty() ? "" : " ") + ChemicalFormula::formatFormulae( formula, {Charge{scharge}, RichText{true}, {"M"} } );
 
-            ADDEBUG() << "------------- Targeting::find_candidate: " << std::make_tuple( scharge, synonym, formula, display_name );
+            // ADDEBUG() << "------------- Targeting::find_candidate: " << std::make_tuple( scharge, synonym, formula, display_name );
             candidates_.emplace_back( uint32_t( pos )
                                       , fcn
                                       , scharge
