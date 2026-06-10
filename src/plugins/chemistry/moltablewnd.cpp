@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -31,6 +31,7 @@
 #include <qtwrapper/waitcursor.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/moltable.hpp>
+#include <adportable/debug.hpp>
 #include <adprot/aminoacid.hpp>
 #include <adwidgets/moltableview.hpp>
 
@@ -51,8 +52,10 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QMimeData>
+#include <QMessageBox>
 #include <QProgressBar>
 #include <QSortFilterProxyModel>
+#include <QSqlError>
 #include <QSqlField>
 #include <QSqlQueryModel>
 #include <QSqlQuery>
@@ -60,6 +63,7 @@
 #include <QSqlTableModel>
 #include <QTextDocument>
 #include <QUrl>
+#include <QDebug>
 #include <QVBoxLayout>
 #include <filesystem>
 #include <boost/exception/all.hpp>
@@ -118,6 +122,8 @@ MolTableWnd::model()
 void
 MolTableWnd::setQuery( const QString& sqlstmt )
 {
+    ADDEBUG() << __FUNCTION__ << " " << sqlstmt.toStdString();
+
     QSqlQuery query( sqlstmt, document::instance()->sqlDatabase() );
 
     if ( query.exec() ) {
@@ -147,6 +153,15 @@ MolTableWnd::setQuery( const QString& sqlstmt )
             int col;
             if ( ( col = rec.indexOf( hidden ) ) >= 0 )
                 table_->setColumnHidden( col, true );
+        }
+    } else {
+        qDebug() << query.lastError().driverText();
+        auto sqlError = query.lastError();
+        qDebug() << query.lastQuery();
+        if ( sqlError.type() != QSqlError::NoError ) {
+            QMessageBox::information( this
+                                      , tr( "QtPlatz/Chemistry" )
+                                      , sqlError.driverText() + "\n" + sqlError.databaseText() );
         }
     }
 }

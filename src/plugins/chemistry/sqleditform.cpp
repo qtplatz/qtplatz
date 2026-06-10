@@ -46,12 +46,13 @@ namespace {
                 QStringList words ( "mols" );
                 QFile file( ":/query/wordlist.txt" );
                 if ( file.open( QFile::ReadOnly ) ) {
-                    while ( !file.atEnd() ) {
+                    while ( not file.atEnd() ) {
                         QByteArray line = file.readLine();
-                        if ( ! line.isEmpty() )
+                        if ( not line.isEmpty() )
                             words << line.trimmed();
                     }
                 }
+                words += { "synonym", "formula", "mass", "smiles", "InChI", "InChiKey"};
                 words.sort( Qt::CaseInsensitive );
                 words.removeDuplicates();
                 completer->setModel( new QStringListModel( words, completer ) );

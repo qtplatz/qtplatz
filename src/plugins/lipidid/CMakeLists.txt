@@ -55,6 +55,7 @@ include_directories(
 add_library( ${PROJECT_NAME} MODULE
   lipididplugin.cpp
   lipididplugin.hpp
+  bzip2_helper.cpp  bzip2_helper.hpp
   document.cpp
   document.hpp
   mainwindow.cpp

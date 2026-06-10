@@ -69,6 +69,7 @@ namespace adchem {
         std::vector< SDMol > populate( std::function<void(size_t)> progrss = [](size_t){} );
 
         static std::vector< std::pair< std::string, std::string > > parseItemText( const std::string& );
+        static std::string parseCTable( const std::string& );
 
     private:
         std::unique_ptr< RDKit::SDMolSupplier > molSupplier_;

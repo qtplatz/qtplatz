@@ -40,23 +40,25 @@ namespace adchem {
 
     class ADCHEMSHARED_EXPORT SDMol {
         size_t index_;
-        std::weak_ptr< SDFile > sdfile_;
-        std::unique_ptr< RDKit::ROMol > mol_;
         std::vector< std::pair< std::string, std::string > > dataItems_;
-        std::string svg_;
-        std::string smiles_;
-        std::string formula_;
-        double mass_;
+        std::string ctable_;
+        mutable std::unique_ptr< RDKit::ROMol > mol_;
+        mutable std::string svg_;
+        mutable std::string smiles_;
+        mutable std::string formula_;
+        mutable double mass_;
     public:
         SDMol();
         SDMol( const SDMol& );
         SDMol& operator = ( const SDMol& );
         SDMol( SDFile *, size_t idx );
-        const std::string& svg();
-        const std::string& smiles();
+        operator bool () const;
+        const std::string& ctable() const;
 
-        const std::string& formula();
-        double mass();
+        const std::string& svg() const;
+        const std::string& smiles() const;
+        const std::string& formula() const;
+        double mass() const;
         std::pair< double, double > logP() const;
         const std::vector< std::pair< std::string, std::string > > dataItems() const;
         size_t index() const { return index_; }

@@ -103,6 +103,19 @@ SDFile::populate( std::function< void(size_t) > progress )
     return d;
 }
 
+std::string
+SDFile::parseCTable( const std::string& text )
+{
+    // extract CTable
+    auto first = text.find_first_not_of(" \t\r\n");
+    if ( first != std::string::npos ) {
+        auto pos = text.find( "M  END", first );
+        if ( pos != std::string::npos )
+            return text.substr( first, pos + 6 );
+    }
+    return {};
+}
+
 std::vector< std::pair< std::string, std::string > >
 SDFile::parseItemText( const std::string& text )
 {

@@ -24,12 +24,14 @@
 #include "constants.hpp"
 #include "document.hpp"
 #include "sdfimport.hpp"
+#include "bzip2_helper.hpp"
 #include <adchem/sdfile.hpp>
 #include <adchem/sdmol.hpp>
 #include <adchem/sdmolsupplier.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adfs/sqlite.hpp>
 #include <adportable/debug.hpp>
+#include <adportable/bzip2.hpp>
 #include <adwidgets/progressinterface.hpp>
 #include <qtwrapper/settings.hpp>
 #include <coreplugin/progressmanager/progressmanager.h>
@@ -78,6 +80,15 @@ namespace lipidid {
         void task(  std::shared_ptr< adchem::SDFile > sdfile
                     , std::shared_ptr< adfs::sqlite > sqlite
                     , std::shared_ptr< adwidgets::ProgressInterface > p );
+        void add_duplicated( adfs::sqlite& db
+                             , const RDKit::RWMol * mol
+                             , const std::string& inchiKey
+                             , const std::string& inchi
+                             , const std::string& smiles
+                             , const std::string& formula
+                             , double mass
+                             , double logP
+                             , const adchem::SDMol& sdmol ) const;
     };
 
     struct SlogP {
@@ -92,41 +103,20 @@ namespace lipidid {
             }
         }
     };
+
     struct itemSelector {
-        std::string operator()( const std::vector< std::pair< std::string, std::string > >& list ) const {
-            const static std::vector< std::string > select = {
-                "ABBREVIATION"
-                //, "Abbreviation"
-                , "CATEGORY"
-                //, "CLASS_LEVEL4"
-                //, "Compound name"
-                //, "EXACT_MASS"
-                //, "Exact Mass"
-                //, "ExactMW"
-                //, "FORMULA=Formula"
-                , "LM_ID"
-                , "MAIN_CLASS"
-                //, "MRM transition"
-                , "NAME"
-                //, "Precursor-ion"
-                //, "Product-ion"
-                //, "SMILES"
-                //, "SUB_CLASS"
-                , "SWISSLIPIDS_ID"
-                , "SYNONYMS"
-                //, "SYSTEMATIC_NAME"
-                //, "SlogP"
-                //, "The number of lipid species"
-                //, "各脂質分子の量 (pmol/mg-protein)"
-            };
-            std::vector< std::pair< std::string, std::string > > filterd;
-            std::copy_if( list.begin(), list.end(), std::back_inserter( filterd )
-                          , [&](const auto& a){
-                              return
-                                  std::find_if( select.begin(), select.end(), [&](const auto& t){ return t == a.first; }) != select.end();
-                          });
-            return boost::json::serialize( boost::json::value{{"dataItem", boost::json::value_from( filterd )}} );
+
+        std::string operator()( const std::vector< std::pair< std::string, std::string > >& list, const std::string& key ) const {
+            auto it = std::find_if( list.begin(), list.end(), [&](const auto& a){ return a.first == key; } );
+            if ( it != list.end() )
+                return it->second;
+            return {};
         }
+
+        std::string to_value( const std::vector< std::pair< std::string, std::string > >& list ) const {
+            return boost::json::serialize( boost::json::value{{"dataItem", boost::json::value_from( list )}} );
+        }
+
     };
 
 }
@@ -201,14 +191,33 @@ SDFileImport::create_tables( const std::string& stem )
                 sql.exec(
                     "CREATE TABLE IF NOT EXISTS mols ("
                     "id INTEGER PRIMARY KEY"
-                    ",svg              TEXT"
+                    ",inchiKey         TEXT"
+                    ",smiles           TEXT" //
                     ",formula          TEXT"
                     ",mass             REAL"
                     ",SlogP            REAL"
-                    ",inchiKey         TEXT"
-                    ",smiles           TEXT"
+                    ",lm_id            TEXT"
                     ",itemData         TEXT" //  JSON
+                    ",inchi            TEXT"
+                    ",lm_ctab          BLOB"
+                    ",svg              BLOB"
                     ",UNIQUE(inchiKey)"
+                    ")"
+                    );
+                sql.exec(
+                    "CREATE TABLE IF NOT EXISTS duplicated_mols ("
+                    "id INTEGER PRIMARY KEY"
+                    ",inchiKey         TEXT"
+                    ",smiles           TEXT" //
+                    ",formula          TEXT"
+                    ",mass             REAL"
+                    ",SlogP            REAL"
+                    ",itemData         TEXT" //  JSON
+                    ",lm_id            TEXT"
+                    ",inchi            TEXT"
+                    ",lm_ctab          BLOB"
+                    ",svg              BLOB"
+                    //",UNIQUE(inchiKey)"
                     ")"
                     );
                 qtwrapper::settings( *document::settings() ).addRecentFiles( "LIPID_MAPS", "Files", fn );
@@ -243,57 +252,128 @@ SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
 {
     adfs::stmt sql( *sqlite );
 
-    if ( sql.prepare("INSERT INTO mols (id,svg,formula,mass,SlogP,inchiKey,smiles,itemData) VALUES (?,?,?,?,?,?,?,?)") ) {
+    // auto bzip2_compress = [](const std::string& svg)->adfs::blob{
+    //     std::string bz2;
+    //     adportable::bzip2::compress( bz2, svg.data(), svg.size() );
+    //     return adfs::blob( bz2.size(), bz2.data() );
+    // };
 
-        std::vector< std::tuple< size_t, std::string, double, std::string > > dbg;
+    std::vector< size_t > duplicated;
+    std::pair< size_t, size_t > error_c{0,0};
+
+    if ( sql.prepare("INSERT INTO mols ("
+                     " id"                // 1
+                     ",inchiKey"          // 2
+                     ",smiles"            // 3
+                     ",formula"           // 4
+                     ",mass"              // 5
+                     ",SlogP"             // 6
+                     ",itemData"          // 7
+                     ",lm_id"             // 8
+                     ",inchi"             // 9
+                     ",lm_ctab"           // 10
+                     ",svg"               // 11
+                     ") VALUES (?,?,?,?,?,?,?,?,?,?,?)") ) {
 
         for ( size_t i = 0; i < sdfile->size(); ++i ) {
             auto sdmol     = sdfile->at( i );
-            auto inchikey  = RDKit::MolToInchiKey( sdmol.mol() );
-            auto svg       = sdmol.svg();
-            auto smiles    = sdmol.smiles();
-            auto formula   = sdmol.formula();
-            double mass    = sdmol.mass();
-            double logP(0);
-            if ( auto a = SlogP()( sdmol.dataItems() ) )
-                logP  = *a;
-            else
-                std::tie(logP, std::ignore) = sdmol.logP();
-            auto json = itemSelector()( sdmol.dataItems() );
+            auto ctab = sdmol.ctable();
+            auto lm_id = itemSelector()( sdmol.dataItems(), "LM_ID" );
 
             if ( ( i % 1000 ) == 0 ) {
-                ADDEBUG() << i << "/" << sdfile->size() << "\t" << std::make_tuple( i, formula, mass, inchikey );
+                ADDEBUG() << i << "/" << sdfile->size() << "\t" << std::make_tuple( i, lm_id );
             }
 
-            int col(1);
-            sql.bind( col++ ) = sdmol.index();
-            sql.bind( col++ ) = svg;
-            sql.bind( col++ ) = formula;
-            sql.bind( col++ ) = mass;
-            sql.bind( col++ ) = logP;
-            sql.bind( col++ ) = inchikey;
-            sql.bind( col++ ) = smiles;
-            sql.bind( col++ ) = json;
+            if ( not ctab.empty() ) {
+                std::unique_ptr< RDKit::RWMol > mol( RDKit::MolBlockToMol( ctab ) );
+                auto inchiKey = RDKit::MolToInchiKey( *mol );
+                if ( not inchiKey.empty() ) {
+                    RDKit::ExtraInchiReturnValues rv;
+                    auto inchi = RDKit::MolToInchi( *mol, rv );
+                    auto smiles = RDKit::MolToSmiles( *mol );
+                    auto json = itemSelector().to_value( sdmol.dataItems() );
+                    double mass = RDKit::Descriptors::calcExactMW( *mol );
+                    double logP, mr;
+                    RDKit::Descriptors::calcCrippenDescriptors( *mol, logP, mr );
+                    auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
 
-            if ( sql.step() != adfs::sqlite_done ) {
-                dbg.emplace_back( i, formula, mass, inchikey );
-                ADDEBUG() << "sql error: " << sql.errmsg()
-                          << "\t" << dbg.back()
-                          << "\terror count: " << dbg.size();
+                    sql.bind( 1 ) = sdmol.index();
+                    sql.bind( 2 ) = inchiKey;
+                    sql.bind( 3 ) = smiles;
+                    sql.bind( 4 ) = formula;
+                    sql.bind( 5 ) = mass;
+                    sql.bind( 6 ) = logP;
+                    sql.bind( 7 ) = json;
+                    sql.bind( 8 ) = lm_id;
+                    sql.bind( 9 ) = inchi;
+                    sql.bind( 10 ) = bzip2_compress()( ctab );
+                    sql.bind( 11 ) = bzip2_compress()( sdmol.svg() );
+
+                    if ( sql.step() != adfs::sqlite_done ) {
+                        ADDEBUG() << "sql error: " << sql.errmsg() << "\terror count: " << ++error_c.first;
+                        add_duplicated( *sqlite, mol.get(), inchiKey, inchi, smiles, formula, mass, logP, sdmol );
+                    }
+                    sql.reset();
+                }
+            } else {
+                ADDEBUG() << "SDFile error: " << std::format( "[{}]", i )
+                          << std::make_pair( sdmol.ctable(), boost::json::value_from( sdmol.dataItems() ) )
+                          << "\nerror count: " << ++error_c.second;
             }
-            sql.reset();
             (*progress)(i);
             qApp->processEvents();
-        }
-    } else {
+        } // for
+        ADDEBUG() << "############ Total error counts: " << error_c;
+    } else { //
         ADDEBUG() << "sql error: " << sql.errmsg();
     }
-
-    // -- for initial schema code preparation ->
-    // for ( const auto& key: dataKeys )
-    //     ADDEBUG() << key;
-    // <- for initial schema code preparation --
 }
+
+void
+SDFileImport::impl::add_duplicated( adfs::sqlite& db
+                                    , const RDKit::RWMol * mol
+                                    , const std::string& inchiKey
+                                    , const std::string& inchi
+                                    , const std::string& smiles
+                                    , const std::string& formula
+                                    , double mass
+                                    , double logP
+                                    , const adchem::SDMol& sdmol ) const
+{
+    adfs::stmt sql( db );
+    if ( sql.prepare("INSERT INTO duplicated_mols ("
+                     " id"                // 1
+                     ",inchiKey"          // 2
+                     ",smiles"            // 3
+                     ",formula"           // 4
+                     ",mass"              // 5
+                     ",SlogP"             // 6
+                     ",lm_id"             // 8
+                     ",itemData"          // 7
+                     ",inchi"             // 9
+                     ",lm_ctab"           // 10
+                     ",svg"               // 11
+                     ") VALUES (?,?,?,?,?,?,?,?,?,?,?)") ) {
+
+        sql.bind( 1 ) = sdmol.index();
+        sql.bind( 2 ) = inchiKey;
+        sql.bind( 3 ) = smiles;
+        sql.bind( 4 ) = formula;
+        sql.bind( 5 ) = mass;
+        sql.bind( 6 ) = logP;
+        sql.bind( 7 ) = std::string( itemSelector().to_value( sdmol.dataItems() ) );
+        sql.bind( 8 ) = itemSelector()( sdmol.dataItems(), "LM_ID" );
+        sql.bind( 9 ) = inchi;
+        sql.bind( 10 ) = bzip2_compress()( sdmol.ctable() );
+        sql.bind( 11 ) = bzip2_compress()( sdmol.svg() );
+
+        if ( sql.step() != adfs::sqlite_done ) {
+            ADDEBUG() << "sql error: " << sql.errmsg();
+        }
+    }
+}
+
+
 
 /*
 ABBREVIATION

@@ -47,12 +47,12 @@ SDMol::SDMol() : index_( 0 )
 }
 
 SDMol::SDMol( const SDMol& t ) : index_    ( t.index_ )
-                               , sdfile_   ( t.sdfile_ )
                                , dataItems_( t.dataItems_ )
                                , svg_      ( t.svg_ )
                                , smiles_   ( t.smiles_ )
                                , formula_  ( t.formula_ )
                                , mass_     ( t.mass_ )
+                               , ctable_   ( t.ctable_ )
 {
     mol_       = t.mol_ ? std::make_unique< RDKit::ROMol >( *t.mol_ ) : nullptr;
 }
@@ -61,37 +61,44 @@ SDMol&
 SDMol::operator = ( const SDMol& t )
 {
     index_     = t.index_;
-    sdfile_    = t.sdfile_;
     dataItems_ = t.dataItems_;
     svg_       = t.svg_;
     smiles_    = t.smiles_;
     formula_   = t.formula_;
     mass_      = t.mass_;
     mol_       = t.mol_ ? std::make_unique< RDKit::ROMol >( *t.mol_ ) : nullptr;
+    ctable_    = t.ctable_;
     return *this;
 }
 
 
 SDMol::SDMol( SDFile * sdfile, size_t idx )
     : index_( idx )
-    , sdfile_( sdfile->shared_from_this() )
     , dataItems_( SDFile::parseItemText( sdfile->molSupplier().getItemText( index_ ) ) )
+    , ctable_( SDFile::parseCTable( sdfile->molSupplier().getItemText( index_ ) ) )
     , mass_( -1 )
 {
+    if ( not ctable_.empty() ) {
+        mol_ = std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] );
+    } else {
+        mol_ = std::make_unique< RDKit::ROMol >();
+    }
+}
+
+const std::string&
+SDMol:: ctable() const
+{
+    return ctable_;
+}
+
+SDMol::operator bool () const
+{
+    return not ctable_.empty();
 }
 
 RDKit::ROMol&
 SDMol::mol()
 {
-    if ( !mol_ ) {
-        if ( auto sdfile = sdfile_.lock() ) {
-            mol_ = std::make_unique< RDKit::ROMol >( *sdfile->molSupplier()[ index_ ] );
-            formula_ = RDKit::Descriptors::calcMolFormula( *mol_, true, false );
-            mass_    = RDKit::Descriptors::calcExactMW( *mol_ );
-        } else {
-            mol_ = std::make_unique< RDKit::ROMol >();
-        }
-    }
     return *mol_;
 }
 
@@ -102,36 +109,36 @@ SDMol::mol() const
 }
 
 const std::string&
-SDMol::svg()
+SDMol::svg() const
 {
-    if ( svg_.empty() ) {
+    if ( (*this) && svg_.empty() ) {
         svg_ = adchem::drawing::toSVG( mol() );
     }
     return svg_;
 }
 
 const std::string&
-SDMol::smiles()
+SDMol::smiles() const
 {
-    if ( smiles_.empty() ) {
+    if ( (*this) && smiles_.empty() ) {
         smiles_    = RDKit::MolToSmiles( mol() );
     }
     return smiles_;
 }
 
 const std::string&
-SDMol::formula()
+SDMol::formula() const
 {
-    if ( formula_.empty() ) {
+    if ( (*this) && formula_.empty() ) {
         formula_ = RDKit::Descriptors::calcMolFormula( mol(), true, false );
     }
     return formula_;
 }
 
 double
-SDMol::mass()
+SDMol::mass() const
 {
-    if ( mass_ <= 0 ) {
+    if ( (*this) && mass_ <= 0 ) {
         mass_    = RDKit::Descriptors::calcExactMW( mol() );
     }
     return mass_;
