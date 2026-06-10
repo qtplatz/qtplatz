@@ -36,7 +36,7 @@ namespace mzml {
     std::string to_string( const pugi::xml_node& node );
     std::string bzip2_compress( std::string&& );
     std::string bzip2_decompress( const std::string& compressed );
-    std::string bzip2_decompress( adfs::blob );
+    std::string bzip2_decompress( const adfs::blob& );
 
     template< typename T >
     std::string archive_to_string( const T& t, bool compress ) {

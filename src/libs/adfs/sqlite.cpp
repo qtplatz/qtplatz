@@ -671,12 +671,29 @@ blob::blob() : p_(0), octets_(0), pBlob_(0)
 {
 }
 
-blob::blob( std::size_t octets, const int8_t *p ) : p_( p ), octets_( octets ), pBlob_(0)
+blob::blob( std::size_t octets, const int8_t *p ) : p_( p )
+                                                  , octets_( octets )
+                                                  , pBlob_(0)
 {
 }
 
-blob::blob( std::size_t octets, const char *p ) : p_( reinterpret_cast< const int8_t *>(p) ), octets_( octets ), pBlob_(0)
+blob::blob( std::size_t octets, const char *p ) : p_( reinterpret_cast< const int8_t *>(p) )
+                                                , octets_( octets )
+                                                , pBlob_(0)
 {
+}
+
+blob::blob( std::string&& s ) : storage_( std::move( s ) )
+                              , p_( reinterpret_cast< const int8_t *>( storage_->data()) )
+                              , octets_( storage_->size() )
+                              , pBlob_(0)
+{
+}
+
+const std::optional< std::string >&
+blob::storage() const
+{
+    return storage_;
 }
 
 boost::uint32_t

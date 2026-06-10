@@ -29,6 +29,7 @@
 #include <string>
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 struct sqlite3;
 struct sqlite3_stmt;
@@ -69,14 +70,18 @@ namespace adfs {
     };
 
     class ADFSSHARED_EXPORT blob {
+        std::optional< std::string > storage_;
         const int8_t * p_;
         std::size_t octets_;
         sqlite3_blob * pBlob_;
+        blob( const blob& ) = delete;
+        blob& operator = ( const blob& ) = delete;
     public:
         ~blob();
         blob();
         blob( std::size_t octets, const int8_t *p = 0 );
         blob( std::size_t octets, const char *p = 0 );
+        explicit blob( std::string&& );
         uint32_t size() const;
         inline const int8_t * data() const { return p_; }
         inline operator bool () const { return pBlob_ != 0; }
@@ -85,6 +90,7 @@ namespace adfs {
         bool reopen( int64_t rowid );
         bool read( int8_t *, std::size_t, std::size_t offset = 0 ) const;
         bool write( const int8_t *, std::size_t, std::size_t offset = 0 ) const;
+        const std::optional< std::string >& storage() const;
     };
 
     class ADFSSHARED_EXPORT null { };

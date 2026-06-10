@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2022-2022 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2022-2022 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2022-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2022-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -196,11 +196,11 @@ SDFileImport::create_tables( const std::string& stem )
                     ",formula          TEXT"
                     ",mass             REAL"
                     ",SlogP            REAL"
+                    ",svg              BLOB"
                     ",lm_id            TEXT"
                     ",itemData         TEXT" //  JSON
                     ",inchi            TEXT"
                     ",lm_ctab          BLOB"
-                    ",svg              BLOB"
                     ",UNIQUE(inchiKey)"
                     ")"
                     );
@@ -212,11 +212,11 @@ SDFileImport::create_tables( const std::string& stem )
                     ",formula          TEXT"
                     ",mass             REAL"
                     ",SlogP            REAL"
+                    ",svg              BLOB"
                     ",itemData         TEXT" //  JSON
                     ",lm_id            TEXT"
                     ",inchi            TEXT"
                     ",lm_ctab          BLOB"
-                    ",svg              BLOB"
                     //",UNIQUE(inchiKey)"
                     ")"
                     );
@@ -296,6 +296,8 @@ SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
                     double logP, mr;
                     RDKit::Descriptors::calcCrippenDescriptors( *mol, logP, mr );
                     auto formula = RDKit::Descriptors::calcMolFormula( *mol, true, false );
+                    auto svgz =  bzip2_compress()( sdmol.svg() );
+                    auto ctabz = bzip2_compress()( ctab );
 
                     sql.bind( 1 ) = sdmol.index();
                     sql.bind( 2 ) = inchiKey;
@@ -306,8 +308,8 @@ SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
                     sql.bind( 7 ) = json;
                     sql.bind( 8 ) = lm_id;
                     sql.bind( 9 ) = inchi;
-                    sql.bind( 10 ) = bzip2_compress()( ctab );
-                    sql.bind( 11 ) = bzip2_compress()( sdmol.svg() );
+                    sql.bind( 10 ) = adfs::blob( ctabz.size(), ctabz.data() ) ;
+                    sql.bind( 11 ) = adfs::blob( svgz.size(), svgz.data() );
 
                     if ( sql.step() != adfs::sqlite_done ) {
                         ADDEBUG() << "sql error: " << sql.errmsg() << "\terror count: " << ++error_c.first;
@@ -316,8 +318,8 @@ SDFileImport::impl::task( std::shared_ptr< adchem::SDFile > sdfile
                     sql.reset();
                 }
             } else {
-                ADDEBUG() << "SDFile error: " << std::format( "[{}]", i )
-                          << std::make_pair( sdmol.ctable(), boost::json::value_from( sdmol.dataItems() ) )
+                ADDEBUG() << "SDFile has no CTable: " << std::format( "[{}]\t", i )
+                          << boost::json::value_from( sdmol.dataItems() )
                           << "\nerror count: " << ++error_c.second;
             }
             (*progress)(i);
@@ -354,6 +356,8 @@ SDFileImport::impl::add_duplicated( adfs::sqlite& db
                      ",lm_ctab"           // 10
                      ",svg"               // 11
                      ") VALUES (?,?,?,?,?,?,?,?,?,?,?)") ) {
+        auto svgz =  bzip2_compress()( sdmol.svg() );
+        auto ctabz = bzip2_compress()( sdmol.ctable() );
 
         sql.bind( 1 ) = sdmol.index();
         sql.bind( 2 ) = inchiKey;
@@ -364,8 +368,8 @@ SDFileImport::impl::add_duplicated( adfs::sqlite& db
         sql.bind( 7 ) = std::string( itemSelector().to_value( sdmol.dataItems() ) );
         sql.bind( 8 ) = itemSelector()( sdmol.dataItems(), "LM_ID" );
         sql.bind( 9 ) = inchi;
-        sql.bind( 10 ) = bzip2_compress()( sdmol.ctable() );
-        sql.bind( 11 ) = bzip2_compress()( sdmol.svg() );
+        sql.bind( 10 ) = adfs::blob( ctabz.size(), ctabz.data() );
+        sql.bind( 11 ) = adfs::blob( svgz.size(), svgz.data() );
 
         if ( sql.step() != adfs::sqlite_done ) {
             ADDEBUG() << "sql error: " << sql.errmsg();

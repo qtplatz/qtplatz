@@ -60,7 +60,7 @@ namespace mzml {
         return compressed;
     }
 
-    std::string bzip2_decompress( adfs::blob blob ) {
+    std::string bzip2_decompress( const adfs::blob& blob ) {
         return bzip2_decompress( std::string{ reinterpret_cast< const char * >(blob.data()), blob.size() } );
     }
 

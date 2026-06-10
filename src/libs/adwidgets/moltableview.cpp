@@ -29,6 +29,7 @@
 #include "moldraw.hpp"
 #include <adchem/drawing.hpp>
 #include <adportable/float.hpp>
+#include <adportable/bzip2.hpp>
 #include <adprot/digestedpeptides.hpp>
 #include <adprot/peptides.hpp>
 #include <adprot/peptide.hpp>
@@ -226,8 +227,18 @@ namespace adwidgets {
         struct paint_f_svg {
 
             void operator()( const ColumnState&, QPainter * painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+                auto bzip2_decompression = [](const QByteArray& ba )->QByteArray{
+                    if ( adportable::bzip2::is_a( ba.data(), ba.size() ) ) {
+                        std::string inflated;
+                        adportable::bzip2::decompress( inflated, ba.data(), ba.size() );
+                        return QByteArray( inflated.data(), inflated.size() ) ;
+                    } else {
+                        return ba;
+                    }
+                };
                 painter->save();
-                QSvgRenderer renderer( index.data().toByteArray() );
+                auto ba = bzip2_decompression( index.data().toByteArray() );
+                QSvgRenderer renderer( ba );
                 painter->translate( option.rect.x(), option.rect.y() );
                 painter->scale( 1.0, 1.0 );
                 QRect target( 0, 0, option.rect.width(), option.rect.height() );
