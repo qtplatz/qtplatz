@@ -1,6 +1,6 @@
 /**************************************************************************
-** Copyright (C) 2010-2016 Toshinobu Hondo, Ph.D.
-** Copyright (C) 2013-2016 MS-Cheminformatics LLC, Toin, Mie Japan
+** Copyright (C) 2010-2026 Toshinobu Hondo, Ph.D.
+** Copyright (C) 2013-2026 MS-Cheminformatics LLC, Toin, Mie Japan
 *
 ** Contact: toshi.hondo@qtplatz.com
 **
@@ -28,6 +28,7 @@
 #include <adfs/sqlite.hpp>
 #include <adfs/sqlite3.h>
 #include <adportable/debug.hpp>
+#include <adportable/bzip2.hpp>
 #include <QByteArray>
 #include <QObject>
 #include <GraphMol/SmilesParse/SmilesParse.h>
@@ -136,7 +137,7 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
         inchi = RDKit::MolToInchi( mol, rv );
     }
 #endif
-
+#if 0
     if ( sql_.prepare( "SELECT COUNT(*) FROM mols WHERE InChI = ?" ) ) {
         sql_.bind( 1 ) = inchi;
         if ( sql_.step() == adfs::sqlite_row ) {
@@ -145,8 +146,10 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
             }
         }
     }
-
+#endif
     std::string svg = adchem::drawing::toSVG( mol );
+    std::string svgz;
+    adportable::bzip2::compress( svgz, svg.data(), svg.size() );
     std::string formula = RDKit::Descriptors::calcMolFormula( mol, true, false );
     double mass = adcontrols::ChemicalFormula().getMonoIsotopicMass( formula );
     std::string inchikey = RDKit::InchiToInchiKey( inchi );
@@ -155,25 +158,26 @@ ChemQuery::insert( const RDKit::ROMol& mol, const std::string& smiles, const std
 
         int row(1);
         sql_.bind( row++ ) = smiles;
-        sql_.bind( row++ ) = adfs::blob( svg.size(), svg.data() );
+        sql_.bind( row++ ) = adfs::blob( svgz.size(), svgz.data() );
         sql_.bind( row++ ) = formula;
         sql_.bind( row++ ) = mass;
         sql_.bind( row++ ) = inchi;
         sql_.bind( row++ ) = inchikey;
-
-        if ( sql_.step() == adfs::sqlite_done ) {
-            sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchi = ?" );
-            ADDEBUG() << "synonyms.size = " << synonyms.size() << ", " << ( synonyms.size() ? synonyms.at( 0 ) : "" );
-            for ( auto synonym: synonyms ) {
-                sql_.bind( 1 ) = synonym;
-                sql_.bind( 2 ) = inchi;
-                ADDEBUG() << "\t" << synonym << ", " << inchi;
-                if ( sql_.step() == adfs::sqlite_error )
-                    ADDEBUG() << sql_.errmsg();
-                sql_.reset();
-            }
-            return true;
+        if ( sql_.step() != adfs::sqlite_done ) {
+            if ( sql_.errcode() != SQLITE_CONSTRAINT )
+                 ADDEBUG() << sql_.errmsg() << "\t" << sql_.errcode();
         }
     }
-    return false;
+
+    sql_.prepare( "INSERT INTO synonyms (id,synonym) SELECT id, ? FROM mols WHERE inchikey = ?" );
+    for ( auto synonym: synonyms ) {
+        // ADDEBUG() << std::format("\t{}\t{}", inchikey, synonym );
+        sql_.bind( 1 ) = synonym;
+        sql_.bind( 2 ) = inchikey;
+        if ( sql_.step() == adfs::sqlite_error )
+            if ( sql_.errcode() != SQLITE_CONSTRAINT )
+                ADDEBUG() << sql_.errmsg();
+        sql_.reset();
+    }
+    return true;
 }

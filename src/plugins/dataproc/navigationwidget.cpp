@@ -1563,6 +1563,11 @@ NavigationWidget::handleContextMenuRequested( const QPoint& pos )
             emit document::instance()->onPeakDeconvolution( list, 6 );
         })->setEnabled( list.size() );
 
+        menu.addAction( tr( "ARA/ETA deconvolution"), [list]{
+            emit document::instance()->onPeakDeconvolution( list, 10 );
+        })->setEnabled( list.size() );
+
+
         menu.addAction( tr( "Selection export to ..."), [list,selRows]{
             std::vector< std::pair< portfolio::Folium, Dataprocessor * > > flist;
 

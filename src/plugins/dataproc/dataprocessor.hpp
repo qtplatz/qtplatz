@@ -157,6 +157,7 @@ namespace dataproc {
         void setSFEDelay( bool, double );
         void srmDeconvolution( int id );
         void srmDeconvolution2( int id );
+        void srmDeconvolution3( int id );
         void relativeAbundances( portfolio::Folium, double t );
 
         portfolio::Folium addSpectrum( std::shared_ptr< adcontrols::MassSpectrum >

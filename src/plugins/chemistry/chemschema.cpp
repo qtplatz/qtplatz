@@ -33,22 +33,24 @@ ChemSchema::createTables( adfs::stmt& sql )
     bool result( true );
 
     result &= sql.exec(
-        "CREATE TABLE IF NOT EXISTS mols (\
-id INTEGER PRIMARY KEY \
-,formula TEXT \
-,svg BLOB  \
-,SystematicName TEXT \
-,smiles TEXT  \
-,InChI TEXT UNIQUE \
-,InChIKey TEXT \
-,mass REAL \
-,csid NUMBER \
-,cite TEXT )" );
+        "CREATE TABLE IF NOT EXISTS mols ("
+        "id INTEGER PRIMARY KEY"
+        ",formula TEXT"
+        ",svg BLOB"
+        ",SystematicName TEXT"
+        ",smiles TEXT"
+        ",InChI TEXT UNIQUE"
+        ",InChIKey TEXT UNIQUE"
+        ",mass REAL"
+        ",csid NUMBER"
+        ",cite TEXT )"
+        );
 
     result &= sql.exec(
         "CREATE TABLE IF NOT EXISTS synonyms ("
         " id INTEGER "
         ", synonym TEXT"
+        ", UNIQUE (id,synonym)"
         ",FOREIGN KEY ( id ) REFERENCES mols ( id ) )"
         );
 

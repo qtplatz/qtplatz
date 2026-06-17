@@ -2411,6 +2411,31 @@ Dataprocessor::srmDeconvolution2( int id )
     }
 }
 
+void
+Dataprocessor::srmDeconvolution3( int id )
+{
+    constexpr int ndim = 2;
+    constexpr int nprod = 2;
+
+    static std::vector< std::string > re_names = {
+        R"(./folium[contains(@name,   ', m/z 259.20 neg')])"
+        , R"(./folium[contains(@name, ', m/z 303.20 neg')])"
+    };
+
+    if ( id == 10 ) {  // ARA,ETA
+        Eigen::Matrix<double, ndim, 2> A;
+        A <<                /* ETA */   /* ARA */
+            ///*0, m/z 59.10 neg  */    0.0057377,   0.0158631
+            ///*1, m/z 195.10 neg */    0.0021158,   0.0000000
+            ///*2, m/z 231.15 neg */    ,0.0038708,   0.0102946
+            /*3, m/z 259.20 neg */    0.0315946,   0.0864203
+            /*4, m/z 303.20 neg */    ,1.0000000,   1.0000000
+            ;
+        PGDeconvolution<ndim,2>( this, A, re_names, std::make_tuple( "ETA", "ARA", "||A*b-x||" ) );
+    }
+
+}
+
 namespace {
 
     class srm_folium_name {

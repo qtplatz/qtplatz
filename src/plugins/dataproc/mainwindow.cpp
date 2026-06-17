@@ -1613,8 +1613,10 @@ MainWindow::handlePeakDeconvolution( std::set< Dataprocessor * > list, int id )
     for ( auto processor: list ) {
         if ( id < 5 ) {
             processor->srmDeconvolution( id );
-        } else {
+        } else if ( id < 9 ) {
             processor->srmDeconvolution2( id );
+        } else {
+            processor->srmDeconvolution3( id ); // 3
         }
     }
 }
@@ -1648,7 +1650,7 @@ MainWindow::handleSelectionExportTo( std::vector< std::pair< portfolio::Folium, 
                 }
             }
             std::ofstream of( path );
-            of << "#";
+            of << "# \"Time (s)\"\t";
             for ( auto it = alist.begin(); it != alist.end(); ++it ) {
                 of << ( (it == alist.end() - 1) ?
                         std::format("\"{}\"\n", std::get<0>(*it) ) :
@@ -1665,9 +1667,14 @@ MainWindow::handleSelectionExportTo( std::vector< std::pair< portfolio::Folium, 
              for ( size_t i = 0; i < length; ++i ) {
                  for ( auto it = alist.begin(); it != alist.end(); ++it ) {
                      of << std::apply( [&](auto... pack){
-                         return (it == alist.end() - 1) ?
-                             std::format("{:.3f},{}\n", pack...) :
-                             std::format("{:.3f},{},\t", pack...);
+                         return (it == alist.begin()) ?
+                             std::format("{:.3f},\t{},\t", pack...) :
+                             ( (it == alist.end() - 1) ?
+                               std::format("{1}\n", pack...) :
+                               std::format("{1},\t", pack...) );
+                         // return (it == alist.end() - 1) ?
+                         //     std::format("{:.3f},{}\n", pack...) :
+                         //     std::format("{:.3f},{},\t", pack...);
                      }, functor( *std::get<1>(*it), i ));
                  }
              }

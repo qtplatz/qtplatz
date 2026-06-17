@@ -30,6 +30,7 @@
 #include <adchem/drawing.hpp>
 #include <adcontrols/chemicalformula.hpp>
 #include <adcontrols/pugrest.hpp>
+#include <adportable/bzip2.hpp>
 #include <adfs/filesystem.hpp>
 #include <adfs/sqlite.hpp>
 #include <adprot/aminoacid.hpp>
@@ -232,6 +233,8 @@ namespace chemistry {
         , { R"(OC=1C(=CC(=CC1C(C)(C)C)C)C(C)(C)C)", { "BHT" }}
         , { R"(CCCCC/C=C\C/C=C\CCCCCCCC(=O)O)",       { "C18:2", "Linolic acid" } }
         , { R"(O=C(O)CCC\C=C/C\C=C/C\C=C/C\C=C/C\C=C/CC)",      { "C20:5", "EPA", "Eicosapentaenoic acid" } }
+        , { R"(CCCCC/C=C\\C/C=C\\CCCCCCCCCC(=O)O)", { "C20:2", "cis-11,14-Eicosadienoic acid" }}
+
         // 17941
         , { R"(OC(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCCC)=O)",       { "C22:4", "Adrenic acid", "Docosatetraenoic acid"}}//, "90300" }}
         , { R"(CCCCC/C=C\C/C=C\C/C=C\C/C=C\CCCC(=O)O)",         { "C20:4", "Arachidonic acid"        }}//,      "90010" } }
@@ -243,6 +246,7 @@ namespace chemistry {
         , { R"(CCCCCC=CCC=CCC=CCCCCC(=O)O)",                    { "GLA",   "γ-Linoleic acid", "C18:3n-6"           }}//,       "90220" }}
         , { R"(CC/C=C\C/C=C\C/C=C\C/C=C\CCCCC(=O)O)",           { "C18:4", "Stearidonic acid"        }}//,      "90320" }}
         // 17942 Saturated/Monounsaturated fatty acid MaxSpec LC-MS Mixture
+
         , { R"(O=C(O)CCCCCCCCCCCCCCCCCCC)",           { "C20:0", "Arachidic acid"   }}//,   "9000339",   "17942-1" }}
         , { R"(O=C(O)CCCCCCCCCCC)",                   { "C12:0", "Lauric acid"      }}//,      "10006626",  "17942-2" }}
         , { R"(O=C(O)CCCCCCCCCCCCCCCCCCCCCCC)",       { "C24:0", "Lignoceric acid"  }}//,  "13353",     "17942-3" }}
@@ -491,11 +495,13 @@ document::ChemSpiderSearch( const QString& sql, QTextEdit * edit )
                         sql.prepare(
                             "UPDATE mols SET csid = ?, formula = ?, mass = ?, svg = ?, smiles = ?, InChIKey = ? "
                             " WHERE InChI = ?" );
+                        std::string svgz;
+                        adportable::bzip2::compress( svgz, svg.data(), svg.size() );
 
                         sql.addBindValue( csid );
                         sql.addBindValue( QString::fromStdString( formula ) );
                         sql.addBindValue( mass );
-                        sql.addBindValue( QByteArray( svg.data(), int( svg.size() ) ) );
+                        sql.addBindValue( QByteArray( svgz.data(), int( svgz.size() ) ) );
                         sql.addBindValue( QString::fromStdString( smiles ) ); // utf8 on db
                         sql.addBindValue( QString::fromStdString( InChIKey ) );
                         sql.addBindValue( QString::fromStdString( InChI ) );
