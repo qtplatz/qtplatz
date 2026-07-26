@@ -35,7 +35,7 @@ namespace shrader {
 
     namespace detail { struct CAL; }
 
-    using cal_data = std::tuple< int32_t, float, double, double >;
+    using cal_data_type = std::tuple< int32_t, float, double, double >;
     enum { cal_mass, cal_intens, cal_coeff_a, cal_coeff_b };
 
     class lrpcalib {
@@ -55,7 +55,7 @@ namespace shrader {
 
         int32_t flags() const;
         std::string type() const;
-        cal_data cal_data( size_t idx ) const;
+        cal_data_type cal_data( size_t idx ) const;
         const std::array< char, data_size >& rp() const { return data_; };
     private:
         bool loaded_;

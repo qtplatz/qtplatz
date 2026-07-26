@@ -84,7 +84,7 @@ lrpcalib::flags() const
     return *reinterpret_cast<const int32_t *>(data_.data() + offsetof( detail::calib, flags ));
 }
 
-cal_data
+cal_data_type
 lrpcalib:: cal_data( size_t idx ) const
 {
     if ( idx < cal_size ) {

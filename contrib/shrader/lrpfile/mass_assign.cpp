@@ -40,7 +40,7 @@ namespace shrader {
         }
 
         double dt_;
-        cal_data cal_;
+        cal_data_type cal_;
     };
 
 }

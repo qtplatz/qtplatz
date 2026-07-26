@@ -19,6 +19,9 @@ set( OUTPUT_DIR "${CMAKE_BINARY_DIR}/${_adplugin_output_dir}" )
 
 add_definitions(-DSHRADER_LRPFILE_LIBRARY)
 #find_package( Qt${QT_VERSION_MAJOR} CONFIG REQUIRED Widgets ) # <-- adplugin depend on it
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_definitions( "-Wno-changes-meaning" )
+endif()
 
 add_library( shrader_lrpfile SHARED
   shrader_lrpfile.cpp
