@@ -26,6 +26,7 @@
 #include <adcontrols/msassignedmass.hpp>
 #include <adcontrols/massspectrum.hpp>
 #include <adportable/array_wrapper.hpp>
+#include <algorithm>
 #include <cstring>
 
 using namespace dataproc;
