@@ -32,6 +32,7 @@
 #include <adcontrols/processeddataset.hpp> // for delition of scoped_ptr<ProcessedDataset>
 #include <adplugin/visitor.hpp>
 #include <memory>
+#include <mutex>
 
 using namespace shrader;
 

@@ -26,6 +26,7 @@
 #pragma once
 
 #include <sstream>
+#include <memory>
 
 namespace adfs { class blob; }
 namespace adcontrols { class MassSpectrum; }

@@ -102,13 +102,13 @@ namespace shrader {
         // ADDEBUG() << "############# spectral time step: "
         //           << std::format( "{}, stepsize={}, clockbaud={}", fSampInterval, stepsize, clockbaud );
 
-        if ( rowid > lrpfile.msdata().size() )
+        if ( rowid > lrpfile.data().size() )
             return {};
 
-        if ( rowid < 0 || rowid >= lrpfile.msdata().size()) {
+        if ( rowid < 0 || rowid >= lrpfile.data().size()) {
             return {};
         }
-        auto y = lrpfile.msdata().at( rowid )->intensities();
+        auto y = lrpfile.data().at( rowid )->intensities();
         auto numSamples = y.size();
         auto mass_range = header_mass_range();
 
@@ -135,7 +135,7 @@ namespace shrader {
             for ( const auto& datum: vec )
                 *ms << datum;
             ms->setAcquisitionMassRange( mass_range.first, mass_range.second );
-            ms->getMSProperty().setTrigNumber( lrpfile.msdata().at( rowid )->blocks().at(0).scan );
+            ms->getMSProperty().setTrigNumber( lrpfile.data().at( rowid )->blocks().at(0).scan );
             ms->getMSProperty().setInstMassRange( header_mass_range() );
             ms->getMSProperty().setMassSpectrometerClsid( shreader::spectrometer::iids::uuid_massspectrometer );
             if ( auto& lrptic = lrpfile.lrptic() ) {

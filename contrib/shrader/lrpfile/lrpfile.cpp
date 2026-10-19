@@ -39,6 +39,7 @@
 #include <iostream>
 #include <istream>
 #include <sstream>
+#include <mutex>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -220,7 +221,7 @@ lrpfile::lrptic() const
 }
 
 const std::vector< std::shared_ptr< shrader::msdata > >&
-lrpfile::msdata() const
+lrpfile::data() const
 {
     return impl_->msdata_;
 }

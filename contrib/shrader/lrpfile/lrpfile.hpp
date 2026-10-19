@@ -71,7 +71,7 @@ namespace shrader {
         const shrader::lrpcalib& lrpcalib() const;
         const shrader::simions& simions() const;
         const shrader::lrptic& lrptic() const;
-        const std::vector< std::shared_ptr< shrader::msdata > >& msdata() const;
+        const std::vector< std::shared_ptr< shrader::msdata > >& data() const;
 
         std::string time_of_injection() const;
 

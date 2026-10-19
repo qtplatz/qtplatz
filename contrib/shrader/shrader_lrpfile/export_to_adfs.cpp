@@ -187,7 +187,7 @@ export_to_adfs::operator()( const datafile& _ )
 
         auto tIt = lrp->lrptic().tic().begin();
 
-        for ( auto it = lrp->msdata().begin(); it != lrp->msdata().end(); ++it, ++tIt ) {
+        for ( auto it = lrp->data().begin(); it != lrp->data().end(); ++it, ++tIt ) {
             double time_since_injection = double(tIt->time) / 1000.0;
             const auto& msdata = *it;
             const char * rp = reinterpret_cast< const char * >(msdata->blocks().data());
@@ -200,7 +200,7 @@ export_to_adfs::operator()( const datafile& _ )
                                                , msdata->blocks().at(0).scan // pos
                                                , 0 // fcn
                                                , 0 // ndata -- not in use
-                                               , ((it == lrp->msdata().begin()) ? adacquire::SignalObserver::wkEvent_INJECT : 0) // events
+                                               , ((it == lrp->data().begin()) ? adacquire::SignalObserver::wkEvent_INJECT : 0) // events
                                                , data
                                                , meta );
         }
