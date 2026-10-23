@@ -61,7 +61,6 @@ TXTSpectrum::TXTSpectrum()
 bool
 TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 {
-	//bool hasMass( false );
 	std::filesystem::path path( name );
 	std::ifstream in( path );
     if ( in.fail() )
@@ -86,8 +85,21 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
                                     , hasMass
                                     , isCentroid );
 
+    auto it = std::adjacent_find( tdata.begin(), tdata.end()
+                                  , [](const auto& a, const auto& b){ return std::get<1>(a) > std::get<1>(b); } );
+    if ( it != tdata.end() ) {
+        tdata.erase( it, tdata.end() );
+    }
+
     auto data = txt_reader().make_legacy( tdata, flags );
+
     const size_t nSamples = tdata.size();
+
+
+
+    ADDEBUG() << "nSamples: " << nSamples << ", " << dlg.hasDataInterpreter();
+    for ( const auto t: tdata )
+        ADDEBUG() << t;
 
     if ( nSamples == 0 )
         return false;
@@ -114,7 +126,9 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
             if ( !flags[ flag_mass ] ) {
                 ptr->setAcquisitionMassRange( 100, 1000 );
                 std::vector<double> empty;
-                idx += create_spectrum( *ptr, idx, s, std::get< flag_time >( data ), empty, std::get< flag_intensity >( data ), fcn++ );
+                idx += create_spectrum( *ptr, idx, s
+                                        , std::get< flag_time >( data ), empty
+                                        , std::get< flag_intensity >( data ), fcn++ );
             } else {
                 ptr->setAcquisitionMassRange( std::get< flag_mass >( data ).front(), std::get< flag_mass >( data ).back() );
                 idx += create_spectrum( *ptr, idx, s, std::get< flag_time >( data )
