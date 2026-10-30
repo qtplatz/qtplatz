@@ -782,6 +782,7 @@ Dataprocessor::sendCheckedSpectraToCalibration( Dataprocessor * processor )
 {
     qtwrapper::waitCursor wait;
 
+    ADDEBUG() << "========== " << __FUNCTION__ << " ==============";
     // obtain data from source (may not be my-self)
     portfolio::Folder spectra = processor->portfolio().findFolder( L"Spectra" );
 
@@ -851,6 +852,10 @@ Dataprocessor::applyCalibration( const adcontrols::ProcessMethod& m )
             assert( pCalibMethod && pCentroidMethod );
             return;
         }
+
+        ADDEBUG() << "massToleranceDa: " << pCalibMethod->massToleranceDa()
+                  << ", minimumRAParcent: " << pCalibMethod->minimumRAPercent()
+                  << ", mass range: " << std::make_pair( pCalibMethod->lowMass(), pCalibMethod->highMass() );
 
         adcontrols::CentroidMethod centroidMethod( *pCentroidMethod );
         centroidMethod.centroidAreaIntensity( false );  // force hight for easy overlay

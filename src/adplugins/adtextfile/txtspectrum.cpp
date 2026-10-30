@@ -95,11 +95,9 @@ TXTSpectrum::load( const std::wstring& name, const Dialog& dlg )
 
     const size_t nSamples = tdata.size();
 
-
-
-    ADDEBUG() << "nSamples: " << nSamples << ", " << dlg.hasDataInterpreter();
-    for ( const auto t: tdata )
-        ADDEBUG() << t;
+    // ADDEBUG() << "nSamples: " << nSamples << ", " << dlg.hasDataInterpreter();
+    // for ( const auto t: tdata )
+    //     ADDEBUG() << t;
 
     if ( nSamples == 0 )
         return false;

@@ -104,14 +104,15 @@ MSCalibrateForm::MSCalibrateForm(QWidget *parent) :  QWidget(parent)
     //spin_t< QDoubleSpinBox, double >::init( boost::get<QDoubleSpinBox *>(accessor(eHighMass)), 1000.0, 10000, 1);
     spin_init( boost::get<QSpinBox *>(accessor(ePolynomialDegree))
                , std::make_tuple( Minimum<>{1}, Maximum<>{25}, Value<>{1},Alignment{Qt::AlignRight} ));
+
     spin_init( boost::get<QDoubleSpinBox *>(accessor(eMassTolerance))
-               , std::make_tuple( Minimum<>{2.0}, Maximum<>{50.0}, Value<>{1.0}, Alignment{Qt::AlignRight}) );
+               , std::make_tuple( Minimum<>{0.001}, Maximum<>{50.0}, Value<>{0.001}, Decimals{4}, Alignment{Qt::AlignRight}) );
     spin_init( boost::get<QDoubleSpinBox *>(accessor(eMinimumRA))
                , std::make_tuple( Minimum<>{0.0}, Maximum<>{100.0}, Value<>{1.0}, Alignment{Qt::AlignRight} )); // %
     spin_init( boost::get<QDoubleSpinBox *>(accessor(eLowMass))
                , std::make_tuple( Minimum<>{1.0}, Maximum<>{10000.}, Value<>{1.}, Alignment{Qt::AlignRight} ));
     spin_init( boost::get<QDoubleSpinBox *>(accessor(eHighMass))
-               , std::make_tuple( Minimum<>{1000.0}, Maximum<>{10000.}, Value<>{1.}, Alignment{Qt::AlignRight} ));
+               , std::make_tuple( Minimum<>{10.0}, Maximum<>{10000.}, Value<>{1.}, Alignment{Qt::AlignRight} ));
 
     if ( auto spin = boost::get< QDoubleSpinBox * >( accessor( eHighMass ) ) ) {
         connect( spin, qOverload<double>(&QDoubleSpinBox::valueChanged)
