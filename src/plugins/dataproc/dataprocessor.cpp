@@ -1630,7 +1630,7 @@ DataprocessorImpl::applyMethod( Dataprocessor * dp
 			for ( auto& ms: segs ) {
 				for ( size_t i = 0; i < ms.size(); ++i ) {
 					if ( ms.intensity( i ) < y_threshold )
-						ms.setColor( i, 16 ); // transparent
+						ms.setColor( i, 9 ); // gray (light gray is invisible)
 				}
 			}
 

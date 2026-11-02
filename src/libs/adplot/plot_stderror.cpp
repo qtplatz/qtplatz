@@ -59,12 +59,13 @@ plot_stderror::operator()( const QVector< QPointF >& data, QwtPlot& plot )
             return std::abs(a.y()) < std::abs(b.y()); } );
     double dfs = std::abs(dmax.y()) * 1.5;
     plot.setAxisScale( QwtPlot::yRight, -dfs, dfs );
+    plot.setAxisTitle( QwtPlot::yRight, "Error (mDa)" );
 
     std::vector< std::tuple< int, double, double > > bars;
     for ( auto& datum: data ) {
         std::shared_ptr< QwtPlotMarker > marker = std::make_shared< QwtPlotMarker >();
         markers_.push_back( marker );
-        marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( QColor(0x00, 0x00, 0x20, 0x40) ), QSize(7, 7) ) );
+        marker->setSymbol( new QwtSymbol( QwtSymbol::Style( QwtSymbol::Cross ), Qt::NoBrush, QPen( QColor(0x00, 0x00, 0x20, 0x80) ), QSize(7, 7) ) );
         marker->setValue( datum.x(), datum.y() );
         marker->setYAxis( QwtPlot::yRight );
         marker->attach( &plot );

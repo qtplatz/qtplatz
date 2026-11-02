@@ -30,6 +30,7 @@
 #include "qtwidgets_name.hpp"
 #include "mass_calibrator.hpp"
 #include "sessionmanager.hpp"
+#include "utility.hpp"
 #include <adcontrols/computemass.hpp>
 #include <adcontrols/descriptions.hpp>
 #include <adcontrols/massspectrometer.hpp>
@@ -68,6 +69,7 @@
 
 #include <QBoxLayout>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPrinter>
@@ -94,6 +96,7 @@ namespace dataproc {
                                                  , timeAxis_( false ) {
 
             processedSpectrum_->enableAxis( QwtPlot::yRight ); // enable y-axis for profile overlay
+
             centroid_marker_->attach( processedSpectrum_ );
             centroid_marker_->setYAxis( QwtPlot::yRight );
         }
@@ -168,8 +171,20 @@ MSCalibrationWnd::init()
 
             // Make a connection to zoomer in order to sync table in visible range
             connect( pImpl_->processedSpectrum_->zoomer(), &adplot::Zoomer::zoomed, pSummary, &ST::handle_zoomed );
-            typedef adplot::SpectrumWidget SW;
-            connect( pImpl_->processedSpectrum_, static_cast<void(SW::*)(const QRectF&)>(&SW::onSelected), pSummary, &ST::handle_selected );
+            connect( pImpl_->processedSpectrum_
+                     , &adplot::SpectrumWidget::onSelected, pSummary, &ST::handle_selected );
+            connect( pImpl_->processedSpectrum_
+                     , &adplot::SpectrumWidget::onSelected
+                     , [&]( const QRectF& ){
+                         QMenu menu;
+                         menu.addAction( tr( "Copy image to clipboard" ), [this](){
+                             adplot::plot::copyToClipboard( pImpl_->processedSpectrum_ );
+                         });
+                         menu.addAction( tr( "Save as SVG File..." ), [this] () {
+                             utility::save_image_as<SVG>()( pImpl_->processedSpectrum_, pImpl_->folium_ );
+                         });
+                         menu.exec( QCursor::pos() );
+                     });
 
 
             if ( auto p = qobject_cast< adplugin::LifeCycle * >( pSummary ) )
@@ -222,7 +237,6 @@ MSCalibrationWnd::handleSelectionChanged( Dataprocessor* processor, portfolio::F
         pImpl_->processedSpectrum_->clear();
         pImpl_->peakInfo_.reset();
         pImpl_->calibCentroid_.reset();
-        // pImpl_->calibProfile_.reset();
 
         portfolio::Folio attachments = folium.attachments();
 
@@ -612,7 +626,7 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
         painter.drawText( drawRect, Qt::TextWordWrap, text );
     }
     // ---------- end calibration equestion -----
-
+#if 0
     if ( connect( this, SIGNAL( onPrint(QPrinter&, QPainter&) )
                   , pImpl_->summaryTable_, SLOT(handlePrint(QPrinter&, QPainter&)) ) ) {
         emit onPrint( printer, painter );
@@ -620,4 +634,5 @@ MSCalibrationWnd::handlePrintCurrentView( const QString& pdfname )
         assert( res );
         (void)res;
     }
+#endif
 }
