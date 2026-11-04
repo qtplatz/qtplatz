@@ -77,8 +77,8 @@ namespace adcontrols {
         friend ADCONTROLSSHARED_EXPORT description tag_invoke( const boost::json::value_to_tag< description >&, const boost::json::value& );
     };
 
-    template<> boost::json::value  description::as<boost::json::value>() const;
-    template<> std::string description::as<std::string>() const;
+    template<> ADCONTROLSSHARED_EXPORT boost::json::value  description::as<boost::json::value>() const;
+    template<> ADCONTROLSSHARED_EXPORT std::string description::as<std::string>() const;
 
 }
 

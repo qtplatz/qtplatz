@@ -31,6 +31,12 @@
 #include <boost/uuid/uuid.hpp>
 #include <memory>
 #include <optional>
+#if defined(_WIN32) || defined(_WIN64)
+#  include <BaseTsd.h>
+   typedef SSIZE_T ssize_t;
+#else
+#  include <sys/types.h>
+#endif
 
 namespace portfolio {
     class Folium;
@@ -58,7 +64,7 @@ namespace adcontrols {
             tag_invoke( const boost::json::value_to_tag< Peak >&, const boost::json::value& );
         };
 
-        class dataSource {
+        class ADCONTROLSSHARED_EXPORT dataSource {
         public:
             ~dataSource();
             dataSource();

@@ -8,7 +8,7 @@
 ** of this software and associated documentation files (the "Software"), to deal
 ** in the Software without restriction, including without limitation the rights
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
+** copies of the Software, and to permit per303sons to whom the Software is
 ** furnished to do so, subject to the following conditions:
 
 ** The above copyright notice and this permission notice shall be included in all
@@ -54,6 +54,7 @@ SOFTWARE.
 #include "product_record.hpp"
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <cstddef>
 
 std::vector<std::pair<std::string, std::string>> ei_rules = {
     { "C-C cleavage cation left",
@@ -300,7 +301,7 @@ public:
     ~smiles_reader() {}
     smiles_reader() {}
 
-    ssize_t find_smiles_column( const adportable::csv::list_type& list ) const {
+    std::ptrdiff_t find_smiles_column( const adportable::csv::list_type& list ) const {
         for ( size_t i = 0; i < list.size(); ++i ) {
             const auto& value = list.at(i);
             if ( value.type() == typeid( std::string ) ) {
@@ -320,7 +321,7 @@ public:
     }
 
     std::vector< std::string >
-    make_synonyms( const adportable::csv::list_type& list, ssize_t smiles_column ) const {
+    make_synonyms( const adportable::csv::list_type& list, std::ptrdiff_t smiles_column ) const {
         std::vector< std::string > res{};
         for ( size_t i = 0; i < list.size(); ++i ) {
             if ( i != smiles_column )
@@ -334,7 +335,7 @@ public:
                                                  , std::vector< std::string >&& )> forwarder ) const {
         adportable::csv::csv_reader reader{};
         adportable::csv::list_type list;
-        ssize_t smiles_column = (-1);
+        std::ptrdiff_t smiles_column = (-1);
         size_t rdCount = 0;
         while ( reader.read( inf, list ) && inf.good() ) {
             if ( smiles_column == (-1) )

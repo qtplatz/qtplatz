@@ -53,8 +53,9 @@ if (MSVC)
   add_definitions( -wd26451 ) # integer arithmetics overflow
   add_definitions( -wd26495 ) # uninitialized member variable
   add_definitions( -wd26498 ) # constexpr
-  set( CMAKE_CXX_STANDARD 20 )
   set( COMPILER_SUPPORTS_CXX20 TRUE )
+  set( COMPILER_SUPPORTS_CXX23 TRUE )
+  set( CMAKE_CXX_STANDARD 23 )
 
 else()
 
