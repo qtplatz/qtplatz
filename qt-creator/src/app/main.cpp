@@ -814,6 +814,11 @@ int main(int argc, char **argv)
         if (fractionalDpi)
             QApplication::setStyle(QLatin1String("fusion"));
     }
+    if (Utils::HostOsInfo::isMacHost() && !options.hasStyleOption) {
+        // Qt 6.10 native macOS style fails to render checkbox indicators
+        // on macOS 27.2. FIXME: check newer Qt versions.
+        QApplication::setStyle(QLatin1String("fusion"));
+    }
 
     const int threadCount = QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->setMaxThreadCount(qMax(4, 2 * threadCount));
